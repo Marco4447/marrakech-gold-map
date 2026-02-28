@@ -85,6 +85,7 @@ export type Database = {
           image_url: string
           likes: number
           location: string | null
+          username: string | null
         }
         Insert: {
           caption?: string | null
@@ -93,6 +94,7 @@ export type Database = {
           image_url: string
           likes?: number
           location?: string | null
+          username?: string | null
         }
         Update: {
           caption?: string | null
@@ -101,6 +103,7 @@ export type Database = {
           image_url?: string
           likes?: number
           location?: string | null
+          username?: string | null
         }
         Relationships: []
       }
