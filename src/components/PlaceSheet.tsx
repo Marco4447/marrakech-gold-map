@@ -28,10 +28,17 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const handleTaxi = useCallback(() => {
     if (!place) return;
     setTaxiLoading(true);
+    const dest = encodeURIComponent(place.name);
+    const url = `https://www.jemaride.com/?dest=${dest}`;
     setTimeout(() => {
       setTaxiLoading(false);
-      const dest = encodeURIComponent(place.name);
-      window.open(`https://www.jemaride.com/?dest=${dest}`, "_blank", "noopener");
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }, 1500);
   }, [place]);
 
