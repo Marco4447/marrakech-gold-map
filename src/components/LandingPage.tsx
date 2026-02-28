@@ -39,8 +39,8 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
           className="space-y-3"
         >
           <h1 className="font-display text-3xl font-bold text-foreground leading-tight">
-            Marrakech.<br />
-            <span className="text-gold">En Live. En Exclusif.</span>
+            Weshkech<br />
+            <span className="text-gold">Marrakech Live Vibes</span>
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Découvrez les spots les plus stylés, voyez l'ambiance en temps réel et accédez à des avantages réservés aux membres.
