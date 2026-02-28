@@ -289,7 +289,8 @@ export default function LivePage() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.1 }}
-                    className="relative flex-shrink-0 w-[45vw] aspect-[3/4] rounded-2xl overflow-hidden border-2 border-gold/30"
+                    onClick={() => setCommentVibeId(vibe.id)}
+                    className="relative flex-shrink-0 w-[45vw] aspect-[3/4] rounded-2xl overflow-hidden border-2 border-gold/30 cursor-pointer active:scale-95 transition-transform"
                   >
                     <img
                       src={vibe.image_url}
@@ -322,9 +323,15 @@ export default function LivePage() {
                           <span className="text-[10px] text-foreground/70 truncate">{vibe.location}</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-1 mt-1">
-                        <Heart className="w-3 h-3 fill-gold text-gold" />
-                        <span className="text-[10px] font-bold text-gold">{vibe.likes}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-1">
+                          <Heart className="w-3 h-3 fill-gold text-gold" />
+                          <span className="text-[10px] font-bold text-gold">{vibe.likes}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3 text-foreground/60" />
+                          <span className="text-[10px] font-medium text-foreground/60">{commentCounts[vibe.id] || 0}</span>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
