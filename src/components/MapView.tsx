@@ -5,15 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
+const SIX_HOURS = 6 * 60 * 60 * 1000;
 
-const createGoldIcon = () =>
+const createGoldIcon = (trending = false) =>
   L.divIcon({
-    className: "",
-    html: `<div class="gold-marker flex items-center justify-center w-8 h-8 rounded-full bg-gold shadow-lg border-2 border-gold-light" style="background:hsl(43,56%,52%);border-color:hsl(43,60%,65%);box-shadow:0 0 12px hsl(43,56%,52%,0.4)">
-      <div style="width:12px;height:12px;border-radius:50%;background:hsl(220,20%,6%)"></div>
+    className: trending ? "trending-marker" : "",
+    html: `<div class="gold-marker flex items-center justify-center ${trending ? "w-10 h-10" : "w-8 h-8"} rounded-full bg-gold shadow-lg border-2 border-gold-light" style="background:hsl(43,56%,52%);border-color:hsl(43,60%,65%);box-shadow:0 0 ${trending ? "20" : "12"}px hsl(43,56%,52%,${trending ? "0.7" : "0.4"})">
+      <div style="width:${trending ? "14" : "12"}px;height:${trending ? "14" : "12"}px;border-radius:50%;background:hsl(220,20%,6%)"></div>
+      ${trending ? '<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(220,20%,6%);font-size:8px;font-weight:800;padding:1px 4px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em">TRENDING</div>' : ""}
     </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
+    iconSize: [trending ? 40 : 32, trending ? 40 : 32],
+    iconAnchor: [trending ? 20 : 16, trending ? 40 : 32],
   });
 
 interface Place {
@@ -34,6 +36,7 @@ export default function MapView() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
 
   // Init map
   useEffect(() => {
@@ -67,16 +70,38 @@ export default function MapView() {
     fetchPlaces();
   }, []);
 
+  // Fetch trending locations from top 5 vibes
+  useEffect(() => {
+    const fetchTrending = async () => {
+      const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
+      const { data } = await supabase
+        .from("vibes")
+        .select("location, likes, super_vibes")
+        .gte("created_at", sixHoursAgo)
+        .not("location", "is", null);
+      if (data) {
+        const scored = data
+          .filter((v: any) => v.location)
+          .map((v: any) => ({ location: v.location as string, score: (v.likes || 0) + (v.super_vibes || 0) * 5 }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5);
+        setTrendingLocations(new Set(scored.map((s) => s.location.toLowerCase())));
+      }
+    };
+    fetchTrending();
+  }, []);
+
   // Add markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map || places.length === 0) return;
 
     const markers: L.Marker[] = [];
-    const icon = createGoldIcon();
 
     places.forEach((place) => {
-      const marker = L.marker([place.latitude, place.longitude], { icon })
+      const isTrending = trendingLocations.has(place.name.toLowerCase());
+      const icon = createGoldIcon(isTrending);
+      const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: isTrending ? 1000 : 0 })
         .addTo(map)
         .on("click", () => {
           setSelectedPlace(place);
@@ -88,7 +113,7 @@ export default function MapView() {
     return () => {
       markers.forEach((m) => m.remove());
     };
-  }, [places]);
+  }, [places, trendingLocations]);
 
   return (
     <div className="relative h-full w-full">
