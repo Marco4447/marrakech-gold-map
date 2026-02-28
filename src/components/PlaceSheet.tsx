@@ -133,7 +133,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   <button
                     onClick={handleTaxi}
                     disabled={taxiLoading}
-                    className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-semibold py-3 rounded-xl transition-colors border border-gold/20 shadow-lg shadow-gold/5 disabled:opacity-70"
+                    className="w-full flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3.5 rounded-2xl transition-colors border border-gold-light/30 shadow-[0_0_24px_hsl(43,76%,52%,0.35)] disabled:opacity-70 text-base"
                   >
                     {taxiLoading ? (
                       <>
@@ -156,7 +156,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                 {/* Pass Invité CTA */}
                 <button
                   onClick={() => setDealOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
+                  className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-semibold py-3 rounded-2xl transition-colors border border-border"
                 >
                   <Zap className="w-4 h-4" />
                   Obtenir mon Pass Invité
