@@ -92,14 +92,14 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </p>
                 )}
 
-                {/* Value proposition */}
+                {/* Value proposition - FREE */}
                 <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 space-y-1.5">
                   <p className="text-xs text-foreground leading-relaxed">
-                    🔓 Pour <span className="text-gold font-semibold">2,00€</span>, débloquez :
+                    🎁 <span className="text-gold font-semibold">Gratuit</span> — Obtenez votre Pass Invité :
                   </p>
                   <ul className="text-xs text-muted-foreground space-y-1 pl-1">
-                    <li>📖 Le guide PDF <span className="text-gold font-medium">« Marrakech : 48h sans pièges à touristes »</span></li>
-                    <li>🎟️ Accès prioritaire à la communauté <span className="text-gold font-medium">Weshkech Insiders</span></li>
+                    <li>📖 Guide PDF <span className="text-gold font-medium">« Marrakech : 48h sans pièges »</span></li>
+                    <li>🔑 Accès communauté <span className="text-gold font-medium">Weshkech</span></li>
                   </ul>
                 </div>
 
@@ -110,13 +110,13 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </div>
                 )}
 
-                {/* Deal Button */}
+                {/* CTA Button */}
                 <button
                   onClick={() => setDealOpen(true)}
                   className="w-full mt-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
                 >
                   <Zap className="w-4 h-4" />
-                  Voir les Secrets Insider
+                  Obtenir mon Pass Invité
                 </button>
               </div>
             </div>

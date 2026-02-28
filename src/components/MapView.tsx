@@ -96,12 +96,25 @@ export default function MapView() {
 
       {/* Header overlay */}
       <div className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none">
-        <div className="px-5 pt-12 pb-4 bg-gradient-to-b from-background via-background/80 to-transparent">
+        <div className="px-5 pt-12 pb-2 bg-gradient-to-b from-background via-background/80 to-transparent">
           <h1 className="font-display text-2xl font-bold tracking-tight">
             <span className="text-gold">Wesh</span>
             <span className="text-foreground">kech</span>
           </h1>
-          <p className="text-muted-foreground text-xs mt-0.5">Explore Marrakech</p>
+          <p className="text-muted-foreground text-xs mt-0.5">Explore Marrakech · {places.length} spots</p>
+        </div>
+      </div>
+
+      {/* Conseil du Jour */}
+      <div className="absolute top-[88px] left-4 right-4 z-[1000]">
+        <div className="bg-card/90 backdrop-blur-xl border border-gold/20 rounded-xl px-4 py-3 shadow-lg shadow-gold/5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm">🌅</span>
+            <p className="text-[10px] text-gold font-semibold uppercase tracking-wider">Conseil du jour</p>
+          </div>
+          <p className="text-xs text-foreground leading-relaxed">
+            Coucher de soleil à <span className="text-gold font-semibold">18h42</span> — le meilleur spot est le <span className="text-gold font-medium">Kabana Rooftop</span>. Réservez votre table avant 17h !
+          </p>
         </div>
       </div>
 
