@@ -67,7 +67,7 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                   <>
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="font-display text-lg font-semibold text-foreground">
-                        Deal Flash
+                        Pass Avantages
                       </h2>
                       <button onClick={handleClose} className="text-muted-foreground hover:text-foreground">
                         <X className="w-5 h-5" />
@@ -75,13 +75,19 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                     </div>
 
                     {/* Order summary */}
-                    <div className="bg-surface rounded-xl p-4 mb-5 border border-border">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Récapitulatif</p>
+                    <div className="bg-surface rounded-xl p-4 mb-4 border border-border">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Votre Pass</p>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-foreground">{placeName}</span>
+                        <span className="text-sm text-foreground">Guide Secret · {placeName}</span>
                         <span className="text-sm font-semibold text-gold">2,00 €</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Frais de mise en relation</p>
+                      <p className="text-xs text-muted-foreground mt-1">Guide quartier + coupon bienvenue</p>
+                    </div>
+
+                    <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 mb-5">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        ✨ Vous recevrez par email le <span className="text-gold font-medium">Guide Secret</span> du quartier de {placeName} ainsi qu'un <span className="text-gold font-medium">coupon de bienvenue</span> à présenter à l'entrée.
+                      </p>
                     </div>
 
                     {/* Fake card input */}
@@ -128,9 +134,9 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                       <Check className="w-8 h-8 text-gold" />
                     </motion.div>
 
-                    <h2 className="font-display text-xl font-semibold text-foreground mb-1">Deal confirmé !</h2>
+                    <h2 className="font-display text-xl font-semibold text-foreground mb-1">Pass activé ! 🎉</h2>
                     <p className="text-sm text-muted-foreground mb-5">
-                      Votre réservation pour <span className="text-gold font-medium">{placeName}</span> est validée.
+                      Votre Guide Secret pour <span className="text-gold font-medium">{placeName}</span> arrive par email. Présentez le QR ci-dessous pour votre coupon.
                     </p>
 
                     {/* QR Code placeholder */}
