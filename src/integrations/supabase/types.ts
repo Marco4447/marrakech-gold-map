@@ -53,6 +53,33 @@ export type Database = {
         }
         Relationships: []
       }
+      vibes: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+          likes: number
+          location: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          likes?: number
+          location?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          likes?: number
+          location?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
