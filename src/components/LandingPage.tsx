@@ -43,7 +43,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
             <span className="text-gold">Marrakech Live Vibes</span>
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Découvrez les spots les plus stylés, voyez l'ambiance en temps réel et accédez à des avantages réservés aux membres.
+            Ton guide live de Marrakech. Les 30 meilleurs spots triés par vibe, l'ambiance en temps réel grâce aux photos postées par la communauté, et un Pass Invité pour débloquer des deals exclusifs. Fini les pièges à touristes — ici, c'est le vrai Marrakech.
           </p>
         </motion.div>
 
