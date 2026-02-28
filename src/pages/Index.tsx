@@ -36,7 +36,7 @@ const Index = () => {
         {activeTab === "live" && <LivePage />}
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
       </div>
-      <BottomNav active={activeTab} onChange={setActiveTab} />
+      <BottomNav active={activeTab} onChange={setActiveTab} onHome={() => setShowLanding(true)} />
 
       <AnimatePresence>
         {showLanding && <LandingPage onEnter={handleEnter} />}
