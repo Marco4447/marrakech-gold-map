@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Check, QrCode, Loader2 } from "lucide-react";
+import { X, Mail, Check, QrCode, Loader2, MessageCircle, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DealTunnelProps {
@@ -15,6 +15,9 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   const handleSubmit = async () => {
     if (!email.trim() || !email.includes("@")) return;
@@ -122,7 +125,7 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                     </p>
                   </>
                 ) : (
-                  <div className="text-center py-4">
+                <div className="text-center py-4">
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -132,12 +135,12 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                       <Check className="w-8 h-8 text-gold" />
                     </motion.div>
 
-                    <h2 className="font-display text-xl font-semibold text-foreground mb-1">Bienvenue ! 🎉</h2>
-                    <p className="text-sm text-muted-foreground mb-5">
+                    <h2 className="font-display text-xl font-semibold text-foreground mb-1">Pass Découverte Weshkech 🎉</h2>
+                    <p className="text-sm text-muted-foreground mb-3">
                       Votre guide <span className="text-gold font-medium">« 48h sans pièges »</span> arrive sur <span className="text-gold font-medium">{email}</span>
                     </p>
 
-                    <div className="bg-foreground rounded-2xl p-4 w-48 h-48 mx-auto mb-4 flex items-center justify-center">
+                    <div className="bg-foreground rounded-2xl p-4 w-48 h-48 mx-auto mb-3 flex items-center justify-center">
                       <div className="relative">
                         <QrCode className="w-32 h-32 text-background" />
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -148,9 +151,68 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                       </div>
                     </div>
 
-                    <p className="text-xs text-muted-foreground mb-5">
-                      Votre Pass Invité · Montrez-le chez {placeName}
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Votre Pass Découverte · Montrez-le chez {placeName}
                     </p>
+
+                    <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 mb-4 text-left">
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        <span className="text-gold font-medium">⚡ Prélancement</span> — Weshkech est en phase de prélancement. Présentez votre pass pour nous aider à identifier nos futurs partenaires officiels ! Aucun avantage n'est garanti pour le moment, mais votre feedback est précieux.
+                      </p>
+                    </div>
+
+                    {/* Feedback section */}
+                    {!showFeedback && !feedbackSent && (
+                      <button
+                        onClick={() => setShowFeedback(true)}
+                        className="w-full bg-gold/10 hover:bg-gold/20 text-gold font-medium py-3 rounded-xl transition-colors border border-gold/20 flex items-center justify-center gap-2 mb-3"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Je suis au restaurant, tout se passe bien ?
+                      </button>
+                    )}
+
+                    <AnimatePresence>
+                      {showFeedback && !feedbackSent && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mb-3 space-y-2"
+                        >
+                          <textarea
+                            value={feedbackText}
+                            onChange={(e) => setFeedbackText(e.target.value)}
+                            placeholder="Dites-nous comment ça se passe…"
+                            rows={3}
+                            className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all resize-none"
+                          />
+                          <button
+                            onClick={() => {
+                              if (!feedbackText.trim()) return;
+                              setFeedbackSent(true);
+                              setShowFeedback(false);
+                            }}
+                            disabled={!feedbackText.trim()}
+                            className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                          >
+                            <Send className="w-4 h-4" />
+                            Envoyer mon feedback
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {feedbackSent && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="bg-gold/10 border border-gold/20 rounded-xl p-3 mb-3 flex items-center gap-2 justify-center"
+                      >
+                        <Check className="w-4 h-4 text-gold" />
+                        <span className="text-sm text-gold font-medium">Merci pour votre retour !</span>
+                      </motion.div>
+                    )}
 
                     <button
                       onClick={handleClose}
