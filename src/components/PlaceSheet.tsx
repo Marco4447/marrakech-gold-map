@@ -93,11 +93,14 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                 )}
 
                 {/* Value proposition */}
-                <div className="bg-gold/5 border border-gold/15 rounded-xl p-3">
+                <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 space-y-1.5">
                   <p className="text-xs text-foreground leading-relaxed">
-                    Payez <span className="text-gold font-semibold">2,00€</span> pour recevoir notre{' '}
-                    <span className="text-gold font-medium">Guide Secret du quartier</span> + un coupon de bienvenue à présenter à l'entrée.
+                    🔓 Pour <span className="text-gold font-semibold">2,00€</span>, débloquez :
                   </p>
+                  <ul className="text-xs text-muted-foreground space-y-1 pl-1">
+                    <li>📖 Le guide PDF <span className="text-gold font-medium">« Marrakech : 48h sans pièges à touristes »</span></li>
+                    <li>🎟️ Accès prioritaire à la communauté <span className="text-gold font-medium">Weshkech Insiders</span></li>
+                  </ul>
                 </div>
 
                 {place.address && (
@@ -113,7 +116,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   className="w-full mt-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
                 >
                   <Zap className="w-4 h-4" />
-                  Obtenir le Pass Avantages
+                  Voir les Secrets Insider
                 </button>
               </div>
             </div>
