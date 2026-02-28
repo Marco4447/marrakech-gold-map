@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CreditCard, Check, QrCode } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DealTunnelProps {
   open: boolean;
@@ -14,12 +15,21 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
   const [step, setStep] = useState<Step>("payment");
   const [processing, setProcessing] = useState(false);
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setProcessing(true);
+    try {
+      await supabase.from("bookings").insert({
+        place_name: placeName,
+        amount: 2.00,
+        status: "confirmed",
+      });
+    } catch (e) {
+      console.error("Booking error:", e);
+    }
     setTimeout(() => {
       setProcessing(false);
       setStep("success");
-    }, 1800);
+    }, 1200);
   };
 
   const handleClose = () => {

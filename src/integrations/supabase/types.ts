@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          place_name: string
+          status: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          place_name: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          place_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       places: {
         Row: {
           address: string | null
