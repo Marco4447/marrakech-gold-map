@@ -3,20 +3,45 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
+import { Plus, Minus, LocateFixed } from "lucide-react";
 
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 
-const createGoldIcon = (trending = false) =>
-  L.divIcon({
+const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
+  Food: { emoji: "🍽️", color: "hsl(25,90%,55%)" },
+  Rooftop: { emoji: "🌅", color: "hsl(43,56%,52%)" },
+  Night: { emoji: "🎶", color: "hsl(280,60%,60%)" },
+  Hôtel: { emoji: "🏨", color: "hsl(200,70%,55%)" },
+  Secret: { emoji: "✨", color: "hsl(340,65%,55%)" },
+};
+
+const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
+
+const createCategoryIcon = (category: string | null, trending = false) => {
+  const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
+  const size = trending ? 46 : 36;
+  const emojiSize = trending ? 20 : 16;
+
+  return L.divIcon({
     className: trending ? "trending-marker" : "",
-    html: `<div class="gold-marker flex items-center justify-center ${trending ? "w-10 h-10" : "w-8 h-8"} rounded-full bg-gold shadow-lg border-2 border-gold-light" style="background:hsl(43,56%,52%);border-color:hsl(43,60%,65%);box-shadow:0 0 ${trending ? "20" : "12"}px hsl(43,56%,52%,${trending ? "0.7" : "0.4"})">
-      <div style="width:${trending ? "14" : "12"}px;height:${trending ? "14" : "12"}px;border-radius:50%;background:hsl(220,20%,6%)"></div>
-      ${trending ? '<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(220,20%,6%);font-size:8px;font-weight:800;padding:1px 4px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em">TRENDING</div>' : ""}
-    </div>`,
-    iconSize: [trending ? 40 : 32, trending ? 40 : 32],
-    iconAnchor: [trending ? 20 : 16, trending ? 40 : 32],
+    html: `
+      <div class="category-marker" style="
+        width:${size}px;height:${size}px;border-radius:50%;
+        background:hsl(220,18%,10%);
+        border:2.5px solid ${cat.color};
+        box-shadow:0 0 ${trending ? 20 : 10}px ${cat.color.replace(")", ",0.5)")};
+        display:flex;align-items:center;justify-content:center;
+        position:relative;
+      ">
+        <span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>
+        ${trending ? `<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(220,20%,6%);font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em">TRENDING</div>` : ""}
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
   });
+};
 
 interface Place {
   id: string;
@@ -37,6 +62,7 @@ export default function MapView() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   // Init map
   useEffect(() => {
@@ -99,8 +125,9 @@ export default function MapView() {
     const markers: L.Marker[] = [];
 
     places.forEach((place) => {
+      if (activeFilter && place.category !== activeFilter) return;
       const isTrending = trendingLocations.has(place.name.toLowerCase());
-      const icon = createGoldIcon(isTrending);
+      const icon = createCategoryIcon(place.category, isTrending);
       const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: isTrending ? 1000 : 0 })
         .addTo(map)
         .on("click", () => {
@@ -113,7 +140,17 @@ export default function MapView() {
     return () => {
       markers.forEach((m) => m.remove());
     };
-  }, [places, trendingLocations]);
+  }, [places, trendingLocations, activeFilter]);
+
+  const handleZoom = (delta: number) => {
+    mapRef.current?.zoomIn(delta);
+  };
+
+  const handleRecenter = () => {
+    mapRef.current?.flyTo(MARRAKECH_CENTER, 14, { duration: 0.8 });
+  };
+
+  const categories = Object.entries(CATEGORY_CONFIG);
 
   return (
     <div className="relative h-full w-full">
@@ -130,8 +167,38 @@ export default function MapView() {
         </div>
       </div>
 
+      {/* Category filter chips */}
+      <div className="absolute top-[88px] left-0 right-0 z-[1000] px-4">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+          <button
+            onClick={() => setActiveFilter(null)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
+              activeFilter === null
+                ? "bg-gold text-primary-foreground border-gold"
+                : "bg-card/90 backdrop-blur-xl text-foreground/70 border-border hover:border-gold/40"
+            }`}
+          >
+            Tous
+          </button>
+          {categories.map(([key, { emoji }]) => (
+            <button
+              key={key}
+              onClick={() => setActiveFilter(activeFilter === key ? null : key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
+                activeFilter === key
+                  ? "bg-gold text-primary-foreground border-gold"
+                  : "bg-card/90 backdrop-blur-xl text-foreground/70 border-border hover:border-gold/40"
+              }`}
+            >
+              <span>{emoji}</span>
+              {key}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Conseil du Jour */}
-      <div className="absolute top-[88px] left-4 right-4 z-[1000]">
+      <div className="absolute top-[128px] left-4 right-4 z-[1000]">
         <div className="bg-card/90 backdrop-blur-xl border border-gold/20 rounded-xl px-4 py-3 shadow-lg shadow-gold/5">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm">🌅</span>
@@ -140,6 +207,48 @@ export default function MapView() {
           <p className="text-xs text-foreground leading-relaxed">
             Coucher de soleil à <span className="text-gold font-semibold">18h42</span> — le meilleur spot est le <span className="text-gold font-medium">Kabana Rooftop</span>. Réservez votre table avant 17h !
           </p>
+        </div>
+      </div>
+
+      {/* Zoom & recenter controls */}
+      <div className="absolute bottom-24 right-4 z-[1000] flex flex-col gap-2">
+        <button
+          onClick={() => handleZoom(1)}
+          className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border flex items-center justify-center text-foreground hover:border-gold/40 transition-colors shadow-lg"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => handleZoom(-1)}
+          className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border flex items-center justify-center text-foreground hover:border-gold/40 transition-colors shadow-lg"
+        >
+          <Minus className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleRecenter}
+          className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-gold/30 flex items-center justify-center text-gold hover:bg-gold/10 transition-colors shadow-lg"
+        >
+          <LocateFixed className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Legend */}
+      <div className="absolute bottom-24 left-4 z-[1000]">
+        <div className="bg-card/90 backdrop-blur-xl border border-border rounded-xl px-3 py-2.5 shadow-lg">
+          <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">Légende</p>
+          <div className="flex flex-col gap-1">
+            {categories.map(([key, { emoji, color }]) => (
+              <div key={key} className="flex items-center gap-2">
+                <span
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
+                  style={{ border: `2px solid ${color}`, background: "hsl(220,18%,10%)" }}
+                >
+                  {emoji}
+                </span>
+                <span className="text-[10px] text-foreground/70">{key}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
