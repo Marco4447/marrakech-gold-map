@@ -92,6 +92,14 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </p>
                 )}
 
+                {/* Value proposition */}
+                <div className="bg-gold/5 border border-gold/15 rounded-xl p-3">
+                  <p className="text-xs text-foreground leading-relaxed">
+                    Payez <span className="text-gold font-semibold">2,00€</span> pour recevoir notre{' '}
+                    <span className="text-gold font-medium">Guide Secret du quartier</span> + un coupon de bienvenue à présenter à l'entrée.
+                  </p>
+                </div>
+
                 {place.address && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" />
@@ -99,13 +107,13 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </div>
                 )}
 
-                {/* Deal Flash Button */}
+                {/* Deal Button */}
                 <button
                   onClick={() => setDealOpen(true)}
-                  className="w-full mt-2 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
+                  className="w-full mt-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
                 >
                   <Zap className="w-4 h-4" />
-                  Réserver un Deal Flash
+                  Obtenir le Pass Avantages
                 </button>
               </div>
             </div>
