@@ -12,6 +12,10 @@ interface Vibe {
   created_at: string;
 }
 
+function isRecent(dateStr: string) {
+  return Date.now() - new Date(dateStr).getTime() < 24 * 60 * 60 * 1000;
+}
+
 export default function LivePage() {
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +67,13 @@ export default function LivePage() {
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
               />
+              {/* LIVE badge for vibes < 24h */}
+              {isRecent(vibe.created_at) && (
+                <div className="absolute top-1.5 left-1.5 flex items-center gap-1 bg-destructive px-1.5 py-0.5 rounded-md">
+                  <div className="w-1.5 h-1.5 rounded-full bg-destructive-foreground animate-pulse" />
+                  <span className="text-[9px] font-bold text-destructive-foreground uppercase tracking-wider">Live</span>
+                </div>
+              )}
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                 <div className="flex items-center gap-1 text-foreground text-sm font-semibold">
