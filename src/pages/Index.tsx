@@ -21,7 +21,7 @@ const Index = () => {
 
   return (
     <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
-      <div className="flex-1 relative">
+      <div className="flex-1 relative min-h-0 overflow-hidden">
         {activeTab === "map" && <MapView />}
         {activeTab === "live" && <LivePage />}
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
