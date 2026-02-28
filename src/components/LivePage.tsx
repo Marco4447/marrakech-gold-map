@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,6 +15,15 @@ interface Vibe {
   likes: number;
   username: string | null;
   created_at: string;
+}
+
+function getDeviceId(): string {
+  let id = localStorage.getItem("wk_device_id");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("wk_device_id", id);
+  }
+  return id;
 }
 
 function timeAgo(dateStr: string) {
@@ -33,6 +42,8 @@ function isNew(dateStr: string) {
 export default function LivePage() {
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [animatingId, setAnimatingId] = useState<string | null>(null);
 
   // Upload state
   const [showUpload, setShowUpload] = useState(false);
@@ -44,21 +55,33 @@ export default function LivePage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const deviceId = getDeviceId();
+
   const fetchVibes = useCallback(async () => {
     const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
     const { data, error } = await supabase
       .from("vibes")
       .select("*")
       .gte("created_at", sixHoursAgo)
-      .order("created_at", { ascending: false });
+      .order("likes", { ascending: false });
     if (!error && data) setVibes(data);
     setLoading(false);
   }, []);
 
+  const fetchMyLikes = useCallback(async () => {
+    const { data } = await supabase
+      .from("vibe_likes")
+      .select("vibe_id")
+      .eq("device_id", deviceId);
+    if (data) {
+      setLikedIds(new Set(data.map((l: any) => l.vibe_id)));
+    }
+  }, [deviceId]);
+
   useEffect(() => {
     fetchVibes();
+    fetchMyLikes();
 
-    // Realtime: instant moderation (delete) + new posts
     const channel = supabase
       .channel("vibes-live")
       .on(
@@ -69,10 +92,20 @@ export default function LivePage() {
             const newVibe = payload.new as Vibe;
             const age = Date.now() - new Date(newVibe.created_at).getTime();
             if (age < SIX_HOURS) {
-              setVibes((prev) => [newVibe, ...prev]);
+              setVibes((prev) => {
+                const updated = [newVibe, ...prev];
+                return updated.sort((a, b) => b.likes - a.likes);
+              });
             }
           } else if (payload.eventType === "DELETE") {
             setVibes((prev) => prev.filter((v) => v.id !== (payload.old as any).id));
+          } else if (payload.eventType === "UPDATE") {
+            setVibes((prev) => {
+              const updated = prev.map((v) =>
+                v.id === (payload.new as Vibe).id ? (payload.new as Vibe) : v
+              );
+              return updated.sort((a, b) => b.likes - a.likes);
+            });
           }
         }
       )
@@ -81,7 +114,39 @@ export default function LivePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchVibes]);
+  }, [fetchVibes, fetchMyLikes]);
+
+  const handleLike = async (vibeId: string) => {
+    const alreadyLiked = likedIds.has(vibeId);
+
+    // Optimistic UI
+    setAnimatingId(vibeId);
+    setTimeout(() => setAnimatingId(null), 400);
+
+    if (alreadyLiked) {
+      setLikedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(vibeId);
+        return next;
+      });
+      setVibes((prev) =>
+        prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v))
+          .sort((a, b) => b.likes - a.likes)
+      );
+
+      await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId);
+      await supabase.from("vibes").update({ likes: Math.max(0, (vibes.find(v => v.id === vibeId)?.likes ?? 1) - 1) }).eq("id", vibeId);
+    } else {
+      setLikedIds((prev) => new Set(prev).add(vibeId));
+      setVibes((prev) =>
+        prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v))
+          .sort((a, b) => b.likes - a.likes)
+      );
+
+      await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId });
+      await supabase.from("vibes").update({ likes: (vibes.find(v => v.id === vibeId)?.likes ?? 0) + 1 }).eq("id", vibeId);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -98,17 +163,14 @@ export default function LivePage() {
     try {
       const ext = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
       setUploadProgress(30);
 
       const { error: uploadError } = await supabase.storage
         .from("vibes")
         .upload(fileName, file, { contentType: file.type });
-
       if (uploadError) throw uploadError;
 
       setUploadProgress(70);
-
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/vibes/${fileName}`;
 
       const { error: insertError } = await supabase.from("vibes").insert({
@@ -118,11 +180,9 @@ export default function LivePage() {
         caption: null,
         likes: 0,
       });
-
       if (insertError) throw insertError;
 
       setUploadProgress(100);
-
       setTimeout(() => {
         setShowUpload(false);
         setFile(null);
@@ -178,62 +238,90 @@ export default function LivePage() {
         </div>
       ) : (
         <div className="space-y-4 p-4">
-          {vibes.map((vibe, i) => (
-            <motion.div
-              key={vibe.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="relative rounded-2xl overflow-hidden bg-card border border-border"
-            >
-              {/* Image */}
-              <div className="aspect-[3/4] relative">
-                <img
-                  src={vibe.image_url}
-                  alt={vibe.caption || "Story"}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
+          {vibes.map((vibe, i) => {
+            const liked = likedIds.has(vibe.id);
+            const isAnimating = animatingId === vibe.id;
 
-                {/* Gradient overlay bottom */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
+            return (
+              <motion.div
+                key={vibe.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="relative rounded-2xl overflow-hidden bg-card border border-border"
+              >
+                {/* Image */}
+                <div className="aspect-[3/4] relative">
+                  <img
+                    src={vibe.image_url}
+                    alt={vibe.caption || "Story"}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
 
-                {/* NOUVEAU badge */}
-                {isNew(vibe.created_at) && (
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-destructive px-2.5 py-1 rounded-lg shadow-lg">
-                    <div className="w-2 h-2 rounded-full bg-destructive-foreground animate-pulse" />
-                    <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wider">
-                      Nouveau
-                    </span>
-                  </div>
-                )}
-
-                {/* Time badge */}
-                <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
-                  <span className="text-[10px] text-foreground font-medium">
-                    {timeAgo(vibe.created_at)}
-                  </span>
-                </div>
-
-                {/* Bottom info */}
-                <div className="absolute bottom-0 inset-x-0 p-4">
-                  <p className="text-sm font-semibold text-foreground">
-                    {vibe.username || "Anonyme"}
-                  </p>
-                  {vibe.location && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <MapPin className="w-3 h-3 text-gold" />
-                      <span className="text-xs text-foreground/70">{vibe.location}</span>
+                  {isNew(vibe.created_at) && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-destructive px-2.5 py-1 rounded-lg shadow-lg">
+                      <div className="w-2 h-2 rounded-full bg-destructive-foreground animate-pulse" />
+                      <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wider">
+                        Nouveau
+                      </span>
                     </div>
                   )}
+
+                  <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                    <span className="text-[10px] text-foreground font-medium">
+                      {timeAgo(vibe.created_at)}
+                    </span>
+                  </div>
+
+                  <div className="absolute bottom-0 inset-x-0 p-4">
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">
+                          {vibe.username || "Anonyme"}
+                        </p>
+                        {vibe.location && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <MapPin className="w-3 h-3 text-gold" />
+                            <span className="text-xs text-foreground/70">{vibe.location}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Like button */}
+                      <button
+                        onClick={() => handleLike(vibe.id)}
+                        className="flex flex-col items-center gap-0.5 group"
+                      >
+                        <motion.div
+                          animate={isAnimating ? {
+                            scale: [1, 1.4, 0.9, 1.15, 1],
+                          } : {}}
+                          transition={{ duration: 0.4, ease: "easeOut" }}
+                        >
+                          <Heart
+                            className={`w-7 h-7 transition-colors duration-200 ${
+                              liked
+                                ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
+                                : "text-foreground/70 group-hover:text-gold/70"
+                            }`}
+                          />
+                        </motion.div>
+                        <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
+                          {vibe.likes}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
-      {/* FAB - Camera button */}
+      {/* FAB */}
       <button
         onClick={() => setShowUpload(true)}
         className="fixed bottom-24 right-5 z-[1500] w-14 h-14 bg-gold hover:bg-gold-light rounded-full shadow-xl shadow-gold/30 flex items-center justify-center transition-all active:scale-95"
@@ -277,7 +365,6 @@ export default function LivePage() {
                     </button>
                   </div>
 
-                  {/* Photo picker */}
                   <button
                     onClick={() => fileRef.current?.click()}
                     className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-3 overflow-hidden mb-4"
@@ -305,7 +392,6 @@ export default function LivePage() {
                     onChange={handleFileChange}
                   />
 
-                  {/* Username */}
                   <div className="space-y-2 mb-3">
                     <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
                       Votre nom (optionnel)
@@ -318,7 +404,6 @@ export default function LivePage() {
                     />
                   </div>
 
-                  {/* Location */}
                   <div className="space-y-2 mb-5">
                     <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
                       <MapPin className="w-3 h-3" /> Lieu (optionnel)
@@ -331,7 +416,6 @@ export default function LivePage() {
                     />
                   </div>
 
-                  {/* Progress bar */}
                   {uploading && (
                     <div className="mb-4">
                       <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
@@ -348,7 +432,6 @@ export default function LivePage() {
                     </div>
                   )}
 
-                  {/* Submit */}
                   <button
                     onClick={handleUpload}
                     disabled={!file || uploading}
