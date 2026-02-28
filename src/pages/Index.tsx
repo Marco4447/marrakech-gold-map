@@ -1,12 +1,22 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import MapView from "@/components/MapView";
+import BottomNav from "@/components/BottomNav";
+import LivePage from "@/components/LivePage";
+import ProfilPage from "@/components/ProfilPage";
+
+type Tab = "map" | "live" | "profil";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState<Tab>("map");
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
+      <div className="flex-1 relative">
+        {activeTab === "map" && <MapView />}
+        {activeTab === "live" && <LivePage />}
+        {activeTab === "profil" && <ProfilPage />}
       </div>
+      <BottomNav active={activeTab} onChange={setActiveTab} />
     </div>
   );
 };
