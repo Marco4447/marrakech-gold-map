@@ -1,9 +1,11 @@
-import { useState, useRef } from "react";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+type PassStat = { place_name: string; count: number };
 
 export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [caption, setCaption] = useState("");
@@ -12,7 +14,29 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [passStats, setPassStats] = useState<PassStat[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { data } = await supabase
+        .from("bookings")
+        .select("place_name")
+        .eq("status", "free_pass");
+      if (data) {
+        const counts: Record<string, number> = {};
+        data.forEach((b) => {
+          counts[b.place_name] = (counts[b.place_name] || 0) + 1;
+        });
+        setPassStats(
+          Object.entries(counts)
+            .map(([place_name, count]) => ({ place_name, count }))
+            .sort((a, b) => b.count - a.count)
+        );
+      }
+    };
+    fetchStats();
+  }, [success]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -164,6 +188,25 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
             </motion.div>
           )}
         </AnimatePresence>
+        {/* Pass Stats Dashboard */}
+        <div className="mt-8 border-t border-border pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="w-4 h-4 text-gold" />
+            <h2 className="font-display text-base font-semibold text-foreground">Pass générés par établissement</h2>
+          </div>
+          {passStats.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucun pass généré pour le moment.</p>
+          ) : (
+            <div className="space-y-2">
+              {passStats.map((stat) => (
+                <div key={stat.place_name} className="flex items-center justify-between bg-surface border border-border rounded-xl px-4 py-3">
+                  <span className="text-sm text-foreground font-medium truncate mr-3">{stat.place_name}</span>
+                  <span className="text-sm font-bold text-gold whitespace-nowrap">{stat.count} pass</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
