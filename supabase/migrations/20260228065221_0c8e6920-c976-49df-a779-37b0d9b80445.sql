@@ -1,0 +1,2 @@
+
+ALTER TABLE public.vibes ADD COLUMN IF NOT EXISTS username TEXT;
