@@ -1,15 +1,25 @@
 import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav from "@/components/BottomNav";
 import LivePage from "@/components/LivePage";
 import ProfilPage from "@/components/ProfilPage";
 import AdminPage from "@/components/AdminPage";
+import LandingPage from "@/components/LandingPage";
 
 type Tab = "map" | "live" | "profil";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("map");
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showLanding, setShowLanding] = useState(() => {
+    return !sessionStorage.getItem("wk_landed");
+  });
+
+  const handleEnter = () => {
+    sessionStorage.setItem("wk_landed", "1");
+    setShowLanding(false);
+  };
 
   if (showAdmin) {
     return (
@@ -27,6 +37,10 @@ const Index = () => {
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
       </div>
       <BottomNav active={activeTab} onChange={setActiveTab} />
+
+      <AnimatePresence>
+        {showLanding && <LandingPage onEnter={handleEnter} />}
+      </AnimatePresence>
     </div>
   );
 };
