@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import VibeComments, { useCommentCounts } from "./VibeComments";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -46,6 +47,8 @@ export default function LivePage() {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [animatingId, setAnimatingId] = useState<string | null>(null);
   const [postLimitReached, setPostLimitReached] = useState(false);
+  const [commentVibeId, setCommentVibeId] = useState<string | null>(null);
+  const commentCounts = useCommentCounts(vibes.map((v) => v.id));
 
   // Upload state
   const [showUpload, setShowUpload] = useState(false);
@@ -382,26 +385,40 @@ export default function LivePage() {
                           )}
                         </div>
 
-                        <button
-                          onClick={() => handleLike(vibe.id)}
-                          className="flex flex-col items-center gap-0.5 group"
-                        >
-                          <motion.div
-                            animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}}
-                            transition={{ duration: 0.4, ease: "easeOut" }}
+                        <div className="flex items-center gap-4">
+                          {/* Comment button */}
+                          <button
+                            onClick={() => setCommentVibeId(vibe.id)}
+                            className="flex flex-col items-center gap-0.5 group"
                           >
-                            <Heart
-                              className={`w-7 h-7 transition-colors duration-200 ${
-                                liked
-                                  ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
-                                  : "text-foreground/70 group-hover:text-gold/70"
-                              }`}
-                            />
-                          </motion.div>
-                          <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
-                            {vibe.likes}
-                          </span>
-                        </button>
+                            <MessageCircle className="w-6 h-6 text-foreground/70 group-hover:text-gold/70 transition-colors" />
+                            <span className="text-xs font-semibold text-foreground/70">
+                              {commentCounts[vibe.id] || 0}
+                            </span>
+                          </button>
+
+                          {/* Like button */}
+                          <button
+                            onClick={() => handleLike(vibe.id)}
+                            className="flex flex-col items-center gap-0.5 group"
+                          >
+                            <motion.div
+                              animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}}
+                              transition={{ duration: 0.4, ease: "easeOut" }}
+                            >
+                              <Heart
+                                className={`w-7 h-7 transition-colors duration-200 ${
+                                  liked
+                                    ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
+                                    : "text-foreground/70 group-hover:text-gold/70"
+                                }`}
+                              />
+                            </motion.div>
+                            <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
+                              {vibe.likes}
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -576,6 +593,13 @@ export default function LivePage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Comments sheet */}
+      <VibeComments
+        vibeId={commentVibeId || ""}
+        open={!!commentVibeId}
+        onOpenChange={(open) => !open && setCommentVibeId(null)}
+      />
     </div>
   );
 }

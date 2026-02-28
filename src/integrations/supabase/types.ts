@@ -77,6 +77,38 @@ export type Database = {
         }
         Relationships: []
       }
+      vibe_comments: {
+        Row: {
+          content: string
+          created_at: string
+          device_id: string
+          id: string
+          vibe_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          device_id: string
+          id?: string
+          vibe_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          device_id?: string
+          id?: string
+          vibe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vibe_comments_vibe_id_fkey"
+            columns: ["vibe_id"]
+            isOneToOne: false
+            referencedRelation: "vibes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vibe_likes: {
         Row: {
           created_at: string
