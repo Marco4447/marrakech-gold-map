@@ -67,7 +67,7 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                   <>
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="font-display text-lg font-semibold text-foreground">
-                        Pass Avantages
+                        Secrets Insider
                       </h2>
                       <button onClick={handleClose} className="text-muted-foreground hover:text-foreground">
                         <X className="w-5 h-5" />
@@ -76,18 +76,21 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
 
                     {/* Order summary */}
                     <div className="bg-surface rounded-xl p-4 mb-4 border border-border">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Votre Pass</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Votre accès</p>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-foreground">Guide Secret · {placeName}</span>
+                        <span className="text-sm text-foreground">Pack Insider · {placeName}</span>
                         <span className="text-sm font-semibold text-gold">2,00 €</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Guide quartier + coupon bienvenue</p>
+                      <p className="text-xs text-muted-foreground mt-1">Guide PDF + accès communauté</p>
                     </div>
 
-                    <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 mb-5">
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        ✨ Vous recevrez par email le <span className="text-gold font-medium">Guide Secret</span> du quartier de {placeName} ainsi qu'un <span className="text-gold font-medium">coupon de bienvenue</span> à présenter à l'entrée.
-                      </p>
+                    <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 mb-5 space-y-1.5">
+                      <p className="text-xs text-foreground font-medium">Vous recevrez :</p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        <li>📖 PDF <span className="text-gold">« Marrakech : 48h sans pièges à touristes »</span></li>
+                        <li>🔑 Accès prioritaire à la communauté <span className="text-gold">Weshkech Insiders</span></li>
+                        <li>🎟️ Bon de réduction exclusif pour {placeName}</li>
+                      </ul>
                     </div>
 
                     {/* Fake card input */}
@@ -134,12 +137,12 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                       <Check className="w-8 h-8 text-gold" />
                     </motion.div>
 
-                    <h2 className="font-display text-xl font-semibold text-foreground mb-1">Pass activé ! 🎉</h2>
+                    <h2 className="font-display text-xl font-semibold text-foreground mb-1">Bienvenue Insider ! 🎉</h2>
                     <p className="text-sm text-muted-foreground mb-5">
-                      Votre Guide Secret pour <span className="text-gold font-medium">{placeName}</span> arrive par email. Présentez le QR ci-dessous pour votre coupon.
+                      Votre guide <span className="text-gold font-medium">« 48h sans pièges »</span> arrive par email. Montrez ce QR pour votre réduction chez <span className="text-gold font-medium">{placeName}</span>.
                     </p>
 
-                    {/* QR Code placeholder */}
+                    {/* QR Code */}
                     <div className="bg-foreground rounded-2xl p-4 w-48 h-48 mx-auto mb-4 flex items-center justify-center">
                       <div className="relative">
                         <QrCode className="w-32 h-32 text-background" />
@@ -152,7 +155,7 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                     </div>
 
                     <p className="text-xs text-muted-foreground mb-5">
-                      Présentez ce QR code à l'établissement
+                      QR code Insider · valable 30 jours
                     </p>
 
                     <button
