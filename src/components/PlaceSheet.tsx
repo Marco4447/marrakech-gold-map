@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, MapPin, Tag, Zap } from "lucide-react";
+import { X, Star, MapPin, Tag, Zap, Car, Loader2, ShieldCheck } from "lucide-react";
 import DealTunnel from "./DealTunnel";
 
 interface Place {
@@ -23,6 +23,17 @@ interface PlaceSheetProps {
 
 export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProps) {
   const [dealOpen, setDealOpen] = useState(false);
+  const [taxiLoading, setTaxiLoading] = useState(false);
+
+  const handleTaxi = useCallback(() => {
+    if (!place) return;
+    setTaxiLoading(true);
+    setTimeout(() => {
+      setTaxiLoading(false);
+      const dest = encodeURIComponent(place.name);
+      window.open(`https://www.jemaride.com/?dest=${dest}`, "_blank", "noopener");
+    }, 1500);
+  }, [place]);
 
   if (!place) return null;
 
@@ -110,10 +121,35 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </div>
                 )}
 
-                {/* CTA Button */}
+                {/* Taxi CTA */}
+                <div className="space-y-1.5">
+                  <button
+                    onClick={handleTaxi}
+                    disabled={taxiLoading}
+                    className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-semibold py-3 rounded-xl transition-colors border border-gold/20 shadow-lg shadow-gold/5 disabled:opacity-70"
+                  >
+                    {taxiLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-gold" />
+                        <span className="text-sm">Calcul du prix juste pour <span className="text-gold">{place.name}</span>…</span>
+                      </>
+                    ) : (
+                      <>
+                        <Car className="w-4 h-4 text-gold" />
+                        <span>🚕 Y aller au prix juste</span>
+                      </>
+                    )}
+                  </button>
+                  <div className="flex items-center justify-center gap-1.5">
+                    <ShieldCheck className="w-3 h-3 text-gold/60" />
+                    <span className="text-[10px] text-muted-foreground font-medium">Partenaire Officiel — Jemaride</span>
+                  </div>
+                </div>
+
+                {/* Pass Invité CTA */}
                 <button
                   onClick={() => setDealOpen(true)}
-                  className="w-full mt-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
+                  className="w-full flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
                 >
                   <Zap className="w-4 h-4" />
                   Obtenir mon Pass Invité
