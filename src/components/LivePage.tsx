@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
+const MAX_POSTS_PER_WINDOW = 3;
 
 interface Vibe {
   id: string;
@@ -44,6 +45,7 @@ export default function LivePage() {
   const [loading, setLoading] = useState(true);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [animatingId, setAnimatingId] = useState<string | null>(null);
+  const [postLimitReached, setPostLimitReached] = useState(false);
 
   // Upload state
   const [showUpload, setShowUpload] = useState(false);
@@ -78,9 +80,24 @@ export default function LivePage() {
     }
   }, [deviceId]);
 
+  const checkPostLimit = useCallback(async () => {
+    const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
+    const { data } = await supabase
+      .from("vibes")
+      .select("id")
+      .eq("username", localStorage.getItem("wk_last_username") || deviceId)
+      .gte("created_at", sixHoursAgo);
+    
+    // Also check by looking at recent uploads tracked locally
+    const localPosts = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
+    const recentPosts = localPosts.filter((t) => Date.now() - t < SIX_HOURS);
+    setPostLimitReached(recentPosts.length >= MAX_POSTS_PER_WINDOW);
+  }, [deviceId]);
+
   useEffect(() => {
     fetchVibes();
     fetchMyLikes();
+    checkPostLimit();
 
     const channel = supabase
       .channel("vibes-live")
@@ -114,12 +131,10 @@ export default function LivePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchVibes, fetchMyLikes]);
+  }, [fetchVibes, fetchMyLikes, checkPostLimit]);
 
   const handleLike = async (vibeId: string) => {
     const alreadyLiked = likedIds.has(vibeId);
-
-    // Optimistic UI
     setAnimatingId(vibeId);
     setTimeout(() => setAnimatingId(null), 400);
 
@@ -133,7 +148,6 @@ export default function LivePage() {
         prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v))
           .sort((a, b) => b.likes - a.likes)
       );
-
       await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId);
       await supabase.from("vibes").update({ likes: Math.max(0, (vibes.find(v => v.id === vibeId)?.likes ?? 1) - 1) }).eq("id", vibeId);
     } else {
@@ -142,7 +156,6 @@ export default function LivePage() {
         prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v))
           .sort((a, b) => b.likes - a.likes)
       );
-
       await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId });
       await supabase.from("vibes").update({ likes: (vibes.find(v => v.id === vibeId)?.likes ?? 0) + 1 }).eq("id", vibeId);
     }
@@ -155,8 +168,16 @@ export default function LivePage() {
     setPreview(URL.createObjectURL(f));
   };
 
+  const handleOpenUpload = () => {
+    if (postLimitReached) {
+      setShowUpload(true);
+      return;
+    }
+    setShowUpload(true);
+  };
+
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file || postLimitReached) return;
     setUploading(true);
     setUploadProgress(10);
 
@@ -182,7 +203,15 @@ export default function LivePage() {
       });
       if (insertError) throw insertError;
 
+      // Track post timestamp locally
+      const timestamps = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
+      timestamps.push(Date.now());
+      localStorage.setItem("wk_post_timestamps", JSON.stringify(timestamps.filter((t) => Date.now() - t < SIX_HOURS)));
+      if (uploadUsername) localStorage.setItem("wk_last_username", uploadUsername);
+
       setUploadProgress(100);
+      checkPostLimit();
+
       setTimeout(() => {
         setShowUpload(false);
         setFile(null);
@@ -198,6 +227,10 @@ export default function LivePage() {
       setUploadProgress(0);
     }
   };
+
+  // Top 3 vibes for carousel
+  const topVibes = vibes.slice(0, 3);
+  const restVibes = vibes;
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
@@ -237,93 +270,151 @@ export default function LivePage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4 p-4">
-          {vibes.map((vibe, i) => {
-            const liked = likedIds.has(vibe.id);
-            const isAnimating = animatingId === vibe.id;
+        <>
+          {/* ===== TOP VIBES CAROUSEL ===== */}
+          {topVibes.length > 0 && (
+            <div className="pt-4 pb-2 px-4">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-4 h-4 text-gold" />
+                <h2 className="font-display text-sm font-semibold text-foreground">Top Vibes</h2>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+              <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                {topVibes.map((vibe, i) => (
+                  <motion.div
+                    key={`top-${vibe.id}`}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="relative flex-shrink-0 w-[45vw] aspect-[3/4] rounded-2xl overflow-hidden border-2 border-gold/30"
+                  >
+                    <img
+                      src={vibe.image_url}
+                      alt={vibe.caption || "Top vibe"}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
 
-            return (
-              <motion.div
-                key={vibe.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="relative rounded-2xl overflow-hidden bg-card border border-border"
-              >
-                {/* Image */}
-                <div className="aspect-[3/4] relative">
-                  <img
-                    src={vibe.image_url}
-                    alt={vibe.caption || "Story"}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
-
-                  {isNew(vibe.created_at) && (
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-destructive px-2.5 py-1 rounded-lg shadow-lg">
-                      <div className="w-2 h-2 rounded-full bg-destructive-foreground animate-pulse" />
-                      <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wider">
-                        Nouveau
+                    {/* Trending badge */}
+                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-gold px-2 py-0.5 rounded-md shadow-lg">
+                      <TrendingUp className="w-3 h-3 text-primary-foreground" />
+                      <span className="text-[9px] font-bold text-primary-foreground uppercase tracking-wider">
+                        Trending
                       </span>
                     </div>
-                  )}
 
-                  <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
-                    <span className="text-[10px] text-foreground font-medium">
-                      {timeAgo(vibe.created_at)}
-                    </span>
-                  </div>
+                    {/* Rank badge */}
+                    <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/70 backdrop-blur-md flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-gold">#{i + 1}</span>
+                    </div>
 
-                  <div className="absolute bottom-0 inset-x-0 p-4">
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">
-                          {vibe.username || "Anonyme"}
-                        </p>
-                        {vibe.location && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <MapPin className="w-3 h-3 text-gold" />
-                            <span className="text-xs text-foreground/70">{vibe.location}</span>
-                          </div>
-                        )}
+                    {/* Bottom info */}
+                    <div className="absolute bottom-0 inset-x-0 p-3">
+                      <p className="text-xs font-semibold text-foreground truncate">
+                        {vibe.username || "Anonyme"}
+                      </p>
+                      {vibe.location && (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-2.5 h-2.5 text-gold" />
+                          <span className="text-[10px] text-foreground/70 truncate">{vibe.location}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1 mt-1">
+                        <Heart className="w-3 h-3 fill-gold text-gold" />
+                        <span className="text-[10px] font-bold text-gold">{vibe.likes}</span>
                       </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
 
-                      {/* Like button */}
-                      <button
-                        onClick={() => handleLike(vibe.id)}
-                        className="flex flex-col items-center gap-0.5 group"
-                      >
-                        <motion.div
-                          animate={isAnimating ? {
-                            scale: [1, 1.4, 0.9, 1.15, 1],
-                          } : {}}
-                          transition={{ duration: 0.4, ease: "easeOut" }}
-                        >
-                          <Heart
-                            className={`w-7 h-7 transition-colors duration-200 ${
-                              liked
-                                ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
-                                : "text-foreground/70 group-hover:text-gold/70"
-                            }`}
-                          />
-                        </motion.div>
-                        <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
-                          {vibe.likes}
+          {/* ===== MAIN FEED ===== */}
+          <div className="space-y-4 p-4">
+            {restVibes.map((vibe, i) => {
+              const liked = likedIds.has(vibe.id);
+              const isAnimating = animatingId === vibe.id;
+
+              return (
+                <motion.div
+                  key={vibe.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="relative rounded-2xl overflow-hidden bg-card border border-border"
+                >
+                  <div className="aspect-[3/4] relative">
+                    <img
+                      src={vibe.image_url}
+                      alt={vibe.caption || "Story"}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
+
+                    {isNew(vibe.created_at) && (
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-destructive px-2.5 py-1 rounded-lg shadow-lg">
+                        <div className="w-2 h-2 rounded-full bg-destructive-foreground animate-pulse" />
+                        <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wider">
+                          Nouveau
                         </span>
-                      </button>
+                      </div>
+                    )}
+
+                    <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                      <span className="text-[10px] text-foreground font-medium">
+                        {timeAgo(vibe.created_at)}
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-0 inset-x-0 p-4">
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {vibe.username || "Anonyme"}
+                          </p>
+                          {vibe.location && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <MapPin className="w-3 h-3 text-gold" />
+                              <span className="text-xs text-foreground/70">{vibe.location}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => handleLike(vibe.id)}
+                          className="flex flex-col items-center gap-0.5 group"
+                        >
+                          <motion.div
+                            animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                          >
+                            <Heart
+                              className={`w-7 h-7 transition-colors duration-200 ${
+                                liked
+                                  ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
+                                  : "text-foreground/70 group-hover:text-gold/70"
+                              }`}
+                            />
+                          </motion.div>
+                          <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
+                            {vibe.likes}
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* FAB */}
       <button
-        onClick={() => setShowUpload(true)}
+        onClick={handleOpenUpload}
         className="fixed bottom-24 right-5 z-[1500] w-14 h-14 bg-gold hover:bg-gold-light rounded-full shadow-xl shadow-gold/30 flex items-center justify-center transition-all active:scale-95"
       >
         <Camera className="w-6 h-6 text-primary-foreground" />
@@ -365,94 +456,120 @@ export default function LivePage() {
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => fileRef.current?.click()}
-                    className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-3 overflow-hidden mb-4"
-                  >
-                    {preview ? (
-                      <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-2xl" />
-                    ) : (
-                      <>
-                        <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center">
-                          <ImageIcon className="w-6 h-6 text-gold" />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-sm font-medium text-foreground">Photo ou Galerie</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG, WebP</p>
-                        </div>
-                      </>
-                    )}
-                  </button>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
+                  {/* Post limit warning */}
+                  {postLimitReached ? (
+                    <div className="flex flex-col items-center text-center py-6">
+                      <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mb-4">
+                        <AlertCircle className="w-7 h-7 text-gold" />
+                      </div>
+                      <h3 className="font-display text-base font-semibold text-foreground mb-2">
+                        Assez de vibes pour le moment ! 🌟
+                      </h3>
+                      <p className="text-sm text-muted-foreground max-w-xs">
+                        Vous avez partagé assez de vibes pour le moment ! Revenez plus tard pour en poster d'autres.
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-3">
+                        Limite : {MAX_POSTS_PER_WINDOW} stories par période de 6h
+                      </p>
+                      <button
+                        onClick={() => setShowUpload(false)}
+                        className="mt-5 w-full bg-surface hover:bg-surface-elevated text-foreground font-medium py-3 rounded-xl transition-colors border border-border"
+                      >
+                        Compris !
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => fileRef.current?.click()}
+                        className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-3 overflow-hidden mb-4"
+                      >
+                        {preview ? (
+                          <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-2xl" />
+                        ) : (
+                          <>
+                            <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center">
+                              <ImageIcon className="w-6 h-6 text-gold" />
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-medium text-foreground">Photo ou Galerie</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG, WebP</p>
+                            </div>
+                          </>
+                        )}
+                      </button>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
 
-                  <div className="space-y-2 mb-3">
-                    <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                      Votre nom (optionnel)
-                    </label>
-                    <input
-                      value={uploadUsername}
-                      onChange={(e) => setUploadUsername(e.target.value)}
-                      placeholder="Anonyme"
-                      className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
-                    />
-                  </div>
-
-                  <div className="space-y-2 mb-5">
-                    <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                      <MapPin className="w-3 h-3" /> Lieu (optionnel)
-                    </label>
-                    <input
-                      value={uploadLocation}
-                      onChange={(e) => setUploadLocation(e.target.value)}
-                      placeholder="Ex: Jemaa el-Fna"
-                      className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
-                    />
-                  </div>
-
-                  {uploading && (
-                    <div className="mb-4">
-                      <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
-                        <motion.div
-                          className="h-full bg-gold rounded-full"
-                          initial={{ width: "0%" }}
-                          animate={{ width: `${uploadProgress}%` }}
-                          transition={{ duration: 0.3 }}
+                      <div className="space-y-2 mb-3">
+                        <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
+                          Votre nom (optionnel)
+                        </label>
+                        <input
+                          value={uploadUsername}
+                          onChange={(e) => setUploadUsername(e.target.value)}
+                          placeholder="Anonyme"
+                          className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground text-center mt-2">
-                        {uploadProgress < 70 ? "Envoi en cours…" : uploadProgress < 100 ? "Presque terminé…" : "Publié !"}
+
+                      <div className="space-y-2 mb-5">
+                        <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
+                          <MapPin className="w-3 h-3" /> Lieu (optionnel)
+                        </label>
+                        <input
+                          value={uploadLocation}
+                          onChange={(e) => setUploadLocation(e.target.value)}
+                          placeholder="Ex: Jemaa el-Fna"
+                          className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
+                        />
+                      </div>
+
+                      {uploading && (
+                        <div className="mb-4">
+                          <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
+                            <motion.div
+                              className="h-full bg-gold rounded-full"
+                              initial={{ width: "0%" }}
+                              animate={{ width: `${uploadProgress}%` }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground text-center mt-2">
+                            {uploadProgress < 70 ? "Envoi en cours…" : uploadProgress < 100 ? "Presque terminé…" : "Publié !"}
+                          </p>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={handleUpload}
+                        disabled={!file || uploading}
+                        className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Envoi...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            Publier ma story
+                          </>
+                        )}
+                      </button>
+
+                      <p className="text-[10px] text-muted-foreground text-center mt-3">
+                        Votre photo sera visible pendant 6 heures
                       </p>
-                    </div>
+                    </>
                   )}
-
-                  <button
-                    onClick={handleUpload}
-                    disabled={!file || uploading}
-                    className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Envoi...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        Publier ma story
-                      </>
-                    )}
-                  </button>
-
-                  <p className="text-[10px] text-muted-foreground text-center mt-3">
-                    Votre photo sera visible pendant 6 heures
-                  </p>
                 </div>
               </div>
             </motion.div>
