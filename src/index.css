@@ -107,3 +107,21 @@
 /* Hide scrollbar but keep scroll */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Shimmer animation for TOP badges */
+@keyframes shimmer {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(250%) skewX(-20deg); }
+}
+
+/* Trending marker on map */
+@keyframes trending-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(43, 56%, 52%, 0.5); }
+  50% { box-shadow: 0 0 0 12px hsl(43, 56%, 52%, 0); }
+}
+
+.trending-marker {
+  animation: trending-pulse 1.5s ease-in-out infinite;
+  width: 40px !important;
+  height: 40px !important;
+}

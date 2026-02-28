@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import VibeComments, { useCommentCounts } from "./VibeComments";
+import SuperVibeParticles from "./SuperVibeParticles";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -15,8 +16,13 @@ interface Vibe {
   caption: string | null;
   location: string | null;
   likes: number;
+  super_vibes: number;
   username: string | null;
   created_at: string;
+}
+
+function getScore(v: Vibe) {
+  return v.likes + (v.super_vibes || 0) * 5;
 }
 
 function getDeviceId(): string {
@@ -48,6 +54,9 @@ export default function LivePage() {
   const [animatingId, setAnimatingId] = useState<string | null>(null);
   const [postLimitReached, setPostLimitReached] = useState(false);
   const [commentVibeId, setCommentVibeId] = useState<string | null>(null);
+  const [superVibeIds, setSuperVibeIds] = useState<Set<string>>(new Set());
+  const [superVibeAnimId, setSuperVibeAnimId] = useState<string | null>(null);
+  const [canSuperVibe, setCanSuperVibe] = useState(true);
   const commentCounts = useCommentCounts(vibes.map((v) => v.id));
 
   // Upload state
@@ -69,7 +78,7 @@ export default function LivePage() {
       .select("*")
       .gte("created_at", sixHoursAgo)
       .order("likes", { ascending: false });
-    if (!error && data) setVibes(data);
+    if (!error && data) setVibes((data as Vibe[]).sort((a, b) => getScore(b) - getScore(a)));
     setLoading(false);
   }, []);
 
@@ -83,6 +92,18 @@ export default function LivePage() {
     }
   }, [deviceId]);
 
+  const fetchMySuperVibes = useCallback(async () => {
+    const { data } = await supabase
+      .from("vibe_super_vibes")
+      .select("vibe_id, created_at")
+      .eq("device_id", deviceId);
+    if (data) {
+      setSuperVibeIds(new Set(data.map((s: any) => s.vibe_id)));
+      const recent = (data as any[]).some((s) => Date.now() - new Date(s.created_at).getTime() < SIX_HOURS);
+      setCanSuperVibe(!recent);
+    }
+  }, [deviceId]);
+
   const checkPostLimit = useCallback(async () => {
     const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
     const { data } = await supabase
@@ -91,7 +112,6 @@ export default function LivePage() {
       .eq("username", localStorage.getItem("wk_last_username") || deviceId)
       .gte("created_at", sixHoursAgo);
     
-    // Also check by looking at recent uploads tracked locally
     const localPosts = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
     const recentPosts = localPosts.filter((t) => Date.now() - t < SIX_HOURS);
     setPostLimitReached(recentPosts.length >= MAX_POSTS_PER_WINDOW);
@@ -100,6 +120,7 @@ export default function LivePage() {
   useEffect(() => {
     fetchVibes();
     fetchMyLikes();
+    fetchMySuperVibes();
     checkPostLimit();
 
     const channel = supabase
@@ -114,7 +135,7 @@ export default function LivePage() {
             if (age < SIX_HOURS) {
               setVibes((prev) => {
                 const updated = [newVibe, ...prev];
-                return updated.sort((a, b) => b.likes - a.likes);
+                return updated.sort((a, b) => getScore(b) - getScore(a));
               });
             }
           } else if (payload.eventType === "DELETE") {
@@ -124,7 +145,7 @@ export default function LivePage() {
               const updated = prev.map((v) =>
                 v.id === (payload.new as Vibe).id ? (payload.new as Vibe) : v
               );
-              return updated.sort((a, b) => b.likes - a.likes);
+              return updated.sort((a, b) => getScore(b) - getScore(a));
             });
           }
         }
@@ -134,7 +155,7 @@ export default function LivePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchVibes, fetchMyLikes, checkPostLimit]);
+  }, [fetchVibes, fetchMyLikes, fetchMySuperVibes, checkPostLimit]);
 
   const handleLike = async (vibeId: string) => {
     const alreadyLiked = likedIds.has(vibeId);
@@ -149,7 +170,7 @@ export default function LivePage() {
       });
       setVibes((prev) =>
         prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v))
-          .sort((a, b) => b.likes - a.likes)
+          .sort((a, b) => getScore(b) - getScore(a))
       );
       await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId);
       await supabase.from("vibes").update({ likes: Math.max(0, (vibes.find(v => v.id === vibeId)?.likes ?? 1) - 1) }).eq("id", vibeId);
@@ -157,11 +178,27 @@ export default function LivePage() {
       setLikedIds((prev) => new Set(prev).add(vibeId));
       setVibes((prev) =>
         prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v))
-          .sort((a, b) => b.likes - a.likes)
+          .sort((a, b) => getScore(b) - getScore(a))
       );
       await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId });
       await supabase.from("vibes").update({ likes: (vibes.find(v => v.id === vibeId)?.likes ?? 0) + 1 }).eq("id", vibeId);
     }
+  };
+
+  const handleSuperVibe = async (vibeId: string) => {
+    if (!canSuperVibe || superVibeIds.has(vibeId)) return;
+    setSuperVibeAnimId(vibeId);
+    setTimeout(() => setSuperVibeAnimId(null), 700);
+
+    setSuperVibeIds((prev) => new Set(prev).add(vibeId));
+    setCanSuperVibe(false);
+    setVibes((prev) =>
+      prev.map((v) => (v.id === vibeId ? { ...v, super_vibes: (v.super_vibes || 0) + 1 } : v))
+        .sort((a, b) => getScore(b) - getScore(a))
+    );
+
+    await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId });
+    await supabase.from("vibes").update({ super_vibes: (vibes.find(v => v.id === vibeId)?.super_vibes ?? 0) + 1 }).eq("id", vibeId);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,8 +268,8 @@ export default function LivePage() {
     }
   };
 
-  // Top 3 vibes for carousel
-  const topVibes = vibes.slice(0, 3);
+  // Top 5 vibes by score for carousel
+  const topVibes = [...vibes].sort((a, b) => getScore(b) - getScore(a)).slice(0, 5);
   const restVibes = vibes;
 
   return (
@@ -279,7 +316,7 @@ export default function LivePage() {
             <div className="pt-4 pb-2 px-4">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="w-4 h-4 text-gold" />
-                <h2 className="font-display text-sm font-semibold text-foreground">Top Vibes</h2>
+                <h2 className="font-display text-sm font-semibold text-foreground">Top 5 Vibes du Moment</h2>
                 <div className="flex-1 h-px bg-border" />
               </div>
               <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
@@ -299,17 +336,18 @@ export default function LivePage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
 
-                    {/* Trending badge */}
-                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-gold px-2 py-0.5 rounded-md shadow-lg">
-                      <TrendingUp className="w-3 h-3 text-primary-foreground" />
-                      <span className="text-[9px] font-bold text-primary-foreground uppercase tracking-wider">
-                        Trending
+                    {/* Rank badge with shine */}
+                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-gold px-2.5 py-1 rounded-lg shadow-lg overflow-hidden">
+                      <span className="text-[10px] font-black text-primary-foreground uppercase tracking-wider">
+                        TOP {i + 1}
                       </span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" style={{ transform: "skewX(-20deg)" }} />
                     </div>
 
-                    {/* Rank badge */}
-                    <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/70 backdrop-blur-md flex items-center justify-center">
-                      <span className="text-[10px] font-bold text-gold">#{i + 1}</span>
+                    {/* Score badge */}
+                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
+                      <Zap className="w-3 h-3 text-gold" />
+                      <span className="text-[10px] font-bold text-gold">{getScore(vibe)}</span>
                     </div>
 
                     {/* Bottom info */}
@@ -392,7 +430,7 @@ export default function LivePage() {
                           )}
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                           {/* Comment button */}
                           <button
                             onClick={() => setCommentVibeId(vibe.id)}
@@ -424,6 +462,32 @@ export default function LivePage() {
                             <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
                               {vibe.likes}
                             </span>
+                          </button>
+
+                          {/* Super Vibe button */}
+                          <button
+                            onClick={() => handleSuperVibe(vibe.id)}
+                            disabled={!canSuperVibe || superVibeIds.has(vibe.id)}
+                            className="flex flex-col items-center gap-0.5 group relative"
+                          >
+                            <motion.div
+                              animate={superVibeAnimId === vibe.id ? { scale: [1, 1.6, 0.8, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}}
+                              transition={{ duration: 0.5, ease: "easeOut" }}
+                            >
+                              <Zap
+                                className={`w-6 h-6 transition-colors duration-200 ${
+                                  superVibeIds.has(vibe.id)
+                                    ? "fill-gold text-gold drop-shadow-[0_0_8px_hsl(43,56%,52%,0.6)]"
+                                    : !canSuperVibe
+                                    ? "text-foreground/30"
+                                    : "text-foreground/70 group-hover:text-gold/70"
+                                }`}
+                              />
+                            </motion.div>
+                            <span className={`text-[10px] font-semibold ${superVibeIds.has(vibe.id) ? "text-gold" : "text-foreground/70"}`}>
+                              {(vibe as any).super_vibes || 0}
+                            </span>
+                            <SuperVibeParticles active={superVibeAnimId === vibe.id} />
                           </button>
                         </div>
                       </div>

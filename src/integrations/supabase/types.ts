@@ -138,6 +138,35 @@ export type Database = {
           },
         ]
       }
+      vibe_super_vibes: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          vibe_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          vibe_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          vibe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vibe_super_vibes_vibe_id_fkey"
+            columns: ["vibe_id"]
+            isOneToOne: false
+            referencedRelation: "vibes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vibes: {
         Row: {
           caption: string | null
@@ -146,6 +175,7 @@ export type Database = {
           image_url: string
           likes: number
           location: string | null
+          super_vibes: number
           username: string | null
         }
         Insert: {
@@ -155,6 +185,7 @@ export type Database = {
           image_url: string
           likes?: number
           location?: string | null
+          super_vibes?: number
           username?: string | null
         }
         Update: {
@@ -164,6 +195,7 @@ export type Database = {
           image_url?: string
           likes?: number
           location?: string | null
+          super_vibes?: number
           username?: string | null
         }
         Relationships: []
