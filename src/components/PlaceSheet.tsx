@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, MapPin, Tag } from "lucide-react";
+import { X, Star, MapPin, Tag, Zap } from "lucide-react";
+import DealTunnel from "./DealTunnel";
 
 interface Place {
   id: string;
@@ -20,13 +22,14 @@ interface PlaceSheetProps {
 }
 
 export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProps) {
+  const [dealOpen, setDealOpen] = useState(false);
+
   if (!place) return null;
 
   return (
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-background/40 backdrop-blur-sm z-[1001]"
             initial={{ opacity: 0 }}
@@ -35,7 +38,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
             onClick={() => onOpenChange(false)}
           />
 
-          {/* Sheet */}
           <motion.div
             className="absolute bottom-16 left-0 right-0 z-[1002] px-4 pb-4"
             initial={{ y: "100%", opacity: 0 }}
@@ -44,7 +46,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
           >
             <div className="bg-card rounded-2xl overflow-hidden border border-border shadow-2xl shadow-gold/5">
-              {/* Image */}
               {place.image_url && (
                 <div className="relative h-44 overflow-hidden">
                   <img
@@ -62,7 +63,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                 </div>
               )}
 
-              {/* Content */}
               <div className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -98,9 +98,24 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     <span className="text-xs">{place.address}</span>
                   </div>
                 )}
+
+                {/* Deal Flash Button */}
+                <button
+                  onClick={() => setDealOpen(true)}
+                  className="w-full mt-2 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
+                >
+                  <Zap className="w-4 h-4" />
+                  Réserver un Deal Flash
+                </button>
               </div>
             </div>
           </motion.div>
+
+          <DealTunnel
+            open={dealOpen}
+            onOpenChange={setDealOpen}
+            placeName={place.name}
+          />
         </>
       )}
     </AnimatePresence>
