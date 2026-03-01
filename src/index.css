@@ -108,6 +108,26 @@
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* CTA golden shimmer sweep every 3s */
+@keyframes cta-shimmer-sweep {
+  0%, 100% { transform: translateX(-150%) skewX(-20deg); }
+  33% { transform: translateX(250%) skewX(-20deg); }
+}
+
+.cta-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(43 76% 80% / 0.35) 50%,
+    transparent 100%
+  );
+  animation: cta-shimmer-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
 /* Shimmer animation for TOP badges */
 @keyframes shimmer {
   0% { transform: translateX(-150%) skewX(-20deg); }
