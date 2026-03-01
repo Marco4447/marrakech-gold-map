@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { Settings, Heart, MapPin, LogOut } from "lucide-react";
-import { motion } from "framer-motion";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Link } from "react-router-dom";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
@@ -41,8 +42,39 @@ function timeAgo(dateStr: string) {
 export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
   const [favorites, setFavorites] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const deviceId = getDeviceId();
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (res.ok) {
+        await signOut();
+      } else {
+        console.error("Delete failed");
+        setDeleting(false);
+        setShowDeleteConfirm(false);
+      }
+    } catch (e) {
+      console.error(e);
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   const fetchFavorites = useCallback(async () => {
     const { data: likes } = await supabase
@@ -169,6 +201,85 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
           </div>
         )}
       </div>
+
+      {/* RGPD Section */}
+      <div className="px-5 pt-6 pb-4 space-y-3">
+        <div className="h-px bg-border" />
+        
+        {/* Delete account */}
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="w-full flex items-center justify-center gap-2 text-xs text-destructive hover:text-destructive/80 transition-colors bg-destructive/5 border border-destructive/20 rounded-xl px-4 py-3"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          Supprimer mes données
+        </button>
+
+        {/* Legal links */}
+        <div className="flex items-center justify-center gap-4 pt-2">
+          <Link to="/privacy" className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+            Politique de Confidentialité
+          </Link>
+          <span className="text-border">·</span>
+          <Link to="/terms" className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+            Conditions Générales
+          </Link>
+        </div>
+      </div>
+
+      {/* Delete confirmation modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-background/70 backdrop-blur-md z-[3000]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !deleting && setShowDeleteConfirm(false)}
+            />
+            <motion.div
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[3001] bg-card border border-border rounded-2xl p-6 max-w-sm mx-auto"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                </div>
+                <h3 className="font-display text-base font-semibold text-foreground">Supprimer mon compte</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Cette action est <strong className="text-foreground">irréversible</strong>. Toutes vos données (profil, favoris) seront définitivement supprimées conformément au RGPD.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleting}
+                  className="flex-1 bg-surface hover:bg-surface-elevated text-foreground font-medium py-3 rounded-xl transition-colors border border-border text-sm"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold py-3 rounded-xl transition-colors text-sm disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                  {deleting ? (
+                    <div className="w-4 h-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Supprimer
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Hidden admin button */}
       <button
