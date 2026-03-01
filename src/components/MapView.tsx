@@ -165,6 +165,8 @@ export default function MapView() {
   const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [bubbleIndex, setBubbleIndex] = useState(0);
+  const [placesLoading, setPlacesLoading] = useState(true);
+  const [placesError, setPlacesError] = useState<string | null>(null);
 
   // Init map
   useEffect(() => {
@@ -190,22 +192,61 @@ export default function MapView() {
     };
   }, []);
 
-  // Fetch places (retry when auth session changes)
+  // Fetch places via REST (timeout-safe) + retry when auth session changes
   useEffect(() => {
     const fetchPlaces = async () => {
-      const { data, error } = await supabase.from("places").select("*");
-      if (error) {
-        console.error("Failed to fetch places:", error);
+      setPlacesError(null);
+      setPlacesLoading(true);
+
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      if (!baseUrl || !apiKey) {
+        console.error("Missing backend env vars for places fetch");
+        setPlaces([]);
+        setPlacesError("Configuration backend manquante pour charger la carte.");
+        setPlacesLoading(false);
         return;
       }
-      if (data) setPlaces(data as Place[]);
+
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+      try {
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(`${baseUrl}/rest/v1/places?select=*`, {
+          method: "GET",
+          headers: {
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`PLACES_FETCH_FAILED_${response.status}`);
+        }
+
+        const rows = await response.json();
+        setPlaces(Array.isArray(rows) ? (rows as Place[]) : []);
+      } catch (error) {
+        console.error("Failed to fetch places via REST:", error);
+        setPlaces([]);
+        setPlacesError("Impossible de charger les spots pour le moment.");
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+        setPlacesLoading(false);
+      }
     };
+
     fetchPlaces();
 
-    // Re-fetch when auth state changes (session becomes ready)
+    // Re-fetch when auth session changes (after refresh/login)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       fetchPlaces();
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -292,7 +333,9 @@ export default function MapView() {
             <span className="text-gold-dark">Wesh</span>
             <span className="text-[hsl(30,20%,20%)]">kech</span>
           </h1>
-          <p className="text-[hsl(30,10%,45%)] text-xs mt-0.5">Explore Marrakech · {places.length} spots</p>
+          <p className="text-[hsl(30,10%,45%)] text-xs mt-0.5">
+            {placesLoading ? "Chargement des spots…" : placesError ? placesError : `Explore Marrakech · ${places.length} spots`}
+          </p>
         </div>
       </div>
 
