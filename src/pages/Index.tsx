@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav from "@/components/BottomNav";
@@ -17,7 +17,21 @@ const Index = () => {
   const [showLanding, setShowLanding] = useState(() => {
     return !sessionStorage.getItem("wk_landed");
   });
+  const [authStuck, setAuthStuck] = useState(false);
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      setAuthStuck(false);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setAuthStuck(true);
+    }, 4000);
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
 
   const handleEnter = () => {
     sessionStorage.setItem("wk_landed", "1");
@@ -25,7 +39,7 @@ const Index = () => {
   };
 
   // Loading state
-  if (loading) {
+  if (loading && !authStuck) {
     return (
       <div className="h-[100dvh] w-full bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
