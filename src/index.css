@@ -134,6 +134,16 @@
   100% { transform: translateX(250%) skewX(-20deg); }
 }
 
+/* LIVE badge blinking animation */
+@keyframes live-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.live-badge-blink {
+  animation: live-blink 1.5s ease-in-out infinite;
+}
+
 /* Trending marker on map */
 @keyframes trending-pulse {
   0%, 100% { box-shadow: 0 0 0 0 hsl(43, 56%, 52%, 0.5); }
