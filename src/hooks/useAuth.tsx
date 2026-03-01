@@ -87,15 +87,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
-      await supabase.auth.signOut({ scope: 'local' });
+      const { error: globalError } = await supabase.auth.signOut({ scope: "global" });
+      if (globalError) {
+        // Fallback in case global revoke fails on some environments
+        await supabase.auth.signOut({ scope: "local" });
+      }
     } catch (e) {
       console.error("Sign out error:", e);
+      await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+    } finally {
+      localStorage.removeItem("wk_landed");
+
+      // Force clear persisted auth tokens
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("sb-") && key.includes("-auth-token")) {
+          localStorage.removeItem(key);
+        }
+      }
+      for (const key of Object.keys(sessionStorage)) {
+        if (key.startsWith("sb-") && key.includes("-auth-token")) {
+          sessionStorage.removeItem(key);
+        }
+      }
+
+      setUser(null);
+      setProfile(null);
+      window.location.replace(window.location.origin);
     }
-    // Clear all auth-related storage
-    localStorage.removeItem("wk_landed");
-    setUser(null);
-    setProfile(null);
-    window.location.href = window.location.origin;
   }, []);
 
   return (
