@@ -61,17 +61,13 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           className="space-y-3"
         >
           <h1 className="font-display text-4xl font-bold text-foreground leading-tight tracking-tight">
-            Marrakech.
-            <br />
-            <span className="text-gold">L'Instant T.</span>
+            Weshkech
           </h1>
           <p className="font-body text-lg font-light text-gold tracking-wide">
-            Weshkech · Real-Time Discovery
+            Marrakech Live Vibes
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed pt-1">
-            Ton guide live de Marrakech. Les 30 meilleurs spots triés par vibe,
-            l'ambiance en temps réel grâce aux photos postées par la communauté,
-            et un Pass Invité pour débloquer des deals exclusifs.
+            Marrakech Live, etc
           </p>
 
           {/* Simulated insider counter */}
