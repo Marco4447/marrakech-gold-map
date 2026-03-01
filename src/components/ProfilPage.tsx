@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Building2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -131,6 +131,15 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
           <LogOut className="w-3.5 h-3.5" />
           Se déconnecter
         </button>
+
+        {/* Partner CTA */}
+        <Link
+          to="/business"
+          className="mt-3 flex items-center gap-2 text-xs text-gold hover:text-gold-light transition-colors bg-gold/5 border border-gold/20 rounded-xl px-4 py-2"
+        >
+          <Building2 className="w-3.5 h-3.5" />
+          Inscrire mon établissement
+        </Link>
       </div>
 
       {/* Mes Favoris */}

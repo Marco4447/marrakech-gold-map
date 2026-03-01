@@ -1,6 +1,7 @@
 import { forwardRef, useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Camera, Gift } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/marrakech-hero.jpg";
 import ambientVideo from "@/assets/marrakech-ambiance.mp4";
 
@@ -116,6 +117,13 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
             </div>
           ))}
         </motion.div>
+
+        {/* Footer link */}
+        <div className="text-center pt-2">
+          <Link to="/business" className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+            Business / Partenaires
+          </Link>
+        </div>
       </div>
     </motion.div>
   );
