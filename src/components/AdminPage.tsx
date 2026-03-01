@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3 } from "lucide-react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 type PassStat = { place_name: string; count: number };
+type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string };
 
 export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [caption, setCaption] = useState("");
@@ -15,6 +16,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [passStats, setPassStats] = useState<PassStat[]>([]);
+  const [partnerRequests, setPartnerRequests] = useState<PartnerRequest[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -35,7 +37,15 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         );
       }
     };
+    const fetchPartnerRequests = async () => {
+      const { data } = await supabase
+        .from("partner_requests" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) setPartnerRequests(data as any);
+    };
     fetchStats();
+    fetchPartnerRequests();
   }, [success]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,6 +212,44 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                 <div key={stat.place_name} className="flex items-center justify-between bg-surface border border-border rounded-xl px-4 py-3">
                   <span className="text-sm text-foreground font-medium truncate mr-3">{stat.place_name}</span>
                   <span className="text-sm font-bold text-gold whitespace-nowrap">{stat.count} pass</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Partner Requests Dashboard */}
+        <div className="mt-8 border-t border-border pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-4 h-4 text-gold" />
+            <h2 className="font-display text-base font-semibold text-foreground">Demandes Partenaires</h2>
+            <span className="text-xs text-muted-foreground">({partnerRequests.length})</span>
+          </div>
+          {partnerRequests.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucune demande pour le moment.</p>
+          ) : (
+            <div className="space-y-3">
+              {partnerRequests.map((req) => (
+                <div key={req.id} className="bg-surface border border-border rounded-xl p-4 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{req.business_name}</p>
+                      <p className="text-xs text-muted-foreground">{req.category}</p>
+                    </div>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${req.status === 'pending' ? 'bg-gold/10 text-gold' : 'bg-green-500/10 text-green-400'}`}>
+                      {req.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-foreground/80">{req.offer_description}</p>
+                  <a
+                    href={`https://wa.me/${req.whatsapp_number.replace(/[\s()-]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-gold hover:text-gold-light transition-colors"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Contacter via WhatsApp
+                  </a>
                 </div>
               ))}
             </div>
