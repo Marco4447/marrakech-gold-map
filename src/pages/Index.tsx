@@ -15,7 +15,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("map");
   const [showAdmin, setShowAdmin] = useState(false);
   const [showLanding, setShowLanding] = useState(() => {
-    return !sessionStorage.getItem("wk_landed");
+    return !localStorage.getItem("wk_landed");
   });
   const [authStuck, setAuthStuck] = useState(false);
   const { user, loading } = useAuth();
@@ -34,9 +34,17 @@ const Index = () => {
   }, [loading]);
 
   const handleEnter = () => {
-    sessionStorage.setItem("wk_landed", "1");
+    localStorage.setItem("wk_landed", "1");
     setShowLanding(false);
   };
+
+  // Skip landing if user is already logged in
+  useEffect(() => {
+    if (user && showLanding) {
+      localStorage.setItem("wk_landed", "1");
+      setShowLanding(false);
+    }
+  }, [user, showLanding]);
 
   // Loading state
   if (loading && !authStuck) {
