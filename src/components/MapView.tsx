@@ -190,13 +190,23 @@ export default function MapView() {
     };
   }, []);
 
-  // Fetch places
+  // Fetch places (retry when auth session changes)
   useEffect(() => {
     const fetchPlaces = async () => {
       const { data, error } = await supabase.from("places").select("*");
-      if (!error && data) setPlaces(data as Place[]);
+      if (error) {
+        console.error("Failed to fetch places:", error);
+        return;
+      }
+      if (data) setPlaces(data as Place[]);
     };
     fetchPlaces();
+
+    // Re-fetch when auth state changes (session becomes ready)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchPlaces();
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   // Fetch trending locations from top 5 vibes
