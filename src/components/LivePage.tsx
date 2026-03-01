@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import VibeComments, { useCommentCounts } from "./VibeComments";
 import SuperVibeParticles from "./SuperVibeParticles";
 
@@ -9,6 +10,12 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
+
+interface VibeProfile {
+  full_name: string | null;
+  avatar_url: string | null;
+  email: string | null;
+}
 
 interface Vibe {
   id: string;
@@ -18,7 +25,23 @@ interface Vibe {
   likes: number;
   super_vibes: number;
   username: string | null;
+  user_id: string | null;
   created_at: string;
+  profile?: VibeProfile | null;
+}
+
+function getDisplayName(vibe: Vibe): string {
+  if (vibe.profile?.full_name) return vibe.profile.full_name;
+  if (vibe.profile?.email) {
+    const name = vibe.profile.email.split("@")[0];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  if (vibe.username) return vibe.username;
+  return "Anonyme";
+}
+
+function getAvatarUrl(vibe: Vibe): string | null {
+  return vibe.profile?.avatar_url || null;
 }
 
 function getScore(v: Vibe) {
@@ -48,6 +71,7 @@ function isNew(dateStr: string) {
 }
 
 export default function LivePage() {
+  const { user } = useAuth();
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
@@ -64,7 +88,7 @@ export default function LivePage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadLocation, setUploadLocation] = useState("");
-  const [uploadUsername, setUploadUsername] = useState("");
+  const [uploadUsername] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -78,7 +102,25 @@ export default function LivePage() {
       .select("*")
       .gte("created_at", sixHoursAgo)
       .order("likes", { ascending: false });
-    if (!error && data) setVibes((data as Vibe[]).sort((a, b) => getScore(b) - getScore(a)));
+    if (!error && data) {
+      // Fetch profiles for vibes that have user_id
+      const userIds = [...new Set((data as any[]).filter(v => v.user_id).map(v => v.user_id))];
+      let profilesMap: Record<string, VibeProfile> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, avatar_url, email")
+          .in("user_id", userIds);
+        if (profiles) {
+          profilesMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p]));
+        }
+      }
+      const vibesWithProfiles = (data as any[]).map(v => ({
+        ...v,
+        profile: v.user_id ? profilesMap[v.user_id] || null : null,
+      }));
+      setVibes(vibesWithProfiles.sort((a, b) => getScore(b) - getScore(a)));
+    }
     setLoading(false);
   }, []);
 
@@ -237,7 +279,8 @@ export default function LivePage() {
       const { error: insertError } = await supabase.from("vibes").insert({
         image_url: imageUrl,
         location: uploadLocation || null,
-        username: uploadUsername || null,
+        username: user?.user_metadata?.full_name || user?.email?.split("@")[0] || null,
+        user_id: user?.id || null,
         caption: null,
         likes: 0,
       });
@@ -257,7 +300,7 @@ export default function LivePage() {
         setFile(null);
         setPreview(null);
         setUploadLocation("");
-        setUploadUsername("");
+        setUploadLocation("");
         setUploading(false);
         setUploadProgress(0);
       }, 500);
@@ -352,9 +395,14 @@ export default function LivePage() {
 
                     {/* Bottom info */}
                     <div className="absolute bottom-0 inset-x-0 p-3">
-                      <p className="text-xs font-semibold text-foreground truncate">
-                        {vibe.username || "Anonyme"}
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        {getAvatarUrl(vibe) && (
+                          <img src={getAvatarUrl(vibe)!} alt="" className="w-5 h-5 rounded-full border border-gold/30 object-cover" />
+                        )}
+                        <p className="text-xs font-semibold text-foreground truncate">
+                          {getDisplayName(vibe)}
+                        </p>
+                      </div>
                       {vibe.location && (
                         <div className="flex items-center gap-1 mt-0.5">
                           <MapPin className="w-2.5 h-2.5 text-gold" />
@@ -418,16 +466,25 @@ export default function LivePage() {
 
                     <div className="absolute bottom-0 inset-x-0 p-4">
                       <div className="flex items-end justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">
-                            {vibe.username || "Anonyme"}
-                          </p>
-                          {vibe.location && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <MapPin className="w-3 h-3 text-gold" />
-                              <span className="text-xs text-foreground/70">{vibe.location}</span>
+                        <div className="flex items-center gap-2">
+                          {getAvatarUrl(vibe) ? (
+                            <img src={getAvatarUrl(vibe)!} alt="" className="w-8 h-8 rounded-full border-2 border-gold/30 object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gold/20 border-2 border-gold/30 flex items-center justify-center">
+                              <span className="text-xs font-bold text-gold">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
                             </div>
                           )}
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">
+                              {getDisplayName(vibe)}
+                            </p>
+                            {vibe.location && (
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <MapPin className="w-3 h-3 text-gold" />
+                                <span className="text-xs text-foreground/70">{vibe.location}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -595,17 +652,6 @@ export default function LivePage() {
                         onChange={handleFileChange}
                       />
 
-                      <div className="space-y-2 mb-3">
-                        <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                          Votre nom (optionnel)
-                        </label>
-                        <input
-                          value={uploadUsername}
-                          onChange={(e) => setUploadUsername(e.target.value)}
-                          placeholder="Anonyme"
-                          className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
-                        />
-                      </div>
 
                       <div className="space-y-2 mb-5">
                         <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
