@@ -6,6 +6,8 @@ import LivePage from "@/components/LivePage";
 import ProfilPage from "@/components/ProfilPage";
 import AdminPage from "@/components/AdminPage";
 import LandingPage from "@/components/LandingPage";
+import AuthGate from "@/components/AuthGate";
+import { useAuth } from "@/hooks/useAuth";
 
 type Tab = "map" | "live" | "profil";
 
@@ -15,11 +17,26 @@ const Index = () => {
   const [showLanding, setShowLanding] = useState(() => {
     return !sessionStorage.getItem("wk_landed");
   });
+  const { user, loading } = useAuth();
 
   const handleEnter = () => {
     sessionStorage.setItem("wk_landed", "1");
     setShowLanding(false);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="h-[100dvh] w-full bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Auth gate - user must be logged in
+  if (!user) {
+    return <AuthGate />;
+  }
 
   if (showAdmin) {
     return (

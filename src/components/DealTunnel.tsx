@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Check, QrCode, Loader2, MessageCircle, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DealTunnelProps {
   open: boolean;
@@ -12,12 +13,17 @@ interface DealTunnelProps {
 type Step = "email" | "success";
 
 export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnelProps) {
+  const { profile } = useAuth();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [processing, setProcessing] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
+
+  // Pre-fill email from profile
+  const displayEmail = profile?.email || email;
+  const displayName = profile?.full_name || "Invité";
 
   const handleSubmit = async () => {
     if (!email.trim() || !email.includes("@")) return;
@@ -136,8 +142,9 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                     </motion.div>
 
                     <h2 className="font-display text-xl font-semibold text-foreground mb-1">Pass Découverte Weshkech 🎉</h2>
+                    <p className="text-sm text-gold font-medium mb-0.5">{displayName}</p>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Votre guide <span className="text-gold font-medium">« 48h sans pièges »</span> arrive sur <span className="text-gold font-medium">{email}</span>
+                      Votre guide <span className="text-gold font-medium">« 48h sans pièges »</span> arrive sur <span className="text-gold font-medium">{displayEmail}</span>
                     </p>
 
                     <div className="bg-foreground rounded-2xl p-4 w-48 h-48 mx-auto mb-3 flex items-center justify-center">

@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { User, Settings, Heart, MapPin, Clock } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
@@ -40,6 +42,7 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
   const [favorites, setFavorites] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
   const deviceId = getDeviceId();
+  const { profile, signOut } = useAuth();
 
   const fetchFavorites = useCallback(async () => {
     const { data: likes } = await supabase
@@ -75,13 +78,27 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
 
       {/* Profile card */}
       <div className="flex flex-col items-center px-6 pt-8 pb-4">
-        <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mb-3">
-          <User className="w-7 h-7 text-gold" />
-        </div>
-        <h2 className="font-display text-lg font-semibold text-foreground mb-1">Explorateur</h2>
+        <Avatar className="w-20 h-20 mb-3 border-2 border-gold/30">
+          <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Profil"} />
+          <AvatarFallback className="bg-gold/10 text-gold font-display text-xl">
+            {profile?.full_name?.charAt(0)?.toUpperCase() || "W"}
+          </AvatarFallback>
+        </Avatar>
+        <h2 className="font-display text-lg font-semibold text-foreground mb-0.5">
+          {profile?.full_name || "Explorateur"}
+        </h2>
         <p className="text-muted-foreground text-xs text-center max-w-xs">
-          Tes coups de cœur sont sauvegardés ici.
+          {profile?.email || "Tes coups de cœur sont sauvegardés ici."}
         </p>
+
+        {/* Logout button */}
+        <button
+          onClick={signOut}
+          className="mt-4 flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors bg-surface border border-border rounded-xl px-4 py-2"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          Se déconnecter
+        </button>
       </div>
 
       {/* Mes Favoris */}
