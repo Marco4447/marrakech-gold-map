@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Camera, Gift } from "lucide-react";
 import heroImage from "@/assets/marrakech-hero.jpg";
@@ -12,9 +13,10 @@ const pillars = [
   { icon: Gift, label: "Profitez", desc: "Votre Pass Invité pour des avantages exclusifs." },
 ];
 
-export default function LandingPage({ onEnter }: LandingPageProps) {
+const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, ref) => {
   return (
     <motion.div
+      ref={ref}
       className="fixed inset-0 z-[3000] flex flex-col items-center justify-end bg-background"
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -78,4 +80,8 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       </div>
     </motion.div>
   );
-}
+});
+
+LandingPage.displayName = "LandingPage";
+
+export default LandingPage;
