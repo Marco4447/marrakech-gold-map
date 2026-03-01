@@ -73,25 +73,25 @@
   }
 }
 
-/* Leaflet overrides for dark theme */
+/* Leaflet overrides for warm vintage theme */
 .leaflet-container {
-  background: hsl(0 0% 5%) !important;
+  background: hsl(30 20% 90%) !important;
 }
 
 .leaflet-control-zoom a {
-  background: hsl(0 0% 8%) !important;
-  color: hsl(40 20% 92%) !important;
-  border-color: hsl(0 0% 15%) !important;
+  background: hsl(30 15% 95%) !important;
+  color: hsl(30 20% 20%) !important;
+  border-color: hsl(30 15% 80%) !important;
 }
 
 .leaflet-control-attribution {
-  background: hsl(0 0% 8% / 0.8) !important;
-  color: hsl(0 0% 45%) !important;
+  background: hsl(30 15% 95% / 0.9) !important;
+  color: hsl(30 10% 40%) !important;
   font-size: 10px !important;
 }
 
 .leaflet-control-attribution a {
-  color: hsl(43 76% 52%) !important;
+  color: hsl(43 76% 42%) !important;
 }
 
 /* Gold marker pulse */
