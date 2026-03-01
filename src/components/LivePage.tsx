@@ -108,8 +108,8 @@ export default function LivePage() {
       let profilesMap: Record<string, VibeProfile> = {};
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, avatar_url, email")
+          .from("profiles_public" as any)
+          .select("user_id, full_name, avatar_url")
           .in("user_id", userIds);
         if (profiles) {
           profilesMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p]));

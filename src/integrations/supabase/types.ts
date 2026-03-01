@@ -21,6 +21,7 @@ export type Database = {
           id: string
           place_name: string
           status: string
+          user_id: string | null
         }
         Insert: {
           amount?: number
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           place_name: string
           status?: string
+          user_id?: string | null
         }
         Update: {
           amount?: number
@@ -35,6 +37,7 @@ export type Database = {
           id?: string
           place_name?: string
           status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -241,7 +244,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          full_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          full_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          full_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
