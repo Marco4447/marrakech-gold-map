@@ -3,7 +3,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
-import { Plus, Minus, LocateFixed } from "lucide-react";
+import { Plus, Minus, LocateFixed, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
 const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -80,6 +81,81 @@ interface Place {
   has_active_offer: boolean;
 }
 
+interface BubbleItem {
+  emoji: string;
+  tag: string;
+  text: string;
+  place?: Place;
+}
+
+function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceClick }: {
+  places: Place[];
+  bubbleIndex: number;
+  setBubbleIndex: (fn: (n: number) => number) => void;
+  onPlaceClick: (p: Place) => void;
+}) {
+  const items: BubbleItem[] = [];
+
+  // Hot Now - most popular partner
+  const hotPlace = places.find(p => p.is_partner && p.has_active_offer);
+  if (hotPlace) {
+    items.push({ emoji: "🔥", tag: "HOT NOW", text: `${hotPlace.name} — Offre exclusive en cours !`, place: hotPlace });
+  }
+
+  // Partner ad
+  const partnerAd = places.find(p => p.is_partner && p !== hotPlace);
+  if (partnerAd) {
+    items.push({ emoji: "⭐", tag: "PARTENAIRE", text: `Découvrez ${partnerAd.name}`, place: partnerAd });
+  }
+
+  // Tip
+  items.push({ emoji: "🌅", tag: "TIP", text: "Coucher de soleil à 18h42 — direction Kabana Rooftop !" });
+
+  // Partner with offer
+  const offerPlace = places.find(p => p.has_active_offer && p !== hotPlace);
+  if (offerPlace) {
+    items.push({ emoji: "🎁", tag: "DEAL", text: `Pass Invité chez ${offerPlace.name}`, place: offerPlace });
+  }
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const timer = setInterval(() => setBubbleIndex(i => (i + 1) % items.length), 5000);
+    return () => clearInterval(timer);
+  }, [items.length]);
+
+  const current = items[bubbleIndex % items.length];
+  if (!current) return null;
+
+  return (
+    <div className="absolute bottom-28 left-4 right-16 z-[1000]">
+      <AnimatePresence mode="wait">
+        <motion.button
+          key={bubbleIndex}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+          onClick={() => current.place && onPlaceClick(current.place)}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] shadow-lg text-left"
+        >
+          <span className="text-lg flex-shrink-0">{current.emoji}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] text-gold-dark font-bold uppercase tracking-wider">{current.tag}</p>
+            <p className="text-[11px] text-[hsl(30,20%,25%)] font-medium truncate">{current.text}</p>
+          </div>
+          {current.place && <ChevronRight className="w-3.5 h-3.5 text-gold-dark flex-shrink-0" />}
+          {/* Progress dots */}
+          <div className="flex gap-1 flex-shrink-0">
+            {items.map((_, i) => (
+              <div key={i} className={`w-1 h-1 rounded-full transition-colors ${i === bubbleIndex % items.length ? "bg-gold-dark" : "bg-[hsl(30,15%,75%)]"}`} />
+            ))}
+          </div>
+        </motion.button>
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function MapView() {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -88,6 +164,7 @@ export default function MapView() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [bubbleIndex, setBubbleIndex] = useState(0);
 
   // Init map
   useEffect(() => {
@@ -100,7 +177,8 @@ export default function MapView() {
       attributionControl: true,
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    // Use CARTO Voyager with no labels, then add custom Latin-only labels via OSM France
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
     }).addTo(map);
 
@@ -238,18 +316,13 @@ export default function MapView() {
         </div>
       </div>
 
-      {/* Conseil du Jour */}
-      <div className="absolute top-[128px] left-4 right-4 z-[1000]">
-        <div className="bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] rounded-xl px-4 py-3 shadow-lg shadow-[hsl(30,20%,50%,0.1)]">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm">🌅</span>
-            <p className="text-[10px] text-gold-dark font-semibold uppercase tracking-wider">Conseil du jour</p>
-          </div>
-          <p className="text-xs text-[hsl(30,20%,25%)] leading-relaxed">
-            Coucher de soleil à <span className="text-gold-dark font-semibold">18h42</span> — le meilleur spot est le <span className="text-gold-dark font-medium">Kabana Rooftop</span>. Réservez votre table avant 17h !
-          </p>
-        </div>
-      </div>
+      {/* Floating info bubble - rotates every 5s */}
+      <FloatingBubble
+        places={places}
+        bubbleIndex={bubbleIndex}
+        setBubbleIndex={setBubbleIndex}
+        onPlaceClick={(place) => { setSelectedPlace(place); setSheetOpen(true); }}
+      />
 
       {/* Zoom & recenter controls */}
       <div className="absolute bottom-24 right-4 z-[1000] flex flex-col gap-2">
