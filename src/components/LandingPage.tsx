@@ -1,7 +1,8 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Camera, Gift } from "lucide-react";
 import heroImage from "@/assets/marrakech-hero.jpg";
+import ambientVideo from "@/assets/marrakech-ambiance.mp4";
 
 interface LandingPageProps {
   onEnter: () => void;
@@ -14,6 +15,8 @@ const pillars = [
 ];
 
 const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, ref) => {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+
   return (
     <motion.div
       ref={ref}
@@ -21,14 +24,30 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
-      {/* Background image */}
+      {/* Fallback static image (shown until video loads) */}
       <div className="absolute inset-0">
         <img
           src={heroImage}
           alt="Vue aérienne de Marrakech au coucher du soleil"
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-0" : "opacity-100"}`}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/30" />
+      </div>
+
+      {/* Background video */}
+      <div className="absolute inset-0">
+        <video
+          src={ambientVideo}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onCanPlayThrough={() => setVideoLoaded(true)}
+          className={`w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`}
+        />
+        {/* Dark overlay 60% */}
+        <div className="absolute inset-0 bg-background/60" />
+        {/* Bottom gradient for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
       </div>
 
       {/* Content */}
@@ -40,25 +59,33 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           transition={{ delay: 0.2, duration: 0.6 }}
           className="space-y-3"
         >
-          <h1 className="font-display text-3xl font-bold text-foreground leading-tight">
-            Weshkech<br />
-            <span className="text-gold">Marrakech Live Vibes</span>
+          <h1 className="font-display text-4xl font-bold text-foreground leading-tight tracking-tight">
+            Weshkech
           </h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Ton guide live de Marrakech. Les 30 meilleurs spots triés par vibe, l'ambiance en temps réel grâce aux photos postées par la communauté, et un Pass Invité pour débloquer des deals exclusifs. Fini les pièges à touristes — ici, c'est le vrai Marrakech.
+          <p className="font-body text-lg font-light text-gold tracking-wide">
+            Marrakech Live Vibes
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed pt-1">
+            Ton guide live de Marrakech. Les 30 meilleurs spots triés par vibe,
+            l'ambiance en temps réel grâce aux photos postées par la communauté,
+            et un Pass Invité pour débloquer des deals exclusifs.
           </p>
         </motion.div>
 
-        {/* CTA */}
-        <motion.button
+        {/* CTA with glassmorphism */}
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
-          onClick={onEnter}
-          className="w-full bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-4 rounded-2xl transition-colors shadow-lg shadow-gold/25 text-base"
+          className="rounded-2xl p-4 backdrop-blur-xl bg-foreground/5 border border-foreground/10 shadow-lg"
         >
-          Découvrir la ville
-        </motion.button>
+          <button
+            onClick={onEnter}
+            className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-4 rounded-xl transition-colors shadow-lg shadow-gold/25 text-base"
+          >
+            Devenir Insider
+          </button>
+        </motion.div>
 
         {/* 3 Pillars */}
         <motion.div
@@ -69,7 +96,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         >
           {pillars.map(({ icon: Icon, label, desc }) => (
             <div key={label} className="flex flex-col items-center text-center gap-1.5">
-              <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center backdrop-blur-sm">
                 <Icon className="w-4.5 h-4.5 text-gold" />
               </div>
               <span className="text-xs font-semibold text-foreground">{label}</span>
