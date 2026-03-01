@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building2, Tag, Gift, Phone, Send, Check, ArrowLeft, Star, Eye, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { z } from "zod";
 
@@ -11,6 +10,9 @@ const partnerSchema = z.object({
   offer_description: z.string().trim().min(5, "Décrivez votre offre").max(500),
   whatsapp_number: z.string().trim().min(8, "Numéro invalide").max(20).regex(/^[\d\s+()-]+$/, "Format invalide"),
 });
+
+const REST_URL = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/partner_requests`;
+const REST_API_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const categories = [
   "Restaurant & Café",
@@ -37,6 +39,7 @@ export default function BusinessPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const handleChange = (field: string, value: string) => {
@@ -45,6 +48,8 @@ export default function BusinessPage() {
   };
 
   const handleSubmit = async () => {
+    setSubmitError("");
+
     const result = partnerSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -56,18 +61,44 @@ export default function BusinessPage() {
     }
 
     setSubmitting(true);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     try {
-      const { error } = await supabase.from("partner_requests" as any).insert({
-        business_name: result.data.business_name,
-        category: result.data.category,
-        offer_description: result.data.offer_description,
-        whatsapp_number: result.data.whatsapp_number,
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 12000);
+
+      const response = await fetch(REST_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: REST_API_KEY,
+          Authorization: `Bearer ${REST_API_KEY}`,
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({
+          business_name: result.data.business_name,
+          category: result.data.category,
+          offer_description: result.data.offer_description,
+          whatsapp_number: result.data.whatsapp_number,
+        }),
+        signal: controller.signal,
       });
-      if (error) throw error;
+
+      if (!response.ok) {
+        throw new Error(`REQUEST_FAILED_${response.status}`);
+      }
+
       setSuccess(true);
     } catch (e) {
       console.error("Partner request error:", e);
+      const isTimeout = e instanceof DOMException && e.name === "AbortError";
+      setSubmitError(
+        isTimeout
+          ? "Le serveur met trop de temps à répondre. Réessayez dans quelques secondes."
+          : "Impossible d'envoyer la demande pour le moment. Vérifiez votre connexion puis réessayez."
+      );
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       setSubmitting(false);
     }
   };
@@ -223,6 +254,12 @@ export default function BusinessPage() {
               </div>
 
               {/* Submit */}
+              {submitError && (
+                <p className="text-xs text-destructive" aria-live="polite">
+                  {submitError}
+                </p>
+              )}
+
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
