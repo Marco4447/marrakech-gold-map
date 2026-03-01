@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, MapPin, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { lovable } from "@/integrations/lovable/index";
 import heroImage from "@/assets/marrakech-hero.jpg";
 
@@ -98,7 +99,14 @@ export default function AuthGate() {
           )}
         </motion.button>
 
-        <div className="flex items-center gap-1.5 mt-4">
+        <p className="text-[10px] text-muted-foreground mt-5 leading-relaxed max-w-[280px]">
+          En continuant, vous acceptez nos{" "}
+          <Link to="/terms" className="text-gold hover:underline">Conditions Générales</Link>
+          {" "}et notre{" "}
+          <Link to="/privacy" className="text-gold hover:underline">Politique de Confidentialité</Link>.
+        </p>
+
+        <div className="flex items-center gap-1.5 mt-3">
           <Sparkles className="w-3 h-3 text-gold/50" />
           <span className="text-[10px] text-muted-foreground">100% gratuit · Accès instantané</span>
         </div>
