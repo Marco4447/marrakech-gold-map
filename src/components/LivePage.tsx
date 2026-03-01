@@ -347,9 +347,9 @@ export default function LivePage() {
           <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mb-4">
             <Camera className="w-8 h-8 text-gold" />
           </div>
-          <h2 className="font-display text-lg font-semibold text-foreground mb-2">Aucune story live</h2>
+          <h2 className="font-display text-lg font-semibold text-foreground mb-2">Aucun vibe live</h2>
           <p className="text-sm text-muted-foreground">
-            Sois le premier à partager l'ambiance ! Les photos disparaissent après 6 heures.
+            Sois le premier à partager ton vibe ! Les photos disparaissent après 6 heures.
           </p>
         </div>
       ) : (
@@ -591,7 +591,7 @@ export default function LivePage() {
                 <div className="px-6 pb-8">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className="font-display text-lg font-semibold text-foreground">
-                      Partager une story 📸
+                      Publier mon vibe 📸
                     </h2>
                     <button
                       onClick={() => !uploading && setShowUpload(false)}
@@ -614,7 +614,7 @@ export default function LivePage() {
                         Vous avez partagé assez de vibes pour le moment ! Revenez plus tard pour en poster d'autres.
                       </p>
                       <p className="text-xs text-muted-foreground mt-3">
-                        Limite : {MAX_POSTS_PER_WINDOW} stories par période de 6h
+                        Limite : {MAX_POSTS_PER_WINDOW} vibes par période de 6h
                       </p>
                       <button
                         onClick={() => setShowUpload(false)}
@@ -694,13 +694,13 @@ export default function LivePage() {
                         ) : (
                           <>
                             <Send className="w-4 h-4" />
-                            Publier ma story
+                            Publier mon vibe
                           </>
                         )}
                       </button>
 
                       <p className="text-[10px] text-muted-foreground text-center mt-3">
-                        Votre photo sera visible pendant 6 heures
+                        Votre vibe sera visible pendant 6 heures
                       </p>
                     </>
                   )}
