@@ -206,6 +206,7 @@ export type Database = {
           likes: number
           location: string | null
           super_vibes: number
+          user_id: string | null
           username: string | null
         }
         Insert: {
@@ -216,6 +217,7 @@ export type Database = {
           likes?: number
           location?: string | null
           super_vibes?: number
+          user_id?: string | null
           username?: string | null
         }
         Update: {
@@ -226,6 +228,7 @@ export type Database = {
           likes?: number
           location?: string | null
           super_vibes?: number
+          user_id?: string | null
           username?: string | null
         }
         Relationships: []
