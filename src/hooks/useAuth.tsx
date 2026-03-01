@@ -86,11 +86,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      console.error("Sign out error:", e);
+    }
+    // Clear all auth-related storage
+    localStorage.removeItem("wk_landed");
     setUser(null);
     setProfile(null);
-    // Force reload to clear all state
-    window.location.reload();
+    window.location.href = window.location.origin;
   }, []);
 
   return (
