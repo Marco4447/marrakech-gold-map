@@ -17,32 +17,48 @@ const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
 };
 
 const MOOD_FILTERS: { key: string; emoji: string; label: string; categories: string[] }[] = [
-  { key: "hot", emoji: "🔥", label: "Hot Now", categories: [] }, // uses trending
-  { key: "offers", emoji: "✨", label: "Offres Insider", categories: ["Secret"] },
+  { key: "hot", emoji: "🔥", label: "Hot Now", categories: [] },
+  { key: "offers", emoji: "✨", label: "Offres Insider", categories: [] }, // uses is_partner + has_active_offer
   { key: "party", emoji: "💃", label: "Party", categories: ["Night"] },
   { key: "chill", emoji: "🍸", label: "Chill", categories: ["Rooftop", "Hôtel"] },
 ];
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
-const createCategoryIcon = (category: string | null, trending = false) => {
+const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
-  const size = trending ? 46 : 36;
-  const emojiSize = trending ? 20 : 16;
+  const { trending = false, isPartner = false, hasOffer = false } = options;
+  const size = isPartner ? 46 : trending ? 46 : 36;
+  const emojiSize = isPartner ? 20 : trending ? 20 : 16;
+
+  const borderColor = isPartner ? "hsl(43,76%,52%)" : cat.color;
+  const borderWidth = isPartner ? "3.5px" : "2.5px";
+  const glow = isPartner
+    ? "0 0 16px hsl(43,76%,52%,0.6), 0 0 4px hsl(43,76%,52%,0.3)"
+    : `0 2px ${trending ? 16 : 8}px ${cat.color.replace(")", ",0.4)")}`;
+
+  const partnerBadge = isPartner
+    ? `<div style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:hsl(43,76%,52%);display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 6px hsl(43,76%,52%,0.5)">${hasOffer ? "🎁" : "⭐"}</div>`
+    : "";
+
+  const trendingBadge = trending && !isPartner
+    ? `<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(30,20%,95%);font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em">TRENDING</div>`
+    : "";
 
   return L.divIcon({
-    className: trending ? "trending-marker" : "",
+    className: trending ? "trending-marker" : isPartner ? "gold-marker" : "",
     html: `
       <div class="category-marker" style="
         width:${size}px;height:${size}px;border-radius:50%;
         background:hsl(30,20%,95%);
-        border:2.5px solid ${cat.color};
-        box-shadow:0 2px ${trending ? 16 : 8}px ${cat.color.replace(")", ",0.4)")};
+        border:${borderWidth} solid ${borderColor};
+        box-shadow:${glow};
         display:flex;align-items:center;justify-content:center;
         position:relative;
       ">
         <span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>
-        ${trending ? `<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(30,20%,95%);font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em">TRENDING</div>` : ""}
+        ${partnerBadge}
+        ${trendingBadge}
       </div>
     `,
     iconSize: [size, size],
@@ -60,6 +76,8 @@ interface Place {
   image_url: string | null;
   address: string | null;
   rating: number | null;
+  is_partner: boolean;
+  has_active_offer: boolean;
 }
 
 export default function MapView() {
@@ -82,8 +100,8 @@ export default function MapView() {
       attributionControl: true,
     });
 
-    L.tileLayer("https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.jpg", {
-      attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://stamen.com/">Stamen</a>',
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
     }).addTo(map);
 
     mapRef.current = map;
@@ -98,7 +116,7 @@ export default function MapView() {
   useEffect(() => {
     const fetchPlaces = async () => {
       const { data, error } = await supabase.from("places").select("*");
-      if (!error && data) setPlaces(data);
+      if (!error && data) setPlaces(data as Place[]);
     };
     fetchPlaces();
   }, []);
@@ -136,16 +154,22 @@ export default function MapView() {
         const mood = MOOD_FILTERS.find(m => m.key === activeFilter);
         if (mood) {
           if (mood.key === "hot") {
-            // "Hot Now" = only trending places
             if (!trendingLocations.has(place.name.toLowerCase())) return;
+          } else if (mood.key === "offers") {
+            if (!place.is_partner || !place.has_active_offer) return;
           } else if (mood.categories.length > 0 && !mood.categories.includes(place.category || "")) {
             return;
           }
         }
       }
       const isTrending = trendingLocations.has(place.name.toLowerCase());
-      const icon = createCategoryIcon(place.category, isTrending);
-      const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: isTrending ? 1000 : 0 })
+      const icon = createCategoryIcon(place.category, {
+        trending: isTrending,
+        isPartner: place.is_partner,
+        hasOffer: place.has_active_offer,
+      });
+      const zOffset = place.is_partner ? 2000 : isTrending ? 1000 : 0;
+      const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: zOffset })
         .addTo(map)
         .on("click", () => {
           setSelectedPlace(place);
@@ -168,7 +192,6 @@ export default function MapView() {
   };
 
   const categories = Object.entries(CATEGORY_CONFIG);
-  const legendCategories = Object.entries(CATEGORY_CONFIG);
 
   return (
     <div className="relative h-full w-full">
@@ -188,7 +211,7 @@ export default function MapView() {
       {/* Category filter chips */}
       <div className="absolute top-[88px] left-0 right-0 z-[1000] px-4">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-      <button
+          <button
             onClick={() => setActiveFilter(null)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
               activeFilter === null
@@ -266,6 +289,25 @@ export default function MapView() {
                 <span className="text-[10px] text-[hsl(30,20%,30%)]">{key}</span>
               </div>
             ))}
+            {/* Partner legend */}
+            <div className="flex items-center gap-2 mt-1 pt-1 border-t border-[hsl(30,15%,85%)]">
+              <span
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]"
+                style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(30,20%,95%)" }}
+              >
+                ⭐
+              </span>
+              <span className="text-[10px] text-gold-dark font-medium">Partenaire</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]"
+                style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(30,20%,95%)" }}
+              >
+                🎁
+              </span>
+              <span className="text-[10px] text-gold-dark font-medium">Offre active</span>
+            </div>
           </div>
         </div>
       </div>

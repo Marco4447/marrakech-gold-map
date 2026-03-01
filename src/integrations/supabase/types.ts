@@ -44,8 +44,10 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          has_active_offer: boolean
           id: string
           image_url: string | null
+          is_partner: boolean
           latitude: number
           longitude: number
           name: string
@@ -56,8 +58,10 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          has_active_offer?: boolean
           id?: string
           image_url?: string | null
+          is_partner?: boolean
           latitude: number
           longitude: number
           name: string
@@ -68,8 +72,10 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          has_active_offer?: boolean
           id?: string
           image_url?: string | null
+          is_partner?: boolean
           latitude?: number
           longitude?: number
           name?: string
