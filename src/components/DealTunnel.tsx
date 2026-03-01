@@ -29,10 +29,12 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
     if (!email.trim() || !email.includes("@")) return;
     setProcessing(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       await supabase.from("bookings").insert({
         place_name: placeName,
         amount: 0,
         status: "free_pass",
+        user_id: user?.id,
       });
     } catch (e) {
       console.error("Booking error:", e);
