@@ -60,15 +60,21 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           transition={{ delay: 0.2, duration: 0.6 }}
           className="space-y-3"
         >
-          <h1 className="font-display text-4xl font-bold text-foreground leading-tight tracking-tight">
+          <h1 className="font-display text-4xl font-bold text-foreground leading-tight tracking-tight drop-shadow-lg">
             Weshkech
           </h1>
-          <p className="font-body text-lg font-light text-gold tracking-wide">
+          <p className="font-body text-lg font-light text-gold tracking-wide drop-shadow-md">
             Marrakech Live Vibes
           </p>
-          <p className="text-sm text-muted-foreground leading-relaxed pt-1">
-            Marrakech Live, etc
-          </p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+            className="font-body text-sm font-light text-foreground/80 leading-relaxed pt-2 max-w-[280px]"
+            style={{ textShadow: '0 1px 3px hsl(0 0% 0% / 0.5)' }}
+          >
+            L'énergie de Marrakech, sans filtre et en temps réel. Découvrez les spots les plus chauds du moment et profitez de vos avantages Pass Invité.
+          </motion.p>
 
           {/* Simulated insider counter */}
           <div className="flex items-center gap-2 mt-3">
@@ -83,14 +89,13 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="rounded-2xl p-4 backdrop-blur-xl bg-foreground/5 border border-foreground/10 shadow-lg"
+          transition={{ delay: 0.9, duration: 0.5 }}
         >
           <button
             onClick={onEnter}
-            className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-4 rounded-xl transition-colors shadow-lg shadow-gold/25 text-base"
+            className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.98] text-primary-foreground font-bold py-4 rounded-2xl transition-all duration-200 shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-base tracking-wide"
           >
-            Entrer dans le Live
+            Devenir Insider
           </button>
         </motion.div>
 
