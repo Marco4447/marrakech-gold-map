@@ -450,10 +450,10 @@ export default function LivePage() {
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
 
                     {isNew(vibe.created_at) && (
-                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-destructive px-2.5 py-1 rounded-lg shadow-lg">
-                        <div className="w-2 h-2 rounded-full bg-destructive-foreground animate-pulse" />
-                        <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wider">
-                          Nouveau
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-red-600 px-2.5 py-1 rounded-lg shadow-lg shadow-red-600/30 live-badge-blink">
+                        <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                        <span className="text-[10px] font-bold text-white uppercase tracking-wider">
+                          LIVE
                         </span>
                       </div>
                     )}

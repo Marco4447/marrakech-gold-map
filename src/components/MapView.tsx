@@ -16,6 +16,13 @@ const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
   Secret: { emoji: "✨", color: "hsl(340,65%,55%)" },
 };
 
+const MOOD_FILTERS: { key: string; emoji: string; label: string; categories: string[] }[] = [
+  { key: "hot", emoji: "🔥", label: "Hot Now", categories: [] }, // uses trending
+  { key: "offers", emoji: "✨", label: "Offres Insider", categories: ["Secret"] },
+  { key: "party", emoji: "💃", label: "Party", categories: ["Night"] },
+  { key: "chill", emoji: "🍸", label: "Chill", categories: ["Rooftop", "Hôtel"] },
+];
+
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
 const createCategoryIcon = (category: string | null, trending = false) => {
@@ -125,7 +132,17 @@ export default function MapView() {
     const markers: L.Marker[] = [];
 
     places.forEach((place) => {
-      if (activeFilter && place.category !== activeFilter) return;
+      if (activeFilter) {
+        const mood = MOOD_FILTERS.find(m => m.key === activeFilter);
+        if (mood) {
+          if (mood.key === "hot") {
+            // "Hot Now" = only trending places
+            if (!trendingLocations.has(place.name.toLowerCase())) return;
+          } else if (mood.categories.length > 0 && !mood.categories.includes(place.category || "")) {
+            return;
+          }
+        }
+      }
       const isTrending = trendingLocations.has(place.name.toLowerCase());
       const icon = createCategoryIcon(place.category, isTrending);
       const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: isTrending ? 1000 : 0 })
@@ -151,6 +168,7 @@ export default function MapView() {
   };
 
   const categories = Object.entries(CATEGORY_CONFIG);
+  const legendCategories = Object.entries(CATEGORY_CONFIG);
 
   return (
     <div className="relative h-full w-full">
@@ -170,7 +188,7 @@ export default function MapView() {
       {/* Category filter chips */}
       <div className="absolute top-[88px] left-0 right-0 z-[1000] px-4">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-          <button
+      <button
             onClick={() => setActiveFilter(null)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
               activeFilter === null
@@ -180,18 +198,18 @@ export default function MapView() {
           >
             Tous
           </button>
-          {categories.map(([key, { emoji }]) => (
+          {MOOD_FILTERS.map((mood) => (
             <button
-              key={key}
-              onClick={() => setActiveFilter(activeFilter === key ? null : key)}
+              key={mood.key}
+              onClick={() => setActiveFilter(activeFilter === mood.key ? null : mood.key)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
-                activeFilter === key
+                activeFilter === mood.key
                   ? "bg-gold text-primary-foreground border-gold"
                   : "bg-card/90 backdrop-blur-xl text-foreground/70 border-border hover:border-gold/40"
               }`}
             >
-              <span>{emoji}</span>
-              {key}
+              <span>{mood.emoji}</span>
+              {mood.label}
             </button>
           ))}
         </div>

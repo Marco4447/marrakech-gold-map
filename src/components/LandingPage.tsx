@@ -16,6 +16,7 @@ const pillars = [
 
 const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, ref) => {
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [insiderCount] = useState(() => Math.floor(Math.random() * 34) + 12);
 
   return (
     <motion.div
@@ -60,16 +61,26 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           className="space-y-3"
         >
           <h1 className="font-display text-4xl font-bold text-foreground leading-tight tracking-tight">
-            Weshkech
+            Marrakech.
+            <br />
+            <span className="text-gold">L'Instant T.</span>
           </h1>
           <p className="font-body text-lg font-light text-gold tracking-wide">
-            Marrakech Live Vibes
+            Weshkech · Real-Time Discovery
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed pt-1">
             Ton guide live de Marrakech. Les 30 meilleurs spots triés par vibe,
             l'ambiance en temps réel grâce aux photos postées par la communauté,
             et un Pass Invité pour débloquer des deals exclusifs.
           </p>
+
+          {/* Simulated insider counter */}
+          <div className="flex items-center gap-2 mt-3">
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-xs text-foreground/80 font-medium">
+              <span className="text-gold font-semibold">{insiderCount}</span> Insiders partagent l'ambiance en direct
+            </span>
+          </div>
         </motion.div>
 
         {/* CTA with glassmorphism */}
@@ -83,7 +94,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
             onClick={onEnter}
             className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-4 rounded-xl transition-colors shadow-lg shadow-gold/25 text-base"
           >
-            Devenir Insider
+            Entrer dans le Live
           </button>
         </motion.div>
 
