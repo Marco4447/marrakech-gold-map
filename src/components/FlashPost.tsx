@@ -110,6 +110,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   const [isPartner, setIsPartner] = useState(false);
   const [partnerCredits, setPartnerCredits] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Video recording state
@@ -252,7 +253,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     if (isRecording) {
       stopVideoRecording();
     } else if (!isLongPress) {
-      // Short tap = photo
+      // Short tap = open camera
       fileRef.current?.click();
     }
     setIsLongPress(false);
@@ -565,18 +566,27 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
 
                       {/* Or pick from gallery */}
                       <button
-                        onClick={() => fileRef.current?.click()}
+                        onClick={() => galleryRef.current?.click()}
                         className="text-xs text-gold underline underline-offset-2"
                       >
                         Choisir depuis la galerie
                       </button>
                     </div>
 
+                    {/* Camera input (with capture) */}
                     <input
                       ref={fileRef}
                       type="file"
-                      accept="image/*,video/*"
+                      accept="image/*"
                       capture="environment"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    {/* Gallery input (no capture = opens file picker) */}
+                    <input
+                      ref={galleryRef}
+                      type="file"
+                      accept="image/*,video/*"
                       className="hidden"
                       onChange={handleFileChange}
                     />
