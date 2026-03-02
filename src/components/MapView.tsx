@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
+import VibeSheet from "./VibeSheet";
 import { Plus, Minus, LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -231,6 +232,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
   const [vibePins, setVibePins] = useState<VibePin[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedVibe, setSelectedVibe] = useState<VibePin | null>(null);
+  const [vibeSheetOpen, setVibeSheetOpen] = useState(false);
   const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [bubbleIndex, setBubbleIndex] = useState(0);
@@ -513,7 +516,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       });
 
       const zOffset = isOfficial ? 1500 : 500;
-      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: zOffset }).addTo(map);
+      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: zOffset })
+        .addTo(map)
+        .on("click", () => {
+          setSelectedVibe(vibe);
+          setVibeSheetOpen(true);
+        });
       markers.push(marker);
     });
 
@@ -533,15 +541,19 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
   const handleGeolocate = () => {
     if (!navigator.geolocation) return;
+    // Use cached position first for instant response, then refine
+    if (userMarkerRef.current) {
+      const pos = userMarkerRef.current.getLatLng();
+      mapRef.current?.flyTo([pos.lat, pos.lng], 16, { duration: 0.6 });
+    }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        mapRef.current?.flyTo([pos.coords.latitude, pos.coords.longitude], 15, { duration: 1.2 });
+        mapRef.current?.flyTo([pos.coords.latitude, pos.coords.longitude], 16, { duration: 0.6 });
       },
       () => {
-        // Fallback to Marrakech if denied
-        handleRecenter();
+        if (!userMarkerRef.current) handleRecenter();
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      { enableHighAccuracy: false, maximumAge: 30000, timeout: 3000 }
     );
   };
   const categories = Object.entries(CATEGORY_CONFIG);
@@ -681,6 +693,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       </AnimatePresence>
 
       <PlaceSheet place={selectedPlace} open={sheetOpen} onOpenChange={setSheetOpen} />
+      <VibeSheet vibe={selectedVibe} open={vibeSheetOpen} onOpenChange={setVibeSheetOpen} />
     </div>
   );
 }
