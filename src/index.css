@@ -155,3 +155,19 @@
   width: 40px !important;
   height: 40px !important;
 }
+
+/* User GPS blue dot */
+@keyframes blue-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(210, 100%, 56%, 0.5); }
+  50% { box-shadow: 0 0 0 14px hsl(210, 100%, 56%, 0); }
+}
+
+.user-gps-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: hsl(210, 100%, 56%);
+  border: 3px solid hsl(0, 0%, 100%);
+  box-shadow: 0 0 6px hsl(210, 100%, 56%, 0.6);
+  animation: blue-pulse 2s ease-in-out infinite;
+}
