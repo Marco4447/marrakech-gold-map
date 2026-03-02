@@ -3,7 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
-import { Plus, Minus, LocateFixed, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Minus, LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
@@ -478,6 +478,19 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     mapRef.current?.flyTo(MARRAKECH_CENTER, 14, { duration: 0.8 });
   };
 
+  const handleGeolocate = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        mapRef.current?.flyTo([pos.coords.latitude, pos.coords.longitude], 15, { duration: 1.2 });
+      },
+      () => {
+        // Fallback to Marrakech if denied
+        handleRecenter();
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
   const categories = Object.entries(CATEGORY_CONFIG);
 
   return (
@@ -550,8 +563,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
           <Minus className="w-4 h-4" />
         </button>
         <button
+          onClick={handleGeolocate}
+          className="w-10 h-10 rounded-full bg-gold/90 backdrop-blur-xl border border-gold-dark/40 flex items-center justify-center text-primary-foreground hover:bg-gold transition-colors shadow-lg"
+          title="Ma position"
+        >
+          <Navigation className="w-4 h-4" />
+        </button>
+        <button
           onClick={handleRecenter}
           className="w-10 h-10 rounded-full bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-gold-dark/40 flex items-center justify-center text-gold-dark hover:bg-gold/10 transition-colors shadow-lg"
+          title="Marrakech"
         >
           <LocateFixed className="w-4 h-4" />
         </button>
