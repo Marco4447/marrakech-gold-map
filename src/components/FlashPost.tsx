@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { Camera, X, Loader2, Send, MapPin } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Camera, X, Loader2, Send, MapPin, Video, Check, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,12 +10,13 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
 const GLOBAL_TIMEOUT_MS = 30000;
+const MAX_VIDEO_DURATION = 5; // seconds
 
 const MOODS = [
-  { key: "hot", emoji: "🔥", label: "Hot Now", color: "hsl(15,80%,50%)" },
+  { key: "hot", emoji: "🔥", label: "Hot", color: "hsl(15,80%,50%)" },
   { key: "chill", emoji: "🍸", label: "Chill", color: "hsl(200,60%,50%)" },
   { key: "secret", emoji: "✨", label: "Secret", color: "hsl(280,60%,55%)" },
-  { key: "deal", emoji: "🎁", label: "Deal", color: "hsl(43,76%,52%)" },
+  { key: "foodie", emoji: "🥗", label: "Foodie", color: "hsl(120,50%,45%)" },
 ] as const;
 
 interface FlashPostProps {
@@ -24,10 +25,76 @@ interface FlashPostProps {
   onPosted?: () => void;
 }
 
+// Circular progress ring for video recording
+function RecordingRing({ progress, size = 80 }: { progress: number; size?: number }) {
+  const stroke = 4;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - progress * circumference;
+
+  return (
+    <svg width={size} height={size} className="absolute inset-0 -rotate-90 pointer-events-none">
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} opacity={0.3} />
+      <circle
+        cx={size / 2} cy={size / 2} r={radius} fill="none"
+        stroke="hsl(15,80%,50%)" strokeWidth={stroke}
+        strokeDasharray={circumference} strokeDashoffset={offset}
+        strokeLinecap="round"
+        className="transition-[stroke-dashoffset] duration-100"
+      />
+    </svg>
+  );
+}
+
+// Success confetti animation
+function SuccessAnimation({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <motion.div
+      className="fixed inset-0 z-[2600] flex items-center justify-center pointer-events-none"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: [0, 1.3, 1] }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="w-24 h-24 rounded-full bg-gold/20 backdrop-blur-xl flex items-center justify-center"
+      >
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+        >
+          <Check className="w-12 h-12 text-gold" strokeWidth={3} />
+        </motion.div>
+      </motion.div>
+      {/* Confetti particles */}
+      {Array.from({ length: 12 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 rounded-full"
+          style={{ background: ["hsl(43,76%,52%)", "hsl(15,80%,50%)", "hsl(280,60%,55%)", "hsl(200,60%,50%)"][i % 4] }}
+          initial={{ x: 0, y: 0, scale: 0 }}
+          animate={{
+            x: Math.cos((i * 30 * Math.PI) / 180) * (80 + Math.random() * 40),
+            y: Math.sin((i * 30 * Math.PI) / 180) * (80 + Math.random() * 40),
+            scale: [0, 1.2, 0],
+            opacity: [0, 1, 0],
+          }}
+          transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
+        />
+      ))}
+    </motion.div>
+  );
+}
+
 export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<"photo" | "video">("photo");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -35,7 +102,21 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   const [geoLocation, setGeoLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [geoName, setGeoName] = useState("");
   const [geoLoading, setGeoLoading] = useState(false);
+  const [nearbyPlace, setNearbyPlace] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Video recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingProgress, setRecordingProgress] = useState(0);
+  const [isLongPress, setIsLongPress] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordingStart = useRef<number>(0);
+  const chunksRef = useRef<Blob[]>([]);
 
   // Check post limit on open
   const checkPostLimit = useCallback(() => {
@@ -44,14 +125,33 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     setPostLimitReached(recentPosts.length >= MAX_POSTS_PER_WINDOW);
   }, []);
 
-  // Auto-get geolocation
-  const getGeo = useCallback(() => {
+  // Auto-get geolocation + nearest place
+  const getGeo = useCallback(async () => {
     if (!navigator.geolocation) return;
     setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeoLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      async (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setGeoLocation(coords);
         setGeoLoading(false);
+
+        // Try to find nearest place
+        try {
+          const { data } = await supabase.from("places").select("name, latitude, longitude");
+          if (data && data.length > 0) {
+            let nearest = data[0];
+            let minDist = Infinity;
+            data.forEach((p: any) => {
+              const d = Math.sqrt((p.latitude - coords.lat) ** 2 + (p.longitude - coords.lng) ** 2);
+              if (d < minDist) { minDist = d; nearest = p; }
+            });
+            // Within ~200m
+            if (minDist < 0.002) {
+              setNearbyPlace(nearest.name);
+              setGeoName(nearest.name);
+            }
+          }
+        } catch { /* ignore */ }
       },
       () => setGeoLoading(false),
       { enableHighAccuracy: true, timeout: 8000 }
@@ -81,12 +181,24 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     }
   };
 
+  // === CAPTURE HANDLERS ===
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (!f.type.startsWith("image/")) return;
-    if (f.size > 10 * 1024 * 1024) {
-      toast.error("Image trop lourde", { description: "Maximum 10MB par photo." });
+    if (f.type.startsWith("image/")) {
+      if (f.size > 10 * 1024 * 1024) {
+        toast.error("Image trop lourde", { description: "Maximum 10MB par photo." });
+        return;
+      }
+      setMediaType("photo");
+    } else if (f.type.startsWith("video/")) {
+      if (f.size > 50 * 1024 * 1024) {
+        toast.error("Vidéo trop lourde", { description: "Maximum 50MB par vidéo." });
+        return;
+      }
+      setMediaType("video");
+    } else {
       return;
     }
     setFile(f);
@@ -95,6 +207,95 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     getGeo();
   };
 
+  // Long press for video recording
+  const handleCaptureStart = () => {
+    longPressTimer.current = setTimeout(() => {
+      setIsLongPress(true);
+      startVideoRecording();
+    }, 400);
+  };
+
+  const handleCaptureEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    if (isRecording) {
+      stopVideoRecording();
+    } else if (!isLongPress) {
+      // Short tap = photo
+      fileRef.current?.click();
+    }
+    setIsLongPress(false);
+  };
+
+  const startVideoRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1080 }, height: { ideal: 1920 } },
+        audio: true,
+      });
+      streamRef.current = stream;
+      chunksRef.current = [];
+
+      const recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp8,opus" });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "video/webm" });
+        const videoFile = new File([blob], `vibe-${Date.now()}.webm`, { type: "video/webm" });
+        setFile(videoFile);
+        setPreview(URL.createObjectURL(blob));
+        setMediaType("video");
+        stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        checkPostLimit();
+        getGeo();
+      };
+
+      recorder.start(100);
+      setIsRecording(true);
+      recordingStart.current = Date.now();
+
+      recordingInterval.current = setInterval(() => {
+        const elapsed = (Date.now() - recordingStart.current) / 1000;
+        const progress = Math.min(elapsed / MAX_VIDEO_DURATION, 1);
+        setRecordingProgress(progress);
+        if (elapsed >= MAX_VIDEO_DURATION) {
+          stopVideoRecording();
+        }
+      }, 50);
+    } catch (err) {
+      console.error("Camera access denied:", err);
+      toast.error("Accès caméra refusé", { description: "Autorise l'accès à la caméra pour filmer." });
+      setIsLongPress(false);
+    }
+  };
+
+  const stopVideoRecording = () => {
+    if (recordingInterval.current) {
+      clearInterval(recordingInterval.current);
+      recordingInterval.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    setRecordingProgress(0);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+      if (recordingInterval.current) clearInterval(recordingInterval.current);
+    };
+  }, []);
+
   const handleUpload = async () => {
     const manualLocation = geoName.trim();
     const resolvedLocation = manualLocation || (geoLocation ? `${geoLocation.lat.toFixed(5)}, ${geoLocation.lng.toFixed(5)}` : "");
@@ -102,7 +303,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     if (!file || !selectedMood || postLimitReached) return;
     if (!resolvedLocation) {
       toast.error("Lieu requis", {
-        description: "Active la géolocalisation ou saisis un lieu avant d'envoyer la photo.",
+        description: "Active la géolocalisation ou saisis un lieu avant d'envoyer.",
       });
       return;
     }
@@ -110,7 +311,6 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     setUploading(true);
     setUploadProgress(12);
 
-    // Global timeout: force-reset UI after GLOBAL_TIMEOUT_MS
     const globalTimeout = setTimeout(() => {
       console.error("Upload global timeout reached");
       toast.error("Envoi trop long", { description: "Réessaie avec une meilleure connexion." });
@@ -119,7 +319,6 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     }, GLOBAL_TIMEOUT_MS);
 
     try {
-      // 1. Get auth token once (with 5s timeout)
       let token = SUPABASE_PUBLISHABLE_KEY;
       try {
         const sessionPromise = supabase.auth.getSession();
@@ -134,32 +333,32 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
         console.warn("Session fetch failed, using anon key");
       }
 
-      // 2. Upload image
-      const ext = file.name.split(".").pop() || "jpg";
+      const ext = mediaType === "video" ? "webm" : (file.name.split(".").pop() || "jpg");
       let fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       setUploadProgress(30);
 
-      const uploadImage = async (name: string) => {
+      const contentType = mediaType === "video" ? "video/webm" : (file.type || "image/jpeg");
+
+      const uploadMedia = async (name: string) => {
         await doFetch(`${SUPABASE_URL}/storage/v1/object/vibes/${name}`, {
           method: "POST",
-          headers: { "content-type": file.type || "image/jpeg", "x-upsert": "false" },
+          headers: { "content-type": contentType, "x-upsert": "false" },
           body: file,
         }, token);
       };
 
       try {
-        await uploadImage(fileName);
+        await uploadMedia(fileName);
       } catch (firstError) {
         const msg = String(firstError);
         if (msg.includes("409") || msg.toLowerCase().includes("already exists")) {
           fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-r.${ext}`;
-          await uploadImage(fileName);
+          await uploadMedia(fileName);
         } else {
           throw firstError;
         }
       }
 
-      // 3. Insert vibe record
       setUploadProgress(75);
       const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/vibes/${fileName}`;
 
@@ -174,23 +373,27 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
           caption: null,
           likes: 0,
           mood: selectedMood,
+          media_type: mediaType,
           latitude: geoLocation?.lat || null,
           longitude: geoLocation?.lng || null,
         }),
       }, token);
 
-      // 4. Success
       const timestamps = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
       timestamps.push(Date.now());
       localStorage.setItem("wk_post_timestamps", JSON.stringify(timestamps.filter((t) => Date.now() - t < SIX_HOURS)));
 
       setUploadProgress(100);
       clearTimeout(globalTimeout);
+
+      // Show success animation
+      setShowSuccess(true);
       setTimeout(() => {
+        setShowSuccess(false);
         resetState();
         onPosted?.();
         onClose();
-      }, 450);
+      }, 1200);
     } catch (err) {
       clearTimeout(globalTimeout);
       console.error("Upload error:", err);
@@ -205,15 +408,19 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   const resetState = () => {
     setFile(null);
     setPreview(null);
+    setMediaType("photo");
     setSelectedMood(null);
     setUploading(false);
     setUploadProgress(0);
     setGeoLocation(null);
     setGeoName("");
+    setNearbyPlace(null);
+    setShowSuccess(false);
   };
 
   const handleClose = () => {
     if (uploading) return;
+    stopVideoRecording();
     resetState();
     onClose();
   };
@@ -259,11 +466,11 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                 {/* Incitation message */}
                 <div className="bg-gold/10 border border-gold/20 rounded-xl px-4 py-2.5 mb-4">
                   <p className="text-xs text-gold-light font-medium text-center leading-relaxed">
-                    📸 Partagez l'instant présent. Les vibes de la galerie sont tolérées mais l'authenticité prime !
+                    📸 Appui court = Photo · Appui long = Vidéo (5s max)
                   </p>
                 </div>
 
-                {postLimitReached && file ? (
+                {postLimitReached && !preview ? (
                   <div className="flex flex-col items-center text-center py-6">
                     <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mb-4">
                       <span className="text-2xl">🌟</span>
@@ -279,24 +486,56 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                     </button>
                   </div>
                 ) : !preview ? (
-                  /* Step 1: Photo capture */
+                  /* Step 1: Hybrid capture */
                   <>
-                    <button
-                      onClick={() => fileRef.current?.click()}
-                      className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-3"
-                    >
-                      <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center">
-                        <Camera className="w-7 h-7 text-gold" />
+                    <div className="flex flex-col items-center gap-4">
+                      {/* Main capture button with long-press */}
+                      <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
+                        {isRecording && <RecordingRing progress={recordingProgress} size={80} />}
+                        <button
+                          onPointerDown={handleCaptureStart}
+                          onPointerUp={handleCaptureEnd}
+                          onPointerLeave={handleCaptureEnd}
+                          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all select-none ${
+                            isRecording
+                              ? "bg-destructive scale-110 shadow-lg shadow-destructive/30"
+                              : "bg-gold/10 border-2 border-dashed border-gold/50 hover:border-gold hover:bg-gold/20"
+                          }`}
+                        >
+                          {isRecording ? (
+                            <div className="w-5 h-5 rounded-sm bg-card" />
+                          ) : (
+                            <Camera className="w-7 h-7 text-gold" />
+                          )}
+                        </button>
                       </div>
+
                       <div className="text-center">
-                        <p className="text-sm font-medium text-foreground">Prendre une photo</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">ou choisir depuis la galerie</p>
+                        {isRecording ? (
+                          <p className="text-sm font-semibold text-destructive">
+                            Enregistrement... {Math.ceil(MAX_VIDEO_DURATION - recordingProgress * MAX_VIDEO_DURATION)}s
+                          </p>
+                        ) : (
+                          <>
+                            <p className="text-sm font-medium text-foreground">Appui court : Photo</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Appui long : Vidéo (5s max)</p>
+                          </>
+                        )}
                       </div>
-                    </button>
+
+                      {/* Or pick from gallery */}
+                      <button
+                        onClick={() => fileRef.current?.click()}
+                        className="text-xs text-gold underline underline-offset-2"
+                      >
+                        Choisir depuis la galerie
+                      </button>
+                    </div>
+
                     <input
                       ref={fileRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
                       capture="environment"
                       className="hidden"
                       onChange={handleFileChange}
@@ -306,17 +545,39 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                     </p>
                   </>
                 ) : (
-                  /* Step 2: Mood selection + publish */
+                  /* Step 2: Mood + Location + Publish */
                   <>
-                    {/* Photo preview */}
+                    {/* Media preview */}
                     <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-4">
-                      <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                      {mediaType === "video" ? (
+                        <video
+                          ref={videoRef}
+                          src={preview}
+                          className="w-full h-full object-cover"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                        />
+                      ) : (
+                        <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                      )}
                       <button
-                        onClick={() => { setFile(null); setPreview(null); setSelectedMood(null); }}
+                        onClick={() => { setFile(null); setPreview(null); setSelectedMood(null); setMediaType("photo"); }}
                         className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/70 backdrop-blur-md flex items-center justify-center"
                       >
                         <X className="w-4 h-4 text-foreground" />
                       </button>
+
+                      {/* Media type badge */}
+                      <div className="absolute top-2 left-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
+                        {mediaType === "video" ? (
+                          <><Video className="w-3 h-3 text-destructive" /><span className="text-[10px] text-foreground font-medium">Vidéo</span></>
+                        ) : (
+                          <><Camera className="w-3 h-3 text-gold" /><span className="text-[10px] text-foreground font-medium">Photo</span></>
+                        )}
+                      </div>
+
                       {/* Geo badge */}
                       {geoLocation && (
                         <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
@@ -355,20 +616,27 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                       ))}
                     </div>
 
-                    {/* Required location */}
+                    {/* Location with nearby suggestion */}
                     <div className="mb-4">
                       <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5 mb-1">
                         <MapPin className="w-3 h-3" /> Lieu (obligatoire)
                       </label>
+
+                      {nearbyPlace && geoName === nearbyPlace && (
+                        <div className="bg-gold/10 border border-gold/20 rounded-xl px-3 py-2 mb-2 flex items-center justify-between">
+                          <p className="text-xs text-foreground font-medium">
+                            📍 Vous êtes au <strong>{nearbyPlace}</strong> ?
+                          </p>
+                          <Check className="w-4 h-4 text-gold" />
+                        </div>
+                      )}
+
                       <input
                         value={geoName}
                         onChange={(e) => setGeoName(e.target.value)}
                         placeholder="Ex: Jemaa el-Fna"
                         className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
                       />
-                      <p className="text-[11px] text-muted-foreground mt-2">
-                        Active la géolocalisation ou renseigne le lieu manuellement avant publication.
-                      </p>
                     </div>
 
                     {/* Progress bar */}
@@ -395,15 +663,9 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                       className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
                     >
                       {uploading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Envoi...
-                        </>
+                        <><Loader2 className="w-4 h-4 animate-spin" />Envoi...</>
                       ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          Publier mon vibe
-                        </>
+                        <><Send className="w-4 h-4" />Publier mon vibe</>
                       )}
                     </button>
                     {missingLocation && (
@@ -419,6 +681,8 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
               </div>
             </div>
           </motion.div>
+
+          <SuccessAnimation show={showSuccess} />
         </>
       )}
     </AnimatePresence>
