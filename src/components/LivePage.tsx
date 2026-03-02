@@ -30,6 +30,7 @@ interface Vibe {
   created_at: string;
   media_type?: string;
   mood?: string | null;
+  is_official?: boolean;
   profile?: VibeProfile | null;
 }
 
@@ -417,9 +418,11 @@ export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number
     }
   };
 
-  // Top 5 vibes by score for carousel
-  const topVibes = [...vibes].sort((a, b) => getScore(b) - getScore(a)).slice(0, 5);
-  const restVibes = vibes;
+  // Official vibes pinned first, then top 5 by score for carousel
+  const officialVibes = vibes.filter((v) => v.is_official);
+  const regularVibes = vibes.filter((v) => !v.is_official);
+  const topVibes = [...regularVibes].sort((a, b) => getScore(b) - getScore(a)).slice(0, 5);
+  const restVibes = [...officialVibes, ...regularVibes];
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
@@ -546,7 +549,14 @@ export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
 
-                    {isNew(vibe.created_at) && (
+                    {vibe.is_official && (
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-gold px-2.5 py-1 rounded-lg shadow-lg shadow-gold/30">
+                        <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">
+                          ⭐ Officiel
+                        </span>
+                      </div>
+                    )}
+                    {!vibe.is_official && isNew(vibe.created_at) && (
                       <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-red-600 px-2.5 py-1 rounded-lg shadow-lg shadow-red-600/30 live-badge-blink">
                         <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
                         <span className="text-[10px] font-bold text-white uppercase tracking-wider">

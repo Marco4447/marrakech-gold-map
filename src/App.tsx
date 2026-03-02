@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import BusinessPage from "./pages/BusinessPage";
+import ShopPage from "./pages/ShopPage";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/business" element={<BusinessPage />} />
+            <Route path="/shop" element={<ShopPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="*" element={<NotFound />} />
