@@ -113,7 +113,7 @@ function CommunityValidation({ vibeId, deviceId }: { vibeId: string; deviceId: s
   );
 }
 
-export default function LivePage() {
+export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number }) {
   const { user } = useAuth();
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -240,7 +240,7 @@ export default function LivePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchVibes, fetchMyLikes, fetchMySuperVibes, checkPostLimit]);
+  }, [fetchVibes, fetchMyLikes, fetchMySuperVibes, checkPostLimit, refreshSignal]);
 
   const handleLike = async (vibeId: string) => {
     const alreadyLiked = likedIds.has(vibeId);
