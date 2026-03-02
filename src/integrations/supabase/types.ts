@@ -108,6 +108,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          neighborhood: string | null
           rating: number | null
         }
         Insert: {
@@ -122,6 +123,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          neighborhood?: string | null
           rating?: number | null
         }
         Update: {
@@ -136,6 +138,7 @@ export type Database = {
           latitude?: number
           longitude?: number
           name?: string
+          neighborhood?: string | null
           rating?: number | null
         }
         Relationships: []
