@@ -23,6 +23,8 @@ interface Vibe {
   image_url: string;
   caption: string | null;
   location: string | null;
+  latitude: number | null;
+  longitude: number | null;
   likes: number;
   super_vibes: number;
   username: string | null;
@@ -152,7 +154,7 @@ function CommunityValidation({ vibeId, deviceId }: { vibeId: string; deviceId: s
   );
 }
 
-export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number }) {
+export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSignal?: number; onGoToMap?: (lat: number, lng: number) => void }) {
   const { user } = useAuth();
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -589,6 +591,14 @@ export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number
                               <div className="flex items-center gap-1 mt-0.5">
                                 <MapPin className="w-3 h-3 text-gold" />
                                 <span className="text-xs text-foreground/70">{vibe.location}</span>
+                                {vibe.latitude && vibe.longitude && onGoToMap && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); onGoToMap(vibe.latitude!, vibe.longitude!); }}
+                                    className="ml-1 text-[10px] text-gold font-semibold underline underline-offset-2"
+                                  >
+                                    Voir sur la map
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>

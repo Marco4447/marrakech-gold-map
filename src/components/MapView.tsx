@@ -224,7 +224,7 @@ function CollapsibleLegend({ categories }: { categories: [string, { emoji: strin
   );
 }
 
-export default function MapView({ refreshSignal = 0 }: { refreshSignal?: number }) {
+export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null }) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -260,6 +260,13 @@ export default function MapView({ refreshSignal = 0 }: { refreshSignal?: number 
       mapRef.current = null;
     };
   }, []);
+
+  // Fly to coordinates when triggered from Live Stories
+  useEffect(() => {
+    if (flyToCoords && mapRef.current) {
+      mapRef.current.flyTo([flyToCoords.lat, flyToCoords.lng], 17, { duration: 1.2 });
+    }
+  }, [flyToCoords]);
 
   // Fetch places via REST (timeout-safe) + retry when auth session changes
   useEffect(() => {
