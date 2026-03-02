@@ -268,7 +268,15 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
       streamRef.current = stream;
       chunksRef.current = [];
 
-      const recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp8,opus" });
+      // Use mp4 on Safari/iOS, webm elsewhere
+      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp8,opus")
+        ? "video/webm;codecs=vp8,opus"
+        : MediaRecorder.isTypeSupported("video/mp4")
+          ? "video/mp4"
+          : "";
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
 
       recorder.ondataavailable = (e) => {
@@ -276,8 +284,10 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "video/webm" });
-        const videoFile = new File([blob], `vibe-${Date.now()}.webm`, { type: "video/webm" });
+        const recordedType = recorder.mimeType || "video/mp4";
+        const recordedExt = recordedType.includes("webm") ? "webm" : "mp4";
+        const blob = new Blob(chunksRef.current, { type: recordedType });
+        const videoFile = new File([blob], `vibe-${Date.now()}.${recordedExt}`, { type: recordedType });
         setFile(videoFile);
         setPreview(URL.createObjectURL(blob));
         setMediaType("video");
@@ -371,11 +381,11 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
         console.warn("Session fetch failed, using anon key");
       }
 
-      const ext = mediaType === "video" ? "webm" : (file.name.split(".").pop() || "jpg");
+      const ext = file.name.split(".").pop() || (mediaType === "video" ? "mp4" : "jpg");
       let fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       setUploadProgress(30);
 
-      const contentType = mediaType === "video" ? "video/webm" : (file.type || "image/jpeg");
+      const contentType = file.type || (mediaType === "video" ? "video/mp4" : "image/jpeg");
 
       const uploadMedia = async (name: string) => {
         await doFetch(`${SUPABASE_URL}/storage/v1/object/vibes/${name}`, {
@@ -589,7 +599,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                     <input
                       ref={fileRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
                       capture="environment"
                       className="hidden"
                       onChange={handleFileChange}
