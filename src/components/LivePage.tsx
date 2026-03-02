@@ -221,12 +221,10 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const deviceId = getDeviceId();
 
   const fetchVibes = useCallback(async () => {
-    const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
     const { data, error } = await supabase
       .from("vibes")
       .select("*")
-      .gte("created_at", sixHoursAgo)
-      .order("likes", { ascending: false });
+      .order("created_at", { ascending: false });
     if (!error && data) {
       // Fetch profiles for vibes that have user_id
       const userIds = [...new Set((data as any[]).filter(v => v.user_id).map(v => v.user_id))];
@@ -298,13 +296,11 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         (payload) => {
           if (payload.eventType === "INSERT") {
             const newVibe = payload.new as Vibe;
-            const age = Date.now() - new Date(newVibe.created_at).getTime();
-            if (age < SIX_HOURS) {
-              setVibes((prev) => {
-                const updated = [newVibe, ...prev];
-                return updated.sort((a, b) => getScore(b) - getScore(a));
-              });
-            }
+            setVibes((prev) => {
+              if (prev.some((v) => v.id === newVibe.id)) return prev;
+              const updated = [newVibe, ...prev];
+              return updated.sort((a, b) => getScore(b) - getScore(a));
+            });
           } else if (payload.eventType === "DELETE") {
             setVibes((prev) => prev.filter((v) => v.id !== (payload.old as any).id));
           } else if (payload.eventType === "UPDATE") {
