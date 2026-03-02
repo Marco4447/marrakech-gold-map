@@ -1,13 +1,15 @@
-import { useEffect, useState, useCallback } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
+  onClose?: () => void;
 }
 
 interface Vibe {
@@ -46,6 +48,7 @@ function ProfileCard({
   displayEmail,
   signingOut,
   onSignOut,
+  onAvatarChanged,
 }: {
   user: any;
   profile: any;
@@ -53,10 +56,15 @@ function ProfileCard({
   displayEmail: string;
   signingOut: boolean;
   onSignOut: () => void;
+  onAvatarChanged: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [newName, setNewName] = useState(displayName);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const avatarUrl = profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined) || undefined;
 
   const handleSave = async () => {
     if (!user || !newName.trim()) return;
@@ -74,14 +82,76 @@ function ProfileCard({
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image trop lourde", { description: "Maximum 5MB." });
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `${user.id}/avatar.${ext}`;
+      
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+      
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      // Add cache-buster
+      const finalUrl = `${publicUrl}?t=${Date.now()}`;
+
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: finalUrl })
+        .eq("user_id", user.id);
+
+      toast.success("Photo de profil mise à jour !");
+      onAvatarChanged();
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      toast.error("Échec de l'upload", { description: "Réessaie." });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center px-6 pt-8 pb-4">
-      <Avatar className="w-20 h-20 mb-3 border-2 border-gold/30">
-        <AvatarImage src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined) || undefined} alt={displayName} />
-        <AvatarFallback className="bg-gold/10 text-gold font-display text-xl">
-          {displayName.charAt(0)?.toUpperCase() || "W"}
-        </AvatarFallback>
-      </Avatar>
+      {/* Avatar with edit overlay */}
+      <div className="relative mb-3">
+        <Avatar className="w-20 h-20 border-2 border-gold/30">
+          <AvatarImage src={avatarUrl} alt={displayName} />
+          <AvatarFallback className="bg-gold/10 text-gold font-display text-xl">
+            {displayName.charAt(0)?.toUpperCase() || "W"}
+          </AvatarFallback>
+        </Avatar>
+        <button
+          onClick={() => avatarInputRef.current?.click()}
+          disabled={uploadingAvatar}
+          className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-gold flex items-center justify-center border-2 border-background shadow-md hover:bg-gold-light transition-colors"
+        >
+          {uploadingAvatar ? (
+            <div className="w-3.5 h-3.5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Camera className="w-3.5 h-3.5 text-primary-foreground" />
+          )}
+        </button>
+        <input
+          ref={avatarInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarUpload}
+        />
+      </div>
 
       {editing ? (
         <div className="flex items-center gap-2 mb-0.5">
@@ -126,7 +196,7 @@ function ProfileCard({
   );
 }
 
-export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
+export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [favorites, setFavorites] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -244,11 +314,19 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-xl border-b border-border px-5 pt-12 pb-3">
+      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-xl border-b border-border px-5 pt-12 pb-3 flex items-center justify-between">
         <h1 className="font-display text-xl font-bold">
           <span className="text-gold">Mon</span>
           <span className="text-foreground"> Profil</span>
         </h1>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Profile card */}
@@ -259,6 +337,7 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
         displayEmail={displayEmail}
         signingOut={signingOut}
         onSignOut={handleSignOut}
+        onAvatarChanged={() => window.location.reload()}
       />
 
       {/* Pass Invité Teaser */}
