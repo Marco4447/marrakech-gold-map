@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle } from "lucide-react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -17,6 +18,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [success, setSuccess] = useState(false);
   const [passStats, setPassStats] = useState<PassStat[]>([]);
   const [partnerRequests, setPartnerRequests] = useState<PartnerRequest[]>([]);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -93,6 +95,37 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
     }
   };
 
+  const handleUpdateStatus = async (req: PartnerRequest, newStatus: "approved" | "rejected") => {
+    setUpdatingId(req.id);
+    try {
+      // Update partner_requests status
+      const { error } = await supabase
+        .from("partner_requests" as any)
+        .update({ status: newStatus } as any)
+        .eq("id", req.id);
+      if (error) throw error;
+
+      // If approved, mark matching place as partner
+      if (newStatus === "approved") {
+        await supabase
+          .from("places")
+          .update({ is_partner: true, has_active_offer: true } as any)
+          .ilike("name", req.business_name);
+      }
+
+      // Update local state
+      setPartnerRequests((prev) =>
+        prev.map((r) => (r.id === req.id ? { ...r, status: newStatus } : r))
+      );
+      toast.success(newStatus === "approved" ? `${req.business_name} approuvé ✅` : `${req.business_name} rejeté`);
+    } catch (err) {
+      console.error("Status update error:", err);
+      toast.error("Erreur lors de la mise à jour");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
       {/* Header */}
@@ -106,120 +139,14 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
               <span className="text-gold">Admin</span>
               <span className="text-foreground"> Panel</span>
             </h1>
-            <p className="text-muted-foreground text-xs mt-0.5">Poster une nouvelle vibe</p>
+            <p className="text-muted-foreground text-xs mt-0.5">Gestion complète</p>
           </div>
         </div>
       </div>
 
       <div className="px-5 pt-6 space-y-5">
-        {/* Upload area */}
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-3 overflow-hidden"
-        >
-          {preview ? (
-            <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-2xl" />
-          ) : (
-            <>
-              <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center">
-                <Image className="w-6 h-6 text-gold" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-foreground">Sélectionner une photo</p>
-                <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG, WebP</p>
-              </div>
-            </>
-          )}
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-
-        {/* Caption */}
-        <div className="space-y-2">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-            <Upload className="w-3 h-3" /> Caption
-          </label>
-          <input
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder="Sunset vibes sur la place 🌅"
-            className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
-          />
-        </div>
-
-        {/* Location */}
-        <div className="space-y-2">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-            <MapPin className="w-3 h-3" /> Lieu
-          </label>
-          <input
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Jemaa el-Fna"
-            className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
-          />
-        </div>
-
-        {/* Submit */}
-        <button
-          onClick={handleSubmit}
-          disabled={!file || uploading}
-          className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Upload en cours...
-            </>
-          ) : (
-            <>
-              <Send className="w-4 h-4" />
-              Publier la vibe
-            </>
-          )}
-        </button>
-
-        {/* Success message */}
-        <AnimatePresence>
-          {success && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-2 bg-gold/10 border border-gold/20 rounded-xl p-3"
-            >
-              <Check className="w-4 h-4 text-gold" />
-              <span className="text-sm text-gold font-medium">Vibe publiée avec succès !</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {/* Pass Stats Dashboard */}
-        <div className="mt-8 border-t border-border pt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-4 h-4 text-gold" />
-            <h2 className="font-display text-base font-semibold text-foreground">Pass générés par établissement</h2>
-          </div>
-          {passStats.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucun pass généré pour le moment.</p>
-          ) : (
-            <div className="space-y-2">
-              {passStats.map((stat) => (
-                <div key={stat.place_name} className="flex items-center justify-between bg-surface border border-border rounded-xl px-4 py-3">
-                  <span className="text-sm text-foreground font-medium truncate mr-3">{stat.place_name}</span>
-                  <span className="text-sm font-bold text-gold whitespace-nowrap">{stat.count} pass</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Partner Requests Dashboard */}
-        <div className="mt-8 border-t border-border pt-6">
+        {/* Partner Requests Dashboard — FIRST */}
+        <div className="border-b border-border pb-6">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-4 h-4 text-gold" />
             <h2 className="font-display text-base font-semibold text-foreground">Demandes Partenaires</h2>
@@ -230,30 +157,156 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           ) : (
             <div className="space-y-3">
               {partnerRequests.map((req) => (
-                <div key={req.id} className="bg-surface border border-border rounded-xl p-4 space-y-2">
+                <div key={req.id} className="bg-surface border border-border rounded-xl p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-semibold text-foreground">{req.business_name}</p>
                       <p className="text-xs text-muted-foreground">{req.category}</p>
                     </div>
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${req.status === 'pending' ? 'bg-gold/10 text-gold' : 'bg-green-500/10 text-green-400'}`}>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                      req.status === "pending"
+                        ? "bg-gold/10 text-gold"
+                        : req.status === "approved"
+                        ? "bg-green-500/10 text-green-400"
+                        : "bg-destructive/10 text-destructive"
+                    }`}>
                       {req.status}
                     </span>
                   </div>
-                  <p className="text-xs text-foreground/80">{req.offer_description}</p>
-                  <a
-                    href={`https://wa.me/${req.whatsapp_number.replace(/[\s()-]/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-gold hover:text-gold-light transition-colors"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    Contacter via WhatsApp
-                  </a>
+                  <p className="text-xs text-foreground/80">🎁 {req.offer_description}</p>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`https://wa.me/${req.whatsapp_number.replace(/[\s()-]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-gold hover:text-gold-light transition-colors"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      WhatsApp
+                    </a>
+                  </div>
+                  {/* Action buttons */}
+                  {req.status === "pending" && (
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => handleUpdateStatus(req, "approved")}
+                        disabled={updatingId === req.id}
+                        className="flex-1 flex items-center justify-center gap-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 font-medium py-2 rounded-xl text-xs transition-colors disabled:opacity-50"
+                      >
+                        {updatingId === req.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <CheckCircle className="w-3.5 h-3.5" />
+                        )}
+                        Approuver
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(req, "rejected")}
+                        disabled={updatingId === req.id}
+                        className="flex-1 flex items-center justify-center gap-1.5 bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 font-medium py-2 rounded-xl text-xs transition-colors disabled:opacity-50"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        Rejeter
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
+        </div>
+
+        {/* Bookings per partner */}
+        <div className="border-b border-border pb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="w-4 h-4 text-gold" />
+            <h2 className="font-display text-base font-semibold text-foreground">Bookings par partenaire</h2>
+          </div>
+          {passStats.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucun booking pour le moment.</p>
+          ) : (
+            <div className="space-y-2">
+              {passStats.map((stat) => (
+                <div key={stat.place_name} className="flex items-center justify-between bg-surface border border-border rounded-xl px-4 py-3">
+                  <span className="text-sm text-foreground font-medium truncate mr-3">{stat.place_name}</span>
+                  <span className="text-sm font-bold text-gold whitespace-nowrap">{stat.count} clients</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Upload vibe */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Image className="w-4 h-4 text-gold" />
+            <h2 className="font-display text-base font-semibold text-foreground">Poster une vibe</h2>
+          </div>
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-3 overflow-hidden"
+          >
+            {preview ? (
+              <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-2xl" />
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-gold" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-foreground">Sélectionner une photo</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG, WebP</p>
+                </div>
+              </>
+            )}
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+
+          <div className="space-y-3 mt-4">
+            <input
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              placeholder="Caption…"
+              className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
+            />
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Lieu…"
+              className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
+            />
+            <button
+              onClick={handleSubmit}
+              disabled={!file || uploading}
+              className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Upload…
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Publier
+                </>
+              )}
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {success && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2 bg-gold/10 border border-gold/20 rounded-xl p-3 mt-3"
+              >
+                <Check className="w-4 h-4 text-gold" />
+                <span className="text-sm text-gold font-medium">Vibe publiée !</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
