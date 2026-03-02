@@ -587,7 +587,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <div className="flex items-center gap-1 mt-0.5">
                           <MapPin className="w-2.5 h-2.5 text-gold" />
                           <span className="text-[10px] text-foreground/70 truncate">{vibe.location}</span>
-                          {vibe.latitude && vibe.longitude && onGoToMap && (
+                          {vibe.latitude != null && vibe.longitude != null && onGoToMap && (
                             <button
                               onClick={(e) => { e.stopPropagation(); onGoToMap(vibe.latitude!, vibe.longitude!); }}
                               className="ml-0.5 text-[9px] text-gold font-semibold underline underline-offset-2 flex-shrink-0"
@@ -672,7 +672,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                               <div className="flex items-center gap-1 mt-0.5">
                                 <MapPin className="w-3 h-3 text-gold" />
                                 <span className="text-xs text-foreground/70">{vibe.location}</span>
-                                {vibe.latitude && vibe.longitude && onGoToMap && (
+                                {vibe.latitude != null && vibe.longitude != null && onGoToMap && (
                                   <button
                                     onClick={(e) => { e.stopPropagation(); onGoToMap(vibe.latitude!, vibe.longitude!); }}
                                     className="ml-1 text-[10px] text-gold font-semibold underline underline-offset-2"

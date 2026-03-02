@@ -12,19 +12,34 @@ const SIX_HOURS = 6 * 60 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
 const GLOBAL_TIMEOUT_MS = 30000;
 const MAX_VIDEO_DURATION = 5; // seconds
-
-const MOODS = [
-  { key: "hot", emoji: "🔥", label: "Hot", color: "hsl(15,80%,50%)" },
-  { key: "chill", emoji: "🍸", label: "Chill", color: "hsl(200,60%,50%)" },
-  { key: "secret", emoji: "✨", label: "Secret", color: "hsl(280,60%,55%)" },
-  { key: "foodie", emoji: "🥗", label: "Foodie", color: "hsl(120,50%,45%)" },
-] as const;
+const MAX_PHOTO_SIZE_BYTES = 20 * 1024 * 1024;
+const MAX_VIDEO_SIZE_BYTES = 80 * 1024 * 1024;
 
 interface FlashPostProps {
   open: boolean;
   onClose: () => void;
   onPosted?: () => void;
 }
+
+const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif", "gif", "avif"]);
+const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "webm", "m4v", "3gp", "avi"]);
+
+const inferMediaKind = (f: File): "photo" | "video" | null => {
+  if (f.type.startsWith("image/")) return "photo";
+  if (f.type.startsWith("video/")) return "video";
+
+  const ext = f.name.split(".").pop()?.toLowerCase() || "";
+  if (IMAGE_EXTENSIONS.has(ext)) return "photo";
+  if (VIDEO_EXTENSIONS.has(ext)) return "video";
+
+  return null;
+};
+const MOODS = [
+  { key: "hot", emoji: "🔥", label: "Hot", color: "hsl(15,80%,50%)" },
+  { key: "chill", emoji: "🍸", label: "Chill", color: "hsl(200,60%,50%)" },
+  { key: "secret", emoji: "✨", label: "Secret", color: "hsl(280,60%,55%)" },
+  { key: "foodie", emoji: "🥗", label: "Foodie", color: "hsl(120,50%,45%)" },
+] as const;
 
 // Circular progress ring for video recording
 function RecordingRing({ progress, size = 80 }: { progress: number; size?: number }) {
@@ -214,23 +229,35 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   // === CAPTURE HANDLERS ===
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
+    const input = e.currentTarget;
+    const f = input.files?.[0];
+    input.value = "";
+
     if (!f) return;
-    if (f.type.startsWith("image/")) {
-      if (f.size > 10 * 1024 * 1024) {
-        toast.error("Image trop lourde", { description: "Maximum 10MB par photo." });
-        return;
-      }
-      setMediaType("photo");
-    } else if (f.type.startsWith("video/")) {
-      if (f.size > 50 * 1024 * 1024) {
-        toast.error("Vidéo trop lourde", { description: "Maximum 50MB par vidéo." });
-        return;
-      }
-      setMediaType("video");
-    } else {
+
+    const mediaKind = inferMediaKind(f);
+    if (!mediaKind) {
+      toast.error("Format non supporté", {
+        description: "Choisis une photo (JPG/PNG/HEIC) ou une vidéo (MP4/WebM).",
+      });
       return;
     }
+
+    if (mediaKind === "photo" && f.size > MAX_PHOTO_SIZE_BYTES) {
+      toast.error("Image trop lourde", { description: "Maximum 20MB par photo." });
+      return;
+    }
+
+    if (mediaKind === "video" && f.size > MAX_VIDEO_SIZE_BYTES) {
+      toast.error("Vidéo trop lourde", { description: "Maximum 80MB par vidéo." });
+      return;
+    }
+
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+
+    setMediaType(mediaKind);
     setFile(f);
     setPreview(URL.createObjectURL(f));
     checkPostLimit();
@@ -256,6 +283,19 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
       // Short tap = open camera
       fileRef.current?.click();
     }
+    setIsLongPress(false);
+  };
+
+  const handleCaptureCancel = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+
+    if (isRecording) {
+      stopVideoRecording();
+    }
+
     setIsLongPress(false);
   };
 
@@ -349,9 +389,16 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
       return;
     }
 
+    if (!geoLocation) {
+      toast.error("Géolocalisation requise", {
+        description: "Active ta localisation pour que ton post apparaisse sur la map.",
+      });
+      return;
+    }
+
     if (!resolvedLocation) {
       toast.error("Lieu requis", {
-        description: "Active la géolocalisation ou saisis un lieu avant d'envoyer.",
+        description: "Saisis un lieu avant d'envoyer.",
       });
       return;
     }
@@ -488,7 +535,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   };
 
   const missingMood = !selectedMood;
-  const missingLocation = !geoLocation && !geoName.trim();
+  const missingGeo = !geoLocation;
 
   if (!open) return null;
 
@@ -558,7 +605,8 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                         <button
                           onPointerDown={handleCaptureStart}
                           onPointerUp={handleCaptureEnd}
-                          onPointerLeave={handleCaptureEnd}
+                          onPointerCancel={handleCaptureCancel}
+                          onPointerLeave={handleCaptureCancel}
                           className={`w-16 h-16 rounded-full flex items-center justify-center transition-all select-none ${
                             isRecording
                               ? "bg-destructive scale-110 shadow-lg shadow-destructive/30"
@@ -599,7 +647,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                     <input
                       ref={fileRef}
                       type="file"
-                      accept="image/*,video/*"
+                      accept="image/*"
                       capture="environment"
                       className="hidden"
                       onChange={handleFileChange}
@@ -752,6 +800,9 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                         placeholder="Ex: Jemaa el-Fna"
                         className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
                       />
+                      <p className="mt-1.5 text-[10px] text-muted-foreground">
+                        La localisation GPS est nécessaire pour afficher ta vibe sur la map.
+                      </p>
                     </div>
 
                     {/* Progress bar */}
@@ -788,9 +839,9 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                         Choisis un mood avant l'envoi.
                       </p>
                     )}
-                    {missingLocation && (
+                    {missingGeo && (
                       <p className="text-[11px] text-destructive text-center mt-2">
-                        Lieu requis avant l'envoi.
+                        Active la géolocalisation pour afficher ta vibe sur la map.
                       </p>
                     )}
                     <p className="text-[10px] text-muted-foreground text-center mt-3">

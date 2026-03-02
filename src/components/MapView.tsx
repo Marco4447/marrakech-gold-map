@@ -397,7 +397,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
           .slice(0, 5);
         setTrendingLocations(new Set(scored.map((s) => s.location.toLowerCase())));
         // Vibe pins (only those with coordinates)
-        setVibePins((data as any[]).filter((v) => v.latitude && v.longitude));
+        setVibePins((data as any[]).filter((v) => v.latitude !== null && v.longitude !== null));
       }
     };
     fetchVibeData();
@@ -464,7 +464,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
     // Heatmap circles for all vibes with coords
     vibePins.forEach((vibe) => {
-      if (!vibe.latitude || !vibe.longitude) return;
+      if (vibe.latitude == null || vibe.longitude == null) return;
       const age = Date.now() - new Date(vibe.created_at).getTime();
       const freshness = Math.max(0.15, 1 - age / SIX_HOURS);
       const moodColor = MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)";
@@ -482,7 +482,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
     // Photo pin miniatures (same as before)
     vibePins.forEach((vibe) => {
-      if (!vibe.latitude || !vibe.longitude) return;
+      if (vibe.latitude == null || vibe.longitude == null) return;
       const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
       const remaining = isOfficial ? 1 : Math.max(0, 1 - age / SIX_HOURS);

@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fallback timeout to prevent infinite loading
     const timeout = setTimeout(() => {
       if (mounted) setLoading(false);
-    }, 5000);
+    }, 12000);
 
     return () => {
       mounted = false;

@@ -85,10 +85,15 @@ const Index = () => {
   }, []);
 
   // Loading state
-  if (loading && !authStuck) {
+  if (loading) {
     return (
-      <div className="h-[100dvh] w-full bg-background flex items-center justify-center">
+      <div className="h-[100dvh] w-full bg-background flex flex-col items-center justify-center gap-3 px-6 text-center">
         <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+        {authStuck && (
+          <p className="text-xs text-muted-foreground max-w-xs">
+            Reconnexion en cours… garde cette page ouverte quelques secondes.
+          </p>
+        )}
       </div>
     );
   }
