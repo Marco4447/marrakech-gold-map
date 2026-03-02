@@ -83,7 +83,7 @@ const Index = () => {
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
       </div>
       <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
-      <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => setFeedRefreshSignal((v) => v + 1)} />
+      <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />
 
       <AnimatePresence>
         {showLanding && <LandingPage onEnter={handleEnter} />}

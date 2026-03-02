@@ -330,7 +330,15 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     const manualLocation = geoName.trim();
     const resolvedLocation = manualLocation || (geoLocation ? `${geoLocation.lat.toFixed(5)}, ${geoLocation.lng.toFixed(5)}` : "");
 
-    if (!file || !selectedMood || postLimitReached) return;
+    if (!file || postLimitReached) return;
+
+    if (!selectedMood) {
+      toast.error("Mood requis", {
+        description: "Choisis un mood avant de publier.",
+      });
+      return;
+    }
+
     if (!resolvedLocation) {
       toast.error("Lieu requis", {
         description: "Active la géolocalisation ou saisis un lieu avant d'envoyer.",
@@ -424,6 +432,9 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
       localStorage.setItem("wk_post_timestamps", JSON.stringify(timestamps.filter((t) => Date.now() - t < SIX_HOURS)));
 
       setUploadProgress(100);
+      toast.success("Vibe publié", {
+        description: "Visible maintenant dans Live Stories pendant 6h.",
+      });
       clearTimeout(globalTimeout);
 
       // Show success animation
@@ -466,6 +477,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     onClose();
   };
 
+  const missingMood = !selectedMood;
   const missingLocation = !geoLocation && !geoName.trim();
 
   if (!open) return null;
@@ -752,7 +764,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                     {/* Publish button */}
                     <button
                       onClick={handleUpload}
-                      disabled={!selectedMood || uploading || missingLocation}
+                      disabled={uploading || postLimitReached}
                       className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
                     >
                       {uploading ? (
@@ -761,6 +773,11 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                         <><Send className="w-4 h-4" />Publier mon vibe</>
                       )}
                     </button>
+                    {missingMood && (
+                      <p className="text-[11px] text-destructive text-center mt-2">
+                        Choisis un mood avant l'envoi.
+                      </p>
+                    )}
                     {missingLocation && (
                       <p className="text-[11px] text-destructive text-center mt-2">
                         Lieu requis avant l'envoi.
