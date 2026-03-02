@@ -37,8 +37,16 @@ const MOOD_EMOJIS: Record<string, string> = {
 };
 
 const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
-  Food: { emoji: "🍽️", color: "hsl(25,90%,55%)" },
+  Nightlife: { emoji: "🎶", color: "hsl(280,60%,60%)" },
+  Luxury: { emoji: "🏨", color: "hsl(200,70%,55%)" },
+  Restaurant: { emoji: "🍽️", color: "hsl(25,90%,55%)" },
   Rooftop: { emoji: "🌅", color: "hsl(43,56%,52%)" },
+  "Pool Party": { emoji: "🏖️", color: "hsl(190,70%,50%)" },
+  "Dinner Show": { emoji: "🎭", color: "hsl(340,65%,55%)" },
+  Chill: { emoji: "🍸", color: "hsl(160,50%,45%)" },
+  "Cocktail Bar": { emoji: "🍹", color: "hsl(320,60%,55%)" },
+  Café: { emoji: "☕", color: "hsl(30,50%,45%)" },
+  Food: { emoji: "🍽️", color: "hsl(25,90%,55%)" },
   Night: { emoji: "🎶", color: "hsl(280,60%,60%)" },
   Hôtel: { emoji: "🏨", color: "hsl(200,70%,55%)" },
   Secret: { emoji: "✨", color: "hsl(340,65%,55%)" },
@@ -47,8 +55,10 @@ const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
 const MOOD_FILTERS: { key: string; emoji: string; label: string; categories: string[] }[] = [
   { key: "hot", emoji: "🔥", label: "Hot Now", categories: [] },
   { key: "offers", emoji: "✨", label: "Offres Insider", categories: [] },
-  { key: "party", emoji: "💃", label: "Party", categories: ["Night"] },
-  { key: "chill", emoji: "🍸", label: "Chill", categories: ["Rooftop", "Hôtel"] },
+  { key: "party", emoji: "💃", label: "Party", categories: ["Nightlife", "Night", "Dinner Show"] },
+  { key: "chill", emoji: "🍸", label: "Chill", categories: ["Rooftop", "Chill", "Cocktail Bar", "Café", "Hôtel"] },
+  { key: "pool", emoji: "🏖️", label: "Pool", categories: ["Pool Party"] },
+  { key: "food", emoji: "🍽️", label: "Food", categories: ["Restaurant", "Food"] },
 ];
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
@@ -163,18 +173,18 @@ function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceClick }: {
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.3 }}
           onClick={() => current.place && onPlaceClick(current.place)}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] shadow-lg text-left"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,20%)] shadow-lg text-left"
         >
           <span className="text-lg flex-shrink-0">{current.emoji}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] text-gold-dark font-bold uppercase tracking-wider">{current.tag}</p>
-            <p className="text-[11px] text-[hsl(30,20%,25%)] font-medium truncate">{current.text}</p>
+            <p className="text-[9px] text-gold font-bold uppercase tracking-wider">{current.tag}</p>
+            <p className="text-[11px] text-[hsl(30,20%,85%)] font-medium truncate">{current.text}</p>
           </div>
-          {current.place && <ChevronRight className="w-3.5 h-3.5 text-gold-dark flex-shrink-0" />}
+          {current.place && <ChevronRight className="w-3.5 h-3.5 text-gold flex-shrink-0" />}
           {/* Progress dots */}
           <div className="flex gap-1 flex-shrink-0">
             {items.map((_, i) => (
-              <div key={i} className={`w-1 h-1 rounded-full transition-colors ${i === bubbleIndex % items.length ? "bg-gold-dark" : "bg-[hsl(30,15%,75%)]"}`} />
+              <div key={i} className={`w-1 h-1 rounded-full transition-colors ${i === bubbleIndex % items.length ? "bg-gold" : "bg-[hsl(0,0%,35%)]"}`} />
             ))}
           </div>
         </motion.button>
@@ -189,10 +199,10 @@ function CollapsibleLegend({ categories }: { categories: [string, { emoji: strin
     <div className="absolute bottom-24 left-4 z-[1000]">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] rounded-xl px-3 py-2 shadow-lg text-left"
+        className="flex items-center gap-1.5 bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,20%)] rounded-xl px-3 py-2 shadow-lg text-left"
       >
-        <p className="text-[9px] text-[hsl(30,10%,45%)] font-semibold uppercase tracking-wider">Légende</p>
-        {open ? <ChevronDown className="w-3 h-3 text-[hsl(30,10%,45%)]" /> : <ChevronUp className="w-3 h-3 text-[hsl(30,10%,45%)]" />}
+        <p className="text-[9px] text-[hsl(30,10%,65%)] font-semibold uppercase tracking-wider">Légende</p>
+        {open ? <ChevronDown className="w-3 h-3 text-[hsl(30,10%,65%)]" /> : <ChevronUp className="w-3 h-3 text-[hsl(30,10%,65%)]" />}
       </button>
       <AnimatePresence>
         {open && (
@@ -200,21 +210,21 @@ function CollapsibleLegend({ categories }: { categories: [string, { emoji: strin
             initial={{ opacity: 0, y: 5, height: 0 }}
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: 5, height: 0 }}
-            className="mt-1 bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] rounded-xl px-3 py-2.5 shadow-lg overflow-hidden"
+            className="mt-1 bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,20%)] rounded-xl px-3 py-2.5 shadow-lg overflow-hidden"
           >
             <div className="flex flex-col gap-1">
               {categories.map(([key, { emoji, color }]) => (
                 <div key={key} className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]" style={{ border: `2px solid ${color}`, background: "hsl(30,20%,95%)" }}>{emoji}</span>
-                  <span className="text-[10px] text-[hsl(30,20%,30%)]">{key}</span>
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]" style={{ border: `2px solid ${color}`, background: "hsl(0,0%,15%)" }}>{emoji}</span>
+                  <span className="text-[10px] text-[hsl(30,20%,80%)]">{key}</span>
                 </div>
               ))}
-              <div className="flex items-center gap-2 mt-1 pt-1 border-t border-[hsl(30,15%,85%)]">
-                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(30,20%,95%)" }}>⭐</span>
+              <div className="flex items-center gap-2 mt-1 pt-1 border-t border-[hsl(0,0%,25%)]">
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(0,0%,15%)" }}>⭐</span>
                 <span className="text-[10px] text-gold-dark font-medium">Partenaire</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(30,20%,95%)" }}>🎁</span>
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(0,0%,15%)" }}>🎁</span>
                 <span className="text-[10px] text-gold-dark font-medium">Offre active</span>
               </div>
             </div>
@@ -273,7 +283,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     });
 
     // Use CARTO Voyager with no labels, then add custom Latin-only labels via OSM France
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
     }).addTo(map);
 
@@ -564,12 +574,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
       {/* Header overlay */}
       <div className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none">
-        <div className="px-5 pt-12 pb-2 bg-gradient-to-b from-[hsl(30,15%,95%)] via-[hsl(30,15%,95%,0.85)] to-transparent">
+        <div className="px-5 pt-12 pb-2 bg-gradient-to-b from-[hsl(0,0%,8%)] via-[hsl(0,0%,8%,0.85)] to-transparent">
           <h1 className="font-display text-2xl font-bold tracking-tight">
-            <span className="text-gold-dark">Wesh</span>
-            <span className="text-[hsl(30,20%,20%)]">kech</span>
+            <span className="text-gold">Wesh</span>
+            <span className="text-[hsl(30,20%,90%)]">kech</span>
           </h1>
-          <p className="text-[hsl(30,10%,45%)] text-xs mt-0.5">
+          <p className="text-[hsl(30,10%,60%)] text-xs mt-0.5">
             {placesLoading ? "Chargement des spots…" : placesError ? placesError : `Explore Marrakech · ${places.length} spots`}
           </p>
         </div>
@@ -582,8 +592,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
             onClick={() => setActiveFilter(null)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
               activeFilter === null
-                ? "bg-gold-dark text-[hsl(30,20%,95%)] border-gold-dark shadow-sm"
-                : "bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl text-[hsl(30,20%,30%)] border-[hsl(30,15%,80%)] hover:border-gold/50"
+                ? "bg-gold text-primary-foreground border-gold shadow-sm"
+                : "bg-[hsl(0,0%,12%,0.95)] backdrop-blur-xl text-[hsl(30,20%,80%)] border-[hsl(0,0%,25%)] hover:border-gold/50"
             }`}
           >
             Tous
@@ -594,8 +604,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
               onClick={() => setActiveFilter(activeFilter === mood.key ? null : mood.key)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
                 activeFilter === mood.key
-                  ? "bg-gold-dark text-[hsl(30,20%,95%)] border-gold-dark shadow-sm"
-                  : "bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl text-[hsl(30,20%,30%)] border-[hsl(30,15%,80%)] hover:border-gold/50"
+                  ? "bg-gold text-primary-foreground border-gold shadow-sm"
+                  : "bg-[hsl(0,0%,12%,0.95)] backdrop-blur-xl text-[hsl(30,20%,80%)] border-[hsl(0,0%,25%)] hover:border-gold/50"
               }`}
             >
               <span>{mood.emoji}</span>
@@ -617,13 +627,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       <div className="absolute bottom-24 right-4 z-[1000] flex flex-col gap-2">
         <button
           onClick={() => handleZoom(1)}
-          className="w-10 h-10 rounded-full bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] flex items-center justify-center text-[hsl(30,20%,30%)] hover:border-gold/50 transition-colors shadow-lg"
+          className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,25%)] flex items-center justify-center text-[hsl(30,20%,80%)] hover:border-gold/50 transition-colors shadow-lg"
         >
           <Plus className="w-4 h-4" />
         </button>
         <button
           onClick={() => handleZoom(-1)}
-          className="w-10 h-10 rounded-full bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] flex items-center justify-center text-[hsl(30,20%,30%)] hover:border-gold/50 transition-colors shadow-lg"
+          className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,25%)] flex items-center justify-center text-[hsl(30,20%,80%)] hover:border-gold/50 transition-colors shadow-lg"
         >
           <Minus className="w-4 h-4" />
         </button>
@@ -636,7 +646,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
         </button>
         <button
           onClick={handleRecenter}
-          className="w-10 h-10 rounded-full bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-gold-dark/40 flex items-center justify-center text-gold-dark hover:bg-gold/10 transition-colors shadow-lg"
+          className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-gold/40 flex items-center justify-center text-gold hover:bg-gold/10 transition-colors shadow-lg"
           title="Marrakech"
         >
           <LocateFixed className="w-4 h-4" />
