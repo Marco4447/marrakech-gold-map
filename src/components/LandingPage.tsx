@@ -118,12 +118,21 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           ))}
         </motion.div>
 
-        {/* Footer link */}
-        <div className="text-center pt-2">
-          <Link to="/business" className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
-            Business / Partenaires
+        {/* Partner CTA */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1, duration: 0.5 }}
+          className="text-center pt-2"
+        >
+          <Link
+            to="/business"
+            className="inline-flex items-center gap-2 text-xs text-gold/80 hover:text-gold transition-colors border border-gold/20 rounded-xl px-4 py-2 bg-gold/5"
+          >
+            <Gift className="w-3.5 h-3.5" />
+            Vous êtes partenaire ? Inscrivez votre établissement
           </Link>
-        </div>
+        </motion.div>
       </div>
     </motion.div>
   );

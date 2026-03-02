@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Building2 } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +37,93 @@ function timeAgo(dateStr: string) {
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `il y a ${hours}h`;
   return `il y a ${Math.floor(hours / 24)}j`;
+}
+
+function ProfileCard({
+  user,
+  profile,
+  displayName,
+  displayEmail,
+  signingOut,
+  onSignOut,
+}: {
+  user: any;
+  profile: any;
+  displayName: string;
+  displayEmail: string;
+  signingOut: boolean;
+  onSignOut: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [newName, setNewName] = useState(displayName);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!user || !newName.trim()) return;
+    setSaving(true);
+    try {
+      await supabase
+        .from("profiles")
+        .update({ full_name: newName.trim() })
+        .eq("user_id", user.id);
+      setEditing(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center px-6 pt-8 pb-4">
+      <Avatar className="w-20 h-20 mb-3 border-2 border-gold/30">
+        <AvatarImage src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined) || undefined} alt={displayName} />
+        <AvatarFallback className="bg-gold/10 text-gold font-display text-xl">
+          {displayName.charAt(0)?.toUpperCase() || "W"}
+        </AvatarFallback>
+      </Avatar>
+
+      {editing ? (
+        <div className="flex items-center gap-2 mb-0.5">
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-sm font-display text-foreground focus:outline-none focus:border-gold w-40 text-center"
+            autoFocus
+          />
+          <button onClick={handleSave} disabled={saving} className="text-green-400 hover:text-green-300">
+            <Check className="w-4 h-4" />
+          </button>
+          <button onClick={() => { setEditing(false); setNewName(displayName); }} className="text-muted-foreground hover:text-foreground">
+            <XIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => { setNewName(displayName); setEditing(true); }}
+          className="flex items-center gap-1.5 group mb-0.5"
+        >
+          <h2 className="font-display text-lg font-semibold text-foreground">
+            {displayName}
+          </h2>
+          <Pencil className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
+      )}
+
+      <p className="text-muted-foreground text-xs text-center max-w-xs">
+        {displayEmail}
+      </p>
+
+      <button
+        onClick={onSignOut}
+        disabled={signingOut}
+        className="mt-4 flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors bg-surface border border-border rounded-xl px-4 py-2 disabled:opacity-70"
+      >
+        <LogOut className="w-3.5 h-3.5" />
+        {signingOut ? "Déconnexion..." : "Se déconnecter"}
+      </button>
+    </div>
+  );
 }
 
 export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
@@ -129,39 +216,14 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
       </div>
 
       {/* Profile card */}
-      <div className="flex flex-col items-center px-6 pt-8 pb-4">
-        <Avatar className="w-20 h-20 mb-3 border-2 border-gold/30">
-          <AvatarImage src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined) || undefined} alt={displayName} />
-          <AvatarFallback className="bg-gold/10 text-gold font-display text-xl">
-            {displayName.charAt(0)?.toUpperCase() || "W"}
-          </AvatarFallback>
-        </Avatar>
-        <h2 className="font-display text-lg font-semibold text-foreground mb-0.5">
-          {displayName}
-        </h2>
-        <p className="text-muted-foreground text-xs text-center max-w-xs">
-          {displayEmail}
-        </p>
-
-        {/* Logout button */}
-        <button
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className="mt-4 flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors bg-surface border border-border rounded-xl px-4 py-2 disabled:opacity-70"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          {signingOut ? "Déconnexion..." : "Se déconnecter"}
-        </button>
-
-        {/* Partner CTA */}
-        <Link
-          to="/business"
-          className="mt-3 flex items-center gap-2 text-xs text-gold hover:text-gold-light transition-colors bg-gold/5 border border-gold/20 rounded-xl px-4 py-2"
-        >
-          <Building2 className="w-3.5 h-3.5" />
-          Inscrire mon établissement
-        </Link>
-      </div>
+      <ProfileCard
+        user={user}
+        profile={profile}
+        displayName={displayName}
+        displayEmail={displayEmail}
+        signingOut={signingOut}
+        onSignOut={handleSignOut}
+      />
 
       {/* Mes Favoris */}
       <div className="px-5 pt-4">

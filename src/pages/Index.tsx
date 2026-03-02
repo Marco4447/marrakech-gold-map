@@ -41,17 +41,16 @@ const Index = () => {
   };
 
   const handleHome = () => {
-    setActiveTab("map");
+    localStorage.removeItem("wk_landed");
     setShowLanding(true);
   };
 
-  // Skip landing if user is already logged in
+  // Skip landing on initial load if user is already logged in (but not if they clicked Home)
   useEffect(() => {
-    if (user && showLanding) {
-      localStorage.setItem("wk_landed", "1");
+    if (user && showLanding && localStorage.getItem("wk_landed")) {
       setShowLanding(false);
     }
-  }, [user, showLanding]);
+  }, [user]);
 
   // Loading state
   if (loading && !authStuck) {
