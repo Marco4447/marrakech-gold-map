@@ -236,6 +236,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
   const [bubbleIndex, setBubbleIndex] = useState(0);
   const [placesLoading, setPlacesLoading] = useState(true);
   const [placesError, setPlacesError] = useState<string | null>(null);
+  const userMarkerRef = useRef<L.Marker | null>(null);
 
   // Map onboarding tooltips
   const [onboardingStep, setOnboardingStep] = useState(() => {
@@ -278,6 +279,39 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     return () => {
       map.remove();
       mapRef.current = null;
+    };
+  }, []);
+
+  // Watch user GPS position and show blue dot
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    const userIcon = L.divIcon({
+      className: "",
+      html: '<div class="user-gps-dot"></div>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    });
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const latlng: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        if (userMarkerRef.current) {
+          userMarkerRef.current.setLatLng(latlng);
+        } else if (mapRef.current) {
+          userMarkerRef.current = L.marker(latlng, { icon: userIcon, zIndexOffset: 5000 }).addTo(mapRef.current);
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
+      }
     };
   }, []);
 
