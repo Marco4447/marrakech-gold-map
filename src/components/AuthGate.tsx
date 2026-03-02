@@ -43,11 +43,14 @@ export default function AuthGate() {
           <MapPin className="w-9 h-9 text-gold" />
         </div>
 
-        <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-          Welcome to <span className="text-gold">Weshkech</span>
+        <h1 className="font-display text-3xl font-bold text-foreground mb-1">
+          <span className="text-foreground">Weshkech</span>
         </h1>
-        <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-          Le guide exclusif de Marrakech, par ceux qui la vivent.
+        <h2 className="font-body text-lg font-light text-gold tracking-wide mb-2">
+          Marrakech Live Vibes
+        </h2>
+        <p className="text-sm text-muted-foreground mb-8 leading-relaxed max-w-[280px]">
+          L'énergie de Marrakech, sans filtre et en temps réel. Découvrez les spots les plus chauds du moment et profitez de vos avantages Pass Invité.
         </p>
 
         {/* Pillars */}
