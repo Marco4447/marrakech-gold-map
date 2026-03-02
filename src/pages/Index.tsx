@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AnimatePresence } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav from "@/components/BottomNav";
@@ -17,6 +17,7 @@ const Index = () => {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showFlashPost, setShowFlashPost] = useState(false);
   const [feedRefreshSignal, setFeedRefreshSignal] = useState(0);
+  const [flyToCoords, setFlyToCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showLanding, setShowLanding] = useState(() => {
     return !localStorage.getItem("wk_landed");
   });
@@ -53,6 +54,11 @@ const Index = () => {
     }
   }, [user]);
 
+  const handleGoToMap = useCallback((lat: number, lng: number) => {
+    setFlyToCoords({ lat, lng });
+    setActiveTab("map");
+  }, []);
+
   // Loading state
   if (loading && !authStuck) {
     return (
@@ -78,8 +84,8 @@ const Index = () => {
   return (
     <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
       <div className="flex-1 relative min-h-0 overflow-hidden">
-        {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} />}
-        {activeTab === "live" && <LivePage refreshSignal={feedRefreshSignal} />}
+        {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} />}
+        {activeTab === "live" && <LivePage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />}
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
       </div>
       <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
