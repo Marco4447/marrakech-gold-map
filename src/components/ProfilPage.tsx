@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -260,6 +260,46 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
         signingOut={signingOut}
         onSignOut={handleSignOut}
       />
+
+      {/* Pass Invité Teaser */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="px-5 pt-4"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <Gift className="w-4 h-4 text-gold" />
+          <h3 className="font-display text-sm font-semibold text-foreground">Pass Invité</h3>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
+        <div className="bg-surface border border-gold/20 rounded-2xl p-4 space-y-3">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            En tant qu'Insider, profitez d'avantages exclusifs chez nos partenaires à Marrakech.
+          </p>
+          <div className="space-y-2.5">
+            {[
+              { emoji: "🍽️", label: "Restaurants", perk: "-10% dans les restos sélectionnés" },
+              { emoji: "🌅", label: "Rooftops", perk: "Accès prioritaire + cocktail offert" },
+              { emoji: "🏨", label: "Hôtels & Riads", perk: "Surclassement selon disponibilité" },
+              { emoji: "🎶", label: "Clubs & Bars", perk: "Entrée gratuite avant minuit" },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm">{item.emoji}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{item.perk}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-gold/70 text-center pt-1">
+            Présentez l'app au comptoir pour activer votre avantage ✨
+          </p>
+        </div>
+      </motion.div>
 
       {/* Partner Dashboard */}
       {isPartner && (

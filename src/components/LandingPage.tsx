@@ -1,6 +1,6 @@
 import { forwardRef, useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { MapPin, Camera, Gift } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapPin, Camera, Gift, ChevronRight, Zap, Star, Map } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/marrakech-hero.jpg";
@@ -16,9 +16,31 @@ const pillars = [
   { icon: Gift, label: "Profitez", desc: "Votre Pass Invité pour des avantages exclusifs." },
 ];
 
+const previewSlides = [
+  {
+    icon: Map,
+    title: "Carte interactive",
+    desc: "Découvrez les meilleurs spots de Marrakech en un coup d'œil. Pins live, deals partenaires et vibes géolocalisées.",
+    emoji: "🗺️",
+  },
+  {
+    icon: Camera,
+    title: "Vibes éphémères",
+    desc: "Un flux photo/vidéo en temps réel. Les posts disparaissent après 6h — que du frais, zéro filtre.",
+    emoji: "📸",
+  },
+  {
+    icon: Gift,
+    title: "Pass Invité",
+    desc: "Des avantages exclusifs chez nos partenaires : réductions, accès prioritaires, surprises.",
+    emoji: "🎁",
+  },
+];
+
 const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, ref) => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [insiderCount, setInsiderCount] = useState<number | null>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
     supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
@@ -26,14 +48,22 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
     });
   }, []);
 
+  // Auto-advance preview carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % previewSlides.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <motion.div
       ref={ref}
-      className="fixed inset-0 z-[3000] flex flex-col items-center justify-end bg-background"
+      className="fixed inset-0 z-[3000] flex flex-col items-center justify-end bg-background overflow-y-auto"
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
-      {/* Fallback static image (shown until video loads) */}
+      {/* Fallback static image */}
       <div className="absolute inset-0">
         <img
           src={heroImage}
@@ -53,60 +83,94 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           onCanPlayThrough={() => setVideoLoaded(true)}
           className={`w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`}
         />
-        {/* Dark overlay 60% */}
         <div className="absolute inset-0 bg-background/60" />
-        {/* Bottom gradient for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-md px-6 pb-12 space-y-8">
+      <div className="relative z-10 w-full max-w-md px-6 pb-10 space-y-6">
         {/* Hero text */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
-          className="space-y-3"
+          className="space-y-2"
         >
           <h1 className="font-display text-4xl font-bold text-foreground leading-tight tracking-tight drop-shadow-lg">
             Weshkech
           </h1>
-          <h2 className="font-body text-lg font-light text-gold tracking-wide drop-shadow-md">
-            Marrakech Live Vibes
+          <h2 className="font-body text-base font-light text-gold tracking-wide drop-shadow-md">
+            Partagez vos spots · Découvrez en live · Profitez de deals exclusifs
           </h2>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-            className="font-body text-sm font-light text-foreground/80 leading-relaxed pt-2 max-w-[280px]"
-            style={{ textShadow: "0 1px 3px hsl(0 0% 0% / 0.5)" }}
-          >
-            L'énergie de Marrakech, sans filtre et en temps réel. Découvrez les spots les plus chauds du moment et profitez de vos avantages Pass Invité.
-          </motion.p>
 
           {/* Real-time insider counter */}
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-2 pt-1">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-destructive" />
             </span>
             <span className="text-xs text-foreground/80 font-medium">
-              <span className="text-gold font-semibold">{insiderCount !== null ? insiderCount : "…"}</span> Insiders partagent l'ambiance en direct
+              <span className="text-gold font-semibold">{insiderCount !== null ? insiderCount : "…"}</span> Insiders connectés
             </span>
           </div>
         </motion.div>
 
-        {/* CTA with glassmorphism */}
+        {/* ===== PREVIEW CAROUSEL ===== */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="relative"
+        >
+          <div className="bg-card/40 backdrop-blur-xl border border-gold/20 rounded-2xl p-4 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeSlide}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.35 }}
+                className="flex items-start gap-3"
+              >
+                <div className="w-11 h-11 rounded-xl bg-gold/15 border border-gold/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg">{previewSlides[activeSlide].emoji}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gold">{previewSlides[activeSlide].title}</p>
+                  <p className="text-xs text-foreground/70 leading-relaxed mt-0.5">
+                    {previewSlides[activeSlide].desc}
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Dots */}
+            <div className="flex items-center justify-center gap-2 mt-3">
+              {previewSlides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveSlide(i)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === activeSlide ? "w-5 bg-gold" : "w-1.5 bg-foreground/20"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.5 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
         >
           <button
             onClick={onEnter}
-            className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.98] text-primary-foreground font-bold py-4 rounded-2xl transition-all duration-200 shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-base tracking-wide"
+            className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.98] text-primary-foreground font-bold py-4 rounded-2xl transition-all duration-200 shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-base tracking-wide flex items-center justify-center gap-2"
           >
             Devenir Insider
+            <ChevronRight className="w-5 h-5" />
           </button>
         </motion.div>
 
@@ -132,8 +196,8 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.1, duration: 0.5 }}
-          className="text-center pt-2"
+          transition={{ delay: 1.0, duration: 0.5 }}
+          className="text-center pt-1"
         >
           <Link
             to="/business"
