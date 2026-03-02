@@ -44,6 +44,7 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const deviceId = getDeviceId();
   const { user, profile, signOut } = useAuth();
 
@@ -73,6 +74,17 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
       console.error(e);
       setDeleting(false);
       setShowDeleteConfirm(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+    } catch (e) {
+      console.error("Logout failed:", e);
+      setSigningOut(false);
     }
   };
 
@@ -125,11 +137,12 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
 
         {/* Logout button */}
         <button
-          onClick={signOut}
-          className="mt-4 flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors bg-surface border border-border rounded-xl px-4 py-2"
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className="mt-4 flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors bg-surface border border-border rounded-xl px-4 py-2 disabled:opacity-70"
         >
           <LogOut className="w-3.5 h-3.5" />
-          Se déconnecter
+          {signingOut ? "Déconnexion..." : "Se déconnecter"}
         </button>
 
         {/* Partner CTA */}

@@ -64,15 +64,15 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           <h1 className="font-display text-4xl font-bold text-foreground leading-tight tracking-tight drop-shadow-lg">
             Weshkech
           </h1>
-          <p className="font-body text-lg font-light text-gold tracking-wide drop-shadow-md">
+          <h2 className="font-body text-lg font-light text-gold tracking-wide drop-shadow-md">
             Marrakech Live Vibes
-          </p>
+          </h2>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7, duration: 0.6 }}
             className="font-body text-sm font-light text-foreground/80 leading-relaxed pt-2 max-w-[280px]"
-            style={{ textShadow: '0 1px 3px hsl(0 0% 0% / 0.5)' }}
+            style={{ textShadow: "0 1px 3px hsl(0 0% 0% / 0.5)" }}
           >
             L'énergie de Marrakech, sans filtre et en temps réel. Découvrez les spots les plus chauds du moment et profitez de vos avantages Pass Invité.
           </motion.p>

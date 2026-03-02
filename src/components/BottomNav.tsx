@@ -16,15 +16,15 @@ const tabs: { id: Tab; label: string; icon: typeof Map }[] = [
 
 export default function BottomNav({ active, onChange, onHome }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[2000] bg-background/70 backdrop-blur-2xl border-t border-border/50 saturate-150">
-      <div className="flex items-center justify-around h-16 max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-[2000] bg-background/95 backdrop-blur-xl border-t border-border shadow-[0_-10px_30px_hsl(var(--background)/0.7)]">
+      <div className="flex items-center justify-around h-16 max-w-md mx-auto px-2">
         {/* Home button */}
         <button
           onClick={onHome}
-          className="flex flex-col items-center gap-0.5 px-6 py-2 transition-colors text-muted-foreground hover:text-gold"
+          className="flex flex-col items-center gap-0.5 px-5 py-2 rounded-xl transition-colors text-foreground/85 hover:text-gold hover:bg-surface"
         >
           <Home className="w-5 h-5" />
-          <span className="text-[10px] font-medium tracking-wide uppercase">Accueil</span>
+          <span className="text-[10px] font-semibold tracking-wide uppercase">Accueil</span>
         </button>
 
         {tabs.map(({ id, label, icon: Icon }) => {
@@ -33,12 +33,12 @@ export default function BottomNav({ active, onChange, onHome }: BottomNavProps) 
             <button
               key={id}
               onClick={() => onChange(id)}
-              className={`flex flex-col items-center gap-0.5 px-6 py-2 transition-colors ${
-                isActive ? "text-gold" : "text-muted-foreground hover:text-foreground"
+              className={`flex flex-col items-center gap-0.5 px-5 py-2 rounded-xl transition-colors ${
+                isActive ? "text-gold bg-gold/10" : "text-muted-foreground hover:text-foreground hover:bg-surface"
               }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? "drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]" : ""}`} />
-              <span className="text-[10px] font-medium tracking-wide uppercase">{label}</span>
+              <span className="text-[10px] font-semibold tracking-wide uppercase">{label}</span>
               {isActive && (
                 <div className="w-1 h-1 rounded-full bg-gold mt-0.5" />
               )}

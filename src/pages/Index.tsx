@@ -38,6 +38,11 @@ const Index = () => {
     setShowLanding(false);
   };
 
+  const handleHome = () => {
+    setActiveTab("map");
+    setShowLanding(true);
+  };
+
   // Skip landing if user is already logged in
   useEffect(() => {
     if (user && showLanding) {
@@ -75,7 +80,7 @@ const Index = () => {
         {activeTab === "live" && <LivePage />}
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
       </div>
-      <BottomNav active={activeTab} onChange={setActiveTab} onHome={() => setShowLanding(true)} />
+      <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} />
 
       <AnimatePresence>
         {showLanding && <LandingPage onEnter={handleEnter} />}

@@ -86,15 +86,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile]);
 
   const signOut = useCallback(async () => {
+    const signOutWithTimeout = async (scope: "global" | "local") => {
+      const timeoutMs = 3500;
+      return Promise.race([
+        supabase.auth.signOut({ scope }),
+        new Promise<{ error: Error }>((resolve) =>
+          setTimeout(() => resolve({ error: new Error(`signOut ${scope} timeout`) }), timeoutMs)
+        ),
+      ]);
+    };
+
     try {
-      const { error: globalError } = await supabase.auth.signOut({ scope: "global" });
-      if (globalError) {
-        // Fallback in case global revoke fails on some environments
-        await supabase.auth.signOut({ scope: "local" });
+      const globalResult = await signOutWithTimeout("global");
+      if (globalResult?.error) {
+        await signOutWithTimeout("local");
       }
     } catch (e) {
       console.error("Sign out error:", e);
-      await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+      await signOutWithTimeout("local").catch(() => undefined);
     } finally {
       localStorage.removeItem("wk_landed");
 
