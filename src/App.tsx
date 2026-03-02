@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useAutoRefreshOnNewVersion } from "@/hooks/useAutoRefreshOnNewVersion";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -13,8 +14,10 @@ import ShopPage from "./pages/ShopPage";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const AppShell = () => {
+  useAutoRefreshOnNewVersion();
+
+  return (
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
@@ -31,6 +34,12 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AppShell />
   </QueryClientProvider>
 );
 
