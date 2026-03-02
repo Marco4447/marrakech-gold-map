@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Camera, X, Loader2, Send, MapPin, Video, Check, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Camera, X, Loader2, Send, MapPin, Video, Check, Trash2, Star, ShoppingCart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,6 +93,7 @@ function SuccessAnimation({ show }: { show: boolean }) {
 
 export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"photo" | "video">("photo");
@@ -104,6 +106,9 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   const [geoLoading, setGeoLoading] = useState(false);
   const [nearbyPlace, setNearbyPlace] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isOfficial, setIsOfficial] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
+  const [partnerCredits, setPartnerCredits] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -117,6 +122,30 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   const recordingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordingStart = useRef<number>(0);
   const chunksRef = useRef<Blob[]>([]);
+
+  // Check if user is partner
+  useEffect(() => {
+    if (!user || !open) return;
+    const checkPartner = async () => {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "partner")
+        .single();
+      const hasPartnerRole = !!roleData;
+      setIsPartner(hasPartnerRole);
+      if (hasPartnerRole) {
+        const { data: creditData } = await supabase
+          .from("partner_credits")
+          .select("credits")
+          .eq("user_id", user.id)
+          .single();
+        setPartnerCredits(creditData?.credits ?? 0);
+      }
+    };
+    checkPartner();
+  }, [user, open]);
 
   // Check post limit on open
   const checkPostLimit = useCallback(() => {
@@ -374,10 +403,20 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
           likes: 0,
           mood: selectedMood,
           media_type: mediaType,
+          is_official: isOfficial,
           latitude: geoLocation?.lat || null,
           longitude: geoLocation?.lng || null,
         }),
       }, token);
+
+      // Deduct credit if official
+      if (isOfficial && user) {
+        await supabase
+          .from("partner_credits")
+          .update({ credits: Math.max(0, partnerCredits - 1) })
+          .eq("user_id", user.id);
+        setPartnerCredits((c) => Math.max(0, c - 1));
+      }
 
       const timestamps = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
       timestamps.push(Date.now());
@@ -416,6 +455,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     setGeoName("");
     setNearbyPlace(null);
     setShowSuccess(false);
+    setIsOfficial(false);
   };
 
   const handleClose = () => {
@@ -615,6 +655,49 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                         </button>
                       ))}
                     </div>
+
+                    {/* Official Vibe option for partners */}
+                    {isPartner && (
+                      <div className="mb-4">
+                        <button
+                          onClick={() => {
+                            if (partnerCredits <= 0) {
+                              onClose();
+                              navigate("/shop");
+                              return;
+                            }
+                            setIsOfficial(!isOfficial);
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                            isOfficial
+                              ? "border-gold bg-gold/10"
+                              : "border-border bg-surface hover:border-gold/30"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Star className={`w-5 h-5 ${isOfficial ? "fill-gold text-gold" : "text-muted-foreground"}`} />
+                            <div className="text-left">
+                              <p className={`text-sm font-semibold ${isOfficial ? "text-gold" : "text-foreground"}`}>
+                                Vibe Officielle ⭐
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                Épinglée en haut · Visible partout · 1 crédit
+                              </p>
+                            </div>
+                          </div>
+                          {partnerCredits > 0 ? (
+                            <span className="text-xs font-bold text-gold bg-gold/10 px-2 py-1 rounded-lg">
+                              {partnerCredits} cr.
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <ShoppingCart className="w-3.5 h-3.5" />
+                              <span>Acheter</span>
+                            </div>
+                          )}
+                        </button>
+                      </div>
+                    )}
 
                     {/* Location with nearby suggestion */}
                     <div className="mb-4">

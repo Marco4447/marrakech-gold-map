@@ -18,6 +18,7 @@ interface VibePin {
   created_at: string;
   location: string | null;
   media_type?: string;
+  is_official?: boolean;
 }
 
 const MOOD_COLORS: Record<string, string> = {
@@ -324,7 +325,7 @@ export default function MapView({ refreshSignal = 0 }: { refreshSignal?: number 
       const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
       const { data } = await supabase
         .from("vibes")
-        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at, media_type")
+        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at, media_type, is_official")
         .gte("created_at", sixHoursAgo);
       if (data) {
         // Trending
@@ -401,32 +402,39 @@ export default function MapView({ refreshSignal = 0 }: { refreshSignal?: number 
 
     vibePins.forEach((vibe) => {
       if (!vibe.latitude || !vibe.longitude) return;
+      const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
-      const remaining = Math.max(0, 1 - age / SIX_HOURS); // 1 -> 0 over 6h
-      const size = Math.round(28 + remaining * 16); // 44px -> 28px
-      const borderColor = MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)";
+      const remaining = isOfficial ? 1 : Math.max(0, 1 - age / SIX_HOURS);
+      const size = isOfficial ? 50 : Math.round(28 + remaining * 16);
+      const borderColor = isOfficial ? "hsl(43,76%,52%)" : (MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)");
       const moodEmoji = MOOD_EMOJIS[vibe.mood || ""] || "";
 
+      const officialBadge = isOfficial
+        ? `<div style="position:absolute;top:-6px;right:-6px;font-size:12px;background:hsl(43,76%,52%);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px hsl(43,76%,52%,0.5)">⭐</div>`
+        : "";
+
       const icon = L.divIcon({
-        className: "",
+        className: isOfficial ? "gold-marker" : "",
         html: `
           <div style="
             width:${size}px;height:${size}px;border-radius:50%;
-            border:3px solid ${borderColor};
-            box-shadow:0 0 ${Math.round(remaining * 12)}px ${borderColor.replace(")", ",0.5)")};
+            border:${isOfficial ? "3.5px" : "3px"} solid ${borderColor};
+            box-shadow:0 0 ${isOfficial ? 16 : Math.round(remaining * 12)}px ${borderColor.replace(")", isOfficial ? ",0.6)" : ",0.5)")};
             overflow:hidden;position:relative;
             background:hsl(30,20%,95%);
           ">
             <img src="${vibe.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
             ${moodEmoji ? `<div style="position:absolute;bottom:-4px;right:-4px;font-size:12px;background:hsl(0,0%,5%,0.7);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
             ${vibe.media_type === "video" ? `<div style="position:absolute;top:-4px;left:-4px;font-size:10px;background:hsl(0,70%,50%,0.85);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center">🎥</div>` : ""}
+            ${officialBadge}
           </div>
         `,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       });
 
-      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: 500 }).addTo(map);
+      const zOffset = isOfficial ? 1500 : 500;
+      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: zOffset }).addTo(map);
       markers.push(marker);
     });
 
