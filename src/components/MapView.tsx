@@ -454,13 +454,33 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     };
   }, [places, trendingLocations, activeFilter]);
 
-  // Add vibe photo pins
+  // Add vibe photo pins + heatmap effect
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     const markers: L.Marker[] = [];
+    const heatCircles: L.CircleMarker[] = [];
 
+    // Heatmap circles for all vibes with coords
+    vibePins.forEach((vibe) => {
+      if (!vibe.latitude || !vibe.longitude) return;
+      const age = Date.now() - new Date(vibe.created_at).getTime();
+      const freshness = Math.max(0.15, 1 - age / SIX_HOURS);
+      const moodColor = MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)";
+      
+      // Outer heat glow
+      const heatCircle = L.circleMarker([vibe.latitude, vibe.longitude], {
+        radius: 30 + freshness * 20,
+        fillColor: moodColor,
+        fillOpacity: 0.08 + freshness * 0.12,
+        stroke: false,
+        interactive: false,
+      }).addTo(map);
+      heatCircles.push(heatCircle);
+    });
+
+    // Photo pin miniatures (same as before)
     vibePins.forEach((vibe) => {
       if (!vibe.latitude || !vibe.longitude) return;
       const isOfficial = vibe.is_official === true;
@@ -501,6 +521,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
     return () => {
       markers.forEach((m) => m.remove());
+      heatCircles.forEach((c) => c.remove());
     };
   }, [vibePins]);
 

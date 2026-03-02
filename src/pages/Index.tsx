@@ -19,35 +19,56 @@ const Index = () => {
   const [showFlashPost, setShowFlashPost] = useState(false);
   const [feedRefreshSignal, setFeedRefreshSignal] = useState(0);
   const [flyToCoords, setFlyToCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [authStuck, setAuthStuck] = useState(false);
+  const { user, loading } = useAuth();
+
+  // Show landing only for users who have never completed onboarding
   const [showLanding, setShowLanding] = useState(() => {
     return !localStorage.getItem("wk_landed");
   });
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [authStuck, setAuthStuck] = useState(false);
-  const { user, loading } = useAuth();
+  // Show welcome tutorial for first-time users who just signed up
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem("wk_welcome_seen");
+  });
 
   useEffect(() => {
     if (!loading) {
       setAuthStuck(false);
       return;
     }
-
-    const timeout = setTimeout(() => {
-      setAuthStuck(true);
-    }, 4000);
-
+    const timeout = setTimeout(() => setAuthStuck(true), 4000);
     return () => clearTimeout(timeout);
   }, [loading]);
 
+  // Once user is authenticated, auto-dismiss landing if they've already completed it before
+  useEffect(() => {
+    if (user && localStorage.getItem("wk_landed")) {
+      setShowLanding(false);
+    }
+  }, [user]);
+
+  // When user logs in for first time, show welcome tutorial AFTER auth completes
+  useEffect(() => {
+    if (user && !localStorage.getItem("wk_welcome_seen")) {
+      // First-time user: dismiss landing, show welcome
+      if (showLanding) {
+        localStorage.setItem("wk_landed", "1");
+        setShowLanding(false);
+      }
+      setShowWelcome(true);
+    }
+  }, [user]);
+
   const handleEnter = () => {
-    // Don't close landing yet — show welcome modal on top
-    setShowWelcome(true);
+    // Landing CTA clicked — trigger Google auth via AuthGate
+    // The landing will be hidden once user logs in (useEffect above)
+    localStorage.setItem("wk_landed", "1");
+    setShowLanding(false);
   };
 
   const handleWelcomeComplete = (coords: { lat: number; lng: number } | null) => {
     setShowWelcome(false);
-    localStorage.setItem("wk_landed", "1");
-    setShowLanding(false);
+    localStorage.setItem("wk_welcome_seen", "1");
     if (coords) {
       setFlyToCoords(coords);
     }
@@ -57,13 +78,6 @@ const Index = () => {
     localStorage.removeItem("wk_landed");
     setShowLanding(true);
   };
-
-  // Skip landing on initial load if user is already logged in (but not if they clicked Home)
-  useEffect(() => {
-    if (user && showLanding && localStorage.getItem("wk_landed")) {
-      setShowLanding(false);
-    }
-  }, [user]);
 
   const handleGoToMap = useCallback((lat: number, lng: number) => {
     setFlyToCoords({ lat, lng });
@@ -77,6 +91,11 @@ const Index = () => {
         <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  // Show landing page for non-authenticated users who haven't onboarded
+  if (showLanding && !user) {
+    return <LandingPage onEnter={handleEnter} />;
   }
 
   // Auth gate - user must be logged in
@@ -102,10 +121,7 @@ const Index = () => {
       <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
       <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />
 
-      <AnimatePresence>
-        {showLanding && <LandingPage onEnter={handleEnter} />}
-      </AnimatePresence>
-
+      {/* Welcome tutorial for first-time users (shown AFTER login) */}
       <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />
     </div>
   );
