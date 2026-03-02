@@ -383,11 +383,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
   // Fetch trending locations + vibe pins from vibes with coordinates
   useEffect(() => {
     const fetchVibeData = async () => {
-      const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
       const { data } = await supabase
         .from("vibes")
-        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at, media_type, is_official")
-        .gte("created_at", sixHoursAgo);
+        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at, media_type, is_official");
       if (data) {
         // Trending
         const scored = (data as any[])

@@ -288,6 +288,18 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     fetchMySuperVibes();
     checkPostLimit();
 
+    const refreshFeed = () => {
+      void fetchVibes();
+    };
+
+    const intervalId = setInterval(refreshFeed, 15000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshFeed();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     const channel = supabase
       .channel("vibes-live")
       .on(
@@ -316,6 +328,8 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
       .subscribe();
 
     return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       supabase.removeChannel(channel);
     };
   }, [fetchVibes, fetchMyLikes, fetchMySuperVibes, checkPostLimit, refreshSignal]);
