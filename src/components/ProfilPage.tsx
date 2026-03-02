@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -132,6 +132,9 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
+  const [credits, setCredits] = useState(0);
+  const [officialVibesCount, setOfficialVibesCount] = useState(0);
   const deviceId = getDeviceId();
   const { user, profile, signOut } = useAuth();
   const displayName =
@@ -201,6 +204,39 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
     setLoading(false);
   }, [deviceId]);
 
+  // Fetch partner data
+  useEffect(() => {
+    if (!user) return;
+    const fetchPartnerData = async () => {
+      // Check if user has partner role
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "partner");
+      
+      if (roles && roles.length > 0) {
+        setIsPartner(true);
+        // Fetch credits
+        const { data: creditData } = await supabase
+          .from("partner_credits")
+          .select("credits")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (creditData) setCredits(creditData.credits);
+
+        // Count official vibes
+        const { count } = await supabase
+          .from("vibes")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("is_official", true);
+        setOfficialVibesCount(count || 0);
+      }
+    };
+    fetchPartnerData();
+  }, [user]);
+
   useEffect(() => {
     fetchFavorites();
   }, [fetchFavorites]);
@@ -224,6 +260,52 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
         signingOut={signingOut}
         onSignOut={handleSignOut}
       />
+
+      {/* Partner Dashboard */}
+      {isPartner && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="px-5 pt-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Star className="w-4 h-4 text-gold fill-gold" />
+            <h3 className="font-display text-sm font-semibold text-foreground">Espace Partenaire</h3>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {/* Credits balance */}
+            <div className="bg-surface border border-gold/20 rounded-xl p-4 text-center">
+              <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-2">
+                <Sparkles className="w-5 h-5 text-gold" />
+              </div>
+              <p className="font-display text-2xl font-bold text-gold">{credits}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Crédits restants</p>
+            </div>
+
+            {/* Official vibes count */}
+            <div className="bg-surface border border-border rounded-xl p-4 text-center">
+              <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-2">
+                <Star className="w-5 h-5 text-gold" />
+              </div>
+              <p className="font-display text-2xl font-bold text-foreground">{officialVibesCount}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Vibes Officielles</p>
+            </div>
+          </div>
+
+          {/* Buy credits CTA */}
+          <Link
+            to="/shop"
+            className="flex items-center justify-center gap-2 w-full bg-gold/10 hover:bg-gold/20 border border-gold/20 text-gold font-semibold text-sm py-3 rounded-xl transition-colors"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            {credits === 0 ? "Acheter des crédits" : "Recharger mes crédits"}
+          </Link>
+
+          <div className="h-px bg-border mt-4" />
+        </motion.div>
+      )}
 
       {/* Mes Favoris */}
       <div className="px-5 pt-4">
