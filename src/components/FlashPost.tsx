@@ -9,7 +9,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
-const STORAGE_UPLOAD_TIMEOUT_MS = 15000;
+const STORAGE_UPLOAD_TIMEOUT_MS = 45000;
 
 const MOODS = [
   { key: "hot", emoji: "🔥", label: "Hot Now", color: "hsl(15,80%,50%)" },
@@ -58,21 +58,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     );
   }, []);
 
-  const uploadWithSdk = async (fileName: string, imageFile: File) => {
-    await Promise.race([
-      supabase.storage.from("vibes").upload(fileName, imageFile, {
-        contentType: imageFile.type,
-        upsert: false,
-      }).then(({ error }) => {
-        if (error) throw error;
-      }),
-      new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("SDK_UPLOAD_TIMEOUT")), STORAGE_UPLOAD_TIMEOUT_MS);
-      }),
-    ]);
-  };
-
-  const uploadWithRestFallback = async (fileName: string, imageFile: File) => {
+  const uploadToStorage = async (fileName: string, imageFile: File) => {
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       throw new Error("UPLOAD_CONFIG_MISSING");
     }
@@ -82,7 +68,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     const timeout = setTimeout(() => controller.abort(), STORAGE_UPLOAD_TIMEOUT_MS);
 
     try {
-      const response = await fetch(`${SUPABASE_URL}/storage/v1/object/vibes/${encodeURIComponent(fileName)}`, {
+      const response = await fetch(`${SUPABASE_URL}/storage/v1/object/vibes/${fileName}`, {
         method: "POST",
         headers: {
           apikey: SUPABASE_PUBLISHABLE_KEY,
@@ -96,7 +82,10 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
 
       if (!response.ok) {
         const message = await response.text();
-        throw new Error(`REST_UPLOAD_FAILED_${response.status}: ${message}`);
+        if (response.status === 409 || message.toLowerCase().includes("already exists")) {
+          return;
+        }
+        throw new Error(`UPLOAD_FAILED_${response.status}: ${message}`);
       }
     } finally {
       clearTimeout(timeout);
@@ -124,14 +113,15 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
 
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      let fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       setUploadProgress(32);
 
       try {
-        await uploadWithSdk(fileName, file);
-      } catch (sdkError) {
-        console.warn("SDK upload failed, trying REST fallback", sdkError);
-        await uploadWithRestFallback(fileName, file);
+        await uploadToStorage(fileName, file);
+      } catch (firstError) {
+        console.warn("Primary upload failed, retrying once with a new file name", firstError);
+        fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-retry.${ext}`;
+        await uploadToStorage(fileName, file);
       }
 
       setUploadProgress(72);
@@ -163,7 +153,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     } catch (err) {
       console.error("Upload error:", err);
       toast.error("Envoi du vibe échoué", {
-        description: "Réessaie avec une autre photo ou une meilleure connexion.",
+        description: "Upload trop lent ou interrompu. Réessaie (connexion/Wi‑Fi) : l'app retente automatiquement une fois.",
       });
       setUploading(false);
       setUploadProgress(0);
