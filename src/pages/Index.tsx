@@ -97,7 +97,7 @@ const Index = () => {
       <div className="flex-1 relative min-h-0 overflow-hidden">
         {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} />}
         {activeTab === "live" && <LivePage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />}
-        {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
+        {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("map")} />}
       </div>
       <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
       <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />
