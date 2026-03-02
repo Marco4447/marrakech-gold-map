@@ -13,6 +13,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -78,6 +80,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    try {
+      await fetchProfile(user, 1);
+    } catch (e) {
+      console.error("Failed to refresh profile:", e);
+    }
+  }, [user, fetchProfile]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -86,43 +97,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
         const currentUser = session?.user ?? null;
         setUser(currentUser);
+        setLoading(false);
+
         if (currentUser) {
-          try {
-            await fetchProfile(currentUser);
-          } catch (e) {
+          fetchProfile(currentUser).catch((e) => {
             console.error("Failed to fetch profile:", e);
-          }
+          });
         } else {
           setProfile(null);
         }
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        fetchProfile(currentUser).catch(console.error).finally(() => {
-          if (mounted) setLoading(false);
-        });
-      } else {
+    Promise.race([
+      supabase.auth.getSession(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("GET_SESSION_TIMEOUT")), 4500)
+      ),
+    ])
+      .then((sessionResult: any) => {
+        if (!mounted) return;
+        const currentUser = sessionResult?.data?.session?.user ?? null;
+        setUser(currentUser);
         setLoading(false);
-      }
-    }).catch((err) => {
-      console.error("Failed to get session:", err);
-      if (mounted) setLoading(false);
-    });
 
-    // Fallback timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      if (mounted) setLoading(false);
-    }, 12000);
+        if (currentUser) {
+          fetchProfile(currentUser).catch((e) => {
+            console.error("Failed to fetch profile:", e);
+          });
+        } else {
+          setProfile(null);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to get session:", err);
+        if (mounted) setLoading(false);
+      });
 
     return () => {
       mounted = false;
-      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
@@ -176,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

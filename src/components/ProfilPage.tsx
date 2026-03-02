@@ -49,6 +49,7 @@ function ProfileCard({
   signingOut,
   onSignOut,
   onAvatarChanged,
+  onProfileUpdated,
 }: {
   user: any;
   profile: any;
@@ -57,6 +58,7 @@ function ProfileCard({
   signingOut: boolean;
   onSignOut: () => void;
   onAvatarChanged: () => void;
+  onProfileUpdated: () => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [newName, setNewName] = useState(displayName);
@@ -66,17 +68,35 @@ function ProfileCard({
 
   const avatarUrl = profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined) || undefined;
 
+  useEffect(() => {
+    setNewName(displayName);
+  }, [displayName]);
+
   const handleSave = async () => {
     if (!user || !newName.trim()) return;
     setSaving(true);
+
     try {
-      await supabase
-        .from("profiles")
-        .update({ full_name: newName.trim() })
-        .eq("user_id", user.id);
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          user_id: user.id,
+          full_name: newName.trim(),
+          email: profile?.email ?? user?.email ?? null,
+          avatar_url: profile?.avatar_url ?? null,
+        },
+        { onConflict: "user_id" }
+      );
+
+      if (error) throw error;
+
+      await onProfileUpdated();
       setEditing(false);
+      toast.success("Nom enregistré");
     } catch (e) {
-      console.error(e);
+      console.error("Profile save error:", e);
+      toast.error("Impossible d'enregistrer le nom", {
+        description: "Ta session a peut-être expiré. Réessaie après reconnexion.",
+      });
     } finally {
       setSaving(false);
     }
@@ -108,11 +128,14 @@ function ProfileCard({
       // Add cache-buster
       const finalUrl = `${publicUrl}?t=${Date.now()}`;
 
-      await supabase
+      const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: finalUrl })
         .eq("user_id", user.id);
 
+      if (updateError) throw updateError;
+
+      await onProfileUpdated();
       toast.success("Photo de profil mise à jour !");
       onAvatarChanged();
     } catch (err) {
@@ -206,7 +229,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [credits, setCredits] = useState(0);
   const [officialVibesCount, setOfficialVibesCount] = useState(0);
   const deviceId = getDeviceId();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const displayName =
     profile?.full_name ||
     (user?.user_metadata?.full_name as string | undefined) ||
@@ -338,6 +361,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         signingOut={signingOut}
         onSignOut={handleSignOut}
         onAvatarChanged={() => window.location.reload()}
+        onProfileUpdated={refreshProfile}
       />
 
       {/* Pass Invité Teaser */}
