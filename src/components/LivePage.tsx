@@ -36,13 +36,50 @@ interface Vibe {
   profile?: VibeProfile | null;
 }
 
+function withCacheBust(url: string, token: string) {
+  try {
+    const u = new URL(url);
+    u.searchParams.set("cb", token);
+    return u.toString();
+  } catch {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}cb=${encodeURIComponent(token)}`;
+  }
+}
+
 function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
   const [muted, setMuted] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [imageSrc, setImageSrc] = useState(() =>
+    withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`)
+  );
   const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = vibe.media_type === "video";
 
+  useEffect(() => {
+    setRetryCount(0);
+    setImageSrc(withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`));
+  }, [vibe.id, vibe.image_url, vibe.created_at]);
+
+  const handleImageError = () => {
+    if (retryCount >= 2) return;
+    const nextRetry = retryCount + 1;
+    setRetryCount(nextRetry);
+    setTimeout(() => {
+      setImageSrc(withCacheBust(vibe.image_url, `${Date.now()}-${nextRetry}`));
+    }, 400 * nextRetry);
+  };
+
   if (!isVideo) {
-    return <img src={vibe.image_url} alt={vibe.caption || "Vibe"} className={className} loading="lazy" />;
+    return (
+      <img
+        src={imageSrc}
+        alt={vibe.caption || "Vibe"}
+        className={className}
+        loading="lazy"
+        onError={handleImageError}
+      />
+    );
   }
 
   return (
@@ -437,7 +474,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <div>
             <h1 className="font-display text-xl font-bold">
               <span className="text-gold">Live</span>
-              <span className="text-foreground"> Stories</span>
+              <span className="text-foreground"> Vibes</span>
             </h1>
             <p className="text-muted-foreground text-xs mt-0.5">
               Éphémère · Disparaît après 6h
