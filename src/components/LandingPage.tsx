@@ -1,7 +1,8 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Camera, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/marrakech-hero.jpg";
 import ambientVideo from "@/assets/marrakech-ambiance.mp4";
 
@@ -17,7 +18,13 @@ const pillars = [
 
 const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, ref) => {
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [insiderCount] = useState(() => Math.floor(Math.random() * 34) + 12);
+  const [insiderCount, setInsiderCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
+      setInsiderCount(count ?? 0);
+    });
+  }, []);
 
   return (
     <motion.div
@@ -77,11 +84,14 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
             L'énergie de Marrakech, sans filtre et en temps réel. Découvrez les spots les plus chauds du moment et profitez de vos avantages Pass Invité.
           </motion.p>
 
-          {/* Simulated insider counter */}
+          {/* Real-time insider counter */}
           <div className="flex items-center gap-2 mt-3">
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-destructive" />
+            </span>
             <span className="text-xs text-foreground/80 font-medium">
-              <span className="text-gold font-semibold">{insiderCount}</span> Insiders partagent l'ambiance en direct
+              <span className="text-gold font-semibold">{insiderCount !== null ? insiderCount : "…"}</span> Insiders partagent l'ambiance en direct
             </span>
           </div>
         </motion.div>

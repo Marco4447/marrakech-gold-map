@@ -55,7 +55,13 @@ export default function BottomNav({ active, onChange, onHome, onFlashPost }: Bot
             active === "live" ? "text-gold bg-gold/10" : "text-muted-foreground hover:text-foreground hover:bg-surface"
           }`}
         >
-          <Radio className={`w-5 h-5 ${active === "live" ? "drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]" : ""}`} />
+          <div className="relative">
+            <Radio className={`w-5 h-5 ${active === "live" ? "drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]" : ""}`} />
+            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+            </span>
+          </div>
           <span className="text-[10px] font-semibold tracking-wide uppercase">Live</span>
           {active === "live" && <div className="w-1 h-1 rounded-full bg-gold mt-0.5" />}
         </button>
