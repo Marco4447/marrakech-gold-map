@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, ThumbsUp, ThumbsDown, Trash2, Video, Volume2, VolumeX } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import VibeComments, { useCommentCounts } from "./VibeComments";
 import SuperVibeParticles from "./SuperVibeParticles";
@@ -27,7 +28,44 @@ interface Vibe {
   username: string | null;
   user_id: string | null;
   created_at: string;
+  media_type?: string;
+  mood?: string | null;
   profile?: VibeProfile | null;
+}
+
+function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isVideo = vibe.media_type === "video";
+
+  if (!isVideo) {
+    return <img src={vibe.image_url} alt={vibe.caption || "Vibe"} className={className} loading="lazy" />;
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      <video
+        ref={videoRef}
+        src={vibe.image_url}
+        className={className}
+        autoPlay
+        loop
+        muted={muted}
+        playsInline
+        preload="metadata"
+      />
+      <button
+        onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
+        className="absolute bottom-12 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center z-10"
+      >
+        {muted ? <VolumeX className="w-4 h-4 text-foreground" /> : <Volume2 className="w-4 h-4 text-foreground" />}
+      </button>
+      <div className="absolute top-3 left-12 flex items-center gap-1 bg-background/60 backdrop-blur-md px-2 py-1 rounded-lg">
+        <Video className="w-3 h-3 text-destructive" />
+        <span className="text-[10px] text-foreground font-medium">Vidéo</span>
+      </div>
+    </div>
+  );
 }
 
 function getDisplayName(vibe: Vibe): string {
@@ -124,6 +162,7 @@ export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number
   const [superVibeIds, setSuperVibeIds] = useState<Set<string>>(new Set());
   const [superVibeAnimId, setSuperVibeAnimId] = useState<string | null>(null);
   const [canSuperVibe, setCanSuperVibe] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const commentCounts = useCommentCounts(vibes.map((v) => v.id));
 
   // Upload state
@@ -286,6 +325,21 @@ export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number
     await supabase.from("vibes").update({ super_vibes: (vibes.find(v => v.id === vibeId)?.super_vibes ?? 0) + 1 }).eq("id", vibeId);
   };
 
+  const handleDeleteVibe = async (vibeId: string) => {
+    setDeletingId(vibeId);
+    try {
+      const { error } = await supabase.from("vibes").delete().eq("id", vibeId);
+      if (error) throw error;
+      setVibes((prev) => prev.filter((v) => v.id !== vibeId));
+      toast.success("Vibe supprimé");
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast.error("Impossible de supprimer");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -424,11 +478,7 @@ export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number
                     onClick={() => setCommentVibeId(vibe.id)}
                     className="relative flex-shrink-0 w-[45vw] aspect-[3/4] rounded-2xl overflow-hidden border-2 border-gold/30 cursor-pointer active:scale-95 transition-transform"
                   >
-                    <img
-                      src={vibe.image_url}
-                      alt={vibe.caption || "Top vibe"}
-                      className="w-full h-full object-cover"
-                    />
+                    <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
 
                     {/* Rank badge with shine */}
@@ -493,12 +543,7 @@ export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number
                   className="relative rounded-2xl overflow-hidden bg-card border border-border"
                 >
                   <div className="aspect-[3/4] relative">
-                    <img
-                      src={vibe.image_url}
-                      alt={vibe.caption || "Story"}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
 
                     {isNew(vibe.created_at) && (
@@ -603,8 +648,24 @@ export default function LivePage({ refreshSignal = 0 }: { refreshSignal?: number
                     </div>
                   </div>
 
-                  {/* Community validation: "Toujours d'actualité ?" */}
-                  <CommunityValidation vibeId={vibe.id} deviceId={deviceId} />
+                  {/* Delete own vibe + Community validation */}
+                  <div className="flex items-center justify-between border-t border-border">
+                    {user && vibe.user_id === user.id ? (
+                      <button
+                        onClick={() => handleDeleteVibe(vibe.id)}
+                        disabled={deletingId === vibe.id}
+                        className="flex items-center gap-1.5 px-4 py-2.5 text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        {deletingId === vibe.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                        <span className="text-[11px] font-medium">Supprimer ma Vibe</span>
+                      </button>
+                    ) : <div />}
+                    <CommunityValidation vibeId={vibe.id} deviceId={deviceId} />
+                  </div>
                 </motion.div>
               );
             })}

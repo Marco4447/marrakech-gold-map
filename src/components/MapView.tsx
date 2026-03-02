@@ -17,6 +17,7 @@ interface VibePin {
   longitude: number | null;
   created_at: string;
   location: string | null;
+  media_type?: string;
 }
 
 const MOOD_COLORS: Record<string, string> = {
@@ -323,7 +324,7 @@ export default function MapView({ refreshSignal = 0 }: { refreshSignal?: number 
       const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
       const { data } = await supabase
         .from("vibes")
-        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at")
+        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at, media_type")
         .gte("created_at", sixHoursAgo);
       if (data) {
         // Trending
@@ -418,6 +419,7 @@ export default function MapView({ refreshSignal = 0 }: { refreshSignal?: number 
           ">
             <img src="${vibe.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
             ${moodEmoji ? `<div style="position:absolute;bottom:-4px;right:-4px;font-size:12px;background:hsl(0,0%,5%,0.7);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
+            ${vibe.media_type === "video" ? `<div style="position:absolute;top:-4px;left:-4px;font-size:10px;background:hsl(0,70%,50%,0.85);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center">🎥</div>` : ""}
           </div>
         `,
         iconSize: [size, size],
