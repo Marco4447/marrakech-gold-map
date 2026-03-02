@@ -237,6 +237,26 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
   const [placesLoading, setPlacesLoading] = useState(true);
   const [placesError, setPlacesError] = useState<string | null>(null);
 
+  // Map onboarding tooltips
+  const [onboardingStep, setOnboardingStep] = useState(() => {
+    return localStorage.getItem("weshkech_map_onboarding_done") ? -1 : 0;
+  });
+
+  const onboardingTips = [
+    { emoji: "📍", text: "Touche un pin pour découvrir un spot ou un deal partenaire." },
+    { emoji: "🔥", text: "Utilise les filtres en haut pour trier par ambiance : Hot, Chill, Party…" },
+    { emoji: "📸", text: "Les vibes live apparaissent sur la carte — les photos disparaissent après 6h !" },
+  ];
+
+  const advanceOnboarding = () => {
+    if (onboardingStep < onboardingTips.length - 1) {
+      setOnboardingStep((s) => s + 1);
+    } else {
+      localStorage.setItem("weshkech_map_onboarding_done", "1");
+      setOnboardingStep(-1);
+    }
+  };
+
   // Init map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -539,6 +559,52 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
       {/* Collapsible Legend */}
       <CollapsibleLegend categories={categories} />
+
+      {/* Map Onboarding Tooltips */}
+      <AnimatePresence>
+        {onboardingStep >= 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[2000] flex items-end justify-center pb-28 px-4 pointer-events-none"
+          >
+            <motion.div
+              key={onboardingStep}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="pointer-events-auto bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-5 py-4 shadow-xl max-w-sm w-full"
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">{onboardingTips[onboardingStep].emoji}</span>
+                <p className="text-sm text-foreground leading-relaxed flex-1">
+                  {onboardingTips[onboardingStep].text}
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex gap-1.5">
+                  {onboardingTips.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        i === onboardingStep ? "w-4 bg-gold" : "w-1.5 bg-foreground/20"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={advanceOnboarding}
+                  className="text-xs font-bold text-primary-foreground px-4 py-1.5 rounded-lg"
+                  style={{ background: "linear-gradient(to bottom right, #BF953F, #FCF6BA, #B38728)" }}
+                >
+                  {onboardingStep < onboardingTips.length - 1 ? "Suivant" : "C'est parti !"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <PlaceSheet place={selectedPlace} open={sheetOpen} onOpenChange={setSheetOpen} />
     </div>
