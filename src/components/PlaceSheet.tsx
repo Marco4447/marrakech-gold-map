@@ -62,13 +62,19 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
           />
 
           <motion.div
-            className="absolute bottom-16 left-0 right-0 z-[1002] px-4 pb-4"
+            className="absolute bottom-0 left-0 right-0 z-[1002] px-4 pb-4 max-h-[85vh] flex flex-col"
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
           >
-            <div className={`bg-card rounded-2xl overflow-hidden border shadow-2xl ${isPartner ? "border-gold/40 shadow-gold/10" : "border-border shadow-gold/5"}`}>
+            <div className={`bg-card rounded-2xl overflow-hidden border shadow-2xl flex flex-col max-h-full ${isPartner ? "border-gold/40 shadow-gold/10" : "border-border shadow-gold/5"}`}>
+              {/* Drag handle + close */}
+              <div className="flex items-center justify-center pt-3 pb-1 flex-shrink-0">
+                <button onClick={() => onOpenChange(false)} className="w-10 h-1.5 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
+              </div>
+
+              <div className="overflow-y-auto no-scrollbar flex-1">
               {place.image_url && (
                 <div className="relative h-44 overflow-hidden">
                   <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" />
@@ -183,6 +189,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   {isPartner && hasOffer ? "Utiliser mon Pass Insider 🎁" : "Obtenir mon Pass Invité"}
                 </button>
               </div>
+              </div>{/* end overflow scroll */}
             </div>
           </motion.div>
 
