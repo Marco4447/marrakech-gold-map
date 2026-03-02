@@ -5,9 +5,11 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
-const STORAGE_UPLOAD_TIMEOUT_MS = 45000;
+const REQUEST_TIMEOUT_MS = 20000;
 
 const MOODS = [
   { key: "hot", emoji: "🔥", label: "Hot Now", color: "hsl(15,80%,50%)" },
@@ -56,39 +58,71 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     );
   }, []);
 
+  const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs = REQUEST_TIMEOUT_MS) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
+
   const uploadToStorage = async (fileName: string, imageFile: File) => {
-    await new Promise<void>((resolve, reject) => {
-      let done = false;
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      throw new Error("UPLOAD_CONFIG_MISSING");
+    }
 
-      const timeoutId = setTimeout(() => {
-        if (done) return;
-        done = true;
-        reject(new Error("UPLOAD_TIMEOUT"));
-      }, STORAGE_UPLOAD_TIMEOUT_MS);
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? SUPABASE_PUBLISHABLE_KEY;
 
-      supabase.storage
-        .from("vibes")
-        .upload(fileName, imageFile, {
-          contentType: imageFile.type || "image/jpeg",
-          upsert: false,
-        })
-        .then(({ error }) => {
-          if (done) return;
-          done = true;
-          clearTimeout(timeoutId);
-          if (error) {
-            reject(error);
-            return;
-          }
-          resolve();
-        })
-        .catch((error) => {
-          if (done) return;
-          done = true;
-          clearTimeout(timeoutId);
-          reject(error);
-        });
-    });
+    const response = await fetchWithTimeout(
+      `${SUPABASE_URL}/storage/v1/object/vibes/${fileName}`,
+      {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${token}`,
+          "x-upsert": "false",
+          "content-type": imageFile.type || "image/jpeg",
+        },
+        body: imageFile,
+      }
+    );
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(`STORAGE_${response.status}: ${message}`);
+    }
+  };
+
+  const insertVibe = async (payload: Record<string, unknown>) => {
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      throw new Error("INSERT_CONFIG_MISSING");
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? SUPABASE_PUBLISHABLE_KEY;
+
+    const response = await fetchWithTimeout(
+      `${SUPABASE_URL}/rest/v1/vibes`,
+      {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(`INSERT_${response.status}: ${message}`);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,20 +157,24 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     try {
       const ext = file.name.split(".").pop() || "jpg";
       let fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      setUploadProgress(32);
+      setUploadProgress(30);
 
       try {
         await uploadToStorage(fileName, file);
       } catch (firstError) {
-        console.warn("Primary upload failed, retrying once with a new file name", firstError);
-        fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-retry.${ext}`;
-        await uploadToStorage(fileName, file);
+        const msg = String(firstError);
+        if (msg.includes("STORAGE_409") || msg.toLowerCase().includes("already exists")) {
+          fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-retry.${ext}`;
+          await uploadToStorage(fileName, file);
+        } else {
+          throw firstError;
+        }
       }
 
-      setUploadProgress(72);
+      setUploadProgress(75);
       const { data: publicUrlData } = supabase.storage.from("vibes").getPublicUrl(fileName);
 
-      const { error: insertError } = await supabase.from("vibes").insert({
+      await insertVibe({
         image_url: publicUrlData.publicUrl,
         location: resolvedLocation,
         username: user?.user_metadata?.full_name || user?.email?.split("@")[0] || null,
@@ -146,8 +184,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
         mood: selectedMood,
         latitude: geoLocation?.lat || null,
         longitude: geoLocation?.lng || null,
-      } as any);
-      if (insertError) throw insertError;
+      });
 
       const timestamps = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
       timestamps.push(Date.now());
@@ -162,7 +199,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     } catch (err) {
       console.error("Upload error:", err);
       toast.error("Envoi du vibe échoué", {
-        description: "Upload interrompu. Vérifie ta connexion et réessaie.",
+        description: "Le réseau a interrompu l'envoi. Réessaie avec 4G/Wi‑Fi stable.",
       });
       setUploading(false);
       setUploadProgress(0);
