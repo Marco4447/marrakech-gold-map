@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, ThumbsUp, ThumbsDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,6 +68,49 @@ function timeAgo(dateStr: string) {
 
 function isNew(dateStr: string) {
   return Date.now() - new Date(dateStr).getTime() < THIRTY_MIN;
+}
+
+function CommunityValidation({ vibeId, deviceId }: { vibeId: string; deviceId: string }) {
+  const [vote, setVote] = useState<"up" | "down" | null>(() => {
+    const stored = localStorage.getItem(`wk_vote_${vibeId}`);
+    return stored === "up" || stored === "down" ? stored : null;
+  });
+
+  const handleVote = (type: "up" | "down") => {
+    if (vote === type) return;
+    setVote(type);
+    localStorage.setItem(`wk_vote_${vibeId}`, type);
+  };
+
+  return (
+    <div className="flex items-center justify-center gap-3 py-2.5 px-4 border-t border-border bg-surface/50">
+      <span className="text-[11px] text-muted-foreground font-medium">Toujours d'actualité ?</span>
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => handleVote("up")}
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+            vote === "up"
+              ? "bg-green-500/15 text-green-400 border border-green-500/30"
+              : "bg-surface border border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ThumbsUp className="w-3.5 h-3.5" />
+          👍
+        </button>
+        <button
+          onClick={() => handleVote("down")}
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+            vote === "down"
+              ? "bg-red-500/15 text-red-400 border border-red-500/30"
+              : "bg-surface border border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ThumbsDown className="w-3.5 h-3.5" />
+          👎
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function LivePage() {
@@ -559,6 +602,9 @@ export default function LivePage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Community validation: "Toujours d'actualité ?" */}
+                  <CommunityValidation vibeId={vibe.id} deviceId={deviceId} />
                 </motion.div>
               );
             })}
