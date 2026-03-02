@@ -495,9 +495,15 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     </div>
 
                     {/* Score badge */}
-                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
+                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg group/score cursor-help">
                       <Zap className="w-3 h-3 text-gold" />
                       <span className="text-[10px] font-bold text-gold">{getScore(vibe)}</span>
+                      <div className="absolute top-full right-0 mt-1 hidden group-hover/score:block z-50">
+                        <div className="bg-background/95 backdrop-blur-md border border-gold/30 rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
+                          <p className="text-[10px] font-semibold text-gold">⚡ Super Vibes</p>
+                          <p className="text-[9px] text-muted-foreground mt-0.5">Score de popularité du post</p>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Bottom info */}
@@ -651,6 +657,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             onClick={() => handleSuperVibe(vibe.id)}
                             disabled={!canSuperVibe || superVibeIds.has(vibe.id)}
                             className="flex flex-col items-center gap-0.5 group relative"
+                            title="Super Vibe — Booste ce post dans le classement !"
                           >
                             <motion.div
                               animate={superVibeAnimId === vibe.id ? { scale: [1, 1.6, 0.8, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}}
