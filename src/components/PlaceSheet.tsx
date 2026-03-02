@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, MapPin, Tag, Zap, Car, Loader2, ShieldCheck } from "lucide-react";
+import { X, Star, MapPin, Tag, Zap, Car, Loader2, ShieldCheck, Gift } from "lucide-react";
 import DealTunnel from "./DealTunnel";
 
 interface Place {
@@ -13,6 +13,8 @@ interface Place {
   image_url: string | null;
   address: string | null;
   rating: number | null;
+  is_partner?: boolean;
+  has_active_offer?: boolean;
 }
 
 interface PlaceSheetProps {
@@ -44,6 +46,9 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
 
   if (!place) return null;
 
+  const isPartner = place.is_partner ?? false;
+  const hasOffer = place.has_active_offer ?? false;
+
   return (
     <AnimatePresence>
       {open && (
@@ -63,14 +68,10 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
           >
-            <div className="bg-card rounded-2xl overflow-hidden border border-border shadow-2xl shadow-gold/5">
+            <div className={`bg-card rounded-2xl overflow-hidden border shadow-2xl ${isPartner ? "border-gold/40 shadow-gold/10" : "border-border shadow-gold/5"}`}>
               {place.image_url && (
                 <div className="relative h-44 overflow-hidden">
-                  <img
-                    src={place.image_url}
-                    alt={place.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
                   <button
                     onClick={() => onOpenChange(false)}
@@ -78,21 +79,24 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   >
                     <X className="w-4 h-4" />
                   </button>
+                  {/* Partner badge */}
+                  {isPartner && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-gold px-3 py-1.5 rounded-full shadow-lg">
+                      <span className="text-xs">⭐</span>
+                      <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">Partenaire</span>
+                    </div>
+                  )}
                 </div>
               )}
 
               <div className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="font-display text-xl font-semibold text-foreground">
-                      {place.name}
-                    </h2>
+                    <h2 className="font-display text-xl font-semibold text-foreground">{place.name}</h2>
                     {place.category && (
                       <div className="flex items-center gap-1.5 mt-1">
                         <Tag className="w-3 h-3 text-gold" />
-                        <span className="text-xs text-gold font-medium uppercase tracking-wider">
-                          {place.category}
-                        </span>
+                        <span className="text-xs text-gold font-medium uppercase tracking-wider">{place.category}</span>
                       </div>
                     )}
                   </div>
@@ -105,21 +109,34 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                 </div>
 
                 {place.description && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {place.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>
                 )}
 
-                {/* Value proposition - FREE */}
-                <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 space-y-1.5">
-                  <p className="text-xs text-foreground leading-relaxed">
-                    🎁 <span className="text-gold font-semibold">Gratuit</span> — Obtenez votre Pass Invité :
-                  </p>
-                  <ul className="text-xs text-muted-foreground space-y-1 pl-1">
-                    <li>📖 Guide PDF <span className="text-gold font-medium">« Marrakech : 48h sans pièges »</span></li>
-                    <li>🔑 Accès communauté <span className="text-gold font-medium">Weshkech</span></li>
-                  </ul>
-                </div>
+                {/* Partner offer highlight */}
+                {isPartner && hasOffer && (
+                  <div className="bg-gold/10 border border-gold/25 rounded-xl p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Gift className="w-4 h-4 text-gold" />
+                      <span className="text-sm font-semibold text-gold">Offre Insider exclusive</span>
+                    </div>
+                    <p className="text-xs text-foreground/80">
+                      Présentez votre Pass Insider pour bénéficier d'un avantage exclusif chez {place.name}.
+                    </p>
+                  </div>
+                )}
+
+                {/* Non-partner value prop */}
+                {!isPartner && (
+                  <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 space-y-1.5">
+                    <p className="text-xs text-foreground leading-relaxed">
+                      🎁 <span className="text-gold font-semibold">Gratuit</span> — Obtenez votre Pass Invité :
+                    </p>
+                    <ul className="text-xs text-muted-foreground space-y-1 pl-1">
+                      <li>📖 Guide PDF <span className="text-gold font-medium">« Marrakech : 48h sans pièges »</span></li>
+                      <li>🔑 Accès communauté <span className="text-gold font-medium">Weshkech</span></li>
+                    </ul>
+                  </div>
+                )}
 
                 {place.address && (
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -138,7 +155,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     {taxiLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin text-gold" />
-                        <span className="text-sm">Calcul du prix juste pour <span className="text-gold">{place.name}</span>…</span>
+                        <span className="text-sm">Calcul du prix juste…</span>
                       </>
                     ) : (
                       <>
@@ -153,13 +170,17 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </div>
                 </div>
 
-                {/* Pass Invité CTA */}
+                {/* Pass CTA — differentiated for partners */}
                 <button
                   onClick={() => setDealOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground font-semibold py-3 rounded-2xl transition-colors border border-border"
+                  className={`w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-2xl transition-colors border ${
+                    isPartner && hasOffer
+                      ? "bg-gold hover:bg-gold-light text-primary-foreground border-gold/30 shadow-lg shadow-gold/20"
+                      : "bg-secondary hover:bg-secondary/80 text-foreground border-border"
+                  }`}
                 >
                   <Zap className="w-4 h-4" />
-                  Obtenir mon Pass Invité
+                  {isPartner && hasOffer ? "Utiliser mon Pass Insider 🎁" : "Obtenir mon Pass Invité"}
                 </button>
               </div>
             </div>
