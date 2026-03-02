@@ -246,6 +246,9 @@ export default function LivePage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    // Validate file type and size (max 10MB)
+    if (!f.type.startsWith("image/")) return;
+    if (f.size > 10 * 1024 * 1024) return;
     setFile(f);
     setPreview(URL.createObjectURL(f));
   };
@@ -263,14 +266,20 @@ export default function LivePage() {
     setUploading(true);
     setUploadProgress(10);
 
+    const uploadTimeout = setTimeout(() => {
+      setUploading(false);
+      setUploadProgress(0);
+      console.error("Upload timeout after 30s");
+    }, 30000);
+
     try {
-      const ext = file.name.split(".").pop();
+      const ext = file.name.split(".").pop() || "jpg";
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       setUploadProgress(30);
 
       const { error: uploadError } = await supabase.storage
         .from("vibes")
-        .upload(fileName, file, { contentType: file.type });
+        .upload(fileName, file, { contentType: file.type, upsert: false });
       if (uploadError) throw uploadError;
 
       setUploadProgress(70);
@@ -290,21 +299,21 @@ export default function LivePage() {
       const timestamps = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
       timestamps.push(Date.now());
       localStorage.setItem("wk_post_timestamps", JSON.stringify(timestamps.filter((t) => Date.now() - t < SIX_HOURS)));
-      if (uploadUsername) localStorage.setItem("wk_last_username", uploadUsername);
 
       setUploadProgress(100);
       checkPostLimit();
 
+      clearTimeout(uploadTimeout);
       setTimeout(() => {
         setShowUpload(false);
         setFile(null);
         setPreview(null);
         setUploadLocation("");
-        setUploadLocation("");
         setUploading(false);
         setUploadProgress(0);
       }, 500);
     } catch (err) {
+      clearTimeout(uploadTimeout);
       console.error("Upload error:", err);
       setUploading(false);
       setUploadProgress(0);
@@ -647,7 +656,6 @@ export default function LivePage() {
                         ref={fileRef}
                         type="file"
                         accept="image/*"
-                        capture="environment"
                         className="hidden"
                         onChange={handleFileChange}
                       />
