@@ -47,6 +47,13 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
   const [signingOut, setSigningOut] = useState(false);
   const deviceId = getDeviceId();
   const { user, profile, signOut } = useAuth();
+  const displayName =
+    profile?.full_name ||
+    (user?.user_metadata?.full_name as string | undefined) ||
+    (user?.user_metadata?.name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "Explorateur";
+  const displayEmail = profile?.email || user?.email || "Tes coups de cœur sont sauvegardés ici.";
 
   const handleDeleteAccount = async () => {
     if (!user) return;
@@ -84,6 +91,7 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
       await signOut();
     } catch (e) {
       console.error("Logout failed:", e);
+    } finally {
       setSigningOut(false);
     }
   };
@@ -123,16 +131,16 @@ export default function ProfilPage({ onOpenAdmin }: ProfilPageProps) {
       {/* Profile card */}
       <div className="flex flex-col items-center px-6 pt-8 pb-4">
         <Avatar className="w-20 h-20 mb-3 border-2 border-gold/30">
-          <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Profil"} />
+          <AvatarImage src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined) || undefined} alt={displayName} />
           <AvatarFallback className="bg-gold/10 text-gold font-display text-xl">
-            {profile?.full_name?.charAt(0)?.toUpperCase() || "W"}
+            {displayName.charAt(0)?.toUpperCase() || "W"}
           </AvatarFallback>
         </Avatar>
         <h2 className="font-display text-lg font-semibold text-foreground mb-0.5">
-          {profile?.full_name || "Explorateur"}
+          {displayName}
         </h2>
         <p className="text-muted-foreground text-xs text-center max-w-xs">
-          {profile?.email || "Tes coups de cœur sont sauvegardés ici."}
+          {displayEmail}
         </p>
 
         {/* Logout button */}

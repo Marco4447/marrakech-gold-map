@@ -27,24 +27,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId: string, retries = 3): Promise<void> => {
+  const fetchProfile = useCallback(async (currentUser: User, retries = 3): Promise<void> => {
+    const fallbackProfile: Profile = {
+      full_name:
+        (currentUser.user_metadata?.full_name as string | undefined) ||
+        (currentUser.user_metadata?.name as string | undefined) ||
+        currentUser.email?.split("@")[0] ||
+        null,
+      email: currentUser.email || null,
+      avatar_url: (currentUser.user_metadata?.avatar_url as string | undefined) || null,
+    };
+
     for (let attempt = 0; attempt < retries; attempt++) {
       const { data, error } = await supabase
         .from("profiles")
         .select("full_name, email, avatar_url")
-        .eq("user_id", userId)
-        .single();
-      if (data && (data.full_name || data.email)) {
-        setProfile(data);
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (data) {
+        setProfile({
+          full_name: data.full_name || fallbackProfile.full_name,
+          email: data.email || fallbackProfile.email,
+          avatar_url: data.avatar_url || fallbackProfile.avatar_url,
+        });
         return;
       }
-      // Profile might not be created yet (trigger delay) — wait and retry
+
       if (attempt < retries - 1) {
         await new Promise((r) => setTimeout(r, 800));
-      } else if (data) {
-        // Last attempt, accept whatever we have
-        setProfile(data);
+        continue;
       }
+
+      // No profile row yet: create one client-side (RLS owner-only)
+      const { error: upsertError } = await supabase.from("profiles").upsert(
+        {
+          user_id: currentUser.id,
+          full_name: fallbackProfile.full_name,
+          email: fallbackProfile.email,
+          avatar_url: fallbackProfile.avatar_url,
+        },
+        { onConflict: "user_id" }
+      );
+
+      if (upsertError) {
+        console.error("Failed to upsert profile:", upsertError, error);
+      }
+
+      setProfile(fallbackProfile);
     }
   }, []);
 
@@ -58,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(currentUser);
         if (currentUser) {
           try {
-            await fetchProfile(currentUser.id);
+            await fetchProfile(currentUser);
           } catch (e) {
             console.error("Failed to fetch profile:", e);
           }
@@ -74,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        fetchProfile(currentUser.id).catch(console.error).finally(() => {
+        fetchProfile(currentUser).catch(console.error).finally(() => {
           if (mounted) setLoading(false);
         });
       } else {
@@ -121,12 +151,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Force clear persisted auth tokens
       for (const key of Object.keys(localStorage)) {
-        if (key.startsWith("sb-") && key.includes("-auth-token")) {
+        if (
+          (key.startsWith("sb-") && key.includes("-auth-token")) ||
+          key.toLowerCase().includes("lovable") ||
+          key.toLowerCase().includes("cloud-auth")
+        ) {
           localStorage.removeItem(key);
         }
       }
       for (const key of Object.keys(sessionStorage)) {
-        if (key.startsWith("sb-") && key.includes("-auth-token")) {
+        if (
+          (key.startsWith("sb-") && key.includes("-auth-token")) ||
+          key.toLowerCase().includes("lovable") ||
+          key.toLowerCase().includes("cloud-auth")
+        ) {
           sessionStorage.removeItem(key);
         }
       }
