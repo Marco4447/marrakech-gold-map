@@ -5,8 +5,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
 const STORAGE_UPLOAD_TIMEOUT_MS = 45000;
@@ -59,37 +57,38 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   }, []);
 
   const uploadToStorage = async (fileName: string, imageFile: File) => {
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      throw new Error("UPLOAD_CONFIG_MISSING");
-    }
+    await new Promise<void>((resolve, reject) => {
+      let done = false;
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), STORAGE_UPLOAD_TIMEOUT_MS);
+      const timeoutId = setTimeout(() => {
+        if (done) return;
+        done = true;
+        reject(new Error("UPLOAD_TIMEOUT"));
+      }, STORAGE_UPLOAD_TIMEOUT_MS);
 
-    try {
-      const response = await fetch(`${SUPABASE_URL}/storage/v1/object/vibes/${fileName}`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${session?.access_token ?? SUPABASE_PUBLISHABLE_KEY}`,
-          "x-upsert": "false",
-          "content-type": imageFile.type || "image/jpeg",
-        },
-        body: imageFile,
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        const message = await response.text();
-        if (response.status === 409 || message.toLowerCase().includes("already exists")) {
-          return;
-        }
-        throw new Error(`UPLOAD_FAILED_${response.status}: ${message}`);
-      }
-    } finally {
-      clearTimeout(timeout);
-    }
+      supabase.storage
+        .from("vibes")
+        .upload(fileName, imageFile, {
+          contentType: imageFile.type || "image/jpeg",
+          upsert: false,
+        })
+        .then(({ error }) => {
+          if (done) return;
+          done = true;
+          clearTimeout(timeoutId);
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve();
+        })
+        .catch((error) => {
+          if (done) return;
+          done = true;
+          clearTimeout(timeoutId);
+          reject(error);
+        });
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +106,17 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   };
 
   const handleUpload = async () => {
+    const manualLocation = geoName.trim();
+    const resolvedLocation = manualLocation || (geoLocation ? `${geoLocation.lat.toFixed(5)}, ${geoLocation.lng.toFixed(5)}` : "");
+
     if (!file || !selectedMood || postLimitReached) return;
+    if (!resolvedLocation) {
+      toast.error("Lieu requis", {
+        description: "Active la géolocalisation ou saisis un lieu avant d'envoyer la photo.",
+      });
+      return;
+    }
+
     setUploading(true);
     setUploadProgress(12);
 
@@ -129,7 +138,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
 
       const { error: insertError } = await supabase.from("vibes").insert({
         image_url: publicUrlData.publicUrl,
-        location: geoName || null,
+        location: resolvedLocation,
         username: user?.user_metadata?.full_name || user?.email?.split("@")[0] || null,
         user_id: user?.id || null,
         caption: null,
@@ -153,7 +162,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     } catch (err) {
       console.error("Upload error:", err);
       toast.error("Envoi du vibe échoué", {
-        description: "Upload trop lent ou interrompu. Réessaie (connexion/Wi‑Fi) : l'app retente automatiquement une fois.",
+        description: "Upload interrompu. Vérifie ta connexion et réessaie.",
       });
       setUploading(false);
       setUploadProgress(0);
@@ -175,6 +184,8 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     resetState();
     onClose();
   };
+
+  const missingLocation = !geoLocation && !geoName.trim();
 
   if (!open) return null;
 
@@ -311,10 +322,10 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                       ))}
                     </div>
 
-                    {/* Optional location name */}
+                    {/* Required location */}
                     <div className="mb-4">
                       <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5 mb-1">
-                        <MapPin className="w-3 h-3" /> Lieu (optionnel)
+                        <MapPin className="w-3 h-3" /> Lieu (obligatoire)
                       </label>
                       <input
                         value={geoName}
@@ -322,6 +333,9 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                         placeholder="Ex: Jemaa el-Fna"
                         className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
                       />
+                      <p className="text-[11px] text-muted-foreground mt-2">
+                        Active la géolocalisation ou renseigne le lieu manuellement avant publication.
+                      </p>
                     </div>
 
                     {/* Progress bar */}
@@ -344,7 +358,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                     {/* Publish button */}
                     <button
                       onClick={handleUpload}
-                      disabled={!selectedMood || uploading}
+                      disabled={!selectedMood || uploading || missingLocation}
                       className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
                     >
                       {uploading ? (
@@ -359,6 +373,11 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                         </>
                       )}
                     </button>
+                    {missingLocation && (
+                      <p className="text-[11px] text-destructive text-center mt-2">
+                        Lieu requis avant l'envoi.
+                      </p>
+                    )}
                     <p className="text-[10px] text-muted-foreground text-center mt-3">
                       Visible pendant 6 heures uniquement
                     </p>
