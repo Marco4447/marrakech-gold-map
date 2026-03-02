@@ -9,6 +9,30 @@ import { motion, AnimatePresence } from "framer-motion";
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 
+interface VibePin {
+  id: string;
+  image_url: string;
+  mood: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  created_at: string;
+  location: string | null;
+}
+
+const MOOD_COLORS: Record<string, string> = {
+  hot: "hsl(15,80%,50%)",
+  chill: "hsl(200,60%,50%)",
+  secret: "hsl(280,60%,55%)",
+  deal: "hsl(43,76%,52%)",
+};
+
+const MOOD_EMOJIS: Record<string, string> = {
+  hot: "🔥",
+  chill: "🍸",
+  secret: "✨",
+  deal: "🎁",
+};
+
 const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
   Food: { emoji: "🍽️", color: "hsl(25,90%,55%)" },
   Rooftop: { emoji: "🌅", color: "hsl(43,56%,52%)" },
@@ -19,7 +43,7 @@ const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
 
 const MOOD_FILTERS: { key: string; emoji: string; label: string; categories: string[] }[] = [
   { key: "hot", emoji: "🔥", label: "Hot Now", categories: [] },
-  { key: "offers", emoji: "✨", label: "Offres Insider", categories: [] }, // uses is_partner + has_active_offer
+  { key: "offers", emoji: "✨", label: "Offres Insider", categories: [] },
   { key: "party", emoji: "💃", label: "Party", categories: ["Night"] },
   { key: "chill", emoji: "🍸", label: "Chill", categories: ["Rooftop", "Hôtel"] },
 ];
@@ -202,6 +226,7 @@ export default function MapView() {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [places, setPlaces] = useState<Place[]>([]);
+  const [vibePins, setVibePins] = useState<VibePin[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
@@ -292,28 +317,40 @@ export default function MapView() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch trending locations from top 5 vibes
+  // Fetch trending locations + vibe pins from vibes with coordinates
   useEffect(() => {
-    const fetchTrending = async () => {
+    const fetchVibeData = async () => {
       const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
       const { data } = await supabase
         .from("vibes")
-        .select("location, likes, super_vibes")
-        .gte("created_at", sixHoursAgo)
-        .not("location", "is", null);
+        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at")
+        .gte("created_at", sixHoursAgo);
       if (data) {
-        const scored = data
-          .filter((v: any) => v.location)
-          .map((v: any) => ({ location: v.location as string, score: (v.likes || 0) + (v.super_vibes || 0) * 5 }))
+        // Trending
+        const scored = (data as any[])
+          .filter((v) => v.location)
+          .map((v) => ({ location: v.location as string, score: (v.likes || 0) + (v.super_vibes || 0) * 5 }))
           .sort((a, b) => b.score - a.score)
           .slice(0, 5);
         setTrendingLocations(new Set(scored.map((s) => s.location.toLowerCase())));
+        // Vibe pins (only those with coordinates)
+        setVibePins((data as any[]).filter((v) => v.latitude && v.longitude));
       }
     };
-    fetchTrending();
+    fetchVibeData();
+
+    // Realtime updates
+    const channel = supabase
+      .channel("vibes-map")
+      .on("postgres_changes", { event: "*", schema: "public", table: "vibes" }, () => {
+        fetchVibeData();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Add markers
+  // Add place markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map || places.length === 0) return;
@@ -353,6 +390,48 @@ export default function MapView() {
       markers.forEach((m) => m.remove());
     };
   }, [places, trendingLocations, activeFilter]);
+
+  // Add vibe photo pins
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const markers: L.Marker[] = [];
+
+    vibePins.forEach((vibe) => {
+      if (!vibe.latitude || !vibe.longitude) return;
+      const age = Date.now() - new Date(vibe.created_at).getTime();
+      const remaining = Math.max(0, 1 - age / SIX_HOURS); // 1 -> 0 over 6h
+      const size = Math.round(28 + remaining * 16); // 44px -> 28px
+      const borderColor = MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)";
+      const moodEmoji = MOOD_EMOJIS[vibe.mood || ""] || "";
+
+      const icon = L.divIcon({
+        className: "",
+        html: `
+          <div style="
+            width:${size}px;height:${size}px;border-radius:50%;
+            border:3px solid ${borderColor};
+            box-shadow:0 0 ${Math.round(remaining * 12)}px ${borderColor.replace(")", ",0.5)")};
+            overflow:hidden;position:relative;
+            background:hsl(30,20%,95%);
+          ">
+            <img src="${vibe.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+            ${moodEmoji ? `<div style="position:absolute;bottom:-4px;right:-4px;font-size:12px;background:hsl(0,0%,5%,0.7);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
+          </div>
+        `,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+
+      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: 500 }).addTo(map);
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach((m) => m.remove());
+    };
+  }, [vibePins]);
 
   const handleZoom = (delta: number) => {
     mapRef.current?.zoomIn(delta);

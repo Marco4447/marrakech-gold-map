@@ -7,6 +7,7 @@ import ProfilPage from "@/components/ProfilPage";
 import AdminPage from "@/components/AdminPage";
 import LandingPage from "@/components/LandingPage";
 import AuthGate from "@/components/AuthGate";
+import FlashPost from "@/components/FlashPost";
 import { useAuth } from "@/hooks/useAuth";
 
 type Tab = "map" | "live" | "profil";
@@ -14,6 +15,7 @@ type Tab = "map" | "live" | "profil";
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("map");
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showFlashPost, setShowFlashPost] = useState(false);
   const [showLanding, setShowLanding] = useState(() => {
     return !localStorage.getItem("wk_landed");
   });
@@ -80,7 +82,8 @@ const Index = () => {
         {activeTab === "live" && <LivePage />}
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
       </div>
-      <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} />
+      <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
+      <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} />
 
       <AnimatePresence>
         {showLanding && <LandingPage onEnter={handleEnter} />}
