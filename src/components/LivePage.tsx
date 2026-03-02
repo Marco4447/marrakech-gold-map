@@ -166,6 +166,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [superVibeAnimId, setSuperVibeAnimId] = useState<string | null>(null);
   const [canSuperVibe, setCanSuperVibe] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showTutorial, setShowTutorial] = useState(() => {
+    return !localStorage.getItem("weshkech_vibez_tutorial_seen");
+  });
   const commentCounts = useCommentCounts(vibes.map((v) => v.id));
 
   // Upload state
@@ -446,6 +449,70 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
           </div>
         </div>
       </div>
+
+      {/* Mini Tutorial Overlay */}
+      <AnimatePresence>
+        {showTutorial && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card border border-gold/30 rounded-2xl p-6 max-w-sm w-full shadow-xl"
+            >
+              <h2 className="font-display text-lg font-bold text-gold text-center mb-5">Comment ça marche ?</h2>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-5 h-5 text-gold" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Like</p>
+                    <p className="text-xs text-muted-foreground">Montre ton soutien en likant les vibes qui te parlent.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5 text-gold" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Super Vibe ⚡</p>
+                    <p className="text-xs text-muted-foreground">Booste un post pour le faire monter dans le Top 5. Limité à 1 par jour !</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
+                    <MessageCircle className="w-5 h-5 text-gold" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Commentaires</p>
+                    <p className="text-xs text-muted-foreground">Clique sur un post pour laisser un commentaire et échanger.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  localStorage.setItem("weshkech_vibez_tutorial_seen", "1");
+                  setShowTutorial(false);
+                }}
+                className="mt-6 w-full py-2.5 rounded-xl text-sm font-bold text-primary-foreground"
+                style={{ background: "linear-gradient(to bottom right, #BF953F, #FCF6BA, #B38728)" }}
+              >
+                C'est compris ! 🔥
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
         <div className="space-y-4 p-5">
