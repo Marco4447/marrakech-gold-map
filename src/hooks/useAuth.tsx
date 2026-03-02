@@ -27,13 +27,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("full_name, email, avatar_url")
-      .eq("user_id", userId)
-      .single();
-    if (data) setProfile(data);
+  const fetchProfile = useCallback(async (userId: string, retries = 3): Promise<void> => {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, email, avatar_url")
+        .eq("user_id", userId)
+        .single();
+      if (data && (data.full_name || data.email)) {
+        setProfile(data);
+        return;
+      }
+      // Profile might not be created yet (trigger delay) — wait and retry
+      if (attempt < retries - 1) {
+        await new Promise((r) => setTimeout(r, 800));
+      } else if (data) {
+        // Last attempt, accept whatever we have
+        setProfile(data);
+      }
+    }
   }, []);
 
   useEffect(() => {

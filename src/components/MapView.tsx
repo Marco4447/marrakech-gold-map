@@ -3,7 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
-import { Plus, Minus, LocateFixed, ChevronRight } from "lucide-react";
+import { Plus, Minus, LocateFixed, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
@@ -127,7 +127,7 @@ function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceClick }: {
   if (!current) return null;
 
   return (
-    <div className="absolute bottom-28 left-4 right-16 z-[1000]">
+    <div className="absolute bottom-44 left-4 right-16 z-[1000]">
       <AnimatePresence mode="wait">
         <motion.button
           key={bubbleIndex}
@@ -151,6 +151,48 @@ function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceClick }: {
             ))}
           </div>
         </motion.button>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function CollapsibleLegend({ categories }: { categories: [string, { emoji: string; color: string }][] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="absolute bottom-24 left-4 z-[1000]">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] rounded-xl px-3 py-2 shadow-lg text-left"
+      >
+        <p className="text-[9px] text-[hsl(30,10%,45%)] font-semibold uppercase tracking-wider">Légende</p>
+        {open ? <ChevronDown className="w-3 h-3 text-[hsl(30,10%,45%)]" /> : <ChevronUp className="w-3 h-3 text-[hsl(30,10%,45%)]" />}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 5, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: 5, height: 0 }}
+            className="mt-1 bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] rounded-xl px-3 py-2.5 shadow-lg overflow-hidden"
+          >
+            <div className="flex flex-col gap-1">
+              {categories.map(([key, { emoji, color }]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]" style={{ border: `2px solid ${color}`, background: "hsl(30,20%,95%)" }}>{emoji}</span>
+                  <span className="text-[10px] text-[hsl(30,20%,30%)]">{key}</span>
+                </div>
+              ))}
+              <div className="flex items-center gap-2 mt-1 pt-1 border-t border-[hsl(30,15%,85%)]">
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(30,20%,95%)" }}>⭐</span>
+                <span className="text-[10px] text-gold-dark font-medium">Partenaire</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(30,20%,95%)" }}>🎁</span>
+                <span className="text-[10px] text-gold-dark font-medium">Offre active</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
@@ -399,44 +441,8 @@ export default function MapView() {
         </button>
       </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-24 left-4 z-[1000]">
-        <div className="bg-[hsl(30,15%,95%,0.95)] backdrop-blur-xl border border-[hsl(30,15%,80%)] rounded-xl px-3 py-2.5 shadow-lg">
-          <p className="text-[9px] text-[hsl(30,10%,45%)] font-semibold uppercase tracking-wider mb-1.5">Légende</p>
-          <div className="flex flex-col gap-1">
-            {categories.map(([key, { emoji, color }]) => (
-              <div key={key} className="flex items-center gap-2">
-                <span
-                  className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
-                  style={{ border: `2px solid ${color}`, background: "hsl(30,20%,95%)" }}
-                >
-                  {emoji}
-                </span>
-                <span className="text-[10px] text-[hsl(30,20%,30%)]">{key}</span>
-              </div>
-            ))}
-            {/* Partner legend */}
-            <div className="flex items-center gap-2 mt-1 pt-1 border-t border-[hsl(30,15%,85%)]">
-              <span
-                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]"
-                style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(30,20%,95%)" }}
-              >
-                ⭐
-              </span>
-              <span className="text-[10px] text-gold-dark font-medium">Partenaire</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span
-                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]"
-                style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(30,20%,95%)" }}
-              >
-                🎁
-              </span>
-              <span className="text-[10px] text-gold-dark font-medium">Offre active</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Collapsible Legend */}
+      <CollapsibleLegend categories={categories} />
 
       <PlaceSheet place={selectedPlace} open={sheetOpen} onOpenChange={setSheetOpen} />
     </div>
