@@ -449,7 +449,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
         const sessionPromise = supabase.auth.getSession();
         const sessionResult = await Promise.race([
           sessionPromise,
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("SESSION_TIMEOUT")), 5000)),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("SESSION_TIMEOUT")), 9000)),
         ]);
         if (sessionResult.data?.session?.access_token) {
           token = sessionResult.data.session.access_token;
