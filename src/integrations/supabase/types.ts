@@ -260,8 +260,11 @@ export type Database = {
           created_at: string
           id: string
           image_url: string
+          latitude: number | null
           likes: number
           location: string | null
+          longitude: number | null
+          mood: string | null
           super_vibes: number
           user_id: string | null
           username: string | null
@@ -271,8 +274,11 @@ export type Database = {
           created_at?: string
           id?: string
           image_url: string
+          latitude?: number | null
           likes?: number
           location?: string | null
+          longitude?: number | null
+          mood?: string | null
           super_vibes?: number
           user_id?: string | null
           username?: string | null
@@ -282,8 +288,11 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string
+          latitude?: number | null
           likes?: number
           location?: string | null
+          longitude?: number | null
+          mood?: string | null
           super_vibes?: number
           user_id?: string | null
           username?: string | null
