@@ -8,6 +8,7 @@ import AdminPage from "@/components/AdminPage";
 import LandingPage from "@/components/LandingPage";
 import AuthGate from "@/components/AuthGate";
 import FlashPost from "@/components/FlashPost";
+import WelcomeModal from "@/components/WelcomeModal";
 import { useAuth } from "@/hooks/useAuth";
 
 type Tab = "map" | "live" | "profil";
@@ -21,6 +22,7 @@ const Index = () => {
   const [showLanding, setShowLanding] = useState(() => {
     return !localStorage.getItem("wk_landed");
   });
+  const [showWelcome, setShowWelcome] = useState(false);
   const [authStuck, setAuthStuck] = useState(false);
   const { user, loading } = useAuth();
 
@@ -38,8 +40,17 @@ const Index = () => {
   }, [loading]);
 
   const handleEnter = () => {
+    // Don't close landing yet — show welcome modal on top
+    setShowWelcome(true);
+  };
+
+  const handleWelcomeComplete = (coords: { lat: number; lng: number } | null) => {
+    setShowWelcome(false);
     localStorage.setItem("wk_landed", "1");
     setShowLanding(false);
+    if (coords) {
+      setFlyToCoords(coords);
+    }
   };
 
   const handleHome = () => {
@@ -94,6 +105,8 @@ const Index = () => {
       <AnimatePresence>
         {showLanding && <LandingPage onEnter={handleEnter} />}
       </AnimatePresence>
+
+      <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />
     </div>
   );
 };
