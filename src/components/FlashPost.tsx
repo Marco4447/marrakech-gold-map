@@ -165,9 +165,8 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
 
   // Check post limit on open
   const checkPostLimit = useCallback(() => {
-    const localPosts = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
-    const recentPosts = localPosts.filter((t) => Date.now() - t < SIX_HOURS);
-    setPostLimitReached(recentPosts.length >= MAX_POSTS_PER_WINDOW);
+    // Désactivé pour éviter les faux blocages entre mobile / navigation privée
+    setPostLimitReached(false);
   }, []);
 
   // Auto-get geolocation + nearest place
@@ -378,9 +377,15 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
 
   const handleUpload = async () => {
     const manualLocation = geoName.trim();
-    const resolvedLocation = manualLocation || (geoLocation ? `${geoLocation.lat.toFixed(5)}, ${geoLocation.lng.toFixed(5)}` : "");
 
-    if (!file || postLimitReached) return;
+    if (!file) return;
+
+    if (postLimitReached) {
+      toast.error("Limite atteinte", {
+        description: "Attends un peu puis réessaie.",
+      });
+      return;
+    }
 
     if (!selectedMood) {
       toast.error("Mood requis", {
@@ -389,11 +394,36 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
       return;
     }
 
-    if (!geoLocation) {
-      toast.error("Géolocalisation requise", {
-        description: "Active ta localisation pour que ton post apparaisse sur la map.",
+    if (!manualLocation && !geoLocation) {
+      toast.error("Lieu requis", {
+        description: "Renseigne un lieu ou active la localisation.",
       });
       return;
+    }
+
+    let resolvedLocation = manualLocation || (geoLocation ? `${geoLocation.lat.toFixed(5)}, ${geoLocation.lng.toFixed(5)}` : "");
+    let resolvedCoords = geoLocation;
+
+    // Fallback mobile: si GPS refusé, essaie de retrouver les coordonnées via le nom du lieu
+    if (!resolvedCoords && manualLocation) {
+      try {
+        const { data: matchedPlace } = await supabase
+          .from("places")
+          .select("name, latitude, longitude")
+          .ilike("name", `%${manualLocation}%`)
+          .limit(1)
+          .maybeSingle();
+
+        if (matchedPlace?.latitude != null && matchedPlace?.longitude != null) {
+          resolvedCoords = {
+            lat: matchedPlace.latitude,
+            lng: matchedPlace.longitude,
+          };
+          resolvedLocation = matchedPlace.name || manualLocation;
+        }
+      } catch {
+        // On continue même sans coordonnées (Live d'abord)
+      }
     }
 
     if (!resolvedLocation) {
@@ -470,8 +500,8 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
           mood: selectedMood,
           media_type: mediaType,
           is_official: isOfficial,
-          latitude: geoLocation?.lat || null,
-          longitude: geoLocation?.lng || null,
+          latitude: resolvedCoords?.lat || null,
+          longitude: resolvedCoords?.lng || null,
         }),
       }, token);
 
@@ -484,13 +514,13 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
         setPartnerCredits((c) => Math.max(0, c - 1));
       }
 
-      const timestamps = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
-      timestamps.push(Date.now());
-      localStorage.setItem("wk_post_timestamps", JSON.stringify(timestamps.filter((t) => Date.now() - t < SIX_HOURS)));
+      const willAppearOnMap = resolvedCoords?.lat != null && resolvedCoords?.lng != null;
 
       setUploadProgress(100);
       toast.success("Vibe publié", {
-        description: "Visible maintenant dans Live Stories pendant 6h.",
+        description: willAppearOnMap
+          ? "Visible maintenant dans Live Vibes pendant 6h."
+          : "Visible maintenant dans Live Vibes. Active le GPS pour l'afficher aussi sur la map.",
       });
       clearTimeout(globalTimeout);
 
@@ -525,6 +555,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
     setNearbyPlace(null);
     setShowSuccess(false);
     setIsOfficial(false);
+    setPostLimitReached(false);
   };
 
   const handleClose = () => {
@@ -535,7 +566,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
   };
 
   const missingMood = !selectedMood;
-  const missingGeo = !geoLocation;
+  const missingGeo = !geoLocation && !geoName.trim();
 
   if (!open) return null;
 
@@ -801,7 +832,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                         className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
                       />
                       <p className="mt-1.5 text-[10px] text-muted-foreground">
-                        La localisation GPS est nécessaire pour afficher ta vibe sur la map.
+                        GPS recommandé pour apparaître sur la map. Sans GPS, ton vibe reste visible en Live Vibes.
                       </p>
                     </div>
 
@@ -825,7 +856,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                     {/* Publish button */}
                     <button
                       onClick={handleUpload}
-                      disabled={uploading || postLimitReached}
+                      disabled={uploading}
                       className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
                     >
                       {uploading ? (
@@ -841,7 +872,7 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
                     )}
                     {missingGeo && (
                       <p className="text-[11px] text-destructive text-center mt-2">
-                        Active la géolocalisation pour afficher ta vibe sur la map.
+                        Ajoute un lieu (ou active le GPS) pour publier.
                       </p>
                     )}
                     <p className="text-[10px] text-muted-foreground text-center mt-3">
