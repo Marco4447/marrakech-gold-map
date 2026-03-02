@@ -222,7 +222,7 @@ function CollapsibleLegend({ categories }: { categories: [string, { emoji: strin
   );
 }
 
-export default function MapView() {
+export default function MapView({ refreshSignal = 0 }: { refreshSignal?: number }) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -348,7 +348,7 @@ export default function MapView() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [refreshSignal]);
 
   // Add place markers
   useEffect(() => {

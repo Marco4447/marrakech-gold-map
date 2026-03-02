@@ -16,6 +16,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("map");
   const [showAdmin, setShowAdmin] = useState(false);
   const [showFlashPost, setShowFlashPost] = useState(false);
+  const [feedRefreshSignal, setFeedRefreshSignal] = useState(0);
   const [showLanding, setShowLanding] = useState(() => {
     return !localStorage.getItem("wk_landed");
   });
@@ -77,12 +78,12 @@ const Index = () => {
   return (
     <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
       <div className="flex-1 relative min-h-0 overflow-hidden">
-        {activeTab === "map" && <MapView />}
-        {activeTab === "live" && <LivePage />}
+        {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} />}
+        {activeTab === "live" && <LivePage refreshSignal={feedRefreshSignal} />}
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} />}
       </div>
       <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
-      <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} />
+      <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => setFeedRefreshSignal((v) => v + 1)} />
 
       <AnimatePresence>
         {showLanding && <LandingPage onEnter={handleEnter} />}
