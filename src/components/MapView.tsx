@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
+import TopLivePlaces from "./TopLivePlaces";
 import { Plus, Minus, LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -613,6 +614,20 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Top 3 Live Places */}
+      <div className="absolute top-[124px] left-0 right-0 z-[1000] px-4">
+        <TopLivePlaces
+          onPlaceClick={(name) => {
+            const place = places.find(p => p.name === name);
+            if (place) {
+              setSelectedPlace(place);
+              setSheetOpen(true);
+              mapRef.current?.flyTo([place.latitude, place.longitude], 16, { duration: 0.8 });
+            }
+          }}
+        />
       </div>
 
       {/* Floating info bubble - rotates every 5s */}
