@@ -383,6 +383,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      verify_vip_status: {
+        Args: { p_user_id: string }
+        Returns: {
+          full_name: string
+          is_vip: boolean
+          valid: boolean
+          vip_expires_at: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "partner"
