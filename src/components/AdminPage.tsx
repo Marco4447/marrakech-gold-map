@@ -9,7 +9,15 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 type Tab = "overview" | "partners" | "sales" | "requests" | "post";
 type PassStat = { place_name: string; count: number };
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
-type PartnerDetail = { user_id: string; full_name: string; email: string; avatar_url: string | null; credits: number; business_name: string; category: string };
+type PartnerVibe = { id: string; image_url: string; caption: string | null; location: string | null; likes: number; super_vibes: number; created_at: string; is_official: boolean };
+type PartnerPurchase = { amount: number; currency: string; created: string; description: string };
+type PartnerDetail = {
+  user_id: string; full_name: string; email: string; avatar_url: string | null;
+  credits: number; business_name: string; category: string;
+  offer_description: string | null; whatsapp_number: string | null; joined: string | null;
+  vibes: PartnerVibe[]; total_vibes: number; official_vibes: number;
+  purchases: PartnerPurchase[];
+};
 type StripePayment = { id: string; amount: number; currency: string; email: string; description: string; created: string; app?: string };
 type AdminStats = {
   stripe: { total_revenue_30d: number; currency: string; successful_charges_30d: number; active_subscriptions: number; recent_payments: StripePayment[] } | null;
@@ -59,6 +67,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [partnerRequests, setPartnerRequests] = useState<PartnerRequest[]>([]);
   const [passStats, setPassStats] = useState<PassStat[]>([]);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<PartnerDetail | null>(null);
 
   // Post vibe state
   const [caption, setCaption] = useState("");
@@ -234,8 +243,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
             </>
           )}
 
-          {/* === PARTNERS === */}
-          {tab === "partners" && stats && (
+          {tab === "partners" && stats && !selectedPartner && (
             <>
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Partenaires actifs ({stats.partners.length})</h3>
               {stats.partners.length === 0 ? (
@@ -243,7 +251,11 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
               ) : (
                 <div className="space-y-3">
                   {stats.partners.map((p) => (
-                    <div key={p.user_id} className="bg-surface border border-border rounded-xl p-4 flex items-center gap-3">
+                    <button
+                      key={p.user_id}
+                      onClick={() => setSelectedPartner(p)}
+                      className="w-full text-left bg-surface border border-border rounded-xl p-4 flex items-center gap-3 hover:border-gold/30 transition-colors"
+                    >
                       <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center overflow-hidden shrink-0">
                         {p.avatar_url ? (
                           <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -255,16 +267,134 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                         <p className="text-sm font-semibold text-foreground truncate">{p.business_name}</p>
                         <p className="text-xs text-muted-foreground truncate">{p.full_name} · {p.category}</p>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="flex items-center gap-1 text-gold">
-                          <CreditCard className="w-3 h-3" />
-                          <span className="text-sm font-bold">{p.credits}</span>
+                      <div className="text-right shrink-0 flex items-center gap-3">
+                        <div>
+                          <div className="flex items-center gap-1 text-gold">
+                            <CreditCard className="w-3 h-3" />
+                            <span className="text-sm font-bold">{p.credits}</span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">crédits</p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">crédits</p>
+                        <ArrowLeft className="w-3.5 h-3.5 text-muted-foreground rotate-180" />
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
+              )}
+            </>
+          )}
+
+          {/* === PARTNER DETAIL === */}
+          {tab === "partners" && selectedPartner && (
+            <>
+              <button onClick={() => setSelectedPartner(null)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-3">
+                <ArrowLeft className="w-3.5 h-3.5" /> Retour aux partenaires
+              </button>
+
+              {/* Header */}
+              <div className="bg-surface border border-border rounded-xl p-4 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center overflow-hidden shrink-0">
+                  {selectedPartner.avatar_url ? (
+                    <img src={selectedPartner.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Users className="w-5 h-5 text-gold" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-foreground">{selectedPartner.business_name}</p>
+                  <p className="text-xs text-muted-foreground">{selectedPartner.full_name} · {selectedPartner.category}</p>
+                  <p className="text-[10px] text-muted-foreground">{selectedPartner.email}</p>
+                </div>
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-2 mt-3">
+                <div className="bg-surface border border-border rounded-xl p-3 text-center">
+                  <p className="text-lg font-bold text-gold">{selectedPartner.credits}</p>
+                  <p className="text-[10px] text-muted-foreground">Crédits</p>
+                </div>
+                <div className="bg-surface border border-border rounded-xl p-3 text-center">
+                  <p className="text-lg font-bold text-foreground">{selectedPartner.total_vibes}</p>
+                  <p className="text-[10px] text-muted-foreground">Vibes</p>
+                </div>
+                <div className="bg-surface border border-border rounded-xl p-3 text-center">
+                  <p className="text-lg font-bold text-foreground">{selectedPartner.official_vibes}</p>
+                  <p className="text-[10px] text-muted-foreground">Officielles</p>
+                </div>
+              </div>
+
+              {/* Offer */}
+              {selectedPartner.offer_description && (
+                <div className="mt-3">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Offre active</h4>
+                  <div className="bg-surface border border-gold/20 rounded-xl p-3">
+                    <p className="text-xs text-foreground">🎁 {selectedPartner.offer_description}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* WhatsApp */}
+              {selectedPartner.whatsapp_number && (
+                <a
+                  href={`https://wa.me/${selectedPartner.whatsapp_number.replace(/[\s()-]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-gold hover:text-gold-light transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                </a>
+              )}
+
+              {/* Publications */}
+              <div className="mt-4">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  Publications récentes ({selectedPartner.total_vibes})
+                </h4>
+                {selectedPartner.vibes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Aucune publication.</p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {selectedPartner.vibes.map((v) => (
+                      <div key={v.id} className="relative aspect-square rounded-lg overflow-hidden border border-border">
+                        <img src={v.image_url} alt={v.caption || ""} className="w-full h-full object-cover" />
+                        {v.is_official && (
+                          <span className="absolute top-1 left-1 bg-gold/90 text-[8px] text-primary-foreground font-bold px-1 py-0.5 rounded">OFF</span>
+                        )}
+                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-1.5">
+                          <p className="text-[9px] text-white/90 truncate">{v.caption || v.location || "—"}</p>
+                          <p className="text-[8px] text-white/60">❤️ {v.likes} · {timeAgo(v.created_at)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Purchases */}
+              <div className="mt-4">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  Achats ({selectedPartner.purchases.length})
+                </h4>
+                {selectedPartner.purchases.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Aucun achat enregistré.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {selectedPartner.purchases.map((pu, i) => (
+                      <div key={i} className="bg-surface border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-foreground">{pu.description}</p>
+                          <p className="text-[10px] text-muted-foreground">{timeAgo(pu.created)}</p>
+                        </div>
+                        <span className="text-xs font-bold text-gold">{pu.amount.toFixed(2)}€</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Joined */}
+              {selectedPartner.joined && (
+                <p className="text-[10px] text-muted-foreground mt-4">Inscrit le {new Date(selectedPartner.joined).toLocaleDateString("fr-FR")}</p>
               )}
             </>
           )}
