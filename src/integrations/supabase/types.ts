@@ -110,6 +110,7 @@ export type Database = {
           name: string
           neighborhood: string | null
           rating: number | null
+          vip_perk_description: string | null
         }
         Insert: {
           address?: string | null
@@ -125,6 +126,7 @@ export type Database = {
           name: string
           neighborhood?: string | null
           rating?: number | null
+          vip_perk_description?: string | null
         }
         Update: {
           address?: string | null
@@ -140,6 +142,7 @@ export type Database = {
           name?: string
           neighborhood?: string | null
           rating?: number | null
+          vip_perk_description?: string | null
         }
         Relationships: []
       }

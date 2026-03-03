@@ -1,10 +1,90 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Zap, Camera, Video, Upload, Clock, Loader2, Image as ImageIcon, X, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, Zap, Camera, Video, Upload, Clock, Loader2, Image as ImageIcon, X, Check, Sparkles, Gift, Save } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+
+function VipOfferSettings({ userId }: { userId: string }) {
+  const [perk, setPerk] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [placeName, setPlaceName] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Find the partner's place by checking their vibes for a location match
+    const load = async () => {
+      const { data: vibes } = await supabase
+        .from("vibes")
+        .select("location")
+        .eq("user_id", userId)
+        .eq("is_official", true)
+        .not("location", "is", null)
+        .limit(1);
+
+      if (vibes && vibes.length > 0 && vibes[0].location) {
+        const loc = vibes[0].location;
+        setPlaceName(loc);
+        const { data: place } = await supabase
+          .from("places")
+          .select("vip_perk_description")
+          .ilike("name", `%${loc}%`)
+          .limit(1);
+        if (place && place.length > 0) {
+          setPerk((place[0] as any).vip_perk_description || "");
+        }
+      }
+      setLoaded(true);
+    };
+    load();
+  }, [userId]);
+
+  const handleSave = async () => {
+    if (!placeName || !perk.trim()) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("places")
+      .update({ vip_perk_description: perk.trim() } as any)
+      .ilike("name", `%${placeName}%`);
+    if (error) {
+      toast.error("Erreur de sauvegarde");
+    } else {
+      toast.success("Offre VIP mise à jour !");
+    }
+    setSaving(false);
+  };
+
+  if (!loaded) return null;
+
+  return (
+    <div className="rounded-2xl border border-gold/20 bg-card/80 backdrop-blur-xl p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <Gift className="w-4 h-4 text-gold" />
+        <h3 className="text-sm font-display font-semibold text-foreground">Mon Offre VIP</h3>
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Décris l'avantage exclusif pour les membres Insider Pass (ex: "Boisson offerte + coupe-file").
+      </p>
+      <input
+        type="text"
+        value={perk}
+        onChange={(e) => setPerk(e.target.value.slice(0, 120))}
+        placeholder="Ex: Free welcome drink & Skip the line"
+        maxLength={120}
+        className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
+      />
+      <button
+        onClick={handleSave}
+        disabled={saving || !perk.trim()}
+        className="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-gold/15 border border-gold/30 text-gold hover:bg-gold/25 transition-all active:scale-[0.98] disabled:opacity-50"
+      >
+        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+        Sauvegarder
+      </button>
+    </div>
+  );
+}
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -341,6 +421,9 @@ export default function PartnerDashboard() {
       </div>
 
       <div className="px-5 space-y-5 pt-5">
+        {/* VIP Offer Settings */}
+        <VipOfferSettings userId={user.id} />
+
         {/* Credits */}
         <CreditCard credits={credits} onBuy={() => navigate("/shop")} />
 

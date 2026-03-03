@@ -13,6 +13,7 @@ import BusinessPage from "./pages/BusinessPage";
 import ShopPage from "./pages/ShopPage";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import VipPass from "./pages/VipPass";
+import VerifyVip from "./pages/VerifyVip";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const AppShell = () => {
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/partner-dashboard" element={<PartnerDashboard />} />
             <Route path="/vip-pass" element={<VipPass />} />
+            <Route path="/verify" element={<VerifyVip />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="*" element={<NotFound />} />

@@ -1,10 +1,73 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Car, Crown, Loader2, ShieldCheck } from "lucide-react";
+import { X, MapPin, Car, Crown, Loader2, ShieldCheck, Gift, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useVibeCountdown, isUnderTwoHours } from "@/hooks/useVibeCountdown";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+function VipPerkBox({ location }: { location: string | null }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [perk, setPerk] = useState<string | null>(null);
+  const [isVip, setIsVip] = useState(false);
+
+  useEffect(() => {
+    if (!location) return;
+    // Fetch perk from matching place
+    supabase
+      .from("places")
+      .select("vip_perk_description")
+      .eq("is_partner", true)
+      .ilike("name", `%${location}%`)
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setPerk((data[0] as any).vip_perk_description);
+        }
+      });
+    // Check VIP status
+    if (user) {
+      supabase
+        .from("profiles")
+        .select("is_vip, vip_expires_at")
+        .eq("user_id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setIsVip(!!data.is_vip && !!data.vip_expires_at && new Date(data.vip_expires_at) > new Date());
+          }
+        });
+    }
+  }, [location, user]);
+
+  if (!perk) return null;
+
+  return (
+    <div className="relative rounded-xl border border-gold/30 bg-gold/5 backdrop-blur-sm p-3 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-gold/5 to-transparent pointer-events-none" />
+      <div className="relative flex items-start gap-2.5">
+        <div className="w-8 h-8 rounded-lg bg-gold/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <Gift className="w-4 h-4 text-gold" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] uppercase tracking-wider font-bold text-gold">VIP Perk</p>
+          <p className="text-xs text-foreground font-medium mt-0.5">{perk}</p>
+          {!isVip && (
+            <button
+              onClick={() => navigate("/vip-pass")}
+              className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-gold hover:text-gold/80 transition-colors"
+            >
+              <Lock className="w-3 h-3" />
+              Débloquer avec le Pass VIP
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface VibePin {
   id: string;
@@ -183,6 +246,9 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                     </span>
                   </div>
                 )}
+
+                {/* VIP Perk Box */}
+                <VipPerkBox location={vibe.location} />
 
                 {/* CTA Buttons */}
                 <div className="flex gap-2">
