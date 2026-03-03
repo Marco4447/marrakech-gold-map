@@ -53,6 +53,7 @@ function TabButton({ active, label, icon: Icon, onClick, badge }: { active: bool
 
 export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [tab, setTab] = useState<Tab>("overview");
+  const [salesFilter, setSalesFilter] = useState<"all" | "Weshkech" | "Jemaride" | "Autre">("all");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [partnerRequests, setPartnerRequests] = useState<PartnerRequest[]>([]);
@@ -279,12 +280,31 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                     <StatCard icon={Crown} label="Abonnés actifs" value={stats.stripe.active_subscriptions} />
                   </div>
 
+                  {/* Filter buttons */}
+                  <div className="flex gap-1.5 mt-4">
+                    {(["all", "Weshkech", "Jemaride", "Autre"] as const).map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setSalesFilter(f)}
+                        className={`text-[11px] font-medium px-2.5 py-1.5 rounded-lg transition-all ${
+                          salesFilter === f
+                            ? "bg-gold/15 text-gold border border-gold/20"
+                            : "text-muted-foreground hover:text-foreground bg-surface border border-border"
+                        }`}
+                      >
+                        {f === "all" ? "Tous" : f}
+                      </button>
+                    ))}
+                  </div>
+
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-4">Derniers paiements</h3>
-                  {stats.stripe.recent_payments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Aucun paiement récent.</p>
-                  ) : (
+                  {(() => {
+                    const filtered = stats.stripe.recent_payments.filter((p) => salesFilter === "all" || p.app === salesFilter);
+                    return filtered.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Aucun paiement pour ce filtre.</p>
+                    ) : (
                     <div className="space-y-2">
-                      {stats.stripe.recent_payments.map((p) => (
+                      {filtered.map((p) => (
                         <div key={p.id} className="bg-surface border border-border rounded-xl px-4 py-3 flex items-center justify-between">
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
@@ -305,7 +325,8 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                         </div>
                       ))}
                     </div>
-                  )}
+                    );
+                  })()}
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">Stripe non configuré.</p>
