@@ -10,10 +10,10 @@ import { toast } from "sonner";
 const VIP_PRICE_ID = "price_1T6lnGJ8RyilXHbfsZBKku0a";
 
 const BENEFITS = [
-  { icon: Crown, label: "Skip the line", desc: "Accès prioritaire dans les meilleurs spots" },
-  { icon: Wine, label: "Welcome Drinks", desc: "Boisson offerte à l'arrivée chez nos partenaires" },
-  { icon: Bell, label: "Radar Alerts Exclusifs", desc: "Notifications des events privés en avant-première" },
-  { icon: Sparkles, label: "Badge VIP", desc: "Ton profil brille dans toute la communauté" },
+  { icon: Crown, label: "Badge VIP 👑", desc: "Ton nom brille avec une couronne dorée sur tout le feed" },
+  { icon: Sparkles, label: "Vibes en lumière", desc: "Tes publications sont mises en avant avec un contour gold" },
+  { icon: Bell, label: "Stats perso", desc: "Accède à tes statistiques : likes reçus, vibes postées, spots" },
+  { icon: Wine, label: "Perks Partenaires", desc: "Drinks offerts et accès prioritaire chez nos futurs partenaires" },
 ];
 
 export default function VipPass() {

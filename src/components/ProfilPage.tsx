@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -216,6 +216,86 @@ function ProfileCard({
         {signingOut ? "Déconnexion..." : "Se déconnecter"}
       </button>
     </div>
+  );
+}
+
+function VipStatsSection({ user, deviceId }: { user: any; deviceId: string }) {
+  const [stats, setStats] = useState({ likesReceived: 0, vibesPosted: 0, spotsDiscovered: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchStats = async () => {
+      // Count vibes posted by this user
+      const { count: vibesCount } = await supabase
+        .from("vibes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+
+      // Count total likes received on user's vibes
+      const { data: userVibes } = await supabase
+        .from("vibes")
+        .select("likes")
+        .eq("user_id", user.id);
+      const totalLikes = userVibes?.reduce((sum, v) => sum + (v.likes || 0), 0) || 0;
+
+      // Count unique spots discovered (liked vibes with locations)
+      const { data: likedVibeIds } = await supabase
+        .from("vibe_likes")
+        .select("vibe_id")
+        .eq("device_id", deviceId);
+      
+      let spotsCount = 0;
+      if (likedVibeIds && likedVibeIds.length > 0) {
+        const { data: likedVibes } = await supabase
+          .from("vibes")
+          .select("location")
+          .in("id", likedVibeIds.map(l => l.vibe_id))
+          .not("location", "is", null);
+        const uniqueLocations = new Set(likedVibes?.map(v => v.location).filter(Boolean));
+        spotsCount = uniqueLocations.size;
+      }
+
+      setStats({ likesReceived: totalLikes, vibesPosted: vibesCount || 0, spotsDiscovered: spotsCount });
+      setLoading(false);
+    };
+    fetchStats();
+  }, [user, deviceId]);
+
+  if (loading) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="px-5 pt-4"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Crown className="w-4 h-4 text-gold" />
+        <h3 className="font-display text-sm font-semibold text-foreground">Mes Stats VIP</h3>
+        <div className="flex-1 h-px bg-border" />
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-surface border border-gold/15 rounded-xl p-3 text-center">
+          <Heart className="w-4 h-4 text-gold mx-auto mb-1" />
+          <p className="font-display text-lg font-bold text-gold">{stats.likesReceived}</p>
+          <p className="text-[9px] text-muted-foreground">Likes reçus</p>
+        </div>
+        <div className="bg-surface border border-gold/15 rounded-xl p-3 text-center">
+          <TrendingUp className="w-4 h-4 text-gold mx-auto mb-1" />
+          <p className="font-display text-lg font-bold text-gold">{stats.vibesPosted}</p>
+          <p className="text-[9px] text-muted-foreground">Vibes postées</p>
+        </div>
+        <div className="bg-surface border border-gold/15 rounded-xl p-3 text-center">
+          <MapPin className="w-4 h-4 text-gold mx-auto mb-1" />
+          <p className="font-display text-lg font-bold text-gold">{stats.spotsDiscovered}</p>
+          <p className="text-[9px] text-muted-foreground">Spots découverts</p>
+        </div>
+      </div>
+
+      <div className="h-px bg-border mt-4" />
+    </motion.div>
   );
 }
 
@@ -473,6 +553,11 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
 
           <div className="h-px bg-border mt-4" />
         </motion.div>
+      )}
+
+      {/* VIP Stats Section */}
+      {isVip && (
+        <VipStatsSection user={user} deviceId={deviceId} />
       )}
 
       {/* Mes Favoris */}
