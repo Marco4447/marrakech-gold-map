@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -7,6 +7,48 @@ import {
   Star, Eye, Shield, QrCode, ChevronRight, Check, Users, Building2, HelpCircle, ChevronDown,
   Clock, TrendingUp, MousePointerClick,
 } from "lucide-react";
+
+/* ─── COUNT-UP HOOK ─── */
+function useCountUp(target: number | null, duration = 1200) {
+  const [value, setValue] = useState(0);
+  const rafRef = useRef<number>();
+
+  useEffect(() => {
+    if (target === null || target === 0) { setValue(target ?? 0); return; }
+    const start = performance.now();
+    const animate = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(eased * target));
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [target, duration]);
+
+  return value;
+}
+
+function AnimatedStat({ target, prefix = "", suffix = "", label, icon: Icon, delay = 0 }: {
+  target: number | null; prefix?: string; suffix?: string; label: string; icon: any; delay?: number;
+}) {
+  const count = useCountUp(target, 1200);
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay }}
+      className="flex flex-col items-center text-center bg-gold/5 border border-gold/15 rounded-xl py-3 px-2"
+    >
+      <Icon className="w-4 h-4 text-gold mb-1" />
+      <span className="text-lg font-black text-gold leading-none">
+        {target === null ? "…" : `${prefix}${count}${suffix}`}
+      </span>
+      <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{label}</span>
+    </motion.div>
+  );
+}
 
 /* ─── DATA ─── */
 
@@ -290,23 +332,18 @@ export default function PricingPage() {
 
               {/* ── SOCIAL PROOF ── */}
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  { value: insiderCount !== null ? `${insiderCount}+` : "…", label: "Insiders actifs", icon: Users },
-                  { value: avgLikes !== null ? `~${avgLikes}` : "…", label: "❤️ moy. / Vibe", icon: Eye },
-                  { value: "6h", label: "Visibilité garantie", icon: Clock },
-                ].map((s, i) => (
-                  <motion.div
-                    key={s.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.2 + i * 0.08 }}
-                    className="flex flex-col items-center text-center bg-gold/5 border border-gold/15 rounded-xl py-3 px-2"
-                  >
-                    <s.icon className="w-4 h-4 text-gold mb-1" />
-                    <span className="text-lg font-black text-gold leading-none">{s.value}</span>
-                    <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{s.label}</span>
-                  </motion.div>
-                ))}
+                <AnimatedStat target={insiderCount} suffix="+" label="Insiders actifs" icon={Users} delay={0.2} />
+                <AnimatedStat target={avgLikes} prefix="~" label="❤️ moy. / Vibe" icon={Eye} delay={0.28} />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.36 }}
+                  className="flex flex-col items-center text-center bg-gold/5 border border-gold/15 rounded-xl py-3 px-2"
+                >
+                  <Clock className="w-4 h-4 text-gold mb-1" />
+                  <span className="text-lg font-black text-gold leading-none">6h</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">Visibilité garantie</span>
+                </motion.div>
               </div>
 
               {/* ── HOW IT WORKS — 3 STEPS ── */}
