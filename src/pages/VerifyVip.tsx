@@ -27,23 +27,20 @@ export default function VerifyVip() {
     const verify = async () => {
       try {
         const { data, error } = await supabase
-          .from("profiles")
-          .select("is_vip, vip_expires_at, full_name, email")
-          .eq("user_id", userId)
-          .single();
+          .rpc("verify_vip_status", { p_user_id: userId });
 
-        if (error || !data) {
+        if (error || !data || data.length === 0) {
           setResult({ valid: false });
         } else {
+          const row = data[0];
+          const expires = row.vip_expires_at ? new Date(row.vip_expires_at) : null;
           const now = new Date();
-          const expires = data.vip_expires_at ? new Date(data.vip_expires_at) : null;
-          const valid = data.is_vip && expires !== null && expires > now;
           const daysLeft = expires ? Math.max(0, Math.ceil((expires.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
 
           setResult({
-            valid: !!valid,
-            name: data.full_name || data.email?.split("@")[0] || "Guest",
-            expiresAt: data.vip_expires_at || undefined,
+            valid: !!row.valid,
+            name: row.full_name || "Guest",
+            expiresAt: row.vip_expires_at || undefined,
             daysLeft,
           });
         }
