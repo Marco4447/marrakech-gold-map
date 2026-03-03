@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Flame, Sparkles } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Flame, Sparkles, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ interface VibeProfile {
   full_name: string | null;
   avatar_url: string | null;
   email: string | null;
+  is_vip?: boolean;
 }
 
 interface Vibe {
@@ -206,7 +207,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles_public" as any)
-          .select("user_id, full_name, avatar_url")
+          .select("user_id, full_name, avatar_url, is_vip")
           .in("user_id", userIds);
         if (profiles) {
           profilesMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p]));
@@ -553,8 +554,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         {getAvatarUrl(vibe) && (
                           <img src={getAvatarUrl(vibe)!} alt="" className="w-5 h-5 rounded-full border border-gold/30 object-cover" />
                         )}
-                        <p className="text-xs font-semibold text-foreground truncate">
+                        <p className="text-xs font-semibold text-foreground truncate flex items-center gap-1">
                           {getDisplayName(vibe)}
+                          {vibe.profile?.is_vip && <Crown className="w-3 h-3 text-gold" />}
                         </p>
                       </div>
                       {vibe.location && (
@@ -599,6 +601,8 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   className={`relative rounded-2xl overflow-hidden bg-card ${
                     vibe.is_official 
                       ? "border-2 border-gold/40 shadow-lg shadow-gold/10" 
+                      : vibe.profile?.is_vip
+                      ? "border border-gold/25 shadow-md shadow-gold/5"
                       : "border border-border"
                   }`}
                 >
@@ -660,6 +664,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                               {getDisplayName(vibe)}
                               {vibe.is_official && (
                                 <span className="text-[9px] bg-gold/20 text-gold px-1.5 py-0.5 rounded font-bold">PRO</span>
+                              )}
+                              {!vibe.is_official && vibe.profile?.is_vip && (
+                                <Crown className="w-3.5 h-3.5 text-gold drop-shadow-[0_0_4px_hsl(43,56%,52%,0.4)]" />
                               )}
                             </p>
                             {vibe.location && (
