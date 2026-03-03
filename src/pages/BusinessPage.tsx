@@ -153,6 +153,79 @@ export default function BusinessPage() {
           ))}
         </motion.div>
 
+        {/* Partner Studio Preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.4 }}
+          className="space-y-3"
+        >
+          <h3 className="font-display text-base font-semibold text-foreground flex items-center gap-2">
+            <Eye className="w-4 h-4 text-gold" />
+            Ce que vous obtenez
+          </h3>
+
+          {/* Mockup Partner Studio */}
+          <div className="bg-surface border border-gold/15 rounded-2xl overflow-hidden">
+            {/* Fake studio header */}
+            <div className="bg-card/80 border-b border-border px-4 py-3 flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center">
+                <Zap className="w-3 h-3 text-gold" />
+              </div>
+              <span className="text-xs font-display font-semibold text-foreground">Partner Studio</span>
+              <span className="ml-auto text-[9px] text-muted-foreground italic">Aperçu</span>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {/* Credits mockup */}
+              <div className="flex items-center justify-between bg-card/60 rounded-xl p-3 border border-border">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Vibe Credits</p>
+                  <div className="flex items-baseline gap-1 mt-0.5">
+                    <span className="text-2xl font-display font-black text-gold">15</span>
+                    <Zap className="w-3.5 h-3.5 text-gold" />
+                  </div>
+                </div>
+                <div className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-primary-foreground" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
+                  Recharger
+                </div>
+              </div>
+
+              {/* Vibe card mockup */}
+              <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-card border border-border">
+                <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-gold/5" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-gold/15 flex items-center justify-center">
+                    <Star className="w-5 h-5 text-gold" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">Votre photo / vidéo ici</p>
+                </div>
+                <div className="absolute top-2 left-2 bg-gold px-2 py-0.5 rounded text-[8px] font-bold text-primary-foreground">
+                  ⭐ OFFICIEL
+                </div>
+                <div className="absolute bottom-2 left-2">
+                  <p className="text-[10px] font-semibold text-foreground">🔥 Hot · Votre Établissement</p>
+                </div>
+              </div>
+
+              {/* Features list */}
+              <div className="space-y-2">
+                {[
+                  { emoji: "📸", text: "Publiez des Vibes visibles 6h sur la carte" },
+                  { emoji: "⭐", text: "Badge OFFICIEL sur chaque publication" },
+                  { emoji: "🎯", text: "Apparaissez en priorité dans le radar" },
+                  { emoji: "🎁", text: "Définissez votre offre VIP exclusive" },
+                ].map((f) => (
+                  <div key={f.text} className="flex items-center gap-2.5">
+                    <span className="text-sm">{f.emoji}</span>
+                    <p className="text-[11px] text-muted-foreground">{f.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Success state */}
         <AnimatePresence mode="wait">
           {success ? (

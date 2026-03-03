@@ -229,6 +229,8 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [isVip, setIsVip] = useState(false);
   const [credits, setCredits] = useState(0);
   const [officialVibesCount, setOfficialVibesCount] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
   const deviceId = getDeviceId();
   const { user, profile, signOut, refreshProfile } = useAuth();
   const displayName =
@@ -336,6 +338,22 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
           .eq("user_id", user.id)
           .eq("is_official", true);
         setOfficialVibesCount(count || 0);
+      }
+
+      // Check admin role + pending requests
+      const { data: adminRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (adminRole) {
+        setIsAdmin(true);
+        const { count: pendingCount } = await supabase
+          .from("partner_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending");
+        setPendingRequests(pendingCount || 0);
       }
     };
     fetchPartnerData();
@@ -646,14 +664,21 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         )}
       </AnimatePresence>
 
-      {/* Hidden admin button */}
-      <button
-        onClick={onOpenAdmin}
-        className="fixed bottom-24 right-5 w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-muted-foreground hover:text-gold hover:border-gold/30 transition-colors z-[1500]"
-        title="Admin"
-      >
-        <Settings className="w-4 h-4" />
-      </button>
+      {/* Admin button - only visible for admins */}
+      {isAdmin && (
+        <button
+          onClick={onOpenAdmin}
+          className="fixed bottom-24 right-5 w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-muted-foreground hover:text-gold hover:border-gold/30 transition-colors z-[1500]"
+          title="Admin"
+        >
+          <Settings className="w-4 h-4" />
+          {pendingRequests > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">
+              {pendingRequests > 9 ? "9+" : pendingRequests}
+            </span>
+          )}
+        </button>
+      )}
     </div>
   );
 }
