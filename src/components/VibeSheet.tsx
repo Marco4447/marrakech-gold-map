@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Car, Crown, Loader2, ShieldCheck, Gift, Lock } from "lucide-react";
+import { X, MapPin, Crown, Gift, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useVibeCountdown, isUnderTwoHours } from "@/hooks/useVibeCountdown";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 function VipPerkBox({ location }: { location: string | null }) {
@@ -98,7 +98,6 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
   const navigate = useNavigate();
   const { user } = useAuth();
   const { formatted, expired } = useVibeCountdown(vibe?.created_at ?? null, vibe?.is_official);
-  const [taxiLoading, setTaxiLoading] = useState(false);
 
   // Auto-close when vibe expires
   useEffect(() => {
@@ -107,16 +106,6 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
     }
   }, [expired, open, onOpenChange]);
 
-  const handleTaxi = useCallback(() => {
-    if (!vibe?.location) return;
-    setTaxiLoading(true);
-    const dest = encodeURIComponent(vibe.location);
-    const url = `https://www.jemaride.com/?dest=${dest}`;
-    setTimeout(() => {
-      setTaxiLoading(false);
-      window.open(url, "_blank", "noopener,noreferrer");
-    }, 1200);
-  }, [vibe]);
 
   const handleVipCta = () => {
     navigate("/vip-pass");
@@ -263,30 +252,6 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                       {user ? "🌟 Pass VIP" : "🌟 Devenir VIP"}
                     </span>
                   </button>
-
-                  {/* Taxi CTA */}
-                  {vibe.location && (
-                    <button
-                      onClick={handleTaxi}
-                      disabled={taxiLoading}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm bg-surface border border-border text-foreground transition-all active:scale-[0.97] hover:border-gold/30 disabled:opacity-60"
-                    >
-                      {taxiLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-gold" />
-                      ) : (
-                        <Car className="w-4 h-4 text-gold" />
-                      )}
-                      <span>🚕 Y aller</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Jemaride attribution */}
-                <div className="flex items-center justify-center gap-1.5">
-                  <ShieldCheck className="w-3 h-3 text-muted-foreground/50" />
-                  <span className="text-[9px] text-muted-foreground/60 font-medium">
-                    Transport sécurisé — Jemaride
-                  </span>
                 </div>
               </div>
             </div>
