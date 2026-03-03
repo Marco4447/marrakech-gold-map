@@ -102,8 +102,8 @@ serve(async (req) => {
       line_items: [lineItem],
       mode: isVip ? "subscription" : "payment",
       success_url: isVip
-        ? `${origin}/vip-pass?vip_success=true`
-        : `${origin}/shop?success=true&credits=${credits}`,
+        ? `${origin}/payment-success?type=vip`
+        : `${origin}/payment-success?type=credits&credits=${credits}`,
       cancel_url: isVip
         ? `${origin}/vip-pass?canceled=true`
         : `${origin}/shop?canceled=true`,
