@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, Zap, Crown, ArrowRight, Sparkles } from "lucide-react";
+import GoldConfetti from "@/components/GoldConfetti";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -19,6 +20,9 @@ export default function PaymentSuccess() {
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center relative overflow-hidden px-6">
+      {/* Gold confetti */}
+      <GoldConfetti duration={5000} />
+
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gold/8 blur-[120px]" />
