@@ -346,7 +346,25 @@ export default function PricingPage() {
                 </motion.div>
               </div>
 
-              {/* ── HOW IT WORKS — 3 STEPS ── */}
+              {/* ── TESTIMONIAL ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-card/80 backdrop-blur-xl border border-gold/15 rounded-2xl p-4 space-y-3"
+              >
+                <p className="text-sm text-foreground/80 italic leading-relaxed">
+                  "Depuis qu'on publie des Vibes Officielles, on a vu une vraie différence. Les clients nous disent qu'ils nous ont trouvés sur Weshkech. C'est devenu notre canal n°1 pour toucher les voyageurs."
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center text-sm">☕</div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Karim B.</p>
+                    <p className="text-[10px] text-muted-foreground">Gérant · Café Nomad, Gueliz</p>
+                  </div>
+                </div>
+              </motion.div>
+
               <div className="space-y-3">
                 <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
                   Comment ça marche
