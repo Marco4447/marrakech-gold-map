@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, ThumbsUp, ThumbsDown, Trash2, Video, Volume2, VolumeX } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Flame, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -123,7 +123,7 @@ function getAvatarUrl(vibe: Vibe): string | null {
 }
 
 function getScore(v: Vibe) {
-  return v.likes + (v.super_vibes || 0) * 5;
+  return v.likes + (v.super_vibes || 0) * 3;
 }
 
 function getDeviceId(): string {
@@ -151,7 +151,7 @@ function vibeCountdown(dateStr: string, isOfficial?: boolean) {
   if (remaining <= 0) return "Expiré";
   const hours = Math.floor(remaining / 3600000);
   const mins = Math.floor((remaining % 3600000) / 60000);
-  return `Disparaît dans ${hours}h ${mins.toString().padStart(2, "0")}m`;
+  return `${hours}h ${mins.toString().padStart(2, "0")}m`;
 }
 
 function isUnderTwoHours(dateStr: string) {
@@ -163,48 +163,7 @@ function isNew(dateStr: string) {
   return Date.now() - new Date(dateStr).getTime() < THIRTY_MIN;
 }
 
-function CommunityValidation({ vibeId, deviceId }: { vibeId: string; deviceId: string }) {
-  const [vote, setVote] = useState<"up" | "down" | null>(() => {
-    const stored = localStorage.getItem(`wk_vote_${vibeId}`);
-    return stored === "up" || stored === "down" ? stored : null;
-  });
-
-  const handleVote = (type: "up" | "down") => {
-    if (vote === type) return;
-    setVote(type);
-    localStorage.setItem(`wk_vote_${vibeId}`, type);
-  };
-
-  return (
-    <div className="flex items-center justify-center gap-3 py-2.5 px-4 border-t border-border bg-surface/50">
-      <span className="text-[11px] text-muted-foreground font-medium">Toujours d'actualité ?</span>
-      <div className="flex items-center gap-1.5">
-        <button
-          onClick={() => handleVote("up")}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-            vote === "up"
-              ? "bg-green-500/15 text-green-400 border border-green-500/30"
-              : "bg-surface border border-border text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <ThumbsUp className="w-3.5 h-3.5" />
-          👍
-        </button>
-        <button
-          onClick={() => handleVote("down")}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-            vote === "down"
-              ? "bg-red-500/15 text-red-400 border border-red-500/30"
-              : "bg-surface border border-border text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <ThumbsDown className="w-3.5 h-3.5" />
-          👎
-        </button>
-      </div>
-    </div>
-  );
-}
+type FeedTab = "tendances" | "recents";
 
 export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSignal?: number; onGoToMap?: (lat: number, lng: number) => void }) {
   const { user } = useAuth();
@@ -218,6 +177,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [superVibeAnimId, setSuperVibeAnimId] = useState<string | null>(null);
   const [canSuperVibe, setCanSuperVibe] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<FeedTab>("tendances");
   const [showTutorial, setShowTutorial] = useState(() => {
     return !localStorage.getItem("weshkech_vibez_tutorial_seen");
   });
@@ -241,7 +201,6 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
       .select("*")
       .order("created_at", { ascending: false });
     if (!error && data) {
-      // Fetch profiles for vibes that have user_id
       const userIds = [...new Set((data as any[]).filter(v => v.user_id).map(v => v.user_id))];
       let profilesMap: Record<string, VibeProfile> = {};
       if (userIds.length > 0) {
@@ -257,7 +216,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         ...v,
         profile: v.user_id ? profilesMap[v.user_id] || null : null,
       }));
-      setVibes(vibesWithProfiles.sort((a, b) => getScore(b) - getScore(a)));
+      setVibes(vibesWithProfiles);
     }
     setLoading(false);
   }, []);
@@ -285,17 +244,10 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   }, [deviceId]);
 
   const checkPostLimit = useCallback(async () => {
-    const sixHoursAgo = new Date(Date.now() - SIX_HOURS).toISOString();
-    const { data } = await supabase
-      .from("vibes")
-      .select("id")
-      .eq("username", localStorage.getItem("wk_last_username") || deviceId)
-      .gte("created_at", sixHoursAgo);
-    
     const localPosts = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
     const recentPosts = localPosts.filter((t) => Date.now() - t < SIX_HOURS);
     setPostLimitReached(recentPosts.length >= MAX_POSTS_PER_WINDOW);
-  }, [deviceId]);
+  }, []);
 
   useEffect(() => {
     fetchVibes();
@@ -303,15 +255,10 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     fetchMySuperVibes();
     checkPostLimit();
 
-    const refreshFeed = () => {
-      void fetchVibes();
-    };
-
+    const refreshFeed = () => { void fetchVibes(); };
     const intervalId = setInterval(refreshFeed, 15000);
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        refreshFeed();
-      }
+      if (document.visibilityState === "visible") refreshFeed();
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -325,18 +272,14 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
             const newVibe = payload.new as Vibe;
             setVibes((prev) => {
               if (prev.some((v) => v.id === newVibe.id)) return prev;
-              const updated = [newVibe, ...prev];
-              return updated.sort((a, b) => getScore(b) - getScore(a));
+              return [newVibe, ...prev];
             });
           } else if (payload.eventType === "DELETE") {
             setVibes((prev) => prev.filter((v) => v.id !== (payload.old as any).id));
           } else if (payload.eventType === "UPDATE") {
-            setVibes((prev) => {
-              const updated = prev.map((v) =>
-                v.id === (payload.new as Vibe).id ? (payload.new as Vibe) : v
-              );
-              return updated.sort((a, b) => getScore(b) - getScore(a));
-            });
+            setVibes((prev) =>
+              prev.map((v) => v.id === (payload.new as Vibe).id ? { ...v, ...(payload.new as Vibe) } : v)
+            );
           }
         }
       )
@@ -355,23 +298,13 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     setTimeout(() => setAnimatingId(null), 400);
 
     if (alreadyLiked) {
-      setLikedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(vibeId);
-        return next;
-      });
-      setVibes((prev) =>
-        prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v))
-          .sort((a, b) => getScore(b) - getScore(a))
-      );
+      setLikedIds((prev) => { const next = new Set(prev); next.delete(vibeId); return next; });
+      setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v)));
       await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId);
       await supabase.from("vibes").update({ likes: Math.max(0, (vibes.find(v => v.id === vibeId)?.likes ?? 1) - 1) }).eq("id", vibeId);
     } else {
       setLikedIds((prev) => new Set(prev).add(vibeId));
-      setVibes((prev) =>
-        prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v))
-          .sort((a, b) => getScore(b) - getScore(a))
-      );
+      setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v)));
       await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId });
       await supabase.from("vibes").update({ likes: (vibes.find(v => v.id === vibeId)?.likes ?? 0) + 1 }).eq("id", vibeId);
     }
@@ -384,11 +317,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
     setSuperVibeIds((prev) => new Set(prev).add(vibeId));
     setCanSuperVibe(false);
-    setVibes((prev) =>
-      prev.map((v) => (v.id === vibeId ? { ...v, super_vibes: (v.super_vibes || 0) + 1 } : v))
-        .sort((a, b) => getScore(b) - getScore(a))
-    );
-
+    setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, super_vibes: (v.super_vibes || 0) + 1 } : v)));
     await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId });
     await supabase.from("vibes").update({ super_vibes: (vibes.find(v => v.id === vibeId)?.super_vibes ?? 0) + 1 }).eq("id", vibeId);
   };
@@ -408,94 +337,37 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    // Validate file type and size (max 10MB)
-    if (!f.type.startsWith("image/")) return;
-    if (f.size > 10 * 1024 * 1024) return;
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
-  };
-
-  const handleOpenUpload = () => {
-    if (postLimitReached) {
-      setShowUpload(true);
-      return;
-    }
-    setShowUpload(true);
-  };
-
-  const handleUpload = async () => {
-    if (!file || postLimitReached) return;
-    setUploading(true);
-    setUploadProgress(10);
-
-    const uploadTimeout = setTimeout(() => {
-      setUploading(false);
-      setUploadProgress(0);
-      console.error("Upload timeout after 30s");
-    }, 30000);
-
-    try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      setUploadProgress(30);
-
-      const { error: uploadError } = await supabase.storage
-        .from("vibes")
-        .upload(fileName, file, { contentType: file.type, upsert: false });
-      if (uploadError) throw uploadError;
-
-      setUploadProgress(70);
-      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/vibes/${fileName}`;
-
-      const { error: insertError } = await supabase.from("vibes").insert({
-        image_url: imageUrl,
-        location: uploadLocation || null,
-        username: user?.user_metadata?.full_name || user?.email?.split("@")[0] || null,
-        user_id: user?.id || null,
-        caption: null,
-        likes: 0,
-      });
-      if (insertError) throw insertError;
-
-      // Track post timestamp locally
-      const timestamps = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
-      timestamps.push(Date.now());
-      localStorage.setItem("wk_post_timestamps", JSON.stringify(timestamps.filter((t) => Date.now() - t < SIX_HOURS)));
-
-      setUploadProgress(100);
-      checkPostLimit();
-
-      clearTimeout(uploadTimeout);
-      setTimeout(() => {
-        setShowUpload(false);
-        setFile(null);
-        setPreview(null);
-        setUploadLocation("");
-        setUploading(false);
-        setUploadProgress(0);
-      }, 500);
-    } catch (err) {
-      clearTimeout(uploadTimeout);
-      console.error("Upload error:", err);
-      setUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  // Official vibes pinned first, then top 5 by score for carousel
+  // ===== DERIVED DATA =====
   const officialVibes = vibes.filter((v) => v.is_official);
   const regularVibes = vibes.filter((v) => !v.is_official);
-  const topVibes = [...regularVibes].sort((a, b) => getScore(b) - getScore(a)).slice(0, 5);
-  const restVibes = [...officialVibes, ...regularVibes];
+  
+  // Top 3 by score (non-official only, minimum 1 interaction)
+  const top3Vibes = [...regularVibes]
+    .filter(v => getScore(v) > 0)
+    .sort((a, b) => getScore(b) - getScore(a))
+    .slice(0, 3);
+
+  // Feed sorted by active tab
+  const sortedFeed = activeTab === "tendances"
+    ? [...officialVibes, ...regularVibes].sort((a, b) => {
+        // Official (sponsored) always first
+        if (a.is_official && !b.is_official) return -1;
+        if (!a.is_official && b.is_official) return 1;
+        return getScore(b) - getScore(a);
+      })
+    : [...officialVibes, ...regularVibes].sort((a, b) => {
+        if (a.is_official && !b.is_official) return -1;
+        if (!a.is_official && b.is_official) return 1;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+  const rankMedals = ["🥇", "🥈", "🥉"];
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-xl border-b border-border px-5 pt-12 pb-3">
-        <div className="flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-xl border-b border-border px-5 pt-12 pb-2">
+        <div className="flex items-center justify-between mb-3">
           <div>
             <h1 className="font-display text-xl font-bold">
               <span className="text-gold">Live</span>
@@ -509,6 +381,32 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
             <Clock className="w-3.5 h-3.5" />
             <span className="text-xs font-medium">{vibes.length} live</span>
           </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 bg-surface rounded-xl p-1">
+          <button
+            onClick={() => setActiveTab("tendances")}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === "tendances"
+                ? "bg-gold text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5" />
+            Tendances
+          </button>
+          <button
+            onClick={() => setActiveTab("recents")}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === "recents"
+                ? "bg-gold text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            Récents
+          </button>
         </div>
       </div>
 
@@ -535,8 +433,8 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     <Heart className="w-5 h-5 text-gold" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Like</p>
-                    <p className="text-xs text-muted-foreground">Montre ton soutien en likant les vibes qui te parlent.</p>
+                    <p className="text-sm font-semibold text-foreground">Like ❤️</p>
+                    <p className="text-xs text-muted-foreground">Montre ton soutien — plus un post est liké, plus il monte dans les Tendances.</p>
                   </div>
                 </div>
 
@@ -546,7 +444,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">Super Vibe ⚡</p>
-                    <p className="text-xs text-muted-foreground">Booste un post pour le faire monter dans le Top 5. Limité à 1 par jour !</p>
+                    <p className="text-xs text-muted-foreground">Booste x3 ! Propulse un post dans le Top 3. Limité à 1 toutes les 6h.</p>
                   </div>
                 </div>
 
@@ -557,6 +455,16 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   <div>
                     <p className="text-sm font-semibold text-foreground">Commentaires</p>
                     <p className="text-xs text-muted-foreground">Clique sur un post pour laisser un commentaire et échanger.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
+                    <Flame className="w-5 h-5 text-gold" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Top 3 🔥</p>
+                    <p className="text-xs text-muted-foreground">Les 3 vibes les plus populaires du moment sont mises en avant.</p>
                   </div>
                 </div>
               </div>
@@ -594,45 +502,49 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         </div>
       ) : (
         <>
-          {/* ===== TOP VIBES CAROUSEL ===== */}
-          {topVibes.length > 0 && (
+          {/* ===== TOP 3 PODIUM ===== */}
+          {top3Vibes.length > 0 && activeTab === "tendances" && (
             <div className="pt-4 pb-2 px-4">
               <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-gold" />
-                <h2 className="font-display text-sm font-semibold text-foreground">Top 5 Vibes du Moment</h2>
+                <Flame className="w-4 h-4 text-gold" />
+                <h2 className="font-display text-sm font-semibold text-foreground">Top 3 du Moment</h2>
                 <div className="flex-1 h-px bg-border" />
+                <span className="text-[10px] text-muted-foreground">Score = ❤️ + ⚡×3</span>
               </div>
               <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                {topVibes.map((vibe, i) => (
+                {top3Vibes.map((vibe, i) => (
                   <motion.div
                     key={`top-${vibe.id}`}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.1 }}
                     onClick={() => setCommentVibeId(vibe.id)}
-                    className="relative flex-shrink-0 w-[45vw] aspect-[3/4] rounded-2xl overflow-hidden border-2 border-gold/30 cursor-pointer active:scale-95 transition-transform"
+                    className={`relative flex-shrink-0 w-[45vw] aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-transform ${
+                      i === 0 ? "border-2 border-gold shadow-lg shadow-gold/20" : "border border-gold/20"
+                    }`}
                   >
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
 
-                    {/* Rank badge with shine */}
-                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-gold px-2.5 py-1 rounded-lg shadow-lg overflow-hidden">
-                      <span className="text-[10px] font-black text-primary-foreground uppercase tracking-wider">
-                        TOP {i + 1}
+                    {/* Rank medal */}
+                    <div className={`absolute top-2 left-2 flex items-center gap-1 px-2.5 py-1 rounded-lg shadow-lg overflow-hidden ${
+                      i === 0 ? "bg-gold" : "bg-background/70 backdrop-blur-md border border-gold/30"
+                    }`}>
+                      <span className="text-sm">{rankMedals[i]}</span>
+                      <span className={`text-[10px] font-black uppercase tracking-wider ${
+                        i === 0 ? "text-primary-foreground" : "text-gold"
+                      }`}>
+                        #{i + 1}
                       </span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" style={{ transform: "skewX(-20deg)" }} />
+                      {i === 0 && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" style={{ transform: "skewX(-20deg)" }} />
+                      )}
                     </div>
 
                     {/* Score badge */}
-                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg group/score cursor-help">
+                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
                       <Zap className="w-3 h-3 text-gold" />
                       <span className="text-[10px] font-bold text-gold">{getScore(vibe)}</span>
-                      <div className="absolute top-full right-0 mt-1 hidden group-hover/score:block z-50">
-                        <div className="bg-background/95 backdrop-blur-md border border-gold/30 rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
-                          <p className="text-[10px] font-semibold text-gold">⚡ Super Vibes</p>
-                          <p className="text-[9px] text-muted-foreground mt-0.5">Score de popularité du post</p>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Bottom info */}
@@ -649,20 +561,16 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <div className="flex items-center gap-1 mt-0.5">
                           <MapPin className="w-2.5 h-2.5 text-gold" />
                           <span className="text-[10px] text-foreground/70 truncate">{vibe.location}</span>
-                          {vibe.latitude != null && vibe.longitude != null && onGoToMap && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); onGoToMap(vibe.latitude!, vibe.longitude!); }}
-                              className="ml-0.5 text-[9px] text-gold font-semibold underline underline-offset-2 flex-shrink-0"
-                            >
-                              Map
-                            </button>
-                          )}
                         </div>
                       )}
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex items-center gap-1">
                           <Heart className="w-3 h-3 fill-gold text-gold" />
                           <span className="text-[10px] font-bold text-gold">{vibe.likes}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-gold" />
+                          <span className="text-[10px] font-bold text-gold">{vibe.super_vibes || 0}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MessageCircle className="w-3 h-3 text-foreground/60" />
@@ -678,7 +586,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
           {/* ===== MAIN FEED ===== */}
           <div className="space-y-4 p-4">
-            {restVibes.map((vibe, i) => {
+            {sortedFeed.map((vibe, i) => {
               const liked = likedIds.has(vibe.id);
               const isAnimating = animatingId === vibe.id;
 
@@ -687,18 +595,27 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   key={vibe.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="relative rounded-2xl overflow-hidden bg-card border border-border"
+                  transition={{ delay: i * 0.03 }}
+                  className={`relative rounded-2xl overflow-hidden bg-card ${
+                    vibe.is_official 
+                      ? "border-2 border-gold/40 shadow-lg shadow-gold/10" 
+                      : "border border-border"
+                  }`}
                 >
                   <div className="aspect-[3/4] relative">
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
 
+                    {/* Sponsored / Official badge */}
                     {vibe.is_official && (
-                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-gold px-2.5 py-1 rounded-lg shadow-lg shadow-gold/30">
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg shadow-lg overflow-hidden"
+                        style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+                      >
+                        <Sparkles className="w-3 h-3 text-primary-foreground" />
                         <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">
-                          ⭐ Officiel
+                          Sponsorisé
                         </span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_3s_infinite]" style={{ transform: "skewX(-20deg)" }} />
                       </div>
                     )}
                     {!vibe.is_official && isNew(vibe.created_at) && (
@@ -710,11 +627,23 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       </div>
                     )}
 
+                    {/* Timer / time ago */}
                     <div className={`absolute top-3 right-3 bg-background/60 backdrop-blur-md px-2.5 py-1 rounded-lg ${!vibe.is_official && isUnderTwoHours(vibe.created_at) ? "vibe-radar-pulse" : ""}`}>
-                      <span className="text-[10px] text-foreground font-medium">
+                      <span className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                        <Clock className="w-2.5 h-2.5" />
                         {vibeCountdown(vibe.created_at, vibe.is_official) || timeAgo(vibe.created_at)}
                       </span>
                     </div>
+
+                    {/* Score pill (tendances tab) */}
+                    {activeTab === "tendances" && getScore(vibe) > 0 && (
+                      <div className="absolute top-3 right-24 bg-gold/90 backdrop-blur-md px-2 py-1 rounded-lg">
+                        <span className="text-[10px] font-bold text-primary-foreground flex items-center gap-0.5">
+                          <Zap className="w-2.5 h-2.5" />
+                          {getScore(vibe)}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="absolute bottom-0 inset-x-0 p-4">
                       <div className="flex items-end justify-between">
@@ -727,8 +656,11 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             </div>
                           )}
                           <div>
-                            <p className="text-sm font-semibold text-foreground">
+                            <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                               {getDisplayName(vibe)}
+                              {vibe.is_official && (
+                                <span className="text-[9px] bg-gold/20 text-gold px-1.5 py-0.5 rounded font-bold">PRO</span>
+                              )}
                             </p>
                             {vibe.location && (
                               <div className="flex items-center gap-1 mt-0.5">
@@ -747,8 +679,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                           </div>
                         </div>
 
+                        {/* Action buttons */}
                         <div className="flex items-center gap-3">
-                          {/* Comment button */}
+                          {/* Comment */}
                           <button
                             onClick={() => setCommentVibeId(vibe.id)}
                             className="flex flex-col items-center gap-0.5 group"
@@ -759,7 +692,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             </span>
                           </button>
 
-                          {/* Like button */}
+                          {/* Like */}
                           <button
                             onClick={() => handleLike(vibe.id)}
                             className="flex flex-col items-center gap-0.5 group"
@@ -781,12 +714,12 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             </span>
                           </button>
 
-                          {/* Super Vibe button */}
+                          {/* Super Vibe */}
                           <button
                             onClick={() => handleSuperVibe(vibe.id)}
                             disabled={!canSuperVibe || superVibeIds.has(vibe.id)}
                             className="flex flex-col items-center gap-0.5 group relative"
-                            title="Super Vibe — Booste ce post dans le classement !"
+                            title="Super Vibe — Booste ce post ×3 dans le classement !"
                           >
                             <motion.div
                               animate={superVibeAnimId === vibe.id ? { scale: [1, 1.6, 0.8, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}}
@@ -803,7 +736,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                               />
                             </motion.div>
                             <span className={`text-[10px] font-semibold ${superVibeIds.has(vibe.id) ? "text-gold" : "text-foreground/70"}`}>
-                              {(vibe as any).super_vibes || 0}
+                              {vibe.super_vibes || 0}
                             </span>
                             <SuperVibeParticles active={superVibeAnimId === vibe.id} />
                           </button>
@@ -812,9 +745,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     </div>
                   </div>
 
-                  {/* Delete own vibe + Community validation */}
-                  <div className="flex items-center justify-between border-t border-border">
-                    {user && vibe.user_id === user.id ? (
+                  {/* Delete own vibe */}
+                  {user && vibe.user_id === user.id && (
+                    <div className="border-t border-border">
                       <button
                         onClick={() => handleDeleteVibe(vibe.id)}
                         disabled={deletingId === vibe.id}
@@ -827,17 +760,14 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         )}
                         <span className="text-[11px] font-medium">Supprimer ma Vibe</span>
                       </button>
-                    ) : <div />}
-                    <CommunityValidation vibeId={vibe.id} deviceId={deviceId} />
-                  </div>
+                    </div>
+                  )}
                 </motion.div>
               );
             })}
           </div>
         </>
       )}
-
-      {/* Upload moved to FlashPost component via BottomNav */}
 
       {/* Comments sheet */}
       <VibeComments
