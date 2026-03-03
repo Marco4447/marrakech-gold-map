@@ -401,6 +401,14 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
           <p className="text-[10px] text-gold/70 text-center pt-1">
             Présentez l'app au comptoir pour activer votre avantage ✨
           </p>
+          <Link
+            to="/vip-pass"
+            className="flex items-center justify-center gap-2 w-full font-bold text-sm py-3 rounded-xl text-primary-foreground transition-transform active:scale-[0.98] mt-2"
+            style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+          >
+            <Gift className="w-4 h-4" />
+            Devenir VIP Guest
+          </Link>
         </div>
       </motion.div>
 
