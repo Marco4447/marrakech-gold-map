@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -570,6 +570,15 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
           <Trash2 className="w-3.5 h-3.5" />
           Supprimer mes données
         </button>
+
+        {/* Business link */}
+        <Link
+          to="/business"
+          className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground hover:text-gold transition-colors pt-2"
+        >
+          <Building2 className="w-3.5 h-3.5" />
+          Vous êtes un établissement ?
+        </Link>
 
         {/* Legal links */}
         <div className="flex items-center justify-center gap-4 pt-2">
