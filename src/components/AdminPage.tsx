@@ -10,7 +10,7 @@ type Tab = "overview" | "partners" | "sales" | "requests" | "post";
 type PassStat = { place_name: string; count: number };
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 type PartnerDetail = { user_id: string; full_name: string; email: string; avatar_url: string | null; credits: number; business_name: string; category: string };
-type StripePayment = { id: string; amount: number; currency: string; email: string; description: string; created: string };
+type StripePayment = { id: string; amount: number; currency: string; email: string; description: string; created: string; app?: string };
 type AdminStats = {
   stripe: { total_revenue_30d: number; currency: string; successful_charges_30d: number; active_subscriptions: number; recent_payments: StripePayment[] } | null;
   users: { total: number; total_vibes: number; vibes_24h: number };
@@ -287,7 +287,18 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                       {stats.stripe.recent_payments.map((p) => (
                         <div key={p.id} className="bg-surface border border-border rounded-xl px-4 py-3 flex items-center justify-between">
                           <div className="min-w-0">
-                            <p className="text-xs font-medium text-foreground truncate">{p.email}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-xs font-medium text-foreground truncate">{p.email}</p>
+                              {p.app && (
+                                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
+                                  p.app === "Weshkech" ? "bg-gold/15 text-gold" 
+                                  : p.app === "Jemaride" ? "bg-blue-500/15 text-blue-400" 
+                                  : "bg-muted text-muted-foreground"
+                                }`}>
+                                  {p.app}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] text-muted-foreground">{p.description} · {timeAgo(p.created)}</p>
                           </div>
                           <span className="text-sm font-bold text-gold whitespace-nowrap ml-2">{p.amount.toFixed(2)}€</span>
