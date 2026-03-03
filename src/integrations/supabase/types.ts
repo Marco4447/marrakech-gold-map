@@ -367,6 +367,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      publish_vibe_use_credit: {
+        Args: {
+          p_caption?: string
+          p_image_url: string
+          p_location?: string
+          p_media_type?: string
+          p_mood?: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "partner"
