@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar } from "lucide-react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-type Tab = "overview" | "partners" | "sales" | "requests" | "post";
+type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots";
 type PassStat = { place_name: string; count: number };
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 type PartnerVibe = { id: string; image_url: string; caption: string | null; location: string | null; likes: number; super_vibes: number; created_at: string; is_official: boolean };
@@ -83,6 +83,17 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Spot form state
+  const [spotName, setSpotName] = useState("");
+  const [spotCategory, setSpotCategory] = useState("");
+  const [spotLat, setSpotLat] = useState("");
+  const [spotLng, setSpotLng] = useState("");
+  const [spotDescription, setSpotDescription] = useState("");
+  const [spotNeighborhood, setSpotNeighborhood] = useState("");
+  const [spotAddress, setSpotAddress] = useState("");
+  const [savingSpot, setSavingSpot] = useState(false);
+  const [spotSuccess, setSpotSuccess] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchAll = async () => {
@@ -232,6 +243,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           <TabButton active={tab === "partners"} label="Partenaires" icon={Users} onClick={() => setTab("partners")} />
           <TabButton active={tab === "sales"} label="Ventes" icon={TrendingUp} onClick={() => setTab("sales")} />
           <TabButton active={tab === "requests"} label="Demandes" icon={MessageCircle} onClick={() => setTab("requests")} badge={pendingCount} />
+          <TabButton active={tab === "spots"} label="Spots" icon={MapPin} onClick={() => setTab("spots")} />
           <TabButton active={tab === "post"} label="Poster" icon={Image} onClick={() => setTab("post")} />
         </div>
       </div>
@@ -648,6 +660,79 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                   ))}
                 </div>
               )}
+            </>
+          )}
+
+          {/* === SPOTS === */}
+          {tab === "spots" && (
+            <>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ajouter un Spot</h3>
+              <div className="space-y-3">
+                <input value={spotName} onChange={(e) => setSpotName(e.target.value)} placeholder="Nom du spot *" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
+                <select value={spotCategory} onChange={(e) => setSpotCategory(e.target.value)} className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all">
+                  <option value="">Catégorie *</option>
+                  <option value="restaurant">Restaurant</option>
+                  <option value="bar">Bar</option>
+                  <option value="club">Club</option>
+                  <option value="rooftop">Rooftop</option>
+                  <option value="cafe">Café</option>
+                  <option value="riad">Riad</option>
+                  <option value="spa">Spa / Hammam</option>
+                  <option value="culture">Culture</option>
+                  <option value="shopping">Shopping</option>
+                  <option value="activity">Activité</option>
+                </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <input value={spotLat} onChange={(e) => setSpotLat(e.target.value)} placeholder="Latitude *" type="number" step="any" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
+                  <input value={spotLng} onChange={(e) => setSpotLng(e.target.value)} placeholder="Longitude *" type="number" step="any" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
+                </div>
+                <input value={spotNeighborhood} onChange={(e) => setSpotNeighborhood(e.target.value)} placeholder="Quartier (ex: Guéliz, Médina…)" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
+                <input value={spotAddress} onChange={(e) => setSpotAddress(e.target.value)} placeholder="Adresse" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
+                <textarea value={spotDescription} onChange={(e) => setSpotDescription(e.target.value)} placeholder="Description" rows={3} className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all resize-none" />
+                <button
+                  onClick={async () => {
+                    if (!spotName || !spotCategory || !spotLat || !spotLng) {
+                      toast.error("Remplis les champs obligatoires (*)");
+                      return;
+                    }
+                    setSavingSpot(true);
+                    setSpotSuccess(false);
+                    try {
+                      const { error } = await supabase.from("places").insert({
+                        name: spotName.trim(),
+                        category: spotCategory,
+                        latitude: parseFloat(spotLat),
+                        longitude: parseFloat(spotLng),
+                        description: spotDescription.trim() || null,
+                        neighborhood: spotNeighborhood.trim() || null,
+                        address: spotAddress.trim() || null,
+                      });
+                      if (error) throw error;
+                      setSpotSuccess(true);
+                      setSpotName(""); setSpotCategory(""); setSpotLat(""); setSpotLng("");
+                      setSpotDescription(""); setSpotNeighborhood(""); setSpotAddress("");
+                      toast.success("Spot créé avec succès !");
+                    } catch (err) {
+                      console.error(err);
+                      toast.error("Erreur lors de la création du spot");
+                    } finally {
+                      setSavingSpot(false);
+                    }
+                  }}
+                  disabled={savingSpot || !spotName || !spotCategory || !spotLat || !spotLng}
+                  className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
+                >
+                  {savingSpot ? <><Loader2 className="w-4 h-4 animate-spin" /> Création…</> : <><Plus className="w-4 h-4" /> Créer le Spot</>}
+                </button>
+              </div>
+              <AnimatePresence>
+                {spotSuccess && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center gap-2 bg-gold/10 border border-gold/20 rounded-xl p-3 mt-3">
+                    <Check className="w-4 h-4 text-gold" />
+                    <span className="text-sm text-gold font-medium">Spot ajouté à la carte !</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
 
