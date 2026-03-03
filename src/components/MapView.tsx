@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
 import TopLivePlaces from "./TopLivePlaces";
-import { Plus, Minus, LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation } from "lucide-react";
+import { Plus, Minus, LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation, Building2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
@@ -228,6 +229,13 @@ function CollapsibleLegend({ categories }: { categories: [string, { emoji: strin
                 <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(0,0%,15%)" }}>🎁</span>
                 <span className="text-[10px] text-gold-dark font-medium">Offre active</span>
               </div>
+              <Link
+                to="/business"
+                className="flex items-center gap-2 mt-1 pt-1 border-t border-[hsl(0,0%,25%)] text-[10px] text-muted-foreground hover:text-gold transition-colors"
+              >
+                <Building2 className="w-3 h-3" />
+                Vous êtes un établissement ?
+              </Link>
             </div>
           </motion.div>
         )}
