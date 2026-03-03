@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw } from "lucide-react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -68,6 +68,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [passStats, setPassStats] = useState<PassStat[]>([]);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<PartnerDetail | null>(null);
+  const [editingCredits, setEditingCredits] = useState(false);
+  const [creditValue, setCreditValue] = useState("");
+  const [savingCredits, setSavingCredits] = useState(false);
 
   // Post vibe state
   const [caption, setCaption] = useState("");
@@ -309,9 +312,63 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
               {/* Stats row */}
               <div className="grid grid-cols-3 gap-2 mt-3">
-                <div className="bg-surface border border-border rounded-xl p-3 text-center">
-                  <p className="text-lg font-bold text-gold">{selectedPartner.credits}</p>
-                  <p className="text-[10px] text-muted-foreground">Crédits</p>
+                <div className="bg-surface border border-border rounded-xl p-3 text-center relative">
+                  {editingCredits ? (
+                    <div className="flex flex-col items-center gap-1.5">
+                      <input
+                        type="number"
+                        min={0}
+                        value={creditValue}
+                        onChange={(e) => setCreditValue(e.target.value)}
+                        className="w-16 text-center bg-background border border-gold/30 rounded-lg px-1 py-1 text-sm font-bold text-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                        autoFocus
+                      />
+                      <div className="flex gap-1">
+                        <button
+                          disabled={savingCredits}
+                          onClick={async () => {
+                            setSavingCredits(true);
+                            try {
+                              const newCredits = parseInt(creditValue) || 0;
+                              const { error } = await supabase.from("partner_credits").update({ credits: newCredits } as any).eq("user_id", selectedPartner.user_id);
+                              if (error) throw error;
+                              setSelectedPartner({ ...selectedPartner, credits: newCredits });
+                              if (stats) {
+                                setStats({ ...stats, partners: stats.partners.map(p => p.user_id === selectedPartner.user_id ? { ...p, credits: newCredits } : p) });
+                              }
+                              setEditingCredits(false);
+                              toast.success(`Crédits mis à jour : ${newCredits}`);
+                            } catch (err) {
+                              console.error(err);
+                              toast.error("Erreur de mise à jour");
+                            } finally {
+                              setSavingCredits(false);
+                            }
+                          }}
+                          className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-md font-medium hover:bg-gold/25 transition-colors"
+                        >
+                          {savingCredits ? "…" : "✓"}
+                        </button>
+                        <button
+                          onClick={() => setEditingCredits(false)}
+                          className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-md font-medium hover:bg-muted/80 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-lg font-bold text-gold">{selectedPartner.credits}</p>
+                      <p className="text-[10px] text-muted-foreground">Crédits</p>
+                      <button
+                        onClick={() => { setCreditValue(String(selectedPartner.credits)); setEditingCredits(true); }}
+                        className="absolute top-1.5 right-1.5 text-muted-foreground hover:text-gold transition-colors"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                    </>
+                  )}
                 </div>
                 <div className="bg-surface border border-border rounded-xl p-3 text-center">
                   <p className="text-lg font-bold text-foreground">{selectedPartner.total_vibes}</p>
