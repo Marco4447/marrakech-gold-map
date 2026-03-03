@@ -121,18 +121,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </div>
                 )}
 
-                {/* Non-partner value prop */}
-                {!isPartner && (
-                  <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 space-y-1.5">
-                    <p className="text-xs text-foreground leading-relaxed">
-                      🎁 <span className="text-gold font-semibold">Gratuit</span> — Obtenez votre Pass Invité :
-                    </p>
-                    <ul className="text-xs text-muted-foreground space-y-1 pl-1">
-                      <li>🔑 Accès communauté <span className="text-gold font-medium">Weshkech</span></li>
-                    </ul>
-                  </div>
-                )}
-
                 {place.address && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" />
@@ -140,18 +128,16 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </div>
                 )}
 
-                {/* Pass CTA */}
-                <button
-                  onClick={() => setDealOpen(true)}
-                  className={`w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-2xl transition-colors border ${
-                    isPartner && hasOffer
-                      ? "bg-gold hover:bg-gold-light text-primary-foreground border-gold/30 shadow-lg shadow-gold/20"
-                      : "bg-secondary hover:bg-secondary/80 text-foreground border-border"
-                  }`}
-                >
-                  <Zap className="w-4 h-4" />
-                  {isPartner && hasOffer ? "Utiliser mon Pass Insider 🎁" : "Obtenir mon Pass Invité"}
-                </button>
+                {/* Pass CTA — only for partners with active offer */}
+                {isPartner && hasOffer && (
+                  <button
+                    onClick={() => setDealOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-2xl transition-colors border bg-gold hover:bg-gold-light text-primary-foreground border-gold/30 shadow-lg shadow-gold/20"
+                  >
+                    <Zap className="w-4 h-4" />
+                    Utiliser mon Pass Insider 🎁
+                  </button>
+                )}
               </div>
               </div>{/* end overflow scroll */}
             </div>
