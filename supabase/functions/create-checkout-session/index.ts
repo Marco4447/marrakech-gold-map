@@ -105,8 +105,8 @@ serve(async (req) => {
         ? `${origin}/payment-success?type=vip`
         : `${origin}/payment-success?type=credits&credits=${credits}`,
       cancel_url: isVip
-        ? `${origin}/vip-pass?canceled=true`
-        : `${origin}/shop?canceled=true`,
+        ? `${origin}/payment-canceled?type=vip`
+        : `${origin}/payment-canceled?type=credits`,
       metadata,
       ...(isVip ? {} : {
         payment_intent_data: {
