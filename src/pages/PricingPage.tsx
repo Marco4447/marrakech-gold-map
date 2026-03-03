@@ -270,6 +270,27 @@ export default function PricingPage() {
                 </p>
               </div>
 
+              {/* ── SOCIAL PROOF ── */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: "500+", label: "Insiders actifs", icon: Users },
+                  { value: "~120", label: "Vues / Vibe", icon: Eye },
+                  { value: "6h", label: "Visibilité garantie", icon: Clock },
+                ].map((s, i) => (
+                  <motion.div
+                    key={s.label}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 + i * 0.08 }}
+                    className="flex flex-col items-center text-center bg-gold/5 border border-gold/15 rounded-xl py-3 px-2"
+                  >
+                    <s.icon className="w-4 h-4 text-gold mb-1" />
+                    <span className="text-lg font-black text-gold leading-none">{s.value}</span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{s.label}</span>
+                  </motion.div>
+                ))}
+              </div>
+
               {/* ── HOW IT WORKS — 3 STEPS ── */}
               <div className="space-y-3">
                 <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
