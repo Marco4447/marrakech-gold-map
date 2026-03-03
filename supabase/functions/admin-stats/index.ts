@@ -53,14 +53,26 @@ serve(async (req) => {
       const recentPayments = charges.data
         .filter((c) => c.status === "succeeded")
         .slice(0, 20)
-        .map((c) => ({
-          id: c.id,
-          amount: c.amount / 100,
-          currency: c.currency,
-          email: c.billing_details?.email || c.receipt_email || "—",
-          description: c.description || "—",
-          created: new Date(c.created * 1000).toISOString(),
-        }));
+        .map((c) => {
+          // Detect app source from metadata, description, or product info
+          const desc = (c.description || "").toLowerCase();
+          const metaApp = c.metadata?.app;
+          let app = "Autre";
+          if (metaApp === "weshkech" || desc.includes("weshkech") || desc.includes("insider") || desc.includes("vip")) {
+            app = "Weshkech";
+          } else if (metaApp === "jemaride" || desc.includes("jemaride") || desc.includes("taxi") || desc.includes("ride")) {
+            app = "Jemaride";
+          }
+          return {
+            id: c.id,
+            amount: c.amount / 100,
+            currency: c.currency,
+            email: c.billing_details?.email || c.receipt_email || "—",
+            description: c.description || "—",
+            created: new Date(c.created * 1000).toISOString(),
+            app,
+          };
+        });
 
       // Active subscriptions
       const subs = await stripe.subscriptions.list({ status: "active", limit: 100 });
