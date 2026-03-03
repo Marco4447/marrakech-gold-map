@@ -73,20 +73,20 @@
   }
 }
 
-/* Leaflet overrides for warm vintage theme */
+/* Leaflet overrides — ultra dark */
 .leaflet-container {
-  background: hsl(30 20% 90%) !important;
+  background: hsl(0 0% 4%) !important;
 }
 
 .leaflet-control-zoom a {
-  background: hsl(30 15% 95%) !important;
-  color: hsl(30 20% 20%) !important;
-  border-color: hsl(30 15% 80%) !important;
+  background: hsl(0 0% 8%) !important;
+  color: hsl(0 0% 70%) !important;
+  border-color: hsl(0 0% 18%) !important;
 }
 
 .leaflet-control-attribution {
-  background: hsl(30 15% 95% / 0.9) !important;
-  color: hsl(30 10% 40%) !important;
+  background: hsl(0 0% 6% / 0.9) !important;
+  color: hsl(0 0% 40%) !important;
   font-size: 10px !important;
 }
 
@@ -94,7 +94,7 @@
   color: hsl(43 76% 42%) !important;
 }
 
-/* Gold marker pulse */
+/* Gold marker pulse (partner pins) */
 @keyframes marker-pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.15); opacity: 0.8; }
@@ -172,13 +172,41 @@
   animation: blue-pulse 2s ease-in-out infinite;
 }
 
-/* Radar pulse for vibes < 2 hours */
-@keyframes vibe-radar {
-  0% { box-shadow: 0 0 0 0 hsl(43, 76%, 52%, 0.4); }
-  70% { box-shadow: 0 0 0 8px hsl(43, 76%, 52%, 0); }
-  100% { box-shadow: 0 0 0 0 hsl(43, 76%, 52%, 0); }
+/* ===== VIBE PIN RADAR PULSE (< 2 hours) ===== */
+@keyframes vibe-radar-ring {
+  0% {
+    box-shadow: 0 0 0 0 hsl(43, 90%, 55%, 0.6),
+                0 0 8px hsl(43, 90%, 55%, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 14px hsl(43, 90%, 55%, 0),
+                0 0 20px hsl(43, 90%, 55%, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(43, 90%, 55%, 0),
+                0 0 8px hsl(43, 90%, 55%, 0.3);
+  }
 }
 
+.vibe-pin-hot {
+  animation: vibe-radar-ring 1.8s ease-out infinite;
+  border-radius: 50%;
+}
+
+/* Static glow for older vibes (2-6h) */
+.vibe-pin-fading {
+  box-shadow: 0 0 8px hsl(43, 76%, 52%, 0.25);
+  border-radius: 50%;
+}
+
+/* ===== GLASSMORPHIC VIBE SHEET ===== */
+.vibe-sheet-glass {
+  background: hsl(0 0% 6% / 0.85);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+}
+
+/* Legacy class kept for backward compat */
 .vibe-radar-pulse {
-  animation: vibe-radar 1.5s ease-in-out infinite;
+  animation: vibe-radar-ring 1.5s ease-in-out infinite;
 }
