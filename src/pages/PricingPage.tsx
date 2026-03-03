@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, MapPin, Camera, Gift, Crown, Zap, Flame,
-  Star, Eye, Shield, QrCode, ChevronRight, Check, Users, Building2,
+  Star, Eye, Shield, QrCode, ChevronRight, Check, Users, Building2, HelpCircle, ChevronDown,
 } from "lucide-react";
 
 /* ─── DATA ─── */
@@ -68,6 +68,30 @@ function FeatureRow({ icon: Icon, text }: { icon: React.ElementType; text: strin
       </div>
       <p className="text-sm text-foreground/80">{text}</p>
     </div>
+  );
+}
+
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <button
+      onClick={() => setOpen(!open)}
+      className="w-full text-left bg-card/80 backdrop-blur-xl border border-border rounded-xl p-4 transition-colors hover:border-gold/20"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-semibold text-foreground">{question}</p>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </div>
+      {open && (
+        <motion.p
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="text-xs text-muted-foreground leading-relaxed mt-3 pt-3 border-t border-border"
+        >
+          {answer}
+        </motion.p>
+      )}
+    </button>
   );
 }
 
@@ -322,6 +346,50 @@ export default function PricingPage() {
             </motion.div>
           )}
         </motion.div>
+
+        {/* ───── FAQ ───── */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center gap-2">
+            <HelpCircle className="w-5 h-5 text-gold" />
+            <SectionTitle>Questions fréquentes</SectionTitle>
+          </div>
+
+          <div className="space-y-2">
+            {[
+              {
+                q: "Comment fonctionne l'Insider Pass ?",
+                a: "C'est un abonnement mensuel à 14,90 €/mois. Dès l'activation, tu reçois un QR Code unique à présenter chez nos partenaires pour profiter d'avantages exclusifs (réductions, accès prioritaire, surprises). Tu peux résilier à tout moment depuis ton espace client.",
+              },
+              {
+                q: "Qu'est-ce qu'un Vibe Credit ?",
+                a: "Un Vibe Credit te permet de publier une Vibe Officielle — un post photo ou vidéo épinglé en haut du flux Live avec le badge ⭐ OFFICIEL, visible par toute la communauté pendant 6 heures. 1 publication = 1 crédit.",
+              },
+              {
+                q: "Puis-je résilier mon abonnement à tout moment ?",
+                a: "Oui, sans engagement ! Tu peux gérer ou résilier ton Insider Pass en un clic depuis le portail client accessible dans ton profil. La résiliation prend effet à la fin de la période en cours.",
+              },
+              {
+                q: "Comment devenir partenaire Weshkech ?",
+                a: "Remplis le formulaire de candidature sur la page Partenaire. Notre équipe te contacte sous 24h pour valider ton inscription. Une fois approuvé, tu accèdes au Partner Studio pour publier des Vibes Officielles et définir tes offres VIP.",
+              },
+              {
+                q: "Les crédits expirent-ils ?",
+                a: "Non ! Tes Vibe Credits restent disponibles sur ton compte sans limite de durée. Utilise-les quand tu veux pour publier des Vibes Officielles.",
+              },
+              {
+                q: "Quels moyens de paiement sont acceptés ?",
+                a: "Nous acceptons les cartes bancaires (Visa, Mastercard, Amex) via Stripe, notre plateforme de paiement sécurisée. Apple Pay et Google Pay sont également disponibles.",
+              },
+            ].map((faq) => (
+              <FaqItem key={faq.q} question={faq.q} answer={faq.a} />
+            ))}
+          </div>
+        </motion.section>
 
         {/* ───── FOOTER ───── */}
         <div className="text-center space-y-2 pt-4">
