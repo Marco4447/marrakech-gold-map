@@ -11,6 +11,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import BusinessPage from "./pages/BusinessPage";
 import ShopPage from "./pages/ShopPage";
+import PartnerDashboard from "./pages/PartnerDashboard";
+import VipPass from "./pages/VipPass";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const AppShell = () => {
             <Route path="/" element={<Index />} />
             <Route path="/business" element={<BusinessPage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+            <Route path="/vip-pass" element={<VipPass />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="*" element={<NotFound />} />

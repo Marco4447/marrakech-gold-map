@@ -46,39 +46,55 @@ serve(async (req) => {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.user_id;
-      const credits = parseInt(session.metadata?.credits || "0", 10);
+      const metaType = session.metadata?.type;
 
-      if (userId && credits > 0) {
-        // Upsert partner_credits
-        const { data: existing } = await supabaseAdmin
-          .from("partner_credits")
-          .select("credits")
-          .eq("user_id", userId)
-          .single();
+      if (metaType === "b2c_vip" && userId) {
+        // VIP Guest Pass: set is_vip + 30 days
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        await supabaseAdmin
+          .from("profiles")
+          .update({ is_vip: true, vip_expires_at: expiresAt })
+          .eq("user_id", userId);
 
-        if (existing) {
-          await supabaseAdmin
+        console.log(`VIP activated for ${userId} until ${expiresAt}`);
+
+        // TODO: Twilio/WhatsApp API call here
+        // Send welcome message + QR code link to the user
+      } else {
+        // B2B Credits
+        const credits = parseInt(session.metadata?.credits || "0", 10);
+
+        if (userId && credits > 0) {
+          const { data: existing } = await supabaseAdmin
             .from("partner_credits")
-            .update({ credits: existing.credits + credits })
-            .eq("user_id", userId);
-        } else {
-          await supabaseAdmin
-            .from("partner_credits")
-            .insert({ user_id: userId, credits });
-        }
+            .select("credits")
+            .eq("user_id", userId)
+            .single();
 
-        // Ensure user has partner role
-        const { data: roleExists } = await supabaseAdmin
-          .from("user_roles")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("role", "partner")
-          .single();
+          if (existing) {
+            await supabaseAdmin
+              .from("partner_credits")
+              .update({ credits: existing.credits + credits })
+              .eq("user_id", userId);
+          } else {
+            await supabaseAdmin
+              .from("partner_credits")
+              .insert({ user_id: userId, credits });
+          }
 
-        if (!roleExists) {
-          await supabaseAdmin
+          // Ensure user has partner role
+          const { data: roleExists } = await supabaseAdmin
             .from("user_roles")
-            .insert({ user_id: userId, role: "partner" });
+            .select("id")
+            .eq("user_id", userId)
+            .eq("role", "partner")
+            .single();
+
+          if (!roleExists) {
+            await supabaseAdmin
+              .from("user_roles")
+              .insert({ user_id: userId, role: "partner" });
+          }
         }
       }
     }

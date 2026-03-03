@@ -29,6 +29,22 @@ function timeAgo(dateStr: string) {
   return `Il y a ${hrs}h`;
 }
 
+function vibeCountdown(dateStr: string, isOfficial?: boolean) {
+  if (isOfficial) return null;
+  const SIX_HOURS = 6 * 60 * 60 * 1000;
+  const expiresAt = new Date(dateStr).getTime() + SIX_HOURS;
+  const remaining = expiresAt - Date.now();
+  if (remaining <= 0) return "Expiré";
+  const hours = Math.floor(remaining / 3600000);
+  const mins = Math.floor((remaining % 3600000) / 60000);
+  return `Disparaît dans ${hours}h ${mins.toString().padStart(2, "0")}m`;
+}
+
+function isUnderTwoHours(dateStr: string) {
+  const age = Date.now() - new Date(dateStr).getTime();
+  return age < 2 * 60 * 60 * 1000;
+}
+
 interface VibeSheetProps {
   vibe: VibePin | null;
   open: boolean;
@@ -106,9 +122,9 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                     <span className="text-sm font-medium">{vibe.location}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className={`flex items-center gap-2 text-muted-foreground ${!vibe.is_official && isUnderTwoHours(vibe.created_at) ? "vibe-radar-pulse" : ""}`}>
                   <Clock className="w-3.5 h-3.5 shrink-0" />
-                  <span className="text-xs">{timeAgo(vibe.created_at)}</span>
+                  <span className="text-xs">{vibeCountdown(vibe.created_at, vibe.is_official) || timeAgo(vibe.created_at)}</span>
                   {vibe.is_official && <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded-full font-semibold">OFFICIEL</span>}
                 </div>
               </div>

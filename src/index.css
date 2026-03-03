@@ -171,3 +171,14 @@
   box-shadow: 0 0 6px hsl(210, 100%, 56%, 0.6);
   animation: blue-pulse 2s ease-in-out infinite;
 }
+
+/* Radar pulse for vibes < 2 hours */
+@keyframes vibe-radar {
+  0% { box-shadow: 0 0 0 0 hsl(43, 76%, 52%, 0.4); }
+  70% { box-shadow: 0 0 0 8px hsl(43, 76%, 52%, 0); }
+  100% { box-shadow: 0 0 0 0 hsl(43, 76%, 52%, 0); }
+}
+
+.vibe-radar-pulse {
+  animation: vibe-radar 1.5s ease-in-out infinite;
+}
