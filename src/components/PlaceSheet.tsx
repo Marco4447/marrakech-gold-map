@@ -128,7 +128,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                       🎁 <span className="text-gold font-semibold">Gratuit</span> — Obtenez votre Pass Invité :
                     </p>
                     <ul className="text-xs text-muted-foreground space-y-1 pl-1">
-                      <li>📖 Guide PDF <span className="text-gold font-medium">« Marrakech : 48h sans pièges »</span></li>
                       <li>🔑 Accès communauté <span className="text-gold font-medium">Weshkech</span></li>
                     </ul>
                   </div>
