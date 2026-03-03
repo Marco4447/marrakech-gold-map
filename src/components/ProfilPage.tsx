@@ -447,7 +447,13 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
               <Gift className="w-4 h-4" />
               Devenir VIP Guest
             </Link>
-          )}
+           )}
+          <Link
+            to="/pricing"
+            className="flex items-center justify-center gap-2 w-full text-xs text-muted-foreground hover:text-gold transition-colors mt-2"
+          >
+            Voir toutes nos formules →
+          </Link>
         </div>
       </motion.div>
 

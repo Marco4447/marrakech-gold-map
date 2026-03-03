@@ -192,16 +192,23 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           ))}
         </motion.div>
 
-        {/* Partner CTA */}
+        {/* Links */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0, duration: 0.5 }}
-          className="text-center pt-1"
+          className="flex flex-col items-center gap-2 pt-1"
         >
           <Link
+            to="/pricing"
+            className="inline-flex items-center gap-2 text-xs text-gold hover:text-gold-light transition-colors border border-gold/20 rounded-xl px-4 py-2 bg-gold/5"
+          >
+            <Star className="w-3.5 h-3.5" />
+            Découvrir nos formules
+          </Link>
+          <Link
             to="/business"
-            className="inline-flex items-center gap-2 text-xs text-gold/80 hover:text-gold transition-colors border border-gold/20 rounded-xl px-4 py-2 bg-gold/5"
+            className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-gold/80 transition-colors"
           >
             <Gift className="w-3.5 h-3.5" />
             Vous êtes partenaire ? Inscrivez votre établissement
