@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Crown, Sparkles, Wine, Bell, Shield, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Crown, Sparkles, Wine, Bell, Shield, Loader2, Check, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ export default function VipPass() {
   const [vipExpiresAt, setVipExpiresAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   useEffect(() => {
     if (authLoading || !user) { setLoading(false); return; }
@@ -84,6 +85,22 @@ export default function VipPass() {
       toast.error("Erreur de paiement");
     } finally {
       setPurchasing(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Impossible d'ouvrir la gestion d'abonnement");
+    } finally {
+      setOpeningPortal(false);
     }
   };
 
@@ -176,6 +193,23 @@ export default function VipPass() {
               </motion.div>
             ))}
           </div>
+
+          {/* Manage Subscription */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            onClick={handleManageSubscription}
+            disabled={openingPortal}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border bg-surface text-sm font-medium text-muted-foreground hover:text-foreground hover:border-gold/30 transition-all active:scale-[0.98]"
+          >
+            {openingPortal ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Settings className="w-4 h-4" />
+            )}
+            Gérer mon abonnement
+          </motion.button>
         </div>
       ) : (
         /* ===== PURCHASE VIEW ===== */
