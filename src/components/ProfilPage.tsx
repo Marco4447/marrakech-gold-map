@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -226,6 +226,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [isPartner, setIsPartner] = useState(false);
+  const [isVip, setIsVip] = useState(false);
   const [credits, setCredits] = useState(0);
   const [officialVibesCount, setOfficialVibesCount] = useState(0);
   const deviceId = getDeviceId();
@@ -301,6 +302,16 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   useEffect(() => {
     if (!user) return;
     const fetchPartnerData = async () => {
+      // Check VIP status
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("is_vip, vip_expires_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (profileData?.is_vip && (!profileData.vip_expires_at || new Date(profileData.vip_expires_at) > new Date())) {
+        setIsVip(true);
+      }
+
       // Check if user has partner role
       const { data: roles } = await supabase
         .from("user_roles")
@@ -401,14 +412,24 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
           <p className="text-[10px] text-gold/70 text-center pt-1">
             Présentez l'app au comptoir pour activer votre avantage ✨
           </p>
-          <Link
-            to="/vip-pass"
-            className="flex items-center justify-center gap-2 w-full font-bold text-sm py-3 rounded-xl text-primary-foreground transition-transform active:scale-[0.98] mt-2"
-            style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
-          >
-            <Gift className="w-4 h-4" />
-            Devenir VIP Guest
-          </Link>
+          {isVip ? (
+            <Link
+              to="/vip-pass"
+              className="flex items-center justify-center gap-2 w-full bg-gold/10 border border-gold/30 text-gold font-semibold text-sm py-3 rounded-xl transition-colors mt-2"
+            >
+              <BadgeCheck className="w-4 h-4" />
+              VIP actif — Voir mon pass
+            </Link>
+          ) : (
+            <Link
+              to="/vip-pass"
+              className="flex items-center justify-center gap-2 w-full font-bold text-sm py-3 rounded-xl text-primary-foreground transition-transform active:scale-[0.98] mt-2"
+              style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+            >
+              <Gift className="w-4 h-4" />
+              Devenir VIP Guest
+            </Link>
+          )}
         </div>
       </motion.div>
 
