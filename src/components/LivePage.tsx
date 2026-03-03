@@ -144,6 +144,21 @@ function timeAgo(dateStr: string) {
   return `il y a ${hours}h`;
 }
 
+function vibeCountdown(dateStr: string, isOfficial?: boolean) {
+  if (isOfficial) return null;
+  const expiresAt = new Date(dateStr).getTime() + SIX_HOURS;
+  const remaining = expiresAt - Date.now();
+  if (remaining <= 0) return "Expiré";
+  const hours = Math.floor(remaining / 3600000);
+  const mins = Math.floor((remaining % 3600000) / 60000);
+  return `Disparaît dans ${hours}h ${mins.toString().padStart(2, "0")}m`;
+}
+
+function isUnderTwoHours(dateStr: string) {
+  const age = Date.now() - new Date(dateStr).getTime();
+  return age < 2 * 60 * 60 * 1000;
+}
+
 function isNew(dateStr: string) {
   return Date.now() - new Date(dateStr).getTime() < THIRTY_MIN;
 }
@@ -695,9 +710,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       </div>
                     )}
 
-                    <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                    <div className={`absolute top-3 right-3 bg-background/60 backdrop-blur-md px-2.5 py-1 rounded-lg ${!vibe.is_official && isUnderTwoHours(vibe.created_at) ? "vibe-radar-pulse" : ""}`}>
                       <span className="text-[10px] text-foreground font-medium">
-                        {timeAgo(vibe.created_at)}
+                        {vibeCountdown(vibe.created_at, vibe.is_official) || timeAgo(vibe.created_at)}
                       </span>
                     </div>
 
