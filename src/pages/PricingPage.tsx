@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -101,6 +102,23 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 export default function PricingPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"insider" | "partner">("insider");
+  const [insiderCount, setInsiderCount] = useState<number | null>(null);
+  const [avgLikes, setAvgLikes] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
+      setInsiderCount(count ?? 0);
+    });
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    supabase.from("vibes").select("likes").gte("created_at", weekAgo).then(({ data }) => {
+      if (data && data.length > 0) {
+        const avg = Math.round(data.reduce((s, v) => s + (v.likes || 0), 0) / data.length);
+        setAvgLikes(avg);
+      } else {
+        setAvgLikes(0);
+      }
+    });
+  }, []);
 
   return (
     <div className="min-h-[100dvh] bg-background">
@@ -273,8 +291,8 @@ export default function PricingPage() {
               {/* ── SOCIAL PROOF ── */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: "500+", label: "Insiders actifs", icon: Users },
-                  { value: "~120", label: "Vues / Vibe", icon: Eye },
+                  { value: insiderCount !== null ? `${insiderCount}+` : "…", label: "Insiders actifs", icon: Users },
+                  { value: avgLikes !== null ? `~${avgLikes}` : "…", label: "❤️ moy. / Vibe", icon: Eye },
                   { value: "6h", label: "Visibilité garantie", icon: Clock },
                 ].map((s, i) => (
                   <motion.div
