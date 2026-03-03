@@ -71,7 +71,7 @@ serve(async (req) => {
       metadata.credits = String(credits);
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: priceId, quantity: 1 }],
@@ -83,7 +83,14 @@ serve(async (req) => {
         ? `${origin}/vip-pass?canceled=true`
         : `${origin}/shop?canceled=true`,
       metadata,
-    });
+    };
+
+    // Enable automatic invoice generation for one-time payments
+    if (!isVip) {
+      sessionParams.invoice_creation = { enabled: true };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     logStep("Checkout session created", { sessionId: session.id, mode: isVip ? "subscription" : "payment" });
 

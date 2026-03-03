@@ -66,6 +66,16 @@ serve(async (req) => {
 
       const totalRevenue = succeededCharges.reduce((sum, c) => sum + c.amount, 0);
 
+      // Build revenue_by_day from all succeeded charges
+      const revenueByDay: Record<string, number> = {};
+      for (const c of succeededCharges) {
+        const day = new Date(c.created * 1000).toISOString().slice(0, 10);
+        revenueByDay[day] = (revenueByDay[day] || 0) + c.amount / 100;
+      }
+      const revenue_by_day = Object.entries(revenueByDay)
+        .map(([date, amount]) => ({ date, amount }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
       // For each charge, try to find the product via checkout session
       const recentPayments = [];
       for (const c of succeededCharges.slice(0, 20)) {
@@ -117,6 +127,7 @@ serve(async (req) => {
         successful_charges_30d: succeededCharges.length,
         active_subscriptions: subs.data.length,
         recent_payments: recentPayments,
+        revenue_by_day,
       };
     }
 

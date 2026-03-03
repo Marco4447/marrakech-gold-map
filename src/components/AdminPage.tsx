@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -19,11 +20,13 @@ type PartnerDetail = {
   purchases: PartnerPurchase[];
 };
 type StripePayment = { id: string; amount: number; currency: string; email: string; description: string; created: string; app?: string };
+type RevenueDay = { date: string; amount: number };
 type AdminStats = {
-  stripe: { total_revenue_30d: number; currency: string; successful_charges_30d: number; active_subscriptions: number; recent_payments: StripePayment[] } | null;
+  stripe: { total_revenue_30d: number; currency: string; successful_charges_30d: number; active_subscriptions: number; recent_payments: StripePayment[]; revenue_by_day?: RevenueDay[] } | null;
   users: { total: number; total_vibes: number; vibes_24h: number };
   partners: PartnerDetail[];
 };
+type RevenuePeriod = "day" | "week" | "month";
 
 function StatCard({ icon: Icon, label, value, sub, color = "text-gold" }: { icon: any; label: string; value: string | number; sub?: string; color?: string }) {
   return (
@@ -71,6 +74,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [editingCredits, setEditingCredits] = useState(false);
   const [creditValue, setCreditValue] = useState("");
   const [savingCredits, setSavingCredits] = useState(false);
+  const [revenuePeriod, setRevenuePeriod] = useState<RevenuePeriod>("day");
 
   // Post vibe state
   const [caption, setCaption] = useState("");
@@ -107,6 +111,31 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   useEffect(() => { fetchAll(); }, []);
 
   const pendingCount = partnerRequests.filter((r) => r.status === "pending").length;
+
+  // Aggregate revenue data by period
+  const chartData = useMemo(() => {
+    const raw = stats?.stripe?.revenue_by_day;
+    if (!raw || raw.length === 0) return [];
+
+    if (revenuePeriod === "day") {
+      return raw.map((d) => ({ label: d.date.slice(5), amount: Math.round(d.amount * 100) / 100 }));
+    }
+
+    const grouped: Record<string, number> = {};
+    for (const d of raw) {
+      const dt = new Date(d.date);
+      let key: string;
+      if (revenuePeriod === "week") {
+        const weekStart = new Date(dt);
+        weekStart.setDate(dt.getDate() - dt.getDay() + 1);
+        key = `S${weekStart.toISOString().slice(5, 10)}`;
+      } else {
+        key = dt.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+      }
+      grouped[key] = (grouped[key] || 0) + d.amount;
+    }
+    return Object.entries(grouped).map(([label, amount]) => ({ label, amount: Math.round(amount * 100) / 100 }));
+  }, [stats?.stripe?.revenue_by_day, revenuePeriod]);
 
   const handleUpdateStatus = async (req: PartnerRequest, newStatus: "approved" | "rejected") => {
     setUpdatingId(req.id);
@@ -229,7 +258,48 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                 )}
               </div>
 
-              {/* Quick bookings */}
+              {/* Revenue chart */}
+              {chartData.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" /> Revenus
+                    </h3>
+                    <div className="flex gap-1">
+                      {(["day", "week", "month"] as const).map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setRevenuePeriod(p)}
+                          className={`text-[10px] font-medium px-2 py-1 rounded-md transition-all ${
+                            revenuePeriod === p
+                              ? "bg-gold/15 text-gold border border-gold/20"
+                              : "text-muted-foreground bg-surface border border-border hover:text-foreground"
+                          }`}
+                        >
+                          {p === "day" ? "Jour" : p === "week" ? "Sem." : "Mois"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-surface border border-border rounded-xl p-3">
+                    <ResponsiveContainer width="100%" height={180}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="label" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} />
+                        <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} width={35} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "hsl(var(--surface))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }}
+                          labelStyle={{ color: "hsl(var(--foreground))" }}
+                          formatter={(value: number) => [`${value.toFixed(2)}€`, "Revenu"]}
+                        />
+                        <Bar dataKey="amount" fill="hsl(var(--gold))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+
               {passStats.length > 0 && (
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Top Bookings</h3>
