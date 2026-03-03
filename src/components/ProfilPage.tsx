@@ -437,10 +437,20 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
             </div>
           </div>
 
+          {/* Partner Studio CTA */}
+          <Link
+            to="/partner-dashboard"
+            className="flex items-center justify-center gap-2 w-full font-bold text-sm py-3 rounded-xl text-primary-foreground transition-transform active:scale-[0.98]"
+            style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+          >
+            <Camera className="w-4 h-4" />
+            Ouvrir le Partner Studio
+          </Link>
+
           {/* Buy credits CTA */}
           <Link
             to="/shop"
-            className="flex items-center justify-center gap-2 w-full bg-gold/10 hover:bg-gold/20 border border-gold/20 text-gold font-semibold text-sm py-3 rounded-xl transition-colors"
+            className="flex items-center justify-center gap-2 w-full bg-gold/10 hover:bg-gold/20 border border-gold/20 text-gold font-semibold text-sm py-3 rounded-xl transition-colors mt-2"
           >
             <ShoppingBag className="w-4 h-4" />
             {credits === 0 ? "Acheter des crédits" : "Recharger mes crédits"}
