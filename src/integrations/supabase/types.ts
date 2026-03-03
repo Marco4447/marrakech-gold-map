@@ -73,6 +73,7 @@ export type Database = {
           id: string
           offer_description: string
           status: string
+          user_id: string | null
           whatsapp_number: string
         }
         Insert: {
@@ -82,6 +83,7 @@ export type Database = {
           id?: string
           offer_description: string
           status?: string
+          user_id?: string | null
           whatsapp_number: string
         }
         Update: {
@@ -91,6 +93,7 @@ export type Database = {
           id?: string
           offer_description?: string
           status?: string
+          user_id?: string | null
           whatsapp_number?: string
         }
         Relationships: []

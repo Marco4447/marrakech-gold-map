@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Building2, Tag, Gift, Phone, Send, Check, ArrowLeft, Star, Eye, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const partnerSchema = z.object({
   business_name: z.string().trim().min(2, "Nom requis").max(100),
@@ -67,6 +68,9 @@ export default function BusinessPage() {
       const controller = new AbortController();
       timeoutId = setTimeout(() => controller.abort(), 12000);
 
+      // Get current user id if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+
       const response = await fetch(REST_URL, {
         method: "POST",
         headers: {
@@ -80,6 +84,7 @@ export default function BusinessPage() {
           category: result.data.category,
           offer_description: result.data.offer_description,
           whatsapp_number: result.data.whatsapp_number,
+          user_id: user?.id || null,
         }),
         signal: controller.signal,
       });
