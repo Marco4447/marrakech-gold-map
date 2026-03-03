@@ -1,16 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
 import TopLivePlaces from "./TopLivePlaces";
-import { Plus, Minus, LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation, Building2 } from "lucide-react";
+import { LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation, Building2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
 const SIX_HOURS = 6 * 60 * 60 * 1000;
+const THREE_HOURS = 3 * 60 * 60 * 1000;
 
 interface VibePin {
   id: string;
@@ -55,8 +56,8 @@ const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> = {
 };
 
 const MOOD_FILTERS: { key: string; emoji: string; label: string; categories: string[] }[] = [
-  { key: "hot", emoji: "🔥", label: "Hot Now", categories: [] },
-  { key: "offers", emoji: "✨", label: "Offres Insider", categories: [] },
+  { key: "hot", emoji: "🔥", label: "Hot", categories: [] },
+  { key: "offers", emoji: "✨", label: "Offres", categories: [] },
   { key: "party", emoji: "💃", label: "Party", categories: ["Nightlife", "Night", "Dinner Show"] },
   { key: "chill", emoji: "🍸", label: "Chill", categories: ["Rooftop", "Chill", "Cocktail Bar", "Café", "Hôtel"] },
   { key: "pool", emoji: "🏖️", label: "Pool", categories: ["Pool Party"] },
@@ -68,21 +69,21 @@ const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
   const { trending = false, isPartner = false, hasOffer = false } = options;
-  const size = isPartner ? 46 : trending ? 46 : 36;
-  const emojiSize = isPartner ? 20 : trending ? 20 : 16;
+  const size = isPartner ? 42 : trending ? 42 : 34;
+  const emojiSize = isPartner ? 18 : trending ? 18 : 15;
 
   const borderColor = isPartner ? "hsl(43,76%,52%)" : cat.color;
-  const borderWidth = isPartner ? "3.5px" : "2.5px";
+  const borderWidth = isPartner ? "3px" : "2px";
   const glow = isPartner
-    ? "0 0 16px hsl(43,76%,52%,0.6), 0 0 4px hsl(43,76%,52%,0.3)"
-    : `0 2px ${trending ? 16 : 8}px ${cat.color.replace(")", ",0.4)")}`;
+    ? "0 0 12px hsl(43,76%,52%,0.5)"
+    : `0 2px ${trending ? 12 : 6}px ${cat.color.replace(")", ",0.35)")}`;
 
   const partnerBadge = isPartner
-    ? `<div style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:hsl(43,76%,52%);display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 6px hsl(43,76%,52%,0.5)">${hasOffer ? "🎁" : "⭐"}</div>`
+    ? `<div style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:hsl(43,76%,52%);display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px hsl(43,76%,52%,0.4)">${hasOffer ? "🎁" : "⭐"}</div>`
     : "";
 
   const trendingBadge = trending && !isPartner
-    ? `<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(30,20%,95%);font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em">TRENDING</div>`
+    ? `<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(30,20%,95%);font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;white-space:nowrap;letter-spacing:0.05em">LIVE</div>`
     : "";
 
   return L.divIcon({
@@ -127,33 +128,30 @@ interface BubbleItem {
   place?: Place;
 }
 
-function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceClick }: {
+function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceClick, onDismiss }: {
   places: Place[];
   bubbleIndex: number;
   setBubbleIndex: (fn: (n: number) => number) => void;
   onPlaceClick: (p: Place) => void;
+  onDismiss: () => void;
 }) {
   const items: BubbleItem[] = [];
 
-  // Hot Now - most popular partner
   const hotPlace = places.find(p => p.is_partner && p.has_active_offer);
   if (hotPlace) {
-    items.push({ emoji: "🔥", tag: "HOT NOW", text: `${hotPlace.name} — Offre exclusive en cours !`, place: hotPlace });
+    items.push({ emoji: "🔥", tag: "HOT NOW", text: `${hotPlace.name} — Offre exclusive !`, place: hotPlace });
   }
 
-  // Partner ad
   const partnerAd = places.find(p => p.is_partner && p !== hotPlace);
   if (partnerAd) {
     items.push({ emoji: "⭐", tag: "PARTENAIRE", text: `Découvrez ${partnerAd.name}`, place: partnerAd });
   }
 
-  // Tip
-  items.push({ emoji: "🌅", tag: "TIP", text: "Coucher de soleil à 18h42 — direction Kabana Rooftop !" });
+  items.push({ emoji: "🌅", tag: "TIP", text: "Coucher de soleil — direction Kabana Rooftop !" });
 
-  // Partner with offer
   const offerPlace = places.find(p => p.has_active_offer && p !== hotPlace);
   if (offerPlace) {
-    items.push({ emoji: "🎁", tag: "DEAL", text: `Pass Invité chez ${offerPlace.name}`, place: offerPlace });
+    items.push({ emoji: "🎁", tag: "DEAL", text: `Offre chez ${offerPlace.name}`, place: offerPlace });
   }
 
   useEffect(() => {
@@ -166,30 +164,35 @@ function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceClick }: {
   if (!current) return null;
 
   return (
-    <div className="absolute bottom-44 left-4 right-16 z-[1000]">
+    <div className="absolute bottom-20 left-3 right-14 z-[1000]">
       <AnimatePresence mode="wait">
-        <motion.button
+        <motion.div
           key={bubbleIndex}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.3 }}
-          onClick={() => current.place && onPlaceClick(current.place)}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,20%)] shadow-lg text-left"
+          className="relative"
         >
-          <span className="text-lg flex-shrink-0">{current.emoji}</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-[9px] text-gold font-bold uppercase tracking-wider">{current.tag}</p>
-            <p className="text-[11px] text-[hsl(30,20%,85%)] font-medium truncate">{current.text}</p>
-          </div>
-          {current.place && <ChevronRight className="w-3.5 h-3.5 text-gold flex-shrink-0" />}
-          {/* Progress dots */}
-          <div className="flex gap-1 flex-shrink-0">
-            {items.map((_, i) => (
-              <div key={i} className={`w-1 h-1 rounded-full transition-colors ${i === bubbleIndex % items.length ? "bg-gold" : "bg-[hsl(0,0%,35%)]"}`} />
-            ))}
-          </div>
-        </motion.button>
+          <button
+            onClick={() => current.place && onPlaceClick(current.place)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,20%)] shadow-lg text-left"
+          >
+            <span className="text-base flex-shrink-0">{current.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[9px] text-gold font-bold uppercase tracking-wider">{current.tag}</p>
+              <p className="text-[11px] text-[hsl(30,20%,85%)] font-medium truncate">{current.text}</p>
+            </div>
+            {current.place && <ChevronRight className="w-3 h-3 text-gold flex-shrink-0" />}
+          </button>
+          {/* Dismiss button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[hsl(0,0%,20%)] border border-[hsl(0,0%,30%)] flex items-center justify-center"
+          >
+            <X className="w-3 h-3 text-[hsl(30,20%,70%)]" />
+          </button>
+        </motion.div>
       </AnimatePresence>
     </div>
   );
@@ -198,10 +201,10 @@ function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceClick }: {
 function CollapsibleLegend({ categories }: { categories: [string, { emoji: string; color: string }][] }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="absolute bottom-24 left-4 z-[1000]">
+    <div className="absolute bottom-20 left-3 z-[1000]">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,20%)] rounded-xl px-3 py-2 shadow-lg text-left"
+        className="flex items-center gap-1.5 bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,20%)] rounded-lg px-2.5 py-1.5 shadow-lg text-left"
       >
         <p className="text-[9px] text-[hsl(30,10%,65%)] font-semibold uppercase tracking-wider">Légende</p>
         {open ? <ChevronDown className="w-3 h-3 text-[hsl(30,10%,65%)]" /> : <ChevronUp className="w-3 h-3 text-[hsl(30,10%,65%)]" />}
@@ -212,7 +215,7 @@ function CollapsibleLegend({ categories }: { categories: [string, { emoji: strin
             initial={{ opacity: 0, y: 5, height: 0 }}
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: 5, height: 0 }}
-            className="mt-1 bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,20%)] rounded-xl px-3 py-2.5 shadow-lg overflow-hidden"
+            className="mt-1 bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,20%)] rounded-xl px-3 py-2.5 shadow-lg overflow-hidden"
           >
             <div className="flex flex-col gap-1">
               {categories.map(([key, { emoji, color }]) => (
@@ -224,10 +227,6 @@ function CollapsibleLegend({ categories }: { categories: [string, { emoji: strin
               <div className="flex items-center gap-2 mt-1 pt-1 border-t border-[hsl(0,0%,25%)]">
                 <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(0,0%,15%)" }}>⭐</span>
                 <span className="text-[10px] text-gold-dark font-medium">Partenaire</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(43,76%,52%)", background: "hsl(0,0%,15%)" }}>🎁</span>
-                <span className="text-[10px] text-gold-dark font-medium">Offre active</span>
               </div>
               <Link
                 to="/business"
@@ -258,6 +257,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
   const [bubbleIndex, setBubbleIndex] = useState(0);
   const [placesLoading, setPlacesLoading] = useState(true);
   const [placesError, setPlacesError] = useState<string | null>(null);
+  const [showBubble, setShowBubble] = useState(false);
+  const [bubbleDismissed, setBubbleDismissed] = useState(() => !!localStorage.getItem("wk_bubble_dismissed"));
   const userMarkerRef = useRef<L.Marker | null>(null);
 
   // Map onboarding tooltips
@@ -266,9 +267,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
   });
 
   const onboardingTips = [
-    { emoji: "📍", text: "Touche un pin pour découvrir un spot ou un deal partenaire." },
-    { emoji: "🔥", text: "Utilise les filtres en haut pour trier par ambiance : Hot, Chill, Party…" },
-    { emoji: "📸", text: "Les vibes live apparaissent sur la carte — les photos disparaissent après 6h !" },
+    { emoji: "📍", text: "Touche un pin pour découvrir un spot." },
+    { emoji: "🔥", text: "Filtre par ambiance : Hot, Chill, Party…" },
+    { emoji: "📸", text: "Les vibes live apparaissent sur la carte — elles disparaissent après 6h !" },
   ];
 
   const advanceOnboarding = () => {
@@ -280,6 +281,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     }
   };
 
+  // Delayed bubble appearance (2s after map loads)
+  useEffect(() => {
+    if (bubbleDismissed || onboardingStep >= 0) return;
+    const timer = setTimeout(() => setShowBubble(true), 2500);
+    return () => clearTimeout(timer);
+  }, [bubbleDismissed, onboardingStep, placesLoading]);
+
   // Init map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -288,15 +296,19 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       center: MARRAKECH_CENTER,
       zoom: 14,
       zoomControl: false,
-      attributionControl: true,
+      attributionControl: false,
     });
 
-    // Use CARTO Voyager with no labels, then add custom Latin-only labels via OSM France
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
     }).addTo(map);
 
     mapRef.current = map;
+
+    // Invalidate size after mount to fix grey tiles
+    requestAnimationFrame(() => {
+      map.invalidateSize();
+    });
 
     return () => {
       map.remove();
@@ -304,7 +316,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     };
   }, []);
 
-  // Watch user GPS position and show blue dot
+  // Watch user GPS position
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -325,7 +337,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
         }
       },
       () => {},
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+      { enableHighAccuracy: true, maximumAge: 15000, timeout: 10000 }
     );
 
     return () => {
@@ -337,14 +349,14 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     };
   }, []);
 
-  // Fly to coordinates when triggered from Live Stories
+  // Fly to coordinates
   useEffect(() => {
     if (flyToCoords && mapRef.current) {
       mapRef.current.flyTo([flyToCoords.lat, flyToCoords.lng], 17, { duration: 1.2 });
     }
   }, [flyToCoords]);
 
-  // Fetch places via REST (timeout-safe) + retry when auth session changes
+  // Fetch places
   useEffect(() => {
     const fetchPlaces = async () => {
       setPlacesError(null);
@@ -354,9 +366,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       if (!baseUrl || !apiKey) {
-        console.error("Missing backend env vars for places fetch");
         setPlaces([]);
-        setPlacesError("Configuration backend manquante pour charger la carte.");
+        setPlacesError("Configuration manquante.");
         setPlacesLoading(false);
         return;
       }
@@ -369,23 +380,17 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
         const response = await fetch(`${baseUrl}/rest/v1/places?select=*`, {
           method: "GET",
-          headers: {
-            apikey: apiKey,
-            Authorization: `Bearer ${apiKey}`,
-          },
+          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           signal: controller.signal,
         });
 
-        if (!response.ok) {
-          throw new Error(`PLACES_FETCH_FAILED_${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`PLACES_FETCH_FAILED_${response.status}`);
         const rows = await response.json();
         setPlaces(Array.isArray(rows) ? (rows as Place[]) : []);
       } catch (error) {
-        console.error("Failed to fetch places via REST:", error);
+        console.error("Failed to fetch places:", error);
         setPlaces([]);
-        setPlacesError("Impossible de charger les spots pour le moment.");
+        setPlacesError("Impossible de charger les spots.");
       } finally {
         if (timeoutId) clearTimeout(timeoutId);
         setPlacesLoading(false);
@@ -394,7 +399,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
     fetchPlaces();
 
-    // Re-fetch when auth session changes (after refresh/login)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       fetchPlaces();
     });
@@ -402,27 +406,24 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch trending locations + vibe pins from vibes with coordinates
+  // Fetch trending + vibe pins
   useEffect(() => {
     const fetchVibeData = async () => {
       const { data } = await supabase
         .from("vibes")
         .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at, media_type, is_official");
       if (data) {
-        // Trending
         const scored = (data as any[])
           .filter((v) => v.location)
-          .map((v) => ({ location: v.location as string, score: (v.likes || 0) + (v.super_vibes || 0) * 5 }))
+          .map((v) => ({ location: v.location as string, score: (v.likes || 0) + (v.super_vibes || 0) * 3 }))
           .sort((a, b) => b.score - a.score)
           .slice(0, 5);
         setTrendingLocations(new Set(scored.map((s) => s.location.toLowerCase())));
-        // Vibe pins (only those with coordinates)
         setVibePins((data as any[]).filter((v) => v.latitude !== null && v.longitude !== null));
       }
     };
     fetchVibeData();
 
-    // Realtime updates
     const channel = supabase
       .channel("vibes-map")
       .on("postgres_changes", { event: "*", schema: "public", table: "vibes" }, () => {
@@ -469,12 +470,10 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       markers.push(marker);
     });
 
-    return () => {
-      markers.forEach((m) => m.remove());
-    };
+    return () => { markers.forEach((m) => m.remove()); };
   }, [places, trendingLocations, activeFilter]);
 
-  // Add vibe photo pins + heatmap effect
+  // Add vibe pins + optimized heatmap (only last 3h)
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -482,40 +481,38 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     const markers: L.Marker[] = [];
     const heatCircles: L.CircleMarker[] = [];
 
-    // Heatmap circles for all vibes with coords
+    // Heatmap only for recent vibes (3h) to reduce rendering load
     vibePins.forEach((vibe) => {
       if (vibe.latitude == null || vibe.longitude == null) return;
       const age = Date.now() - new Date(vibe.created_at).getTime();
+      if (age > THREE_HOURS && !vibe.is_official) return; // Skip old vibes for heatmap
       const freshness = Math.max(0.15, 1 - age / SIX_HOURS);
       const moodColor = MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)";
       
-      // Outer heat glow
       const heatCircle = L.circleMarker([vibe.latitude, vibe.longitude], {
-        radius: 30 + freshness * 20,
+        radius: 25 + freshness * 15,
         fillColor: moodColor,
-        fillOpacity: 0.08 + freshness * 0.12,
+        fillOpacity: 0.06 + freshness * 0.1,
         stroke: false,
         interactive: false,
       }).addTo(map);
       heatCircles.push(heatCircle);
     });
 
-    // Photo pin miniatures (same as before)
+    // Photo pins
     vibePins.forEach((vibe) => {
       if (vibe.latitude == null || vibe.longitude == null) return;
       const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
       const remaining = isOfficial ? 1 : Math.max(0, 1 - age / SIX_HOURS);
-      const isHot = age < 2 * 60 * 60 * 1000; // < 2 hours
-      const size = isOfficial ? 50 : Math.round(28 + remaining * 16);
+      const isHot = age < 2 * 60 * 60 * 1000;
+      const size = isOfficial ? 44 : Math.round(26 + remaining * 14);
       const borderColor = isOfficial ? "hsl(43,76%,52%)" : (MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)");
       const moodEmoji = MOOD_EMOJIS[vibe.mood || ""] || "";
-
-      // CSS class for radar pulse (hot) vs static glow (fading)
       const pinClass = isOfficial ? "gold-marker" : isHot ? "vibe-pin-hot" : "vibe-pin-fading";
 
       const officialBadge = isOfficial
-        ? `<div style="position:absolute;top:-6px;right:-6px;font-size:12px;background:hsl(43,76%,52%);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px hsl(43,76%,52%,0.5)">⭐</div>`
+        ? `<div style="position:absolute;top:-5px;right:-5px;font-size:10px;background:hsl(43,76%,52%);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px hsl(43,76%,52%,0.4)">⭐</div>`
         : "";
 
       const icon = L.divIcon({
@@ -523,13 +520,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
         html: `
           <div style="
             width:${size}px;height:${size}px;border-radius:50%;
-            border:${isOfficial ? "3.5px" : "3px"} solid ${borderColor};
+            border:${isOfficial ? "3px" : "2.5px"} solid ${borderColor};
             overflow:hidden;position:relative;
             background:hsl(0,0%,8%);
           ">
-            <img src="${vibe.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
-            ${moodEmoji ? `<div style="position:absolute;bottom:-4px;right:-4px;font-size:12px;background:hsl(0,0%,5%,0.8);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
-            ${vibe.media_type === "video" ? `<div style="position:absolute;top:-4px;left:-4px;font-size:10px;background:hsl(0,70%,50%,0.85);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center">🎥</div>` : ""}
+            <img src="${vibe.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy" />
+            ${moodEmoji ? `<div style="position:absolute;bottom:-3px;right:-3px;font-size:10px;background:hsl(0,0%,5%,0.8);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
+            ${vibe.media_type === "video" ? `<div style="position:absolute;top:-3px;left:-3px;font-size:9px;background:hsl(0,70%,50%,0.85);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">🎥</div>` : ""}
             ${officialBadge}
           </div>
         `,
@@ -553,17 +550,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     };
   }, [vibePins]);
 
-  const handleZoom = (delta: number) => {
-    mapRef.current?.zoomIn(delta);
-  };
-
-  const handleRecenter = () => {
-    mapRef.current?.flyTo(MARRAKECH_CENTER, 14, { duration: 0.8 });
-  };
-
-  const handleGeolocate = () => {
+  const handleGeolocate = useCallback(() => {
     if (!navigator.geolocation) return;
-    // Use cached position first for instant response, then refine
     if (userMarkerRef.current) {
       const pos = userMarkerRef.current.getLatLng();
       mapRef.current?.flyTo([pos.lat, pos.lng], 16, { duration: 0.6 });
@@ -573,39 +561,46 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
         mapRef.current?.flyTo([pos.coords.latitude, pos.coords.longitude], 16, { duration: 0.6 });
       },
       () => {
-        if (!userMarkerRef.current) handleRecenter();
+        if (!userMarkerRef.current) mapRef.current?.flyTo(MARRAKECH_CENTER, 14, { duration: 0.8 });
       },
       { enableHighAccuracy: false, maximumAge: 30000, timeout: 3000 }
     );
-  };
+  }, []);
+
+  const handleRecenter = useCallback(() => {
+    mapRef.current?.flyTo(MARRAKECH_CENTER, 14, { duration: 0.8 });
+  }, []);
+
   const categories = Object.entries(CATEGORY_CONFIG);
 
   return (
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full z-0" />
 
-      {/* Header overlay */}
+      {/* Compact header */}
       <div className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none">
-        <div className="px-5 pt-12 pb-2 bg-gradient-to-b from-[hsl(0,0%,8%)] via-[hsl(0,0%,8%,0.85)] to-transparent">
-          <h1 className="font-display text-2xl font-bold tracking-tight">
-            <span className="text-gold">Wesh</span>
-            <span className="text-[hsl(30,20%,90%)]">kech</span>
-          </h1>
-          <p className="text-[hsl(30,10%,60%)] text-xs mt-0.5">
-            {placesLoading ? "Chargement des spots…" : placesError ? placesError : `Explore Marrakech · ${places.length} spots`}
-          </p>
+        <div className="px-4 pt-10 pb-1 bg-gradient-to-b from-[hsl(0,0%,8%)] via-[hsl(0,0%,8%,0.8)] to-transparent">
+          <div className="flex items-center justify-between">
+            <h1 className="font-display text-xl font-bold tracking-tight">
+              <span className="text-gold">Wesh</span>
+              <span className="text-[hsl(30,20%,90%)]">kech</span>
+            </h1>
+            <p className="text-[hsl(30,10%,55%)] text-[10px]">
+              {placesLoading ? "Chargement…" : placesError ? placesError : `${places.length} spots`}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Category filter chips */}
-      <div className="absolute top-[88px] left-0 right-0 z-[1000] px-4">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+      {/* Filter chips — compact */}
+      <div className="absolute top-[72px] left-0 right-0 z-[1000] px-3">
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setActiveFilter(null)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all border ${
               activeFilter === null
-                ? "bg-gold text-primary-foreground border-gold shadow-sm"
-                : "bg-[hsl(0,0%,12%,0.95)] backdrop-blur-xl text-[hsl(30,20%,80%)] border-[hsl(0,0%,25%)] hover:border-gold/50"
+                ? "bg-gold text-primary-foreground border-gold"
+                : "bg-[hsl(0,0%,12%,0.92)] backdrop-blur-xl text-[hsl(30,20%,80%)] border-[hsl(0,0%,25%)]"
             }`}
           >
             Tous
@@ -614,21 +609,21 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
             <button
               key={mood.key}
               onClick={() => setActiveFilter(activeFilter === mood.key ? null : mood.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all border ${
                 activeFilter === mood.key
-                  ? "bg-gold text-primary-foreground border-gold shadow-sm"
-                  : "bg-[hsl(0,0%,12%,0.95)] backdrop-blur-xl text-[hsl(30,20%,80%)] border-[hsl(0,0%,25%)] hover:border-gold/50"
+                  ? "bg-gold text-primary-foreground border-gold"
+                  : "bg-[hsl(0,0%,12%,0.92)] backdrop-blur-xl text-[hsl(30,20%,80%)] border-[hsl(0,0%,25%)]"
               }`}
             >
-              <span>{mood.emoji}</span>
+              <span className="text-xs">{mood.emoji}</span>
               {mood.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Top 3 Live Places */}
-      <div className="absolute top-[124px] left-0 right-0 z-[1000] px-4">
+      {/* Top 3 Live Places — lower position, doesn't crowd filters */}
+      <div className="absolute top-[100px] left-0 right-0 z-[1000] px-3">
         <TopLivePlaces
           onPlaceClick={(name) => {
             const place = places.find(p => p.name === name);
@@ -641,65 +636,59 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
         />
       </div>
 
-      {/* Floating info bubble - rotates every 5s */}
-      <FloatingBubble
-        places={places}
-        bubbleIndex={bubbleIndex}
-        setBubbleIndex={setBubbleIndex}
-        onPlaceClick={(place) => { setSelectedPlace(place); setSheetOpen(true); }}
-      />
+      {/* Floating bubble — delayed + dismissible */}
+      {showBubble && !bubbleDismissed && (
+        <FloatingBubble
+          places={places}
+          bubbleIndex={bubbleIndex}
+          setBubbleIndex={setBubbleIndex}
+          onPlaceClick={(place) => { setSelectedPlace(place); setSheetOpen(true); }}
+          onDismiss={() => {
+            setBubbleDismissed(true);
+            localStorage.setItem("wk_bubble_dismissed", "1");
+          }}
+        />
+      )}
 
-      {/* Zoom & recenter controls */}
-      <div className="absolute bottom-24 right-4 z-[1000] flex flex-col gap-2">
-        <button
-          onClick={() => handleZoom(1)}
-          className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,25%)] flex items-center justify-center text-[hsl(30,20%,80%)] hover:border-gold/50 transition-colors shadow-lg"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => handleZoom(-1)}
-          className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,25%)] flex items-center justify-center text-[hsl(30,20%,80%)] hover:border-gold/50 transition-colors shadow-lg"
-        >
-          <Minus className="w-4 h-4" />
-        </button>
+      {/* Controls — 2 buttons only: GPS + Recenter */}
+      <div className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-2">
         <button
           onClick={handleGeolocate}
-          className="w-10 h-10 rounded-full bg-gold/90 backdrop-blur-xl border border-gold-dark/40 flex items-center justify-center text-primary-foreground hover:bg-gold transition-colors shadow-lg"
+          className="w-10 h-10 rounded-full bg-gold/90 backdrop-blur-xl border border-gold-dark/40 flex items-center justify-center text-primary-foreground shadow-lg active:scale-95 transition-transform"
           title="Ma position"
         >
           <Navigation className="w-4 h-4" />
         </button>
         <button
           onClick={handleRecenter}
-          className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-gold/40 flex items-center justify-center text-gold hover:bg-gold/10 transition-colors shadow-lg"
+          className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-gold/30 flex items-center justify-center text-gold shadow-lg active:scale-95 transition-transform"
           title="Marrakech"
         >
           <LocateFixed className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Collapsible Legend */}
-      <CollapsibleLegend categories={categories} />
+      {/* Legend — only when bubble is dismissed */}
+      {bubbleDismissed && <CollapsibleLegend categories={categories} />}
 
-      {/* Map Onboarding Tooltips */}
+      {/* Onboarding tooltips */}
       <AnimatePresence>
         {onboardingStep >= 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[2000] flex items-end justify-center pb-28 px-4 pointer-events-none"
+            className="absolute inset-0 z-[2000] flex items-end justify-center pb-24 px-4 pointer-events-none"
           >
             <motion.div
               key={onboardingStep}
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10 }}
-              className="pointer-events-auto bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-5 py-4 shadow-xl max-w-sm w-full"
+              className="pointer-events-auto bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-4 py-3 shadow-xl max-w-sm w-full"
             >
               <div className="flex items-start gap-3">
-                <span className="text-2xl">{onboardingTips[onboardingStep].emoji}</span>
+                <span className="text-xl">{onboardingTips[onboardingStep].emoji}</span>
                 <p className="text-sm text-foreground leading-relaxed flex-1">
                   {onboardingTips[onboardingStep].text}
                 </p>
