@@ -147,7 +147,7 @@ serve(async (req) => {
 
       const { data: profiles } = await supabaseClient
         .from("profiles")
-        .select("user_id, full_name, email, avatar_url")
+        .select("user_id, full_name, email, avatar_url, created_at")
         .in("user_id", partnerIds);
 
       const { data: credits } = await supabaseClient
@@ -157,22 +157,61 @@ serve(async (req) => {
 
       const { data: requests } = await supabaseClient
         .from("partner_requests")
-        .select("user_id, business_name, category, status")
+        .select("user_id, business_name, category, status, offer_description, whatsapp_number, created_at")
+        .in("user_id", partnerIds);
+
+      // Get vibes per partner
+      const { data: vibes } = await supabaseClient
+        .from("vibes")
+        .select("user_id, id, image_url, caption, location, likes, super_vibes, created_at, is_official")
         .in("user_id", partnerIds)
-        .eq("status", "approved");
+        .order("created_at", { ascending: false });
+
+      // Get Stripe purchases per partner email
+      const partnerEmails = (profiles || []).map((p) => p.email).filter(Boolean);
+      let partnerPurchases: Record<string, any[]> = {};
+      if (stripeKey && partnerEmails.length > 0) {
+        const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+        for (const email of partnerEmails) {
+          try {
+            const customers = await stripe.customers.list({ email, limit: 1 });
+            if (customers.data.length > 0) {
+              const charges = await stripe.charges.list({ customer: customers.data[0].id, limit: 10 });
+              partnerPurchases[email] = charges.data
+                .filter((c) => c.status === "succeeded")
+                .map((c) => ({
+                  amount: c.amount / 100,
+                  currency: c.currency,
+                  created: new Date(c.created * 1000).toISOString(),
+                  description: c.description || "—",
+                }));
+            }
+          } catch (_) {}
+        }
+      }
 
       partnerDetails = partnerIds.map((uid) => {
         const profile = profiles?.find((p) => p.user_id === uid);
         const credit = credits?.find((c) => c.user_id === uid);
-        const request = requests?.find((r) => r.user_id === uid);
+        const partnerReqs = requests?.filter((r) => r.user_id === uid) || [];
+        const approvedReq = partnerReqs.find((r) => r.status === "approved");
+        const partnerVibes = vibes?.filter((v) => v.user_id === uid) || [];
+        const purchases = partnerPurchases[profile?.email || ""] || [];
         return {
           user_id: uid,
           full_name: profile?.full_name || profile?.email || "—",
           email: profile?.email || "—",
           avatar_url: profile?.avatar_url,
+          joined: profile?.created_at || null,
           credits: credit?.credits ?? 0,
-          business_name: request?.business_name || "—",
-          category: request?.category || "—",
+          business_name: approvedReq?.business_name || "—",
+          category: approvedReq?.category || "—",
+          offer_description: approvedReq?.offer_description || null,
+          whatsapp_number: approvedReq?.whatsapp_number || null,
+          vibes: partnerVibes.slice(0, 10),
+          total_vibes: partnerVibes.length,
+          official_vibes: partnerVibes.filter((v) => v.is_official).length,
+          purchases,
         };
       });
     }
