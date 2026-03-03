@@ -315,6 +315,66 @@ export default function PricingPage() {
                 </div>
               </div>
 
+              {/* ── LIVE MOCKUP ── */}
+              <div className="space-y-3">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+                  Aperçu dans le flux Live
+                </p>
+                <div className="relative bg-card/90 backdrop-blur-xl border-2 border-gold/30 rounded-2xl overflow-hidden shadow-[0_0_40px_hsl(var(--gold)/0.08)]">
+                  {/* Simulated phone status bar */}
+                  <div className="bg-background/60 px-4 py-1.5 flex items-center justify-between text-[9px] text-muted-foreground border-b border-border/50">
+                    <span>Live Vibes</span>
+                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En direct</span>
+                  </div>
+                  {/* Mock vibe card */}
+                  <div className="p-3 space-y-2.5">
+                    {/* Header row */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center text-[10px]">🏪</div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-foreground">Votre établissement</span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold text-primary-foreground" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>⭐ OFFICIEL</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">📍 Gueliz, Marrakech</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                        <span className="text-[9px] font-bold">5:42:18</span>
+                      </div>
+                    </div>
+                    {/* Mock image placeholder */}
+                    <div className="relative aspect-[4/3] rounded-xl bg-gradient-to-br from-gold/5 via-surface to-gold/10 border border-border flex items-center justify-center overflow-hidden">
+                      <div className="absolute inset-0 bg-[url('/placeholder.svg')] bg-cover bg-center opacity-30" />
+                      <div className="relative text-center space-y-1">
+                        <Camera className="w-8 h-8 text-gold/60 mx-auto" />
+                        <p className="text-[10px] text-muted-foreground">Votre photo / vidéo ici</p>
+                      </div>
+                      {/* Pinned badge */}
+                      <div className="absolute top-2 left-2 bg-gold/90 text-primary-foreground text-[8px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <MapPin className="w-2.5 h-2.5" /> ÉPINGLÉ EN HAUT
+                      </div>
+                    </div>
+                    {/* Caption */}
+                    <p className="text-xs text-foreground/70 italic">"Venez découvrir notre nouvelle carte ! 🍽️"</p>
+                    {/* Engagement row */}
+                    <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1">❤️ 24</span>
+                      <span className="flex items-center gap-1">🔥 8 super vibes</span>
+                      <span className="flex items-center gap-1">💬 5</span>
+                    </div>
+                  </div>
+                  {/* Arrow annotation */}
+                  <div className="bg-gold/10 border-t border-gold/20 px-4 py-2.5 text-center">
+                    <p className="text-[10px] text-gold font-semibold">
+                      👆 Voici ce que tous les Insiders verront pendant 6 heures
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* ── WHAT YOU GET ── */}
               <div className="bg-card/80 backdrop-blur-xl border border-gold/20 rounded-2xl p-5 space-y-4">
                 <p className="font-display text-base font-bold text-foreground flex items-center gap-2">
