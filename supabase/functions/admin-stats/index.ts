@@ -36,6 +36,21 @@ serve(async (req) => {
     // --- Stripe stats ---
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     let stripeStats = null;
+
+    // Known Weshkech product IDs
+    const weshkechProductIds = new Set([
+      "prod_U4veaYFPFrfRSD",
+      "prod_U4vdXYPsFOtdJN",
+      "prod_U4vdwFlBD3gYuO",
+      "prod_U4vEDXfrrfUCCQ",
+      "prod_U4Zmie9z5kvv9k",
+      "prod_U4ZlJuIDMdaQMg",
+      "prod_U4ZkOVawTSWsYD",
+    ]);
+    const jemarideProductIds = new Set([
+      "prod_Tws8Y0htMwd8Ap",
+    ]);
+
     if (stripeKey) {
       const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -44,35 +59,54 @@ serve(async (req) => {
       const charges = await stripe.charges.list({
         created: { gte: thirtyDaysAgo },
         limit: 100,
+        expand: ["data.invoice"],
       });
 
-      const totalRevenue = charges.data
-        .filter((c) => c.status === "succeeded")
-        .reduce((sum, c) => sum + c.amount, 0);
+      const succeededCharges = charges.data.filter((c) => c.status === "succeeded");
 
-      const recentPayments = charges.data
-        .filter((c) => c.status === "succeeded")
-        .slice(0, 20)
-        .map((c) => {
-          // Detect app source from metadata, description, or product info
-          const desc = (c.description || "").toLowerCase();
-          const metaApp = c.metadata?.app;
-          let app = "Autre";
-          if (metaApp === "weshkech" || desc.includes("weshkech") || desc.includes("insider") || desc.includes("vip")) {
-            app = "Weshkech";
-          } else if (metaApp === "jemaride" || desc.includes("jemaride") || desc.includes("taxi") || desc.includes("ride")) {
-            app = "Jemaride";
+      const totalRevenue = succeededCharges.reduce((sum, c) => sum + c.amount, 0);
+
+      // For each charge, try to find the product via checkout session
+      const recentPayments = [];
+      for (const c of succeededCharges.slice(0, 20)) {
+        let app = "Autre";
+
+        try {
+          // Try to get checkout session for this payment intent
+          if (c.payment_intent) {
+            const sessions = await stripe.checkout.sessions.list({
+              payment_intent: c.payment_intent as string,
+              limit: 1,
+              expand: ["data.line_items"],
+            });
+            if (sessions.data.length > 0 && sessions.data[0].line_items?.data) {
+              for (const item of sessions.data[0].line_items.data) {
+                const prodId = typeof item.price?.product === "string" ? item.price.product : (item.price?.product as any)?.id;
+                if (prodId && weshkechProductIds.has(prodId)) {
+                  app = "Weshkech";
+                  break;
+                }
+                if (prodId && jemarideProductIds.has(prodId)) {
+                  app = "Jemaride";
+                  break;
+                }
+              }
+            }
           }
-          return {
-            id: c.id,
-            amount: c.amount / 100,
-            currency: c.currency,
-            email: c.billing_details?.email || c.receipt_email || "—",
-            description: c.description || "—",
-            created: new Date(c.created * 1000).toISOString(),
-            app,
-          };
+        } catch (_) {
+          // fallback: keep "Autre"
+        }
+
+        recentPayments.push({
+          id: c.id,
+          amount: c.amount / 100,
+          currency: c.currency,
+          email: c.billing_details?.email || c.receipt_email || "—",
+          description: c.description || "—",
+          created: new Date(c.created * 1000).toISOString(),
+          app,
         });
+      }
 
       // Active subscriptions
       const subs = await stripe.subscriptions.list({ status: "active", limit: 100 });
@@ -80,7 +114,7 @@ serve(async (req) => {
       stripeStats = {
         total_revenue_30d: totalRevenue / 100,
         currency: charges.data[0]?.currency || "eur",
-        successful_charges_30d: charges.data.filter((c) => c.status === "succeeded").length,
+        successful_charges_30d: succeededCharges.length,
         active_subscriptions: subs.data.length,
         recent_payments: recentPayments,
       };
