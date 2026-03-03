@@ -94,19 +94,23 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [spotAddress, setSpotAddress] = useState("");
   const [savingSpot, setSavingSpot] = useState(false);
   const [spotSuccess, setSpotSuccess] = useState(false);
+  const [allPlaces, setAllPlaces] = useState<{ id: string; name: string; category: string | null; neighborhood: string | null }[]>([]);
+  const [selectedSpotId, setSelectedSpotId] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [statsRes, requestsRes, bookingsRes] = await Promise.all([
+      const [statsRes, requestsRes, bookingsRes, placesRes] = await Promise.all([
         supabase.functions.invoke("admin-stats"),
         supabase.from("partner_requests" as any).select("*").order("created_at", { ascending: false }),
         supabase.from("bookings").select("place_name").eq("status", "free_pass"),
+        supabase.from("places").select("id, name, category, neighborhood").order("name"),
       ]);
 
       if (statsRes.data) setStats(statsRes.data as AdminStats);
       if (requestsRes.data) setPartnerRequests(requestsRes.data as any);
+      if (placesRes.data) setAllPlaces(placesRes.data as any);
       if (bookingsRes.data) {
         const counts: Record<string, number> = {};
         (bookingsRes.data as any[]).forEach((b) => { counts[b.place_name] = (counts[b.place_name] || 0) + 1; });
@@ -192,15 +196,28 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
       const { error: uploadError } = await supabase.storage.from("vibes").upload(fileName, file, { contentType: file.type });
       if (uploadError) throw uploadError;
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/vibes/${fileName}`;
-      const { error: insertError } = await supabase.from("vibes").insert({ image_url: imageUrl, caption: caption || null, location: location || null, likes: Math.floor(Math.random() * 300) + 50 });
+
+      const selectedPlace = allPlaces.find((p) => p.id === selectedSpotId);
+      const vibeData: any = {
+        image_url: imageUrl,
+        caption: caption || null,
+        location: selectedPlace?.name || location || null,
+        username: selectedPlace?.name || null,
+        likes: Math.floor(Math.random() * 300) + 50,
+      };
+
+      const { error: insertError } = await supabase.from("vibes").insert(vibeData);
       if (insertError) throw insertError;
       setSuccess(true);
       setFile(null);
       setPreview(null);
       setCaption("");
       setLocation("");
+      setSelectedSpotId("");
+      toast.success(selectedPlace ? `Vibe postée au nom de ${selectedPlace.name} !` : "Vibe publiée !");
     } catch (err) {
       console.error("Upload error:", err);
+      toast.error("Erreur lors de la publication");
     } finally {
       setUploading(false);
     }
@@ -736,10 +753,31 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
             </>
           )}
 
-          {/* === POST === */}
+          {/* === POST (Ghost Poster) === */}
           {tab === "post" && (
             <>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Poster une vibe</h3>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ghost Poster — Vibe au nom d'un Spot</h3>
+
+              {/* Spot selector */}
+              <select
+                value={selectedSpotId}
+                onChange={(e) => setSelectedSpotId(e.target.value)}
+                className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
+              >
+                <option value="">— Poster sans spot (vibe libre) —</option>
+                {allPlaces.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.category ? `· ${p.category}` : ""} {p.neighborhood ? `(${p.neighborhood})` : ""}
+                  </option>
+                ))}
+              </select>
+
+              {selectedSpotId && (
+                <p className="text-[10px] text-gold/80 -mt-2">
+                  ⚡ La vibe sera postée au nom de « {allPlaces.find((p) => p.id === selectedSpotId)?.name} »
+                </p>
+              )}
+
               <button
                 onClick={() => fileRef.current?.click()}
                 className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-3 overflow-hidden"
@@ -752,18 +790,20 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                       <Upload className="w-6 h-6 text-gold" />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-medium text-foreground">Sélectionner une photo</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG, WebP</p>
+                      <p className="text-sm font-medium text-foreground">Sélectionner une photo / vidéo</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG, WebP, MP4</p>
                     </div>
                   </>
                 )}
               </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+              <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleFileChange} />
               <div className="space-y-3 mt-4">
-                <input value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Caption…" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
-                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Lieu…" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
+                <input value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Texte promo / caption…" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
+                {!selectedSpotId && (
+                  <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Lieu (si pas de spot sélectionné)…" className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" />
+                )}
                 <button onClick={handleSubmit} disabled={!file || uploading} className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2">
-                  {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Upload…</> : <><Send className="w-4 h-4" /> Publier</>}
+                  {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Upload…</> : <><Send className="w-4 h-4" /> {selectedSpotId ? "Poster au nom du Spot" : "Publier"}</>}
                 </button>
               </div>
               <AnimatePresence>
