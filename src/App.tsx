@@ -17,6 +17,7 @@ import VerifyVip from "./pages/VerifyVip";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import PricingPage from "./pages/PricingPage";
+import GoPage from "./pages/GoPage";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const AppShell = () => {
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/go" element={<GoPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="*" element={<NotFound />} />
