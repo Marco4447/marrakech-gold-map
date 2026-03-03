@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, MapPin, Camera, Gift, Crown, Zap, Flame,
   Star, Eye, Shield, QrCode, ChevronRight, Check, Users, Building2, HelpCircle, ChevronDown,
+  Clock, TrendingUp, MousePointerClick,
 } from "lucide-react";
 
 /* ─── DATA ─── */
@@ -255,33 +256,95 @@ export default function PricingPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
-              className="space-y-6"
+              className="space-y-8"
             >
-              {/* How it works */}
-              <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-5 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-gold" />
-                  <p className="font-display text-base font-bold text-foreground">
-                    Spot Certifié Weshkech
-                  </p>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Rejoignez le réseau d'établissements premium visibles par toute la communauté d'Insiders. 
-                  Publiez des Vibes Officielles, définissez vos offres exclusives et boostez votre visibilité.
+              {/* ── PROBLEM → SOLUTION ── */}
+              <div className="space-y-3">
+                <p className="font-display text-lg font-bold text-foreground leading-snug">
+                  Votre établissement mérite d'être vu par{" "}
+                  <span className="text-gold">toute la communauté</span>
                 </p>
-                <div className="h-px bg-border" />
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Les voyageurs à Marrakech cherchent des recommandations fiables en temps réel. 
+                  Avec Weshkech, vous publiez du contenu qui apparaît directement sur la carte et en haut du flux — là où les Insiders regardent.
+                </p>
+              </div>
+
+              {/* ── HOW IT WORKS — 3 STEPS ── */}
+              <div className="space-y-3">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+                  Comment ça marche
+                </p>
                 <div className="space-y-3">
-                  {PARTNER_FEATURES.map((f) => (
-                    <FeatureRow key={f.text} icon={f.icon} text={f.text} />
+                  {[
+                    {
+                      step: "1",
+                      icon: MousePointerClick,
+                      title: "Achetez un pack de crédits",
+                      desc: "Choisissez le pack adapté à vos besoins. Un crédit = une publication.",
+                    },
+                    {
+                      step: "2",
+                      icon: Camera,
+                      title: "Publiez une Vibe Officielle",
+                      desc: "Photo ou vidéo de votre établissement, menu, ambiance ou événement. Elle apparaît avec le badge ⭐ OFFICIEL.",
+                    },
+                    {
+                      step: "3",
+                      icon: TrendingUp,
+                      title: "Soyez vu par tous les Insiders",
+                      desc: "Votre Vibe est épinglée en haut du flux Live et visible sur la carte pendant 6 heures.",
+                    },
+                  ].map((s, i) => (
+                    <motion.div
+                      key={s.step}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex gap-3 bg-card/80 backdrop-blur-xl border border-border rounded-xl p-4"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-gold/15 border border-gold/20 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-black text-gold">{s.step}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground">{s.title}</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{s.desc}</p>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
 
-              {/* Credit packs */}
+              {/* ── WHAT YOU GET ── */}
+              <div className="bg-card/80 backdrop-blur-xl border border-gold/20 rounded-2xl p-5 space-y-4">
+                <p className="font-display text-base font-bold text-foreground flex items-center gap-2">
+                  <Star className="w-4 h-4 text-gold fill-gold" />
+                  Ce que chaque crédit vous offre
+                </p>
+                <div className="space-y-3">
+                  {[
+                    { icon: Star, text: "Badge ⭐ OFFICIEL sur votre publication" },
+                    { icon: Eye, text: "Épinglé en haut du flux Live — pas noyé dans le feed" },
+                    { icon: MapPin, text: "Visible sur la carte interactive de Marrakech" },
+                    { icon: Clock, text: "6 heures de visibilité garantie auprès de la communauté" },
+                    { icon: Gift, text: "Possibilité d'associer une offre VIP à votre spot" },
+                  ].map((f) => (
+                    <div key={f.text} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-gold/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Check className="w-3 h-3 text-gold" />
+                      </div>
+                      <p className="text-sm text-foreground/80">{f.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── CREDIT PACKS ── */}
               <div className="space-y-3">
                 <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
-                  Packs Vibe Credits
+                  Choisissez votre pack
                 </p>
+
                 {CREDIT_PACKS.map((pack, i) => {
                   const Icon = pack.icon;
                   return (
@@ -311,7 +374,7 @@ export default function PricingPage() {
                           <div>
                             <p className="text-base font-bold text-foreground">{pack.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {pack.credits} crédit{pack.credits > 1 ? "s" : ""} · {pack.unitPrice}
+                              {pack.credits} publication{pack.credits > 1 ? "s" : ""} officielle{pack.credits > 1 ? "s" : ""} · {pack.unitPrice}
                             </p>
                           </div>
                         </div>
@@ -320,6 +383,10 @@ export default function PricingPage() {
                     </motion.div>
                   );
                 })}
+
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Les crédits n'expirent jamais · Paiement sécurisé par Stripe
+                </p>
               </div>
 
               {/* CTAs */}
@@ -329,20 +396,16 @@ export default function PricingPage() {
                   className="cta-shimmer relative w-full overflow-hidden py-3.5 rounded-xl text-sm font-bold text-primary-foreground flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
                   style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
                 >
-                  Acheter des crédits
+                  Acheter mes crédits
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 <Link
                   to="/business"
                   className="block w-full py-3 rounded-xl text-sm font-medium text-center text-gold border border-gold/30 hover:bg-gold/5 transition-colors"
                 >
-                  Candidater comme partenaire →
+                  Pas encore partenaire ? Candidater →
                 </Link>
               </div>
-
-              <p className="text-xs text-center text-muted-foreground">
-                1 Vibe Credit = 1 publication officielle épinglée en haut du flux pendant 6h
-              </p>
             </motion.div>
           )}
         </motion.div>
