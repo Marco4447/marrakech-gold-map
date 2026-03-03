@@ -7,7 +7,7 @@ import { toast } from "sonner";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 type PassStat = { place_name: string; count: number };
-type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string };
+type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 
 export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [caption, setCaption] = useState("");
@@ -105,19 +105,36 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         .eq("id", req.id);
       if (error) throw error;
 
-      // If approved, mark matching place as partner
       if (newStatus === "approved") {
+        // Mark matching place as partner
         await supabase
           .from("places")
           .update({ is_partner: true, has_active_offer: true } as any)
           .ilike("name", req.business_name);
+
+        // Auto-assign partner role if user_id exists
+        if (req.user_id) {
+          await supabase
+            .from("user_roles" as any)
+            .upsert({ user_id: req.user_id, role: "partner" } as any, { onConflict: "user_id,role" });
+
+          // Initialize partner credits if not exist
+          await supabase
+            .from("partner_credits" as any)
+            .upsert({ user_id: req.user_id, credits: 0 } as any, { onConflict: "user_id" });
+
+          toast.success(`${req.business_name} approuvé + rôle partner attribué ✅`);
+        } else {
+          toast.success(`${req.business_name} approuvé ✅ (pas de compte lié)`);
+        }
+      } else {
+        toast.success(`${req.business_name} rejeté`);
       }
 
       // Update local state
       setPartnerRequests((prev) =>
         prev.map((r) => (r.id === req.id ? { ...r, status: newStatus } : r))
       );
-      toast.success(newStatus === "approved" ? `${req.business_name} approuvé ✅` : `${req.business_name} rejeté`);
     } catch (err) {
       console.error("Status update error:", err);
       toast.error("Erreur lors de la mise à jour");
