@@ -71,10 +71,35 @@ serve(async (req) => {
       metadata.credits = String(credits);
     }
 
+    // Build rich product descriptions for Stripe Checkout
+    const packNames: Record<string, string> = {
+      "price_1T6lm6J8RyilXHbfYe1I2cPh": "Marrakech Gold · Pulse Pack",
+      "price_1T6lmfJ8RyilXHbf7enV2Cxn": "Marrakech Gold · Resonance Pack",
+    };
+    const packDescriptions: Record<string, string> = {
+      "price_1T6lm6J8RyilXHbfYe1I2cPh": "1 Vibe Credit — Publiez une Vibe Officielle épinglée sur la map",
+      "price_1T6lmfJ8RyilXHbf7enV2Cxn": "5 Vibe Credits — Pack pro pour maximiser votre visibilité",
+    };
+
+    const lineItem: any = { price: priceId, quantity: 1 };
+
+    // Override product name/description inline for a polished checkout
+    if (!isVip && packNames[priceId]) {
+      lineItem.price_data = {
+        currency: "eur",
+        unit_amount: priceId === "price_1T6lm6J8RyilXHbfYe1I2cPh" ? 990 : 3990,
+        product_data: {
+          name: packNames[priceId],
+          description: packDescriptions[priceId],
+        },
+      };
+      delete lineItem.price;
+    }
+
     const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [lineItem],
       mode: isVip ? "subscription" : "payment",
       success_url: isVip
         ? `${origin}/vip-pass?vip_success=true`
@@ -83,6 +108,11 @@ serve(async (req) => {
         ? `${origin}/vip-pass?canceled=true`
         : `${origin}/shop?canceled=true`,
       metadata,
+      ...(isVip ? {} : {
+        payment_intent_data: {
+          description: packNames[priceId] || "Marrakech Gold · Vibe Credits",
+        },
+      }),
     };
 
     // Enable automatic invoice generation for one-time payments
