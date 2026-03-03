@@ -89,7 +89,7 @@ const createCategoryIcon = (category: string | null, options: { trending?: boole
     html: `
       <div class="category-marker" style="
         width:${size}px;height:${size}px;border-radius:50%;
-        background:hsl(30,20%,95%);
+        background:hsl(0,0%,8%);
         border:${borderWidth} solid ${borderColor};
         box-shadow:${glow};
         display:flex;align-items:center;justify-content:center;
@@ -498,26 +498,29 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
       const remaining = isOfficial ? 1 : Math.max(0, 1 - age / SIX_HOURS);
+      const isHot = age < 2 * 60 * 60 * 1000; // < 2 hours
       const size = isOfficial ? 50 : Math.round(28 + remaining * 16);
       const borderColor = isOfficial ? "hsl(43,76%,52%)" : (MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)");
       const moodEmoji = MOOD_EMOJIS[vibe.mood || ""] || "";
+
+      // CSS class for radar pulse (hot) vs static glow (fading)
+      const pinClass = isOfficial ? "gold-marker" : isHot ? "vibe-pin-hot" : "vibe-pin-fading";
 
       const officialBadge = isOfficial
         ? `<div style="position:absolute;top:-6px;right:-6px;font-size:12px;background:hsl(43,76%,52%);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px hsl(43,76%,52%,0.5)">⭐</div>`
         : "";
 
       const icon = L.divIcon({
-        className: isOfficial ? "gold-marker" : "",
+        className: pinClass,
         html: `
           <div style="
             width:${size}px;height:${size}px;border-radius:50%;
             border:${isOfficial ? "3.5px" : "3px"} solid ${borderColor};
-            box-shadow:0 0 ${isOfficial ? 16 : Math.round(remaining * 12)}px ${borderColor.replace(")", isOfficial ? ",0.6)" : ",0.5)")};
             overflow:hidden;position:relative;
-            background:hsl(30,20%,95%);
+            background:hsl(0,0%,8%);
           ">
             <img src="${vibe.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
-            ${moodEmoji ? `<div style="position:absolute;bottom:-4px;right:-4px;font-size:12px;background:hsl(0,0%,5%,0.7);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
+            ${moodEmoji ? `<div style="position:absolute;bottom:-4px;right:-4px;font-size:12px;background:hsl(0,0%,5%,0.8);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
             ${vibe.media_type === "video" ? `<div style="position:absolute;top:-4px;left:-4px;font-size:10px;background:hsl(0,70%,50%,0.85);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center">🎥</div>` : ""}
             ${officialBadge}
           </div>

@@ -1,5 +1,10 @@
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Clock } from "lucide-react";
+import { X, MapPin, Car, Crown, Loader2, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useVibeCountdown, isUnderTwoHours } from "@/hooks/useVibeCountdown";
+import { useAuth } from "@/hooks/useAuth";
+import { useState, useCallback } from "react";
 
 interface VibePin {
   id: string;
@@ -20,31 +25,6 @@ const MOOD_LABELS: Record<string, string> = {
   deal: "🎁 Foodie",
 };
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "À l'instant";
-  if (mins < 60) return `Il y a ${mins}min`;
-  const hrs = Math.floor(mins / 60);
-  return `Il y a ${hrs}h`;
-}
-
-function vibeCountdown(dateStr: string, isOfficial?: boolean) {
-  if (isOfficial) return null;
-  const SIX_HOURS = 6 * 60 * 60 * 1000;
-  const expiresAt = new Date(dateStr).getTime() + SIX_HOURS;
-  const remaining = expiresAt - Date.now();
-  if (remaining <= 0) return "Expiré";
-  const hours = Math.floor(remaining / 3600000);
-  const mins = Math.floor((remaining % 3600000) / 60000);
-  return `Disparaît dans ${hours}h ${mins.toString().padStart(2, "0")}m`;
-}
-
-function isUnderTwoHours(dateStr: string) {
-  const age = Date.now() - new Date(dateStr).getTime();
-  return age < 2 * 60 * 60 * 1000;
-}
-
 interface VibeSheetProps {
   vibe: VibePin | null;
   open: boolean;
@@ -52,42 +32,73 @@ interface VibeSheetProps {
 }
 
 export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { formatted, expired } = useVibeCountdown(vibe?.created_at ?? null, vibe?.is_official);
+  const [taxiLoading, setTaxiLoading] = useState(false);
+
+  // Auto-close when vibe expires
+  useEffect(() => {
+    if (expired && open) {
+      onOpenChange(false);
+    }
+  }, [expired, open, onOpenChange]);
+
+  const handleTaxi = useCallback(() => {
+    if (!vibe?.location) return;
+    setTaxiLoading(true);
+    const dest = encodeURIComponent(vibe.location);
+    const url = `https://www.jemaride.com/?dest=${dest}`;
+    setTimeout(() => {
+      setTaxiLoading(false);
+      window.open(url, "_blank", "noopener,noreferrer");
+    }, 1200);
+  }, [vibe]);
+
+  const handleVipCta = () => {
+    navigate("/vip-pass");
+  };
+
   if (!vibe) return null;
 
   const isVideo = vibe.media_type === "video";
+  const isRecent = isUnderTwoHours(vibe.created_at);
 
   return (
     <AnimatePresence>
       {open && (
         <>
+          {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-background/40 backdrop-blur-sm z-[1001]"
+            className="absolute inset-0 bg-background/60 backdrop-blur-sm z-[1001]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => onOpenChange(false)}
           />
+
+          {/* Sheet */}
           <motion.div
-            className="absolute bottom-0 left-0 right-0 z-[1002] px-4 pb-4"
+            className="absolute bottom-0 left-0 right-0 z-[1002] px-3 pb-3"
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.3}
+            dragElastic={0.2}
             onDragEnd={(_, info) => {
-              if (info.offset.y > 100 || info.velocity.y > 300) onOpenChange(false);
+              if (info.offset.y > 80 || info.velocity.y > 300) onOpenChange(false);
             }}
           >
-            <div className="bg-card rounded-2xl overflow-hidden border border-border shadow-2xl">
+            <div className="vibe-sheet-glass rounded-3xl overflow-hidden shadow-2xl shadow-black/40 border border-white/[0.06]">
               {/* Drag handle */}
               <div className="flex items-center justify-center pt-3 pb-1">
-                <button onClick={() => onOpenChange(false)} className="w-10 h-1.5 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
+                <div className="w-10 h-1 rounded-full bg-white/20" />
               </div>
 
-              {/* Media */}
-              <div className="relative h-52 overflow-hidden">
+              {/* Media — 60% of sheet */}
+              <div className="relative h-[55vw] max-h-[340px] overflow-hidden mx-3 rounded-2xl">
                 {isVideo ? (
                   <video
                     src={vibe.image_url}
@@ -98,34 +109,118 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                     playsInline
                   />
                 ) : (
-                  <img src={vibe.image_url} alt="Vibe" className="w-full h-full object-cover" />
+                  <img
+                    src={vibe.image_url}
+                    alt="Vibe"
+                    className="w-full h-full object-cover"
+                  />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 pointer-events-none" />
+
+                {/* Close button */}
                 <button
                   onClick={() => onOpenChange(false)}
-                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-background/80 transition-colors"
+                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
+
+                {/* Mood badge */}
                 {vibe.mood && (
-                  <div className="absolute top-3 left-3 bg-background/70 backdrop-blur-md px-3 py-1 rounded-full">
-                    <span className="text-xs font-semibold">{MOOD_LABELS[vibe.mood] || vibe.mood}</span>
+                  <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-white/90">
+                      {MOOD_LABELS[vibe.mood] || vibe.mood}
+                    </span>
+                  </div>
+                )}
+
+                {/* FOMO Timer — bottom of media */}
+                {formatted && (
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-center">
+                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full backdrop-blur-md border ${
+                      isRecent
+                        ? "bg-red-500/20 border-red-500/30 shadow-[0_0_20px_hsl(0,70%,50%,0.2)]"
+                        : "bg-black/40 border-white/10"
+                    }`}>
+                      <span className="relative flex h-2 w-2">
+                        <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                          isRecent ? "animate-ping bg-red-400" : "bg-amber-400"
+                        }`} />
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                          isRecent ? "bg-red-400" : "bg-amber-400"
+                        }`} />
+                      </span>
+                      <span className="text-[11px] font-bold text-white/90 uppercase tracking-wider">
+                        {isRecent ? "Live" : "Fading"}
+                      </span>
+                      <span className="text-xs font-mono font-bold text-white tabular-nums">
+                        {formatted}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Official badge */}
+                {vibe.is_official && (
+                  <div className="absolute bottom-3 left-3 bg-gold/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg shadow-gold/30">
+                    <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">
+                      ⭐ Officiel
+                    </span>
                   </div>
                 )}
               </div>
 
-              {/* Info */}
-              <div className="p-4 space-y-2">
+              {/* Info + CTAs */}
+              <div className="px-4 pt-3 pb-4 space-y-3">
+                {/* Location */}
                 {vibe.location && (
-                  <div className="flex items-center gap-2 text-foreground">
+                  <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-gold shrink-0" />
-                    <span className="text-sm font-medium">{vibe.location}</span>
+                    <span className="text-sm font-display font-semibold text-foreground">
+                      {vibe.location}
+                    </span>
                   </div>
                 )}
-                <div className={`flex items-center gap-2 text-muted-foreground ${!vibe.is_official && isUnderTwoHours(vibe.created_at) ? "vibe-radar-pulse" : ""}`}>
-                  <Clock className="w-3.5 h-3.5 shrink-0" />
-                  <span className="text-xs">{vibeCountdown(vibe.created_at, vibe.is_official) || timeAgo(vibe.created_at)}</span>
-                  {vibe.is_official && <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded-full font-semibold">OFFICIEL</span>}
+
+                {/* CTA Buttons */}
+                <div className="flex gap-2">
+                  {/* VIP Pass CTA */}
+                  <button
+                    onClick={handleVipCta}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all active:scale-[0.97] border border-gold/30 shadow-lg shadow-gold/10"
+                    style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+                  >
+                    <Crown className="w-4 h-4 text-primary-foreground" />
+                    <span className="text-primary-foreground">
+                      {user ? "🌟 Pass VIP" : "🌟 Devenir VIP"}
+                    </span>
+                  </button>
+
+                  {/* Taxi CTA */}
+                  {vibe.location && (
+                    <button
+                      onClick={handleTaxi}
+                      disabled={taxiLoading}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm bg-surface border border-border text-foreground transition-all active:scale-[0.97] hover:border-gold/30 disabled:opacity-60"
+                    >
+                      {taxiLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-gold" />
+                      ) : (
+                        <Car className="w-4 h-4 text-gold" />
+                      )}
+                      <span>🚕 Y aller</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Jemaride attribution */}
+                <div className="flex items-center justify-center gap-1.5">
+                  <ShieldCheck className="w-3 h-3 text-muted-foreground/50" />
+                  <span className="text-[9px] text-muted-foreground/60 font-medium">
+                    Transport sécurisé — Jemaride
+                  </span>
                 </div>
               </div>
             </div>
