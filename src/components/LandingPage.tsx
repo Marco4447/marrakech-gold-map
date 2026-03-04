@@ -176,6 +176,40 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           </div>
         </motion.div>
 
+        {/* Live vibes preview strip */}
+        {recentVibes.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65, duration: 0.5 }}
+            className="space-y-2"
+          >
+            <div className="flex items-center gap-1.5">
+              <Eye className="w-3 h-3 text-gold" />
+              <span className="text-[10px] font-semibold text-foreground/70 uppercase tracking-wider">En ce moment à Kech</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {recentVibes.map((vibe, i) => (
+                <div
+                  key={vibe.id}
+                  className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-gold/20"
+                  style={{ filter: i > 1 ? "blur(3px)" : "none" }}
+                >
+                  <img src={vibe.image_url} alt="" className="w-full h-full object-cover" />
+                  {i > 1 && (
+                    <div className="absolute inset-0 bg-background/40 flex items-center justify-center">
+                      <span className="text-[8px] font-bold text-foreground">🔒</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="w-14 h-14 rounded-xl border border-dashed border-gold/30 flex items-center justify-center shrink-0">
+                <span className="text-[8px] text-gold font-semibold text-center leading-tight">Inscris-<br/>toi</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
