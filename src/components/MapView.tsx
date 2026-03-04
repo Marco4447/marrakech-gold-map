@@ -7,6 +7,7 @@ import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
 import TopLivePlaces from "./TopLivePlaces";
 import RecentVibesPanel from "./RecentVibesPanel";
+import MapSearchBar from "./MapSearchBar";
 import { LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation, Building2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
