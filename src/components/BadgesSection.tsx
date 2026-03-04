@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Compass, Flame, Crown, Lock, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface Badge {
   id: string;
@@ -78,11 +79,45 @@ export default function BadgesSection({ userId }: { userId: string }) {
     fetchStats();
   }, [userId]);
 
-  if (loading) return null;
+  const prevUnlockedRef = useRef<Set<string>>(new Set());
+  const hasInitialized = useRef(false);
 
   const unlockedBadges = BADGES.filter((b) => stats[b.metric] >= b.threshold);
   const lockedBadges = BADGES.filter((b) => stats[b.metric] < b.threshold);
   const tier = getTier(unlockedBadges.length);
+
+  // Detect newly unlocked badges and show toast
+  useEffect(() => {
+    if (loading) return;
+
+    const seenKey = `wk_badges_seen_${userId}`;
+    const seenRaw = localStorage.getItem(seenKey);
+    const seenSet: Set<string> = seenRaw ? new Set(JSON.parse(seenRaw)) : new Set();
+
+    if (!hasInitialized.current) {
+      // First load: check for new badges since last visit
+      hasInitialized.current = true;
+      const newBadges = unlockedBadges.filter((b) => !seenSet.has(b.id));
+      if (newBadges.length > 0 && seenRaw !== null) {
+        // Only toast if user had previously seen badges (not first ever visit)
+        newBadges.forEach((badge, i) => {
+          setTimeout(() => {
+            toast({
+              title: `${badge.emoji} Badge débloqué !`,
+              description: `${badge.label} — ${badge.desc}`,
+            });
+          }, 800 + i * 1200);
+        });
+      }
+    }
+
+    // Save all currently unlocked as seen
+    const allUnlocked = unlockedBadges.map((b) => b.id);
+    localStorage.setItem(seenKey, JSON.stringify(allUnlocked));
+    prevUnlockedRef.current = new Set(allUnlocked);
+  }, [loading, unlockedBadges, userId]);
+
+  if (loading) return null;
 
   const nextBadge = lockedBadges[0];
   const nextProgress = nextBadge
