@@ -621,7 +621,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       </div>
 
       {/* Filter chips — compact */}
-      <div className="absolute top-[105px] left-0 right-0 z-[1000] px-3">
+      <div className="absolute top-[108px] left-0 right-0 z-[999] px-3">
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setActiveFilter(null)}
