@@ -636,8 +636,56 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       {/* Recent vibes panel */}
       <RecentVibesPanel
         onVibeClick={(vibe) => {
-          if (vibe.latitude && vibe.longitude) {
-            mapRef.current?.flyTo([vibe.latitude, vibe.longitude], 16, { duration: 0.8 });
+          if (vibe.latitude && vibe.longitude && mapRef.current) {
+            mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
+
+            // Remove previous pulse marker if any
+            if ((mapRef.current as any)._pulseMarker) {
+              (mapRef.current as any)._pulseMarker.remove();
+            }
+
+            // Create pulsing highlight marker
+            const pulseIcon = L.divIcon({
+              className: "",
+              html: `<div style="
+                width: 48px; height: 48px; position: relative;
+                display: flex; align-items: center; justify-content: center;
+              ">
+                <div style="
+                  position: absolute; inset: 0; border-radius: 50%;
+                  background: radial-gradient(circle, hsla(43,80%,55%,0.5), transparent 70%);
+                  animation: vibe-pulse 1.5s ease-out infinite;
+                "></div>
+                <div style="
+                  position: absolute; inset: 4px; border-radius: 50%;
+                  background: radial-gradient(circle, hsla(43,80%,55%,0.35), transparent 70%);
+                  animation: vibe-pulse 1.5s ease-out 0.3s infinite;
+                "></div>
+                <div style="
+                  width: 14px; height: 14px; border-radius: 50%;
+                  background: hsl(43,80%,55%); border: 2px solid white;
+                  box-shadow: 0 0 12px hsla(43,80%,55%,0.8);
+                  z-index: 1;
+                "></div>
+              </div>`,
+              iconSize: [48, 48],
+              iconAnchor: [24, 24],
+            });
+
+            const pulseMarker = L.marker([vibe.latitude, vibe.longitude], {
+              icon: pulseIcon,
+              zIndexOffset: 9000,
+            }).addTo(mapRef.current);
+
+            (mapRef.current as any)._pulseMarker = pulseMarker;
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+              pulseMarker.remove();
+              if ((mapRef.current as any)?._pulseMarker === pulseMarker) {
+                (mapRef.current as any)._pulseMarker = null;
+              }
+            }, 5000);
           }
           setSelectedVibe(vibe as any);
           setVibeSheetOpen(true);
