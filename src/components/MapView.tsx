@@ -606,10 +606,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
           <div className="mt-2 pointer-events-auto">
             <MapSearchBar
               places={places}
-              onSelect={(place) => {
-                setSelectedPlace(place as Place);
-                setSheetOpen(true);
-                mapRef.current?.flyTo([place.latitude, place.longitude], 17, { duration: 1 });
+              onSelect={(searchPlace) => {
+                const fullPlace = places.find((p) => p.id === searchPlace.id);
+                if (fullPlace) {
+                  setSelectedPlace(fullPlace);
+                  setSheetOpen(true);
+                  mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
+                }
               }}
             />
           </div>
