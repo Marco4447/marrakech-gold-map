@@ -272,6 +272,20 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           showAuthCta
           onEnter={onEnter}
         />
+        {/* SEO-friendly content for crawlers */}
+        <div className="sr-only">
+          <h1>Weshkech – Les meilleurs spots de Marrakech en temps réel</h1>
+          <h2>Guide interactif des bars, rooftops, restaurants et clubs à Marrakech</h2>
+          <p>Découvrez où sortir à Marrakech ce soir. Weshkech est le guide local qui vous montre les meilleurs bars, rooftops, restaurants et clubs de Marrakech en temps réel. Carte interactive, avis locaux et bons plans exclusifs.</p>
+          <h3>Meilleurs rooftops Marrakech</h3>
+          <p>Trouvez les meilleurs rooftops de Marrakech avec vue panoramique : ambiance, cocktails et soirées inoubliables dans la ville ocre.</p>
+          <h3>Vie nocturne Marrakech – Nightlife guide</h3>
+          <p>Le guide complet de la vie nocturne à Marrakech : clubs, bars à cocktails, soirées privées et événements exclusifs. Best nightlife spots in Marrakech.</p>
+          <h3>Restaurants Marrakech</h3>
+          <p>Les meilleurs restaurants de Marrakech : cuisine marocaine traditionnelle, gastronomie internationale, terrasses et ambiances uniques.</p>
+          <h3>Bons plans et deals exclusifs Marrakech</h3>
+          <p>Profitez d'avantages exclusifs chez les meilleurs établissements de Marrakech avec le Pass Insider Weshkech. Réductions, accès VIP et surprises.</p>
+        </div>
       </div>
     </motion.div>
   );
