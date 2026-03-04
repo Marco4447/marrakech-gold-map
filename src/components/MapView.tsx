@@ -601,7 +601,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
   return (
     <div className="relative h-full w-full">
-      <div ref={containerRef} className="h-full w-full z-0" />
+      <div
+        ref={containerRef}
+        className="h-full w-full z-0 transition-[filter] duration-500 ease-out"
+        style={{ filter: sheetOpen || vibeSheetOpen ? "blur(6px) brightness(0.7)" : "none" }}
+      />
 
       {/* ===== UNIFIED HEADER: Logo + Search + Filters ===== */}
       <div className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none">
