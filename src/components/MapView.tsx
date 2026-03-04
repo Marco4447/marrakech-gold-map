@@ -608,72 +608,83 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       />
 
       {/* ===== UNIFIED HEADER: Logo + Search + Filters ===== */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none">
-        <div className="px-3 pt-10 pb-1 bg-gradient-to-b from-background via-background/90 to-transparent">
-          {/* Row 1: Logo + Search */}
-          <div className="flex items-center gap-2 pointer-events-auto">
-            <motion.div
-              className="flex items-center gap-1.5 shrink-0"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
-            >
-              <img src="/logo_72.png" alt="Weshkech" className="w-6 h-6 rounded-md" />
-              <span className="font-display text-base font-bold tracking-tight">
-                <span className="text-gold">W</span>
-                <span className="text-foreground/90">K</span>
-              </span>
-            </motion.div>
-            <div className="flex-1 min-w-0">
-              <MapSearchBar
-                places={places}
-                onSelect={(searchPlace) => {
-                  const fullPlace = places.find((p) => p.id === searchPlace.id);
-                  if (fullPlace) {
-                    setSelectedPlace(fullPlace);
-                    setSheetOpen(true);
-                    mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
-                  }
-                }}
-              />
-            </div>
-            <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-foreground text-[9px] font-medium">
-                {placesLoading ? "…" : `${places.length}`}
-              </span>
-            </div>
-          </div>
+      <AnimatePresence>
+        {!sheetOpen && !vibeSheetOpen && (
+          <motion.div
+            key="unified-header"
+            className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <div className="px-3 pt-10 pb-1 bg-gradient-to-b from-background via-background/90 to-transparent">
+              {/* Row 1: Logo + Search */}
+              <div className="flex items-center gap-2 pointer-events-auto">
+                <motion.div
+                  className="flex items-center gap-1.5 shrink-0"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
+                >
+                  <img src="/logo_72.png" alt="Weshkech" className="w-6 h-6 rounded-md" />
+                  <span className="font-display text-base font-bold tracking-tight">
+                    <span className="text-gold">W</span>
+                    <span className="text-foreground/90">K</span>
+                  </span>
+                </motion.div>
+                <div className="flex-1 min-w-0">
+                  <MapSearchBar
+                    places={places}
+                    onSelect={(searchPlace) => {
+                      const fullPlace = places.find((p) => p.id === searchPlace.id);
+                      if (fullPlace) {
+                        setSelectedPlace(fullPlace);
+                        setSheetOpen(true);
+                        mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-foreground text-[9px] font-medium">
+                    {placesLoading ? "…" : `${places.length}`}
+                  </span>
+                </div>
+              </div>
 
-          {/* Row 2: Filter chips — inline, compact */}
-          <div className="flex gap-1 overflow-x-auto no-scrollbar mt-1.5 pointer-events-auto">
-            <button
-              onClick={() => setActiveFilter(null)}
-              className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all border ${
-                activeFilter === null
-                  ? "bg-gold text-primary-foreground border-gold"
-                  : "bg-card/80 backdrop-blur-md text-muted-foreground border-border"
-              }`}
-            >
-              Tous
-            </button>
-            {MOOD_FILTERS.map((mood) => (
-              <button
-                key={mood.key}
-                onClick={() => setActiveFilter(activeFilter === mood.key ? null : mood.key)}
-                className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all border ${
-                  activeFilter === mood.key
-                    ? "bg-gold text-primary-foreground border-gold"
-                    : "bg-card/80 backdrop-blur-md text-muted-foreground border-border"
-                }`}
-              >
-                <span className="text-[10px]">{mood.emoji}</span>
-                {mood.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+              {/* Row 2: Filter chips — inline, compact */}
+              <div className="flex gap-1 overflow-x-auto no-scrollbar mt-1.5 pointer-events-auto">
+                <button
+                  onClick={() => setActiveFilter(null)}
+                  className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all border ${
+                    activeFilter === null
+                      ? "bg-gold text-primary-foreground border-gold"
+                      : "bg-card/80 backdrop-blur-md text-muted-foreground border-border"
+                  }`}
+                >
+                  Tous
+                </button>
+                {MOOD_FILTERS.map((mood) => (
+                  <button
+                    key={mood.key}
+                    onClick={() => setActiveFilter(activeFilter === mood.key ? null : mood.key)}
+                    className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all border ${
+                      activeFilter === mood.key
+                        ? "bg-gold text-primary-foreground border-gold"
+                        : "bg-card/80 backdrop-blur-md text-muted-foreground border-border"
+                    }`}
+                  >
+                    <span className="text-[10px]">{mood.emoji}</span>
+                    {mood.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Recent vibes panel — animated fade in/out */}
       <AnimatePresence>
