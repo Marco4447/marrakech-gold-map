@@ -60,11 +60,21 @@ const Index = () => {
   }, [user]);
 
   const handleEnter = () => {
-    // Landing CTA clicked — trigger Google auth via AuthGate
-    // The landing will be hidden once user logs in (useEffect above)
     localStorage.setItem("wk_landed", "1");
     setShowLanding(false);
   };
+
+  // Handle deep link flyto from /place/:id or /vibe/:id
+  useEffect(() => {
+    const stored = sessionStorage.getItem("wk_flyto");
+    if (stored) {
+      sessionStorage.removeItem("wk_flyto");
+      try {
+        const { lat, lng } = JSON.parse(stored);
+        if (lat && lng) setFlyToCoords({ lat, lng });
+      } catch {}
+    }
+  }, []);
 
   const handleWelcomeComplete = (coords: { lat: number; lng: number } | null) => {
     setShowWelcome(false);
