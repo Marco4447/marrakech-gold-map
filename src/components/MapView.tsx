@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
 import TopLivePlaces from "./TopLivePlaces";
+import RecentVibesPanel from "./RecentVibesPanel";
 import { LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation, Building2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -631,6 +632,17 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
           ))}
         </div>
       </div>
+
+      {/* Recent vibes panel */}
+      <RecentVibesPanel
+        onVibeClick={(vibe) => {
+          if (vibe.latitude && vibe.longitude) {
+            mapRef.current?.flyTo([vibe.latitude, vibe.longitude], 16, { duration: 0.8 });
+          }
+          setSelectedVibe(vibe as any);
+          setVibeSheetOpen(true);
+        }}
+      />
 
       {/* Top 3 Live Places — lower position, doesn't crowd filters */}
       <div className="absolute top-[100px] left-0 right-0 z-[1000] px-3">
