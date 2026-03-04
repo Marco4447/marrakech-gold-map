@@ -703,7 +703,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       />
 
       {/* Top 3 Live Places — lower position, doesn't crowd filters */}
-      <div className="absolute top-[100px] left-0 right-0 z-[1000] px-3">
+      <div className="absolute top-[140px] left-0 right-0 z-[1000] px-3">
         <TopLivePlaces
           onPlaceClick={(name) => {
             const place = places.find(p => p.name === name);
