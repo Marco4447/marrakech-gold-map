@@ -603,74 +603,71 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full z-0" />
 
-      {/* Compact header */}
+      {/* ===== UNIFIED HEADER: Logo + Search + Filters ===== */}
       <div className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none">
-        <div className="px-4 pt-10 pb-2 bg-gradient-to-b from-background via-background/80 to-transparent">
-          <div className="flex items-center justify-between pointer-events-auto">
+        <div className="px-3 pt-10 pb-1 bg-gradient-to-b from-background via-background/90 to-transparent">
+          {/* Row 1: Logo + Search */}
+          <div className="flex items-center gap-2 pointer-events-auto">
             <motion.div
-              className="flex items-center gap-2"
+              className="flex items-center gap-1.5 shrink-0"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
             >
-              <img src="/logo_72.png" alt="Weshkech" className="w-7 h-7 rounded-lg" />
-              <h1 className="font-display text-xl font-bold tracking-tight">
-                <span className="text-gold">Wesh</span>
-                <span className="text-foreground/90">kech</span>
-              </h1>
+              <img src="/logo_72.png" alt="Weshkech" className="w-6 h-6 rounded-md" />
+              <span className="font-display text-base font-bold tracking-tight">
+                <span className="text-gold">W</span>
+                <span className="text-foreground/90">K</span>
+              </span>
             </motion.div>
-            <div className="flex items-center gap-1.5 bg-card/60 backdrop-blur-md border border-border rounded-full px-2.5 py-1">
+            <div className="flex-1 min-w-0">
+              <MapSearchBar
+                places={places}
+                onSelect={(searchPlace) => {
+                  const fullPlace = places.find((p) => p.id === searchPlace.id);
+                  if (fullPlace) {
+                    setSelectedPlace(fullPlace);
+                    setSheetOpen(true);
+                    mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
+                  }
+                }}
+              />
+            </div>
+            <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-foreground text-[10px] font-medium">
-                {placesLoading ? "Chargement…" : placesError ? placesError : `${places.length} spots`}
-              </p>
+              <span className="text-foreground text-[9px] font-medium">
+                {placesLoading ? "…" : `${places.length}`}
+              </span>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Search bar — positioned below header, above filters */}
-      <div className="absolute top-[72px] left-0 right-0 z-[2000] px-4 pointer-events-auto">
-        <MapSearchBar
-          places={places}
-          onSelect={(searchPlace) => {
-            const fullPlace = places.find((p) => p.id === searchPlace.id);
-            if (fullPlace) {
-              setSelectedPlace(fullPlace);
-              setSheetOpen(true);
-              mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
-            }
-          }}
-        />
-      </div>
-
-      {/* Filter chips — compact */}
-      <div className="absolute top-[108px] left-0 right-0 z-[999] px-3">
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          <button
-            onClick={() => setActiveFilter(null)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all border ${
-              activeFilter === null
-                ? "bg-gold text-primary-foreground border-gold"
-                : "bg-[hsl(0,0%,12%,0.92)] backdrop-blur-xl text-[hsl(30,20%,80%)] border-[hsl(0,0%,25%)]"
-            }`}
-          >
-            Tous
-          </button>
-          {MOOD_FILTERS.map((mood) => (
+          {/* Row 2: Filter chips — inline, compact */}
+          <div className="flex gap-1 overflow-x-auto no-scrollbar mt-1.5 pointer-events-auto">
             <button
-              key={mood.key}
-              onClick={() => setActiveFilter(activeFilter === mood.key ? null : mood.key)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all border ${
-                activeFilter === mood.key
+              onClick={() => setActiveFilter(null)}
+              className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all border ${
+                activeFilter === null
                   ? "bg-gold text-primary-foreground border-gold"
-                  : "bg-[hsl(0,0%,12%,0.92)] backdrop-blur-xl text-[hsl(30,20%,80%)] border-[hsl(0,0%,25%)]"
+                  : "bg-card/80 backdrop-blur-md text-muted-foreground border-border"
               }`}
             >
-              <span className="text-xs">{mood.emoji}</span>
-              {mood.label}
+              Tous
             </button>
-          ))}
+            {MOOD_FILTERS.map((mood) => (
+              <button
+                key={mood.key}
+                onClick={() => setActiveFilter(activeFilter === mood.key ? null : mood.key)}
+                className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all border ${
+                  activeFilter === mood.key
+                    ? "bg-gold text-primary-foreground border-gold"
+                    : "bg-card/80 backdrop-blur-md text-muted-foreground border-border"
+                }`}
+              >
+                <span className="text-[10px]">{mood.emoji}</span>
+                {mood.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -730,8 +727,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         }}
       />
 
-      {/* Top 3 Live Places — lower position, doesn't crowd filters */}
-      <div className="absolute top-[140px] left-0 right-0 z-[1000] px-3">
+      {/* Top Live Places — compact, auto-collapses */}
+      <div className="absolute top-[100px] left-0 right-0 z-[999] px-3">
         <TopLivePlaces
           onPlaceClick={(name) => {
             const place = places.find(p => p.name === name);

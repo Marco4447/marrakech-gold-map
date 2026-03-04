@@ -52,8 +52,8 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 200)}
-          placeholder="Rechercher un lieu, quartier…"
-          className="w-full pl-8 pr-8 py-2 rounded-xl bg-card/90 backdrop-blur-xl border border-border text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold/40 transition-colors"
+          placeholder="Rechercher…"
+          className="w-full pl-7 pr-7 py-1.5 rounded-lg bg-card/90 backdrop-blur-xl border border-border text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold/40 transition-colors"
         />
         {query && (
           <button onClick={() => { setQuery(""); inputRef.current?.focus(); }} className="absolute right-2.5">
