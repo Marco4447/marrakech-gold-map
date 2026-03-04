@@ -43,12 +43,6 @@ serve(async (req) => {
     });
     if (!isAdmin) throw new Error("Not authorized");
 
-    const { data: isAdmin } = await supabaseClient.rpc("has_role", {
-      _user_id: userData.user.id,
-      _role: "admin",
-    });
-    if (!isAdmin) throw new Error("Not authorized");
-
     // --- Stripe stats ---
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     let stripeStats = null;
