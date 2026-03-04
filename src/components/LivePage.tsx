@@ -19,6 +19,14 @@ interface VibeProfile {
   is_vip?: boolean;
 }
 
+// Badge tier logic (mirrors BadgesSection)
+function getUserTier(vibeCount: number): { emoji: string; label: string } | null {
+  if (vibeCount >= 20) return { emoji: "👑", label: "Legend" };
+  if (vibeCount >= 5) return { emoji: "🔥", label: "Insider" };
+  if (vibeCount >= 1) return { emoji: "🧭", label: "Explorer" };
+  return null;
+}
+
 interface Vibe {
   id: string;
   image_url: string;
@@ -183,6 +191,12 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     return !localStorage.getItem("weshkech_vibez_tutorial_seen");
   });
   const commentCounts = useCommentCounts(vibes.map((v) => v.id));
+
+  // Compute vibe counts per user for tier badges
+  const userVibeCounts: Record<string, number> = {};
+  vibes.forEach((v) => {
+    if (v.user_id) userVibeCounts[v.user_id] = (userVibeCounts[v.user_id] || 0) + 1;
+  });
 
   // Upload state
   const [showUpload, setShowUpload] = useState(false);
@@ -557,6 +571,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <p className="text-xs font-semibold text-foreground truncate flex items-center gap-1">
                           {getDisplayName(vibe)}
                           {vibe.profile?.is_vip && <Crown className="w-3 h-3 text-gold" />}
+                          {vibe.user_id && getUserTier(userVibeCounts[vibe.user_id] || 0) && (
+                            <span className="text-[9px] opacity-80">{getUserTier(userVibeCounts[vibe.user_id] || 0)!.emoji}</span>
+                          )}
                         </p>
                       </div>
                       {vibe.location && (
@@ -667,6 +684,11 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                               )}
                               {!vibe.is_official && vibe.profile?.is_vip && (
                                 <Crown className="w-3.5 h-3.5 text-gold drop-shadow-[0_0_4px_hsl(43,56%,52%,0.4)]" />
+                              )}
+                              {!vibe.is_official && vibe.user_id && getUserTier(userVibeCounts[vibe.user_id] || 0) && (
+                                <span className="text-[10px] bg-gold/10 text-gold/90 px-1.5 py-0.5 rounded-full font-semibold">
+                                  {getUserTier(userVibeCounts[vibe.user_id] || 0)!.emoji} {getUserTier(userVibeCounts[vibe.user_id] || 0)!.label}
+                                </span>
                               )}
                             </p>
                             {vibe.location && (
