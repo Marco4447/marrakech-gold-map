@@ -86,12 +86,12 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/place/${place.id}`;
+    const ogUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-place?id=${place.id}`;
     const text = `${place.name} sur Weshkech 🔥`;
     if (navigator.share) {
-      try { await navigator.share({ title: place.name, text, url }); } catch {}
+      try { await navigator.share({ title: place.name, text, url: ogUrl }); } catch {}
     } else {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(ogUrl);
     }
   };
 
