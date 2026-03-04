@@ -758,19 +758,29 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Floating bubble — delayed + dismissible */}
-      {showBubble && !bubbleDismissed && (
-        <FloatingBubble
-          places={places}
-          bubbleIndex={bubbleIndex}
-          setBubbleIndex={setBubbleIndex}
-          onPlaceClick={(place) => { setSelectedPlace(place); setSheetOpen(true); }}
-          onDismiss={() => {
-            setBubbleDismissed(true);
-            localStorage.setItem("wk_bubble_dismissed", "1");
-          }}
-        />
-      )}
+      {/* Floating bubble — delayed + dismissible, hidden when sheet open */}
+      <AnimatePresence>
+        {showBubble && !bubbleDismissed && !sheetOpen && !vibeSheetOpen && (
+          <motion.div
+            key="floating-bubble"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+          >
+            <FloatingBubble
+              places={places}
+              bubbleIndex={bubbleIndex}
+              setBubbleIndex={setBubbleIndex}
+              onPlaceClick={(place) => { setSelectedPlace(place); setSheetOpen(true); }}
+              onDismiss={() => {
+                setBubbleDismissed(true);
+                localStorage.setItem("wk_bubble_dismissed", "1");
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Controls — 2 buttons only: GPS + Recenter */}
       <div className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-2">
