@@ -247,15 +247,15 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   {/* ===== ACTION BUTTONS ===== */}
                   <div className="flex gap-2 pt-1">
                     {/* J'y vais — Google Maps */}
-                    <a
-                      href={googleMapsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => {
+                        window.location.href = googleMapsUrl;
+                      }}
                       className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
                     >
                       <Navigation className="w-4 h-4" />
                       J'y vais
-                    </a>
+                    </button>
                     {/* Share */}
                     <button
                       onClick={handleShare}
