@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { ttqTrack } from "@/lib/ttq";
 
 const VIP_PRICE_ID = "price_1T6lnGJ8RyilXHbfsZBKku0a";
 
@@ -68,6 +69,7 @@ export default function VipPass() {
 
   const handlePurchase = async () => {
     if (!user) { toast.error("Connecte-toi d'abord"); return; }
+    ttqTrack("InitiateCheckout", { content_name: "insider_pass", value: 4.90, currency: "EUR" });
     setPurchasing(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
