@@ -797,23 +797,34 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Controls — 2 buttons only: GPS + Recenter */}
-      <div className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-2">
-        <button
-          onClick={handleGeolocate}
-          className="w-10 h-10 rounded-full bg-gold/90 backdrop-blur-xl border border-gold-dark/40 flex items-center justify-center text-primary-foreground shadow-lg active:scale-95 transition-transform"
-          title="Ma position"
-        >
-          <Navigation className="w-4 h-4" />
-        </button>
-        <button
-          onClick={handleRecenter}
-          className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-gold/30 flex items-center justify-center text-gold shadow-lg active:scale-95 transition-transform"
-          title="Marrakech"
-        >
-          <LocateFixed className="w-4 h-4" />
-        </button>
-      </div>
+      {/* Controls — GPS + Recenter, hidden when sheet open */}
+      <AnimatePresence>
+        {!sheetOpen && !vibeSheetOpen && (
+          <motion.div
+            key="map-controls"
+            className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-2"
+            initial={{ opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 12 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+          >
+            <button
+              onClick={handleGeolocate}
+              className="w-10 h-10 rounded-full bg-gold/90 backdrop-blur-xl border border-gold-dark/40 flex items-center justify-center text-primary-foreground shadow-lg active:scale-95 transition-transform"
+              title="Ma position"
+            >
+              <Navigation className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleRecenter}
+              className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-gold/30 flex items-center justify-center text-gold shadow-lg active:scale-95 transition-transform"
+              title="Marrakech"
+            >
+              <LocateFixed className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Legend — only when bubble is dismissed */}
       {bubbleDismissed && <CollapsibleLegend categories={categories} />}
