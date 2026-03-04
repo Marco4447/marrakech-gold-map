@@ -131,7 +131,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
 
           {/* Sheet */}
           <motion.div
-            className="absolute bottom-0 left-0 right-0 z-[1002] px-3 pb-3"
+            className="absolute bottom-0 left-0 right-0 z-[1002] px-3 pb-20 max-h-[85vh] flex flex-col"
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
@@ -143,12 +143,13 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
               if (info.offset.y > 80 || info.velocity.y > 300) onOpenChange(false);
             }}
           >
-            <div className="vibe-sheet-glass rounded-3xl overflow-hidden shadow-2xl shadow-black/40 border border-white/[0.06]">
+            <div className="vibe-sheet-glass rounded-3xl overflow-hidden shadow-2xl shadow-black/40 border border-white/[0.06] flex flex-col max-h-full">
               {/* Drag handle */}
               <div className="flex items-center justify-center pt-3 pb-1">
                 <div className="w-10 h-1 rounded-full bg-white/20" />
               </div>
 
+              <div className="overflow-y-auto no-scrollbar flex-1">
               {/* Media — 60% of sheet */}
               <div className="relative h-[55vw] max-h-[340px] overflow-hidden mx-3 rounded-2xl">
                 {isVideo ? (
@@ -254,6 +255,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                   </button>
                 </div>
               </div>
+              </div>{/* end overflow scroll */}
             </div>
           </motion.div>
         </>
