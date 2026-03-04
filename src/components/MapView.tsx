@@ -733,19 +733,30 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Top Live Places — compact, auto-collapses */}
-      <div className="absolute top-[100px] left-0 right-0 z-[999] px-3">
-        <TopLivePlaces
-          onPlaceClick={(name) => {
-            const place = places.find(p => p.name === name);
-            if (place) {
-              setSelectedPlace(place);
-              setSheetOpen(true);
-              mapRef.current?.flyTo([place.latitude, place.longitude], 16, { duration: 0.8 });
-            }
-          }}
-        />
-      </div>
+      {/* Top Live Places — animated fade in/out */}
+      <AnimatePresence>
+        {!sheetOpen && !vibeSheetOpen && (
+          <motion.div
+            key="top-live-places"
+            className="absolute top-[100px] left-0 right-0 z-[999] px-3"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+          >
+            <TopLivePlaces
+              onPlaceClick={(name) => {
+                const place = places.find(p => p.name === name);
+                if (place) {
+                  setSelectedPlace(place);
+                  setSheetOpen(true);
+                  mapRef.current?.flyTo([place.latitude, place.longitude], 16, { duration: 0.8 });
+                }
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Floating bubble — delayed + dismissible */}
       {showBubble && !bubbleDismissed && (
