@@ -247,7 +247,7 @@ function CollapsibleLegend({ categories }: { categories: [string, { emoji: strin
   );
 }
 
-export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null }) {
+export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null }) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -359,6 +359,19 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       mapRef.current.flyTo([flyToCoords.lat, flyToCoords.lng], 17, { duration: 1.2 });
     }
   }, [flyToCoords]);
+
+  // Auto-open place sheet from deep link
+  useEffect(() => {
+    if (deepLinkPlaceId && places.length > 0) {
+      const place = places.find(p => p.id === deepLinkPlaceId);
+      if (place) {
+        setTimeout(() => {
+          setSelectedPlace(place);
+          setSheetOpen(true);
+        }, 1400); // wait for flyTo animation
+      }
+    }
+  }, [deepLinkPlaceId, places]);
 
   // Fetch places
   useEffect(() => {
