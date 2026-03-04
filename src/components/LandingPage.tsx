@@ -1,10 +1,17 @@
 import { forwardRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Camera, Gift, ChevronRight, Zap, Star, Map } from "lucide-react";
+import { MapPin, Camera, Gift, ChevronRight, Zap, Star, Map, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/marrakech-hero.jpg";
 import ambientVideo from "@/assets/marrakech-ambiance.mp4";
+
+interface RecentVibePreview {
+  id: string;
+  image_url: string;
+  location: string | null;
+  mood: string | null;
+}
 
 interface LandingPageProps {
   onEnter: () => void;
@@ -41,11 +48,21 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [insiderCount, setInsiderCount] = useState<number | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [recentVibes, setRecentVibes] = useState<RecentVibePreview[]>([]);
 
   useEffect(() => {
     supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
       setInsiderCount(count ?? 0);
     });
+    // Fetch recent vibes for preview
+    supabase
+      .from("vibes")
+      .select("id, image_url, location, mood")
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .then(({ data }) => {
+        if (data) setRecentVibes(data as RecentVibePreview[]);
+      });
   }, []);
 
   // Auto-advance preview carousel
