@@ -99,6 +99,19 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
   const { user } = useAuth();
   const { formatted, expired } = useVibeCountdown(vibe?.created_at ?? null, vibe?.is_official);
 
+  // TikTok ViewContent tracking
+  useEffect(() => {
+    if (open && vibe) {
+      import("@/lib/ttq").then(({ ttqTrack }) => {
+        ttqTrack("ViewContent", {
+          content_type: "vibe",
+          content_id: vibe.id,
+          content_name: vibe.location || "vibe",
+        });
+      });
+    }
+  }, [open, vibe?.id]);
+
   // Auto-close when vibe expires
   useEffect(() => {
     if (expired && open) {

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ttqTrack } from "@/lib/ttq";
 import type { User } from "@supabase/supabase-js";
 
 interface Profile {
@@ -100,6 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
 
         if (currentUser) {
+          if (_event === "SIGNED_IN") {
+            ttqTrack("CompleteRegistration", { content_name: "google_oauth" });
+          }
           fetchProfile(currentUser).catch((e) => {
             console.error("Failed to fetch profile:", e);
           });
