@@ -671,8 +671,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         </div>
       </div>
 
-      {/* Recent vibes panel */}
-      <RecentVibesPanel
+      {/* Recent vibes panel — hidden when a sheet is open */}
+      {!sheetOpen && !vibeSheetOpen && <RecentVibesPanel
         onVibeClick={(vibe) => {
           // Haptic feedback (vibration) + pop sound
           if (navigator.vibrate) navigator.vibrate(30);
@@ -725,7 +725,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           setSelectedVibe(vibe as any);
           setVibeSheetOpen(true);
         }}
-      />
+      />}
 
       {/* Top Live Places — compact, auto-collapses */}
       <div className="absolute top-[100px] left-0 right-0 z-[999] px-3">
