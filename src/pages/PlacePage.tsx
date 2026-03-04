@@ -19,7 +19,7 @@ export default function PlacePage() {
         setLoading(false);
         if (data) {
           // Store coords in sessionStorage and redirect to map
-          sessionStorage.setItem("wk_flyto", JSON.stringify({ lat: data.latitude, lng: data.longitude, name: data.name }));
+          sessionStorage.setItem("wk_flyto", JSON.stringify({ lat: data.latitude, lng: data.longitude, name: data.name, placeId: id }));
           navigate("/", { replace: true });
         } else {
           navigate("/", { replace: true });

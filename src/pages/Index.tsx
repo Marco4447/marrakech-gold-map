@@ -67,13 +67,15 @@ const Index = () => {
   };
 
   // Handle deep link flyto from /place/:id or /vibe/:id
+  const [deepLinkPlaceId, setDeepLinkPlaceId] = useState<string | null>(null);
   useEffect(() => {
     const stored = sessionStorage.getItem("wk_flyto");
     if (stored) {
       sessionStorage.removeItem("wk_flyto");
       try {
-        const { lat, lng } = JSON.parse(stored);
+        const { lat, lng, placeId } = JSON.parse(stored);
         if (lat && lng) setFlyToCoords({ lat, lng });
+        if (placeId) setDeepLinkPlaceId(placeId);
       } catch {}
     }
   }, []);
@@ -131,7 +133,7 @@ const Index = () => {
   return (
     <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
       <div className="flex-1 relative min-h-0 overflow-hidden">
-        {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} />}
+        {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} />}
         {activeTab === "live" && <LivePage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />}
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("map")} />}
       </div>
