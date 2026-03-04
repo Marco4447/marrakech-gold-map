@@ -9,6 +9,7 @@ import LandingPage from "@/components/LandingPage";
 import AuthGate from "@/components/AuthGate";
 import FlashPost from "@/components/FlashPost";
 import WelcomeModal from "@/components/WelcomeModal";
+import ExplainerSheet from "@/components/ExplainerSheet";
 import { useAuth } from "@/hooks/useAuth";
 
 type Tab = "map" | "live" | "profil";
@@ -20,6 +21,7 @@ const Index = () => {
   const [feedRefreshSignal, setFeedRefreshSignal] = useState(0);
   const [flyToCoords, setFlyToCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [authStuck, setAuthStuck] = useState(false);
+  const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const { user, loading } = useAuth();
 
   // Show landing only for users who have never completed onboarding
@@ -147,6 +149,22 @@ const Index = () => {
 
       <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
       <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />
+
+      {/* Floating info button */}
+      <button
+        onClick={() => setExplainerTab("insider")}
+        className="fixed top-4 right-4 z-[1999] w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95"
+        aria-label="En savoir plus"
+      >
+        <span className="text-sm">💡</span>
+      </button>
+
+      {/* Explainer sheet (post-login) */}
+      <ExplainerSheet
+        open={explainerTab !== null}
+        onClose={() => setExplainerTab(null)}
+        initialTab={explainerTab ?? "insider"}
+      />
 
       {/* Welcome tutorial for first-time users (shown AFTER login) */}
       <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />

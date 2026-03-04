@@ -1,10 +1,11 @@
 import { forwardRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Camera, Gift, ChevronRight, Zap, Star, Map, Eye } from "lucide-react";
+import { MapPin, Camera, Gift, ChevronRight, Zap, Star, Map, Eye, Crown, BadgeCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/marrakech-hero.jpg";
 import ambientVideo from "@/assets/marrakech-ambiance.mp4";
+import ExplainerSheet from "@/components/ExplainerSheet";
 
 interface RecentVibePreview {
   id: string;
@@ -49,6 +50,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   const [insiderCount, setInsiderCount] = useState<number | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const [recentVibes, setRecentVibes] = useState<RecentVibePreview[]>([]);
+  const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
 
   useEffect(() => {
     supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
@@ -210,19 +212,38 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           </motion.div>
         )}
 
-        {/* CTA */}
+        {/* Dual CTA */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.5 }}
+          className="space-y-2.5"
         >
           <button
             onClick={onEnter}
             className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.98] text-primary-foreground font-bold py-4 rounded-2xl transition-all duration-200 shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-base tracking-wide flex items-center justify-center gap-2"
           >
+            <Crown className="w-5 h-5" />
             Devenir Insider
             <ChevronRight className="w-5 h-5" />
           </button>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setExplainerTab("insider")}
+              className="flex-1 py-3 rounded-2xl border border-gold/30 bg-gold/5 text-gold text-xs font-semibold transition-all active:scale-[0.97] flex items-center justify-center gap-1.5"
+            >
+              <Crown className="w-3.5 h-3.5" />
+              C'est quoi ?
+            </button>
+            <button
+              onClick={() => setExplainerTab("partner")}
+              className="flex-1 py-3 rounded-2xl border border-border bg-secondary/50 text-secondary-foreground text-xs font-semibold transition-all active:scale-[0.97] flex items-center justify-center gap-1.5"
+            >
+              <BadgeCheck className="w-3.5 h-3.5" />
+              Espace Partenaire
+            </button>
+          </div>
         </motion.div>
 
         {/* 3 Pillars */}
@@ -243,28 +264,14 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           ))}
         </motion.div>
 
-        {/* Links */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.0, duration: 0.5 }}
-          className="flex flex-col items-center gap-2 pt-1"
-        >
-          <Link
-            to="/pricing"
-            className="inline-flex items-center gap-2 text-xs text-gold hover:text-gold-light transition-colors border border-gold/20 rounded-xl px-4 py-2 bg-gold/5"
-          >
-            <Star className="w-3.5 h-3.5" />
-            Découvrir nos formules
-          </Link>
-          <Link
-            to="/business"
-            className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-gold/80 transition-colors"
-          >
-            <Gift className="w-3.5 h-3.5" />
-            Vous êtes partenaire ? Inscrivez votre établissement
-          </Link>
-        </motion.div>
+        {/* Explainer Sheet */}
+        <ExplainerSheet
+          open={explainerTab !== null}
+          onClose={() => setExplainerTab(null)}
+          initialTab={explainerTab ?? "insider"}
+          showAuthCta
+          onEnter={onEnter}
+        />
       </div>
     </motion.div>
   );
