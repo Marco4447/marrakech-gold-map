@@ -7,6 +7,7 @@ import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
 import TopLivePlaces from "./TopLivePlaces";
 import RecentVibesPanel from "./RecentVibesPanel";
+import MapSearchBar from "./MapSearchBar";
 import { LocateFixed, ChevronRight, ChevronDown, ChevronUp, Navigation, Building2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -121,6 +122,7 @@ interface Place {
   rating: number | null;
   is_partner: boolean;
   has_active_offer: boolean;
+  neighborhood: string | null;
 }
 
 interface BubbleItem {
@@ -600,11 +602,22 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
               {placesLoading ? "Chargement…" : placesError ? placesError : `${places.length} spots`}
             </p>
           </div>
+          {/* Search bar */}
+          <div className="mt-2 pointer-events-auto">
+            <MapSearchBar
+              places={places}
+              onSelect={(place) => {
+                setSelectedPlace(place as Place);
+                setSheetOpen(true);
+                mapRef.current?.flyTo([place.latitude, place.longitude], 17, { duration: 1 });
+              }}
+            />
+          </div>
         </div>
       </div>
 
       {/* Filter chips — compact */}
-      <div className="absolute top-[72px] left-0 right-0 z-[1000] px-3">
+      <div className="absolute top-[105px] left-0 right-0 z-[1000] px-3">
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setActiveFilter(null)}
@@ -652,38 +665,19 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
             osc.stop(ctx.currentTime + 0.12);
           } catch {}
 
-
           if (vibe.latitude && vibe.longitude && mapRef.current) {
             mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
 
-            // Remove previous pulse marker if any
             if ((mapRef.current as any)._pulseMarker) {
               (mapRef.current as any)._pulseMarker.remove();
             }
 
-            // Create pulsing highlight marker
             const pulseIcon = L.divIcon({
               className: "",
-              html: `<div style="
-                width: 48px; height: 48px; position: relative;
-                display: flex; align-items: center; justify-content: center;
-              ">
-                <div style="
-                  position: absolute; inset: 0; border-radius: 50%;
-                  background: radial-gradient(circle, hsla(43,80%,55%,0.5), transparent 70%);
-                  animation: vibe-pulse 1.5s ease-out infinite;
-                "></div>
-                <div style="
-                  position: absolute; inset: 4px; border-radius: 50%;
-                  background: radial-gradient(circle, hsla(43,80%,55%,0.35), transparent 70%);
-                  animation: vibe-pulse 1.5s ease-out 0.3s infinite;
-                "></div>
-                <div style="
-                  width: 14px; height: 14px; border-radius: 50%;
-                  background: hsl(43,80%,55%); border: 2px solid white;
-                  box-shadow: 0 0 12px hsla(43,80%,55%,0.8);
-                  z-index: 1;
-                "></div>
+              html: `<div style="width:48px;height:48px;position:relative;display:flex;align-items:center;justify-content:center">
+                <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,hsla(43,80%,55%,0.5),transparent 70%);animation:vibe-pulse 1.5s ease-out infinite"></div>
+                <div style="position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle,hsla(43,80%,55%,0.35),transparent 70%);animation:vibe-pulse 1.5s ease-out 0.3s infinite"></div>
+                <div style="width:14px;height:14px;border-radius:50%;background:hsl(43,80%,55%);border:2px solid white;box-shadow:0 0 12px hsla(43,80%,55%,0.8);z-index:1"></div>
               </div>`,
               iconSize: [48, 48],
               iconAnchor: [24, 24],
@@ -696,7 +690,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
             (mapRef.current as any)._pulseMarker = pulseMarker;
 
-            // Remove after 5 seconds
             setTimeout(() => {
               pulseMarker.remove();
               if ((mapRef.current as any)?._pulseMarker === pulseMarker) {
@@ -710,7 +703,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       />
 
       {/* Top 3 Live Places — lower position, doesn't crowd filters */}
-      <div className="absolute top-[100px] left-0 right-0 z-[1000] px-3">
+      <div className="absolute top-[140px] left-0 right-0 z-[1000] px-3">
         <TopLivePlaces
           onPlaceClick={(name) => {
             const place = places.find(p => p.name === name);

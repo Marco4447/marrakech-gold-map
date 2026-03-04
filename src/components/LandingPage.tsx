@@ -1,10 +1,17 @@
 import { forwardRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Camera, Gift, ChevronRight, Zap, Star, Map } from "lucide-react";
+import { MapPin, Camera, Gift, ChevronRight, Zap, Star, Map, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/marrakech-hero.jpg";
 import ambientVideo from "@/assets/marrakech-ambiance.mp4";
+
+interface RecentVibePreview {
+  id: string;
+  image_url: string;
+  location: string | null;
+  mood: string | null;
+}
 
 interface LandingPageProps {
   onEnter: () => void;
@@ -41,11 +48,21 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [insiderCount, setInsiderCount] = useState<number | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [recentVibes, setRecentVibes] = useState<RecentVibePreview[]>([]);
 
   useEffect(() => {
     supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
       setInsiderCount(count ?? 0);
     });
+    // Fetch recent vibes for preview
+    supabase
+      .from("vibes")
+      .select("id, image_url, location, mood")
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .then(({ data }) => {
+        if (data) setRecentVibes(data as RecentVibePreview[]);
+      });
   }, []);
 
   // Auto-advance preview carousel
@@ -158,6 +175,40 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
             </div>
           </div>
         </motion.div>
+
+        {/* Live vibes preview strip */}
+        {recentVibes.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65, duration: 0.5 }}
+            className="space-y-2"
+          >
+            <div className="flex items-center gap-1.5">
+              <Eye className="w-3 h-3 text-gold" />
+              <span className="text-[10px] font-semibold text-foreground/70 uppercase tracking-wider">En ce moment à Kech</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {recentVibes.map((vibe, i) => (
+                <div
+                  key={vibe.id}
+                  className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-gold/20"
+                  style={{ filter: i > 1 ? "blur(3px)" : "none" }}
+                >
+                  <img src={vibe.image_url} alt="" className="w-full h-full object-cover" />
+                  {i > 1 && (
+                    <div className="absolute inset-0 bg-background/40 flex items-center justify-center">
+                      <span className="text-[8px] font-bold text-foreground">🔒</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="w-14 h-14 rounded-xl border border-dashed border-gold/30 flex items-center justify-center shrink-0">
+                <span className="text-[8px] text-gold font-semibold text-center leading-tight">Inscris-<br/>toi</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* CTA */}
         <motion.div
