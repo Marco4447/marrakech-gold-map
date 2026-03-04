@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import BadgesSection from "@/components/BadgesSection";
+import CommunityLeaderboard from "@/components/CommunityLeaderboard";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
@@ -502,6 +503,9 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
 
       {/* Badges / Gamification */}
       {user && <BadgesSection userId={user.id} />}
+
+      {/* Community Leaderboard */}
+      {user && <CommunityLeaderboard currentUserId={user.id} />}
 
       {/* Partner Dashboard */}
       {isPartner && (
