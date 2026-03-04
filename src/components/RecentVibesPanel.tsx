@@ -13,6 +13,8 @@ interface RecentVibe {
   created_at: string;
   media_type: string;
   is_official: boolean;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 function timeAgo(dateStr: string) {
@@ -35,7 +37,7 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
     const { data } = await supabase
       .from("vibes")
-      .select("id, image_url, location, caption, mood, username, created_at, media_type, is_official")
+      .select("id, image_url, location, caption, mood, username, created_at, media_type, is_official, latitude, longitude")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(20);
