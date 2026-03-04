@@ -106,7 +106,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
         ttqTrack("ViewContent", {
           content_type: "vibe",
           content_id: vibe.id,
-          content_name: vibe.caption || vibe.location || "vibe",
+          content_name: vibe.location || "vibe",
         });
       });
     }
