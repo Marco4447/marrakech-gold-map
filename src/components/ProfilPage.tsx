@@ -500,6 +500,9 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         )}
       </motion.div>
 
+      {/* Badges / Gamification */}
+      {user && <BadgesSection userId={user.id} />}
+
       {/* Partner Dashboard */}
       {isPartner && (
         <motion.div
