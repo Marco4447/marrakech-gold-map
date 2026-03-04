@@ -72,6 +72,7 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
         </span>
         {vibes.length === 0 && <span className="text-[9px] text-muted-foreground/60">aucune</span>}
         {hasNew && <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />}
+        {open ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
       </button>
 
       <AnimatePresence>
