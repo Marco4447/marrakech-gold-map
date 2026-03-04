@@ -607,13 +607,18 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       <div className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none">
         <div className="px-4 pt-10 pb-2 bg-gradient-to-b from-background via-background/80 to-transparent">
           <div className="flex items-center justify-between pointer-events-auto">
-            <div className="flex items-center gap-2">
+            <motion.div
+              className="flex items-center gap-2"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
+            >
               <img src="/logo_72.png" alt="Weshkech" className="w-7 h-7 rounded-lg" />
               <h1 className="font-display text-xl font-bold tracking-tight">
                 <span className="text-gold">Wesh</span>
                 <span className="text-foreground/90">kech</span>
               </h1>
-            </div>
+            </motion.div>
             <div className="flex items-center gap-1.5 bg-card/60 backdrop-blur-md border border-border rounded-full px-2.5 py-1">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <p className="text-foreground text-[10px] font-medium">
