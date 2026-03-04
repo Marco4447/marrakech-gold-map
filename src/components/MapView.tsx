@@ -602,6 +602,17 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
               {placesLoading ? "Chargement…" : placesError ? placesError : `${places.length} spots`}
             </p>
           </div>
+          {/* Search bar */}
+          <div className="mt-2 pointer-events-auto">
+            <MapSearchBar
+              places={places}
+              onSelect={(place) => {
+                setSelectedPlace(place as Place);
+                setSheetOpen(true);
+                mapRef.current?.flyTo([place.latitude, place.longitude], 17, { duration: 1 });
+              }}
+            />
+          </div>
         </div>
       </div>
 
