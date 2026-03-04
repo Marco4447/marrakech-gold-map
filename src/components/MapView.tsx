@@ -683,7 +683,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
       {/* Onboarding tooltips */}
       <AnimatePresence>
-        {onboardingStep >= 0 && (
+        {onboardingStep >= 0 && !sheetOpen && !vibeSheetOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
