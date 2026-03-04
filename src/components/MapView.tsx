@@ -617,7 +617,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       </div>
 
       {/* Filter chips — compact */}
-      <div className="absolute top-[72px] left-0 right-0 z-[1000] px-3">
+      <div className="absolute top-[105px] left-0 right-0 z-[1000] px-3">
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setActiveFilter(null)}
@@ -647,7 +647,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       </div>
 
       {/* Recent vibes panel */}
-      <RecentVibesPanel
+      <RecentVibesPanel onVibeClick={(vibe) => {
         onVibeClick={(vibe) => {
           // Haptic feedback (vibration) + pop sound
           if (navigator.vibrate) navigator.vibrate(30);
