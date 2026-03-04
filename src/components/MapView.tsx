@@ -592,35 +592,36 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
       {/* Compact header */}
       <div className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none">
-        <div className="px-4 pt-10 pb-1 bg-gradient-to-b from-[hsl(0,0%,8%)] via-[hsl(0,0%,8%,0.8)] to-transparent">
-          <div className="flex items-center justify-between">
+        <div className="px-4 pt-10 pb-1 bg-gradient-to-b from-background via-background/80 to-transparent">
+          <div className="flex items-center justify-between pointer-events-auto">
             <h1 className="font-display text-xl font-bold tracking-tight">
               <span className="text-gold">Wesh</span>
-              <span className="text-[hsl(30,20%,90%)]">kech</span>
+              <span className="text-foreground/90">kech</span>
             </h1>
-            <p className="text-[hsl(30,10%,55%)] text-[10px]">
+            <p className="text-muted-foreground text-[10px]">
               {placesLoading ? "Chargement…" : placesError ? placesError : `${places.length} spots`}
             </p>
-          </div>
-          {/* Search bar */}
-          <div className="mt-2 pointer-events-auto">
-            <MapSearchBar
-              places={places}
-              onSelect={(searchPlace) => {
-                const fullPlace = places.find((p) => p.id === searchPlace.id);
-                if (fullPlace) {
-                  setSelectedPlace(fullPlace);
-                  setSheetOpen(true);
-                  mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
-                }
-              }}
-            />
           </div>
         </div>
       </div>
 
+      {/* Search bar — positioned below header, above filters */}
+      <div className="absolute top-[72px] left-0 right-0 z-[2000] px-4 pointer-events-auto">
+        <MapSearchBar
+          places={places}
+          onSelect={(searchPlace) => {
+            const fullPlace = places.find((p) => p.id === searchPlace.id);
+            if (fullPlace) {
+              setSelectedPlace(fullPlace);
+              setSheetOpen(true);
+              mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
+            }
+          }}
+        />
+      </div>
+
       {/* Filter chips — compact */}
-      <div className="absolute top-[105px] left-0 right-0 z-[1000] px-3">
+      <div className="absolute top-[108px] left-0 right-0 z-[999] px-3">
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setActiveFilter(null)}

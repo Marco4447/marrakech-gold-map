@@ -53,7 +53,7 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 200)}
           placeholder="Rechercher un lieu, quartier…"
-          className="w-full pl-8 pr-8 py-2 rounded-xl bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,25%)] text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold/40 transition-colors"
+          className="w-full pl-8 pr-8 py-2 rounded-xl bg-card/90 backdrop-blur-xl border border-border text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold/40 transition-colors"
         />
         {query && (
           <button onClick={() => { setQuery(""); inputRef.current?.focus(); }} className="absolute right-2.5">
@@ -68,13 +68,13 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="absolute top-full mt-1 left-0 right-0 bg-[hsl(0,0%,10%,0.95)] backdrop-blur-xl border border-[hsl(0,0%,20%)] rounded-xl shadow-lg overflow-hidden z-10"
+            className="absolute top-full mt-1 left-0 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-[2000] max-h-[50dvh] overflow-y-auto"
           >
             {results.map((place) => (
               <button
                 key={place.id}
                 onMouseDown={() => handleSelect(place)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-[hsl(0,0%,15%)] transition-colors border-b border-[hsl(0,0%,18%)] last:border-0"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-secondary transition-colors border-b border-border last:border-0"
               >
                 <div className="w-7 h-7 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
                   <MapPin className="w-3.5 h-3.5 text-gold" />
