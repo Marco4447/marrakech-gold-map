@@ -60,10 +60,8 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  if (vibes.length === 0) return null;
-
   return (
-    <div className="absolute top-[135px] right-3 z-[1000] w-[180px]">
+    <div className="absolute top-[60px] right-3 z-[1000] w-[190px]">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,20%)] shadow-lg text-left"
