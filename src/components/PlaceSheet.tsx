@@ -249,7 +249,8 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     {/* J'y vais — Google Maps */}
                     <button
                       onClick={() => {
-                        window.location.href = googleMapsUrl;
+                        const w = window.open(googleMapsUrl, '_blank', 'noopener,noreferrer');
+                        if (!w) window.location.href = googleMapsUrl;
                       }}
                       className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20"
                     >
