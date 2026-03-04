@@ -67,11 +67,11 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
         className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,20%)] shadow-lg text-left"
       >
         <Radio className={`w-3 h-3 ${hasNew ? "text-red-400 animate-pulse" : "text-gold"}`} />
-        <span className="text-[10px] font-semibold text-[hsl(30,20%,85%)] flex-1">
-          Vibes récentes
+        <span className="text-[10px] font-semibold text-muted-foreground flex-1">
+          Vibes récentes {vibes.length > 0 && `(${vibes.length})`}
         </span>
-        {hasNew && <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />}
-        {open ? <ChevronUp className="w-3 h-3 text-[hsl(30,10%,65%)]" /> : <ChevronDown className="w-3 h-3 text-[hsl(30,10%,65%)]" />}
+        {vibes.length === 0 && <span className="text-[9px] text-muted-foreground/60">aucune</span>}
+        {hasNew && <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />}
       </button>
 
       <AnimatePresence>
