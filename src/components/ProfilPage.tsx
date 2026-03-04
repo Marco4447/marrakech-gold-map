@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import BadgesSection from "@/components/BadgesSection";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
