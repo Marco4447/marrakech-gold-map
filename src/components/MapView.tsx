@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.heat";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
@@ -473,31 +474,40 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
     return () => { markers.forEach((m) => m.remove()); };
   }, [places, trendingLocations, activeFilter]);
 
-  // Add vibe pins + optimized heatmap (only last 3h)
+  // Add vibe pins + real heatmap layer
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     const markers: L.Marker[] = [];
-    const heatCircles: L.CircleMarker[] = [];
 
-    // Heatmap only for recent vibes (3h) to reduce rendering load
+    // Build heatmap data from recent vibes (last 3h for performance)
+    const heatPoints: [number, number, number][] = [];
     vibePins.forEach((vibe) => {
       if (vibe.latitude == null || vibe.longitude == null) return;
       const age = Date.now() - new Date(vibe.created_at).getTime();
-      if (age > THREE_HOURS && !vibe.is_official) return; // Skip old vibes for heatmap
-      const freshness = Math.max(0.15, 1 - age / SIX_HOURS);
-      const moodColor = MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)";
-      
-      const heatCircle = L.circleMarker([vibe.latitude, vibe.longitude], {
-        radius: 25 + freshness * 15,
-        fillColor: moodColor,
-        fillOpacity: 0.06 + freshness * 0.1,
-        stroke: false,
-        interactive: false,
-      }).addTo(map);
-      heatCircles.push(heatCircle);
+      if (age > THREE_HOURS && !vibe.is_official) return;
+      const freshness = Math.max(0.2, 1 - age / SIX_HOURS);
+      // Intensity based on freshness — newer vibes = hotter
+      heatPoints.push([vibe.latitude, vibe.longitude, freshness]);
     });
+
+    // Create leaflet.heat layer with red/orange gradient
+    const heatLayer = (L as any).heatLayer(heatPoints, {
+      radius: 35,
+      blur: 25,
+      maxZoom: 17,
+      minOpacity: 0.25,
+      max: 1.0,
+      gradient: {
+        0.0: "rgba(0,0,0,0)",
+        0.2: "hsla(30, 100%, 50%, 0.3)",   // orange low
+        0.4: "hsla(25, 100%, 50%, 0.5)",    // orange
+        0.6: "hsla(15, 100%, 50%, 0.65)",   // red-orange
+        0.8: "hsla(5, 90%, 50%, 0.8)",      // red
+        1.0: "hsla(0, 100%, 55%, 0.9)",     // bright red
+      },
+    }).addTo(map);
 
     // Photo pins
     vibePins.forEach((vibe) => {
@@ -546,7 +556,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
 
     return () => {
       markers.forEach((m) => m.remove());
-      heatCircles.forEach((c) => c.remove());
+      map.removeLayer(heatLayer);
     };
   }, [vibePins]);
 
