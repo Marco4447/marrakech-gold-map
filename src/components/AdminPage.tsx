@@ -329,6 +329,33 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
               )}
 
 
+              {/* TikTok Pixel Events Reference */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  🎵 TikTok Pixel Events
+                </h3>
+                <div className="bg-surface border border-border rounded-xl p-4 space-y-2.5">
+                  {[
+                    { event: "PageView", trigger: "Chaque page vue", location: "index.html (auto)" },
+                    { event: "CompleteRegistration", trigger: "Inscription Google OAuth", location: "useAuth.tsx" },
+                    { event: "ViewContent", trigger: "Ouverture d'une vibe", location: "VibeSheet.tsx" },
+                    { event: "InitiateCheckout", trigger: "Clic Acheter Pass VIP", location: "VipPass.tsx" },
+                    { event: "CompletePayment", trigger: "Page payment-success", location: "PaymentSuccess.tsx" },
+                  ].map((ev) => (
+                    <div key={ev.event} className="flex items-start gap-3">
+                      <span className="text-[10px] font-mono font-bold text-gold bg-gold/10 px-2 py-0.5 rounded shrink-0">{ev.event}</span>
+                      <div className="min-w-0">
+                        <p className="text-xs text-foreground">{ev.trigger}</p>
+                        <p className="text-[10px] text-muted-foreground">{ev.location}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-[10px] text-muted-foreground pt-1 border-t border-border">
+                    Pixel ID : D6K52QJC77U9T6VFJO7G · Vérifier sur TikTok Events Manager
+                  </p>
+                </div>
+              </div>
+
               {passStats.length > 0 && (
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Top Bookings</h3>
