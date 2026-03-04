@@ -121,6 +121,7 @@ interface Place {
   rating: number | null;
   is_partner: boolean;
   has_active_offer: boolean;
+  neighborhood: string | null;
 }
 
 interface BubbleItem {
