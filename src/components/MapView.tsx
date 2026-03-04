@@ -636,6 +636,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords }: { refreshSig
       {/* Recent vibes panel */}
       <RecentVibesPanel
         onVibeClick={(vibe) => {
+          // Haptic feedback (vibration)
+          if (navigator.vibrate) navigator.vibrate(30);
+
           if (vibe.latitude && vibe.longitude && mapRef.current) {
             mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
 
