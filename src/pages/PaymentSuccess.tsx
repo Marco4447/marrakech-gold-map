@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, Zap, Crown, ArrowRight, Sparkles } from "lucide-react";
 import GoldConfetti from "@/components/GoldConfetti";
+import { ttqTrack } from "@/lib/ttq";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -15,6 +16,11 @@ export default function PaymentSuccess() {
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 600);
+    ttqTrack("CompletePayment", {
+      content_name: isVip ? "insider_pass" : "credits_pack",
+      value: isVip ? 4.90 : undefined,
+      currency: "EUR",
+    });
     return () => clearTimeout(timer);
   }, []);
 
