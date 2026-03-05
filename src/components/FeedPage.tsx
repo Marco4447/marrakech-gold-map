@@ -3,6 +3,7 @@ import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import VibeBoostSheet from "./VibeBoostSheet";
 import { useAuth } from "@/hooks/useAuth";
 import VibeComments, { useCommentCounts } from "./VibeComments";
 import SuperVibeParticles from "./SuperVibeParticles";
@@ -675,6 +676,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       <AnimatePresence>
         {showReels && <TikTokFeed open={showReels} onClose={() => setShowReels(false)} />}
       </AnimatePresence>
+
+      {/* Vibe Boost */}
+      <VibeBoostSheet vibeId={boostVibeId || ""} open={!!boostVibeId} onOpenChange={(open) => !open && setBoostVibeId(null)} />
     </div>
   );
 }
