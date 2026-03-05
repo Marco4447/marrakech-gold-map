@@ -382,6 +382,17 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <h2 className="text-base font-semibold text-foreground mb-1.5">Aucune vibe live</h2>
           <p className="text-[13px] text-muted-foreground">Sois le premier à partager ton vibe !</p>
         </div>
+      ) : activeTab === "following" && sortedFeed.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-3">
+            <UserPlus className="w-7 h-7 text-muted-foreground" />
+          </div>
+          <h2 className="text-base font-semibold text-foreground mb-1.5">Aucun contenu</h2>
+          <p className="text-[13px] text-muted-foreground mb-4">Suis des utilisateurs depuis le feed "Pour toi" pour voir leurs vibes ici.</p>
+          <button onClick={() => setActiveTab("foryou")} className="px-4 py-2 rounded-xl bg-foreground text-background text-sm font-semibold active:scale-95 transition-transform">
+            Explorer le feed
+          </button>
+        </div>
       ) : (
         <>
           {/* Top 3 */}
