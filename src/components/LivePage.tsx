@@ -11,6 +11,10 @@ import { getDeviceId } from "@/lib/deviceId";
 import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
 import { isBoosted } from "@/lib/boostedPlaces";
+import VibeStories from "./VibeStories";
+import DoubleTapHeart from "./DoubleTapHeart";
+import VibeReactions, { FloatingReaction } from "./VibeReactions";
+import StreakBadge from "./StreakBadge";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
