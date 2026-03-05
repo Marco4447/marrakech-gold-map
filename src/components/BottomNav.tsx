@@ -8,6 +8,7 @@ interface BottomNavProps {
   onChange: (tab: Tab) => void;
   onHome: () => void;
   onFlashPost?: () => void;
+  unreadNotifications?: number;
 }
 
 export default function BottomNav({ active, onChange, onHome, onFlashPost }: BottomNavProps) {
