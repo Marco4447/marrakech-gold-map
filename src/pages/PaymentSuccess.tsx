@@ -21,6 +21,16 @@ export default function PaymentSuccess() {
       value: isVip ? 4.90 : undefined,
       currency: "EUR",
     });
+    // TikTok: Subscribe for VIP, PlaceAnOrder for B2B credits
+    if (isVip) {
+      ttqTrack("Subscribe", { content_name: "insider_pass", value: 4.90, currency: "EUR" });
+    } else {
+      ttqTrack("PlaceAnOrder", {
+        content_name: "credits_pack",
+        value: Number(credits) === 1 ? 9.90 : 39.90,
+        currency: "EUR",
+      });
+    }
     return () => clearTimeout(timer);
   }, []);
 
