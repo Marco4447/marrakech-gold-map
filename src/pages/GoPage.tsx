@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Sparkles, Users, Loader2, MapPin, Flame, Eye, Star, ArrowRight } from "lucide-react";
+import { ChevronRight, Sparkles, Users, Loader2, MapPin, Flame, Eye, Star, ArrowRight, ExternalLink, Copy, Check } from "lucide-react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { ttqTrack } from "@/lib/ttq";
 import { trackEvent } from "@/lib/analytics";
 import { useLanguage } from "@/i18n/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
+import { isTikTokInAppBrowser, isInAppBrowser, redirectToExternalBrowser } from "@/lib/openInExternalBrowser";
 
 const TESTIMONIALS = [
   { name: "Sophia", text: { fr: "J'ai trouvé le meilleur rooftop en 2 min 🔥", en: "Found the best rooftop in 2 min 🔥" }, flag: "🇫🇷", avatar: "S" },
@@ -24,7 +25,11 @@ export default function GoPage() {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [testimonialIdx, setTestimonialIdx] = useState(0);
+  const [copied, setCopied] = useState(false);
   const { lang, t } = useLanguage();
+
+  const isInApp = isInAppBrowser();
+  const isTikTok = isTikTokInAppBrowser();
 
   const utmCampaign = searchParams.get("utm_campaign") || "unknown";
   const utmSource = searchParams.get("utm_source") || "direct";
@@ -96,12 +101,41 @@ export default function GoPage() {
   }, []);
 
   const handleGoogleLogin = async () => {
+    // If in TikTok/in-app browser, redirect to external browser instead
+    if (isInApp) {
+      trackEvent("inapp_browser_redirect", { browser: isTikTok ? "tiktok" : "other" });
+      redirectToExternalBrowser();
+      return;
+    }
     setLoading(true);
     ttqTrack("CompleteRegistration", { content_name: "go_landing_signup", description: `${utmSource}/${utmCampaign}` });
     trackEvent("signup_started", { source: "go_page" });
     try { localStorage.setItem("weshkech_utm", JSON.stringify({ source: utmSource, campaign: utmCampaign, ts: Date.now() })); } catch {}
     const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (error) { console.error("OAuth error:", error); setLoading(false); }
+  };
+
+  const handleOpenInBrowser = () => {
+    trackEvent("open_in_browser_clicked", { browser: isTikTok ? "tiktok" : "other" });
+    redirectToExternalBrowser();
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const input = document.createElement("input");
+      input.value = window.location.href;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleDiscover = () => {
@@ -122,7 +156,31 @@ export default function GoPage() {
         <LanguageToggle />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center px-5 pt-8 pb-28 max-w-md mx-auto w-full">
+      {/* In-app browser banner */}
+      {isInApp && (
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="absolute top-14 left-4 right-4 z-30 bg-gold/95 backdrop-blur-md rounded-2xl p-4 shadow-lg">
+          <p className="text-primary-foreground text-xs font-bold mb-1">
+            {lang === "fr" ? "⚠️ Ouvre dans ton navigateur" : "⚠️ Open in your browser"}
+          </p>
+          <p className="text-primary-foreground/80 text-[10px] leading-relaxed mb-3">
+            {lang === "fr"
+              ? "L'inscription Google ne fonctionne pas dans l'app TikTok. Ouvre ce lien dans Safari ou Chrome pour t'inscrire."
+              : "Google sign-up doesn't work inside TikTok. Open this link in Safari or Chrome to sign up."}
+          </p>
+          <div className="flex gap-2">
+            <button onClick={handleOpenInBrowser} className="flex-1 py-2.5 rounded-xl bg-background text-gold text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
+              <ExternalLink className="w-3.5 h-3.5" />
+              {lang === "fr" ? "Ouvrir dans Safari" : "Open in Safari"}
+            </button>
+            <button onClick={handleCopyLink} className="py-2.5 px-3 rounded-xl bg-background/80 text-gold text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? "✓" : lang === "fr" ? "Copier" : "Copy"}
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="relative z-10 flex-1 flex flex-col items-center px-5 pt-8 pb-28 max-w-md mx-auto w-full" style={isInApp ? { paddingTop: "10rem" } : undefined}>
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 bg-gold/10 border border-gold/20 px-4 py-1.5 rounded-full mb-4">
           <Sparkles className="w-3.5 h-3.5 text-gold" />
           <span className="text-[11px] font-bold text-gold uppercase tracking-wider">{t("go_seenOnTikTok")}</span>
