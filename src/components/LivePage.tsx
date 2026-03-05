@@ -176,6 +176,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [superVibeAnimId, setSuperVibeAnimId] = useState<string | null>(null);
   const [canSuperVibe, setCanSuperVibe] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showTikTokFeed, setShowTikTokFeed] = useState(false);
   const [activeTab, setActiveTab] = useState<FeedTab>("tendances");
   const [showTutorial, setShowTutorial] = useState(() => {
     return !localStorage.getItem("weshkech_vibez_tutorial_seen");
