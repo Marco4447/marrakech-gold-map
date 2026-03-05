@@ -159,6 +159,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const { isFollowing, toggleFollow, followingIds } = useFollows();
   const [showReels, setShowReels] = useState(false);
   const [boostVibeId, setBoostVibeId] = useState<string | null>(null);
+  const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -233,6 +234,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     fetchVibes();
     fetchMyLikes();
     fetchMySuperVibes();
+
+    // Fetch active boosts
+    supabase.from("vibe_boosts").select("vibe_id, boost_expires_at").gt("boost_expires_at", new Date().toISOString()).then(({ data }) => {
+      if (data) setBoostedVibeIds(new Set(data.map((b: any) => b.vibe_id)));
+    });
 
     const channel = supabase
       .channel("feed-vibes")
@@ -326,13 +332,17 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         const aPartner = a.is_official ? 1 : 0;
         const bPartner = b.is_official ? 1 : 0;
 
-        const aTotal = aTimeFresh * 0.4 + aDistScore * 0.2 + aEng * 0.3 + aPartner * 0.1;
-        const bTotal = bTimeFresh * 0.4 + bDistScore * 0.2 + bEng * 0.3 + bPartner * 0.1;
+        // Vibe boost (paid boost)
+        const aBoost = boostedVibeIds.has(a.id) ? 0.15 : 0;
+        const bBoost = boostedVibeIds.has(b.id) ? 0.15 : 0;
+
+        // VIP bonus (+10% visibility)
+        const aVip = (a as any).profile?.is_vip ? 0.1 : 0;
+        const bVip = (b as any).profile?.is_vip ? 0.1 : 0;
+
+        const aTotal = aTimeFresh * 0.35 + aDistScore * 0.15 + aEng * 0.25 + aPartner * 0.1 + aBoost + aVip;
+        const bTotal = bTimeFresh * 0.35 + bDistScore * 0.15 + bEng * 0.25 + bPartner * 0.1 + bBoost + bVip;
         return bTotal - aTotal;
-      })
-    : activeTab === "following"
-    ? [...vibes].filter(v => v.user_id && followingIds.has(v.user_id)).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    : [...officialVibes, ...regularVibes].sort((a, b) => {
         const aB = isBoosted(a.location);
         const bB = isBoosted(b.location);
         if (aB && !bB) return -1;
