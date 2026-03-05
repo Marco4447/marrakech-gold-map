@@ -51,10 +51,13 @@ export default function WeeklyChallenge() {
   const [leaders, setLeaders] = useState<ChallengeLeader[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [wonChallenge, setWonChallenge] = useState<Challenge | null>(null);
 
   useEffect(() => {
     fetchChallenge();
-  }, []);
+    if (user) checkIfWonRecently();
+  }, [user]);
 
   async function fetchChallenge() {
     try {
