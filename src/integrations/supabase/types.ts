@@ -210,6 +210,56 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_subscriptions: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          partner_id: string
+          place_id: string | null
+          plan_type: string
+          start_date: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          partner_id: string
+          place_id?: string | null
+          plan_type?: string
+          start_date?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          partner_id?: string
+          place_id?: string | null
+          plan_type?: string
+          start_date?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_subscriptions_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       places: {
         Row: {
           address: string | null
@@ -371,6 +421,56 @@ export type Database = {
           },
         ]
       }
+      sponsored_events: {
+        Row: {
+          boost_level: string
+          created_at: string
+          description: string | null
+          event_date: string
+          id: string
+          place_id: string
+          price_paid: number
+          status: string
+          stripe_session_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          boost_level?: string
+          created_at?: string
+          description?: string | null
+          event_date: string
+          id?: string
+          place_id: string
+          price_paid?: number
+          status?: string
+          stripe_session_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          boost_level?: string
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          id?: string
+          place_id?: string
+          price_paid?: number
+          status?: string
+          stripe_session_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsored_events_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -388,6 +488,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      venue_analytics: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          place_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          place_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          place_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_analytics_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vibe_boosts: {
         Row: {
