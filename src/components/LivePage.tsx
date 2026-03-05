@@ -835,27 +835,44 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             </span>
                           </button>
 
-                          {/* Like */}
-                          <button
-                            onClick={() => handleLike(vibe.id)}
-                            className="flex flex-col items-center gap-0.5 group"
-                          >
-                            <motion.div
-                              animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}}
-                              transition={{ duration: 0.4, ease: "easeOut" }}
+                          {/* Like with long-press reactions */}
+                          <div className="relative">
+                            <VibeReactions
+                              show={reactionsVibeId === vibe.id}
+                              onReact={(emoji) => handleReaction(vibe.id, emoji)}
+                              onClose={() => setReactionsVibeId(null)}
+                            />
+                            <button
+                              onClick={() => handleLike(vibe.id)}
+                              onContextMenu={(e) => { e.preventDefault(); setReactionsVibeId(vibe.id); }}
+                              onTouchStart={() => {
+                                const timer = setTimeout(() => setReactionsVibeId(vibe.id), 500);
+                                (window as any).__reactionTimer = timer;
+                              }}
+                              onTouchEnd={() => clearTimeout((window as any).__reactionTimer)}
+                              className="flex flex-col items-center gap-0.5 group"
                             >
-                              <Heart
-                                className={`w-7 h-7 transition-colors duration-200 ${
-                                  liked
-                                    ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
-                                    : "text-foreground/70 group-hover:text-gold/70"
-                                }`}
-                              />
-                            </motion.div>
-                            <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
-                              {vibe.likes}
-                            </span>
-                          </button>
+                              <motion.div
+                                animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                              >
+                                <Heart
+                                  className={`w-7 h-7 transition-colors duration-200 ${
+                                    liked
+                                      ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
+                                      : "text-foreground/70 group-hover:text-gold/70"
+                                  }`}
+                                />
+                              </motion.div>
+                              <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
+                                {vibe.likes}
+                              </span>
+                            </button>
+                            <FloatingReaction
+                              emoji={floatingReaction?.id === vibe.id ? floatingReaction.emoji : null}
+                              show={floatingReaction?.id === vibe.id}
+                            />
+                          </div>
 
                           {/* Super Vibe */}
                           <button
