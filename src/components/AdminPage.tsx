@@ -278,6 +278,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           <TabButton active={tab === "users"} label="Utilisateurs" icon={Users} onClick={() => setTab("users")} />
           <TabButton active={tab === "spots"} label="Spots" icon={MapPin} onClick={() => setTab("spots")} />
           <TabButton active={tab === "post"} label="Poster" icon={Image} onClick={() => setTab("post")} />
+          <TabButton active={tab === "challenges"} label="Challenges" icon={Trophy} onClick={() => setTab("challenges")} />
         </div>
       </div>
 
