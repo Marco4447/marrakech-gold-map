@@ -506,7 +506,15 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         </div>
       </div>
 
-      {/* Mini Tutorial Overlay */}
+      {/* Stories */}
+      <VibeStories onVibeClick={(vibeId) => setCommentVibeId(vibeId)} />
+
+      {/* Streak badge */}
+      {user && (
+        <div className="px-4 pb-1">
+          <StreakBadge userId={user.id} />
+        </div>
+      )}
       <AnimatePresence>
         {showTutorial && (
           <motion.div
