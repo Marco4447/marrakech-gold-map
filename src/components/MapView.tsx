@@ -26,6 +26,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [selectedVibe, setSelectedVibe] = useState<VibePin | null>(null);
   const [vibeSheetOpen, setVibeSheetOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [showVibes, setShowVibes] = useState(true);
   const [bubbleIndex, setBubbleIndex] = useState(0);
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleDismissed, setBubbleDismissed] = useState(() => !!localStorage.getItem("wk_bubble_dismissed"));
@@ -151,7 +152,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   // Add vibe pins + heatmap
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || activeFilter === "offers") return;
+    if (!map || activeFilter === "offers" || !showVibes) return;
 
     const markers: L.Marker[] = [];
     const heatPoints: [number, number, number][] = [];
@@ -219,7 +220,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       markers.forEach((m) => m.remove());
       map.removeLayer(heatLayer);
     };
-  }, [vibePins, activeFilter]);
+  }, [vibePins, activeFilter, showVibes]);
 
   const categories = Object.entries(CATEGORY_CONFIG);
 
@@ -436,6 +437,17 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               title="Ma position"
             >
               <Navigation className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setShowVibes(v => !v)}
+              className={`w-10 h-10 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-lg active:scale-95 transition-all ${
+                showVibes
+                  ? "bg-gold/90 border-gold-dark/40 text-primary-foreground"
+                  : "bg-[hsl(0,0%,10%,0.92)] border-border text-muted-foreground"
+              }`}
+              title={showVibes ? "Masquer les vibes" : "Voir les vibes"}
+            >
+              <span className="text-sm">📸</span>
             </button>
             <button
               onClick={handleRecenter}
