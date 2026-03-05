@@ -15,7 +15,7 @@ import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_FILTERS, MOOD_COLORS, MO
 import { useMapData, useMapInstance } from "./map/useMapData";
 import { FloatingBubble, CollapsibleLegend } from "./map/MapOverlays";
 
-export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null }) {
+export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { places, vibePins, trendingLocations, placesLoading, placesError } = useMapData(refreshSignal);
   const { mapRef, userMarkerRef, handleGeolocate, handleRecenter } = useMapInstance(containerRef);
@@ -83,7 +83,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     const markers: L.Marker[] = [];
 
-    places.forEach((place) => {
+    places.forEach((place, index) => {
       if (activeFilter) {
         const mood = MOOD_FILTERS.find(m => m.key === activeFilter);
         if (mood) {
@@ -97,23 +97,35 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         }
       }
       const isTrending = trendingLocations.has(place.name.toLowerCase());
+      // For guests: blur ~40% of non-partner markers to tease
+      const shouldBlur = isGuest && !place.is_partner && !isTrending && index % 5 < 2;
       const icon = createCategoryIcon(place.category, {
         trending: isTrending,
         isPartner: place.is_partner,
         hasOffer: place.has_active_offer,
+        blurred: shouldBlur,
       });
       const zOffset = place.is_partner ? 2000 : isTrending ? 1000 : 0;
-      const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: zOffset })
+      const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: zOffset, opacity: 0 })
         .addTo(map)
         .on("click", () => {
+          if (shouldBlur) return; // blurred markers are not clickable for guests
           setSelectedPlace(place);
           setSheetOpen(true);
         });
+      // Staggered fade-in animation
+      const delay = isGuest ? Math.min(index * 80, 3000) : 0;
+      setTimeout(() => {
+        if (marker.getElement()) {
+          marker.setOpacity(1);
+          marker.getElement()!.style.transition = "opacity 0.4s ease-out";
+        }
+      }, delay);
       markers.push(marker);
     });
 
     return () => { markers.forEach((m) => m.remove()); };
-  }, [places, trendingLocations, activeFilter]);
+  }, [places, trendingLocations, activeFilter, isGuest]);
 
   // Add vibe pins + heatmap
   useEffect(() => {
