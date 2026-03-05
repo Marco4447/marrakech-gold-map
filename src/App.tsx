@@ -29,6 +29,7 @@ const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
 const PlacePage = lazy(() => import("./pages/PlacePage"));
 const VibePage = lazy(() => import("./pages/VibePage"));
 const ReferralPage = lazy(() => import("./pages/ReferralPage"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const queryClient = new QueryClient();
 

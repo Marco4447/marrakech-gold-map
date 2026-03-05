@@ -72,12 +72,31 @@ export default function AuthGate() {
     setLoading(false);
   };
 
+  const handleForgotPassword = async () => {
+    setError(null);
+    if (!email) {
+      setError("Veuillez entrer votre adresse email.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
+      setForgotSent(true);
+    }
+    setLoading(false);
+  };
+
   const resetForm = () => {
     setEmail("");
     setPassword("");
     setName("");
     setError(null);
     setSuccess(null);
+    setForgotSent(false);
   };
 
   return (
