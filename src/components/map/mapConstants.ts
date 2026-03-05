@@ -1,5 +1,5 @@
 import L from "leaflet";
-
+import { isBoosted } from "@/lib/boostedPlaces";
 export const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
 export const SIX_HOURS = 6 * 60 * 60 * 1000;
 export const THREE_HOURS = 3 * 60 * 60 * 1000;
@@ -45,23 +45,39 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
-export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean } = {}) => {
+export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
-  const { trending = false, isPartner = false, hasOffer = false, blurred = false } = options;
-  const size = isPartner ? 42 : trending ? 42 : 34;
-  const emojiSize = isPartner ? 18 : trending ? 18 : 15;
+  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName } = options;
+  const boosted = isBoosted(placeName);
 
-  const borderColor = isPartner ? "hsl(43,76%,52%)" : cat.color;
-  const borderWidth = isPartner ? "3px" : "2px";
-  const glow = isPartner
-    ? "0 0 12px hsl(43,76%,52%,0.5)"
-    : `0 2px ${trending ? 12 : 6}px ${cat.color.replace(")", ",0.35)")}`;
+  // Boosted partner gets premium treatment
+  const size = boosted ? 52 : isPartner ? 42 : trending ? 42 : 34;
+  const emojiSize = boosted ? 22 : isPartner ? 18 : trending ? 18 : 15;
 
-  const partnerBadge = isPartner
-    ? `<div style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:hsl(43,76%,52%);display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px hsl(43,76%,52%,0.4)">${hasOffer ? "🎁" : "⭐"}</div>`
+  const borderColor = boosted ? "hsl(43,76%,52%)" : isPartner ? "hsl(43,76%,52%)" : cat.color;
+  const borderWidth = boosted ? "3px" : isPartner ? "3px" : "2px";
+  const glow = boosted
+    ? "0 0 20px hsl(43,76%,52%,0.7), 0 0 40px hsl(43,76%,52%,0.3)"
+    : isPartner
+      ? "0 0 12px hsl(43,76%,52%,0.5)"
+      : `0 2px ${trending ? 12 : 6}px ${cat.color.replace(")", ",0.35)")}`;
+
+  const boostedRing = boosted
+    ? `<div class="boosted-ring" style="position:absolute;inset:-5px;border-radius:50%;border:2px solid hsl(43,76%,52%,0.6);animation:boosted-pulse 2s ease-in-out infinite"></div>
+       <div class="boosted-ring-2" style="position:absolute;inset:-10px;border-radius:50%;border:1.5px solid hsl(43,76%,52%,0.25);animation:boosted-pulse 2s ease-in-out 0.5s infinite"></div>`
     : "";
 
-  const trendingBadge = trending && !isPartner
+  const partnerBadge = boosted
+    ? `<div style="position:absolute;top:-10px;right:-10px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#BF953F,#FCF6BA,#B38728);display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 8px hsl(43,76%,52%,0.6)">👑</div>`
+    : isPartner
+      ? `<div style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:hsl(43,76%,52%);display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px hsl(43,76%,52%,0.4)">${hasOffer ? "🎁" : "⭐"}</div>`
+      : "";
+
+  const boostedLabel = boosted
+    ? `<div style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#BF953F,#FCF6BA,#B38728);color:hsl(30,20%,10%);font-size:6px;font-weight:900;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.08em;box-shadow:0 2px 6px hsl(43,76%,52%,0.4)">PARTENAIRE</div>`
+    : "";
+
+  const trendingBadge = trending && !isPartner && !boosted
     ? `<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(30,20%,95%);font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;white-space:nowrap;letter-spacing:0.05em">LIVE</div>`
     : "";
 
@@ -70,24 +86,28 @@ export const createCategoryIcon = (category: string | null, options: { trending?
     ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:2">🔒</div>`
     : "";
 
+  const markerClass = boosted ? "boosted-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
+
   return L.divIcon({
-    className: trending ? "trending-marker" : isPartner ? "gold-marker" : "",
+    className: markerClass,
     html: `
       <div class="category-marker" style="
         width:${size}px;height:${size}px;border-radius:50%;
-        background:hsl(0,0%,8%);
+        background:${boosted ? "linear-gradient(135deg, hsl(0,0%,8%), hsl(30,10%,12%))" : "hsl(0,0%,8%)"};
         border:${borderWidth} solid ${borderColor};
         box-shadow:${glow};
         display:flex;align-items:center;justify-content:center;
         position:relative;${blurFilter}
       ">
+        ${boostedRing}
         <span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>
         ${partnerBadge}
         ${trendingBadge}
+        ${boostedLabel}
       </div>
       ${lockBadge}
     `,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
+    iconSize: [size + (boosted ? 20 : 0), size + (boosted ? 20 : 0)],
+    iconAnchor: [(size + (boosted ? 20 : 0)) / 2, size + (boosted ? 20 : 0)],
   });
 };
