@@ -169,10 +169,10 @@ export default function GoPage() {
 
   return (
     <div className="h-[100dvh] bg-background relative overflow-hidden flex flex-col">
-      {/* Background */}
-      <div className="absolute inset-0">
+      {/* Hero image — top portion */}
+      <div className="relative w-full aspect-[4/5] max-h-[50vh] flex-shrink-0">
         <img src={heroImage} alt="Marrakech" className="w-full h-full object-cover" loading="eager" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
       </div>
 
       {/* Language toggle */}
@@ -181,18 +181,18 @@ export default function GoPage() {
       {/* In-app browser banner */}
       {isInApp && (
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-          className="absolute top-14 left-4 right-4 z-30 bg-gold backdrop-blur-md rounded-2xl p-3 shadow-[0_8px_30px_hsl(43_76%_52%/0.4)]">
-          <p className="text-primary-foreground text-xs font-bold mb-2">
+          className="absolute top-14 left-4 right-4 z-30 bg-card border border-border rounded-xl p-3">
+          <p className="text-foreground text-[12px] font-medium mb-2">
             {lang === "fr" ? "👆 Pour Google, ouvre dans Safari. Sinon inscris-toi par email ↓" : "👆 For Google, open in Safari. Or sign up with email ↓"}
           </p>
           <div className="flex gap-2">
             <button onClick={handleOpenInBrowser}
-              className="flex-1 py-2 rounded-xl bg-background text-gold text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform shadow-md">
+              className="flex-1 py-2 rounded-lg bg-foreground text-background text-[12px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
               <ExternalLink className="w-3.5 h-3.5" />
               {lang === "fr" ? "Ouvrir Safari" : "Open Safari"}
             </button>
             <button onClick={handleCopyLink}
-              className="py-2 px-3 rounded-xl bg-background/80 text-gold text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
+              className="py-2 px-3 rounded-lg bg-card border border-border text-foreground text-[12px] font-medium flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? "✓" : lang === "fr" ? "Copier" : "Copy"}
             </button>
@@ -200,48 +200,49 @@ export default function GoPage() {
         </motion.div>
       )}
 
-      {/* Content — signup form directly visible */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-5 pb-6 max-w-md mx-auto w-full">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+      {/* Content */}
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-5 pb-6 -mt-8 max-w-md mx-auto w-full">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           className="flex flex-col">
 
-          {/* Compact value prop header */}
-          <h1 className="font-display text-2xl font-black text-center leading-tight text-foreground mb-1">
+          {/* Title */}
+          <h1 className="font-body text-[20px] font-bold text-center leading-tight text-foreground mb-1">
             {lang === "fr" ? (<>Les spots <span className="text-gold">tendance</span> à Marrakech</>) : (<><span className="text-gold">Trending</span> spots in Marrakech</>)}
           </h1>
 
-          <div className="flex justify-center gap-3 mb-3">
+          {/* Feature pills */}
+          <div className="flex justify-center gap-2 mb-3">
             {(lang === "fr"
               ? [["🗺️", "Carte live"], ["🔥", "Tendances"], ["🎁", "Deals"]]
               : [["🗺️", "Live map"], ["🔥", "Trending"], ["🎁", "Deals"]]
             ).map(([emoji, label]) => (
-              <span key={label} className="text-[10px] text-foreground/70">{emoji} {label}</span>
+              <span key={label} className="text-[11px] text-muted-foreground px-2.5 py-1 rounded-full bg-card border border-border">{emoji} {label}</span>
             ))}
           </div>
 
-          {/* Social proof — single line */}
+          {/* Social proof */}
           <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
             </span>
-            <span className="text-[11px] text-foreground/80">
-              <span className="text-gold font-semibold">{usersCount || "…"}</span> {lang === "fr" ? "insiders" : "insiders"}
+            <span className="text-[11px] text-muted-foreground">
+              <span className="font-semibold text-foreground">{usersCount || "…"}</span> insiders
             </span>
-            <span className="text-muted-foreground">·</span>
+            <span className="text-border">·</span>
             <AnimatePresence mode="wait">
               <motion.span key={testimonialIdx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="text-[10px] text-muted-foreground">
+                className="text-[11px] text-muted-foreground">
                 {TESTIMONIALS[testimonialIdx].flag} "{TESTIMONIALS[testimonialIdx].text[lang]}"
               </motion.span>
             </AnimatePresence>
           </div>
 
-          {/* Google CTA — primary if not in WebView */}
+          {/* Google CTA */}
           {!isInApp && (
             <>
               <button onClick={handleGoogleSignup} disabled={loading}
-                className="w-full flex items-center justify-center gap-3 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-4 rounded-2xl transition-all shadow-[0_0_30px_hsl(43,76%,52%,0.3)] disabled:opacity-70 text-base mb-3">
+                className="w-full flex items-center justify-center gap-3 bg-foreground text-background font-semibold py-3.5 rounded-xl transition-all disabled:opacity-70 text-[14px] mb-3 active:scale-[0.98]">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -254,29 +255,29 @@ export default function GoPage() {
               </button>
               <div className="flex items-center gap-3 w-full mb-3">
                 <div className="flex-1 h-px bg-border" />
-                <span className="text-[10px] text-muted-foreground">{lang === "fr" ? "ou par email" : "or with email"}</span>
+                <span className="text-[11px] text-muted-foreground">{lang === "fr" ? "ou par email" : "or with email"}</span>
                 <div className="flex-1 h-px bg-border" />
               </div>
             </>
           )}
 
-          {/* Email form — single field magic link */}
+          {/* Email form */}
           {!success && (
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input type="email" placeholder="Email" autoComplete="email" inputMode="email"
                 value={email} onChange={(e) => { setEmail(e.target.value); setError(null); }}
                 onKeyDown={(e) => e.key === "Enter" && handleEmailSignup()}
-                className="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-surface border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors" />
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-border text-foreground text-[14px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground/30 transition-colors" />
             </div>
           )}
 
-          {error && <p className="text-xs text-destructive mt-2 text-center">{error}</p>}
-          {success && <p className="text-sm text-green-400 mt-3 text-center font-medium">{success}</p>}
+          {error && <p className="text-[12px] text-destructive mt-2 text-center">{error}</p>}
+          {success && <p className="text-[13px] text-green-400 mt-3 text-center font-medium">{success}</p>}
 
           {!success && (
             <button onClick={handleEmailSignup} disabled={loading}
-              className="w-full mt-2.5 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3.5 rounded-2xl transition-all shadow-[0_0_30px_hsl(43,76%,52%,0.3)] disabled:opacity-70 text-sm">
+              className="w-full mt-2.5 flex items-center justify-center gap-2 bg-foreground text-background font-semibold py-3 rounded-xl transition-all disabled:opacity-70 text-[14px] active:scale-[0.98]">
               {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === "fr" ? "Envoi..." : "Sending..."}</> : (
                 <>{lang === "fr" ? "Recevoir mon accès" : "Get my access"}</>
               )}
@@ -288,11 +289,11 @@ export default function GoPage() {
             <>
               <div className="flex items-center gap-3 w-full my-3">
                 <div className="flex-1 h-px bg-border" />
-                <span className="text-[10px] text-muted-foreground">{lang === "fr" ? "ou" : "or"}</span>
+                <span className="text-[11px] text-muted-foreground">{lang === "fr" ? "ou" : "or"}</span>
                 <div className="flex-1 h-px bg-border" />
               </div>
               <button onClick={handleGoogleSignup} disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-surface border border-border text-foreground font-medium py-3 rounded-2xl transition-all hover:border-gold/40 text-sm disabled:opacity-70">
+                className="w-full flex items-center justify-center gap-2 bg-card border border-border text-foreground font-medium py-3 rounded-xl transition-all hover:border-foreground/20 text-[13px] disabled:opacity-70 active:scale-[0.98]">
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
                   <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -304,10 +305,10 @@ export default function GoPage() {
             </>
           )}
 
-          <p className="text-[8px] text-muted-foreground/60 text-center mt-3">
+          <p className="text-[9px] text-muted-foreground/50 text-center mt-3">
             {lang === "fr" ? "Gratuit · 10 sec" : "Free · 10 sec"} · {t("legalPrefix")}{" "}
-            <Link to="/terms" className="text-gold/60 hover:underline">{t("terms")}</Link>{" "}{t("and")}{" "}
-            <Link to="/privacy" className="text-gold/60 hover:underline">{t("privacy")}</Link>
+            <Link to="/terms" className="underline">{t("terms")}</Link>{" "}{t("and")}{" "}
+            <Link to="/privacy" className="underline">{t("privacy")}</Link>
           </p>
         </motion.div>
       </div>
