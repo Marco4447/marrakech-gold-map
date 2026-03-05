@@ -82,6 +82,15 @@ serve(async (req) => {
         .update({ status: "completed", winner_user_id: winnerId })
         .eq("id", challenge.id);
 
+      // Send in-app notification to the winner
+      await supabase.from("notifications").insert({
+        user_id: winnerId,
+        type: "challenge_win",
+        title: `🏆 Tu as gagné le challenge "${challenge.title}" !`,
+        body: "Bravo ! Tu remportes 7 jours VIP gratuits 🎉",
+        vibe_id: null,
+      });
+
       console.log(`[CHALLENGE] Winner: ${winnerId} with score ${winner[1]}`);
       results.push({ challenge_id: challenge.id, winner: winnerId, score: winner[1] });
     }
