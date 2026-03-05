@@ -10,8 +10,9 @@ const corsHeaders = {
 
 // B2B Credit packs: priceId -> credits
 const CREDIT_PACKS: Record<string, number> = {
-  "price_1T6lm6J8RyilXHbfYe1I2cPh": 1,   // Pulse Pack
-  "price_1T6lmfJ8RyilXHbf7enV2Cxn": 5,   // Resonance Pack
+  "price_1T6lm6J8RyilXHbfYe1I2cPh": 1,
+  "price_1T6lmfJ8RyilXHbf7enV2Cxn": 5,
+  "price_1T7jDDJ8RyilXHbfdeswNi24": 20,
 };
 
 // B2C VIP subscription price
@@ -22,6 +23,13 @@ const BOOST_PRICES: Record<string, string> = {
   "price_1T7idcJ8RyilXHbfu8quT9F2": "24h_visibility",
   "price_1T7idxJ8RyilXHbfUmO06T3U": "discover_featured",
   "price_1T7ieRJ8RyilXHbfaY93RC1O": "map_spotlight",
+};
+
+// Partner subscription prices
+const PARTNER_SUB_PRICES: Record<string, string> = {
+  "price_1T7jBpJ8RyilXHbf7rmKFQNd": "basic",
+  "price_1T7jCKJ8RyilXHbfbWOr7fQS": "premium",
+  "price_1T7jCjJ8RyilXHbfJ2oHd2wh": "featured",
 };
 
 const logStep = (step: string, details?: any) => {
@@ -39,7 +47,6 @@ serve(async (req) => {
   );
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header");
     const token = authHeader.replace("Bearer ", "");
@@ -48,99 +55,120 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId, productType, creditAmount, boostType, vibeId } = await req.json();
-    if (!priceId) throw new Error("Missing priceId");
-    logStep("Request received", { priceId, productType, creditAmount, boostType, vibeId });
+    const body = await req.json();
+    const { priceId, productType, creditAmount, boostType, vibeId, planType, placeId, amount, sponsoredTitle, sponsoredDate, boostLevel } = body;
+    logStep("Request received", { priceId, productType });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Find or reference existing Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-    }
+    if (customers.data.length > 0) customerId = customers.data[0].id;
     logStep("Customer lookup", { customerId: customerId || "new" });
 
     const origin = req.headers.get("origin") || "https://marrakech-gold-map.lovable.app";
 
-    // Determine mode and metadata based on product type
     const isVip = productType === "b2c_vip" || priceId === VIP_PRICE_ID;
     const isBoost = productType === "vibe_boost" || !!BOOST_PRICES[priceId];
+    const isPartnerSub = productType === "partner_subscription" || !!PARTNER_SUB_PRICES[priceId];
+    const isSponsoredEvent = productType === "sponsored_event";
     const credits = CREDIT_PACKS[priceId] || creditAmount || 0;
 
-    const metadata: Record<string, string> = {
-      user_id: user.id,
-      type: isVip ? "b2c_vip" : isBoost ? "vibe_boost" : "b2b_credits",
-    };
-    if (isBoost) {
+    const metadata: Record<string, string> = { user_id: user.id };
+
+    if (isPartnerSub) {
+      metadata.type = "partner_subscription";
+      metadata.plan_type = planType || PARTNER_SUB_PRICES[priceId] || "basic";
+      if (placeId) metadata.place_id = placeId;
+    } else if (isSponsoredEvent) {
+      metadata.type = "sponsored_event";
+      metadata.boost_level = boostLevel || "standard";
+      metadata.sponsored_title = sponsoredTitle || "";
+      metadata.sponsored_date = sponsoredDate || "";
+      if (placeId) metadata.place_id = placeId;
+    } else if (isVip) {
+      metadata.type = "b2c_vip";
+    } else if (isBoost) {
+      metadata.type = "vibe_boost";
       metadata.boost_type = boostType || BOOST_PRICES[priceId] || "24h_visibility";
       metadata.vibe_id = vibeId || "";
-    }
-    if (!isVip && !isBoost) {
+    } else {
+      metadata.type = "b2b_credits";
       metadata.credits = String(credits);
     }
 
-    // Build rich product descriptions for Stripe Checkout
+    // Build line item
+    const lineItem: any = { price: priceId, quantity: 1 };
+
+    // Override for credit packs
     const packNames: Record<string, string> = {
       "price_1T6lm6J8RyilXHbfYe1I2cPh": "Marrakech Gold · Pulse Pack",
       "price_1T6lmfJ8RyilXHbf7enV2Cxn": "Marrakech Gold · Resonance Pack",
+      "price_1T7jDDJ8RyilXHbfdeswNi24": "Marrakech Gold · Empire Pack",
     };
     const packDescriptions: Record<string, string> = {
       "price_1T6lm6J8RyilXHbfYe1I2cPh": "1 Vibe Credit — Publiez une Vibe Officielle épinglée sur la map",
       "price_1T6lmfJ8RyilXHbf7enV2Cxn": "5 Vibe Credits — Pack pro pour maximiser votre visibilité",
+      "price_1T7jDDJ8RyilXHbfdeswNi24": "20 Vibe Credits — Pack volume pour les établissements actifs",
+    };
+    const packPrices: Record<string, number> = {
+      "price_1T6lm6J8RyilXHbfYe1I2cPh": 990,
+      "price_1T6lmfJ8RyilXHbf7enV2Cxn": 3990,
+      "price_1T7jDDJ8RyilXHbfdeswNi24": 12900,
     };
 
-    const lineItem: any = { price: priceId, quantity: 1 };
-
-    // Override product name/description inline for a polished checkout
-    if (!isVip && packNames[priceId]) {
+    if (!isVip && !isPartnerSub && !isSponsoredEvent && packNames[priceId]) {
       lineItem.price_data = {
         currency: "eur",
-        unit_amount: priceId === "price_1T6lm6J8RyilXHbfYe1I2cPh" ? 990 : 3990,
+        unit_amount: packPrices[priceId],
+        product_data: { name: packNames[priceId], description: packDescriptions[priceId] },
+      };
+      delete lineItem.price;
+    }
+
+    // Sponsored event uses price_data
+    if (isSponsoredEvent) {
+      const boostLabels: Record<string, string> = { standard: "Standard", premium: "Premium", featured: "Featured" };
+      lineItem.price_data = {
+        currency: "eur",
+        unit_amount: amount || 2900,
         product_data: {
-          name: packNames[priceId],
-          description: packDescriptions[priceId],
+          name: `Weshkech · Trending Tonight (${boostLabels[boostLevel] || "Standard"})`,
+          description: `Sponsoring événement: ${sponsoredTitle || "Event"}`,
         },
       };
       delete lineItem.price;
     }
 
+    const isSubscription = isVip || isPartnerSub;
+
     const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [lineItem],
-      mode: isVip ? "subscription" : "payment",
-      success_url: isVip
-        ? `${origin}/payment-success?type=vip`
-        : isBoost
-          ? `${origin}/payment-success?type=boost`
-          : `${origin}/payment-success?type=credits&credits=${credits}`,
-      cancel_url: isVip
-        ? `${origin}/payment-canceled?type=vip`
-        : isBoost
-          ? `${origin}/payment-canceled?type=boost`
-          : `${origin}/payment-canceled?type=credits`,
+      mode: isSubscription ? "subscription" : "payment",
+      success_url: `${origin}/payment-success?type=${metadata.type}`,
+      cancel_url: `${origin}/payment-canceled?type=${metadata.type}`,
       metadata,
-      ...(isVip ? {} : {
-        payment_intent_data: {
-          description: isBoost
-            ? `Weshkech · Vibe Boost (${boostType || "visibility"})`
-            : (packNames[priceId] || "Marrakech Gold · Vibe Credits"),
-        },
-      }),
     };
 
-    // Enable automatic invoice generation for one-time payments
-    if (!isVip) {
+    if (isSubscription) {
+      sessionParams.subscription_data = { metadata };
+    } else {
+      sessionParams.payment_intent_data = {
+        description: isSponsoredEvent
+          ? `Weshkech · Trending Tonight`
+          : isBoost
+            ? `Weshkech · Vibe Boost (${boostType || "visibility"})`
+            : (packNames[priceId] || "Marrakech Gold · Vibe Credits"),
+      };
       sessionParams.invoice_creation = { enabled: true };
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
-
-    logStep("Checkout session created", { sessionId: session.id, mode: isVip ? "subscription" : "payment" });
+    logStep("Checkout session created", { sessionId: session.id, mode: isSubscription ? "subscription" : "payment" });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
