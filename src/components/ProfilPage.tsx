@@ -300,6 +300,8 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [pendingRequests, setPendingRequests] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const deviceId = getDeviceId();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifList, setNotifList] = useState<any[]>([]);
   const { user, profile, signOut, refreshProfile } = useAuth();
   const displayName =
     profile?.full_name ||
