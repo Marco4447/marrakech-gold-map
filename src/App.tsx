@@ -26,6 +26,7 @@ const PricingPage = lazy(() => import("./pages/PricingPage"));
 const GoPage = lazy(() => import("./pages/GoPage"));
 const PlacePage = lazy(() => import("./pages/PlacePage"));
 const VibePage = lazy(() => import("./pages/VibePage"));
+const ReferralPage = lazy(() => import("./pages/ReferralPage"));
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const AppShell = () => {
               <Route path="/go" element={<GoPage />} />
               <Route path="/place/:id" element={<PlacePage />} />
               <Route path="/vibe/:id" element={<VibePage />} />
+              <Route path="/referral" element={<ReferralPage />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="*" element={<NotFound />} />

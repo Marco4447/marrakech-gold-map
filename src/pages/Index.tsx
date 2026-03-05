@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { analytics } from "@/lib/analytics";
 import { AnimatePresence } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav from "@/components/BottomNav";
@@ -117,12 +118,12 @@ const Index = () => {
     return <LandingPage onEnter={handleEnter} />;
   }
 
-  // Auth gate - user must be logged in
-  if (!user) {
-    return <AuthGate />;
-  }
+  // Pre-auth: allow map exploration without login (read-only mode)
+  const isGuest = !user;
 
-  if (showAdmin) {
+  if (!user && showAdmin) setShowAdmin(false);
+
+  if (showAdmin && user) {
     return (
       <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
         <AdminPage onBack={() => setShowAdmin(false)} />
@@ -134,12 +135,33 @@ const Index = () => {
     <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
       <div className="flex-1 relative min-h-0 overflow-hidden">
         {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} />}
-        {activeTab === "live" && <LivePage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />}
-        {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("map")} />}
+        {activeTab === "live" && (isGuest ? <AuthGate /> : <LivePage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />)}
+        {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("map")} />)}
       </div>
 
+      {/* Guest signup prompt floating on map */}
+      {isGuest && activeTab === "map" && (
+        <div className="fixed bottom-20 left-4 right-4 z-[1999]">
+          <div className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl p-4 shadow-2xl shadow-gold/10">
+            <p className="text-sm font-semibold text-foreground text-center mb-2">
+              🔥 Inscris-toi pour poster, liker et débloquer tous les avantages
+            </p>
+            <button
+              onClick={() => {
+                // Show AuthGate by switching to a tab that requires auth
+                setActiveTab("profil");
+              }}
+              className="w-full py-3 rounded-xl font-bold text-sm text-primary-foreground shadow-lg"
+              style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+            >
+              Continuer avec Google 🚀
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Jema floating button — only on map tab */}
-      {activeTab === "map" && (
+      {activeTab === "map" && !isGuest && (
         <a
           href="https://www.jemaride.com"
           target="_blank"
@@ -151,17 +173,28 @@ const Index = () => {
         </a>
       )}
 
-      <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
-      <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />
+      <BottomNav active={activeTab} onChange={(tab) => {
+        analytics.tabChange(tab);
+        setActiveTab(tab);
+      }} onHome={handleHome} onFlashPost={() => {
+        if (isGuest) {
+          setActiveTab("profil");
+          return;
+        }
+        setShowFlashPost(true);
+      }} />
+      {!isGuest && <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />}
 
       {/* Floating info button */}
-      <button
-        onClick={() => setExplainerTab("insider")}
-        className="fixed top-4 right-4 z-[1999] w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95"
-        aria-label="En savoir plus"
-      >
-        <span className="text-sm">💡</span>
-      </button>
+      {!isGuest && (
+        <button
+          onClick={() => setExplainerTab("insider")}
+          className="fixed top-4 right-4 z-[1999] w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95"
+          aria-label="En savoir plus"
+        >
+          <span className="text-sm">💡</span>
+        </button>
+      )}
 
       {/* Explainer sheet (post-login) */}
       <ExplainerSheet
@@ -171,7 +204,7 @@ const Index = () => {
       />
 
       {/* Welcome tutorial for first-time users (shown AFTER login) */}
-      <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />
+      {!isGuest && <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />}
     </div>
   );
 };

@@ -103,6 +103,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (currentUser) {
           if (_event === "SIGNED_IN") {
             ttqTrack("CompleteRegistration", { content_name: "google_oauth" });
+            // Process referral code if present
+            try {
+              const refCode = localStorage.getItem("weshkech_ref");
+              if (refCode) {
+                localStorage.removeItem("weshkech_ref");
+                // Look up the referral code
+                const { data: codeData } = await supabase
+                  .from("referral_codes" as any)
+                  .select("user_id, code")
+                  .eq("code", refCode)
+                  .maybeSingle();
+                if (codeData && (codeData as any).user_id !== currentUser.id) {
+                  await supabase.from("referral_uses" as any).insert({
+                    code: refCode,
+                    referred_user_id: currentUser.id,
+                    referrer_user_id: (codeData as any).user_id,
+                  });
+                }
+              }
+            } catch (e) {
+              console.warn("Referral processing failed:", e);
+            }
           }
           fetchProfile(currentUser).catch((e) => {
             console.error("Failed to fetch profile:", e);

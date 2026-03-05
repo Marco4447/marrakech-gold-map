@@ -8,6 +8,7 @@ import VibeComments, { useCommentCounts } from "./VibeComments";
 import SuperVibeParticles from "./SuperVibeParticles";
 import { timeAgo } from "@/lib/timeAgo";
 import { getDeviceId } from "@/lib/deviceId";
+import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -320,6 +321,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
   const handleLike = async (vibeId: string) => {
     const alreadyLiked = likedIds.has(vibeId);
+    analytics.likeVibe(vibeId);
     setAnimatingId(vibeId);
     setTimeout(() => setAnimatingId(null), 400);
 
@@ -341,6 +343,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
   const handleSuperVibe = async (vibeId: string) => {
     if (!canSuperVibe || superVibeIds.has(vibeId)) return;
+    analytics.superVibe(vibeId);
     setSuperVibeAnimId(vibeId);
     setTimeout(() => setSuperVibeAnimId(null), 700);
 
