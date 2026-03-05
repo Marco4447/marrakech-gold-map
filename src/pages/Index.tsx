@@ -56,6 +56,7 @@ const Index = () => {
 
   const [showLanding, setShowLanding] = useState(() => !localStorage.getItem("wk_landed"));
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("wk_welcome_seen"));
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     if (!loading) { setAuthStuck(false); return; }
@@ -85,6 +86,10 @@ const Index = () => {
   const handleWelcomeComplete = (coords: { lat: number; lng: number } | null) => {
     setShowWelcome(false); localStorage.setItem("wk_welcome_seen", "1");
     if (coords) setFlyToCoords(coords);
+    // Start onboarding tutorial if not done yet
+    if (!localStorage.getItem("wk_onboarding_done")) {
+      setTimeout(() => setShowOnboarding(true), 800);
+    }
   };
 
   const handleHome = () => { localStorage.removeItem("wk_landed"); setShowLanding(true); };
