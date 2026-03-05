@@ -28,6 +28,17 @@ export function useNotifications() {
     setUnreadCount(count || 0);
   }, [user]);
 
+  const fetchAll = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("notifications" as any)
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (data) setNotifications(data as any);
+  }, [user]);
+
   const markAllRead = useCallback(async () => {
     if (!user) return;
     await supabase
@@ -43,7 +54,6 @@ export function useNotifications() {
     if (!user) return;
     fetchUnreadCount();
 
-    // Realtime subscription for new notifications
     const channel = supabase
       .channel(`notifications-${user.id}`)
       .on(
@@ -58,7 +68,6 @@ export function useNotifications() {
           const n = payload.new as any;
           setUnreadCount((c) => c + 1);
           setNotifications((prev) => [n, ...prev].slice(0, 50));
-          // Show toast
           toast(n.title, {
             description: n.body || undefined,
             duration: 4000,
@@ -72,5 +81,5 @@ export function useNotifications() {
     };
   }, [user, fetchUnreadCount]);
 
-  return { unreadCount, notifications, markAllRead, fetchUnreadCount };
+  return { unreadCount, notifications, markAllRead, fetchUnreadCount, fetchAll };
 }
