@@ -9,6 +9,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Text,
@@ -27,32 +28,40 @@ export const SignupEmail = ({
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="fr" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirmez votre email pour Weshkech</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Img
+          src="https://pyocqorzbsshawgknmpr.supabase.co/storage/v1/object/public/email-assets/logo.png"
+          width="56"
+          height="56"
+          alt="Weshkech"
+          style={logo}
+        />
+        <Heading style={h1}>Bienvenue sur Weshkech 🎉</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
+          Merci de rejoindre{' '}
           <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
+            <strong>Weshkech</strong>
+          </Link>{' '}
+          — l'énergie de Marrakech, sans filtre et en temps réel.
         </Text>
         <Text style={text}>
-          Please confirm your email address (
+          Confirmez votre adresse email (
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
           </Link>
-          ) by clicking the button below:
+          ) pour accéder à la carte live, aux vibes et à votre Pass Invité.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Verify Email
+          Confirmer mon email
         </Button>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          Si vous n'avez pas créé de compte, ignorez simplement cet email.
         </Text>
+        <Text style={brand}>Weshkech · Marrakech Live Vibes</Text>
       </Container>
     </Body>
   </Html>
@@ -60,27 +69,31 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
+const container = { padding: '32px 28px', maxWidth: '480px', margin: '0 auto' }
+const logo = { margin: '0 0 24px' }
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  fontFamily: "'Playfair Display', Georgia, serif",
+  color: '#1a1a1a',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  color: '#555555',
+  lineHeight: '1.6',
+  margin: '0 0 20px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const link = { color: '#C4952E', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#C4952E',
   color: '#ffffff',
   fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  fontWeight: '600' as const,
+  borderRadius: '20px',
+  padding: '14px 28px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#999999', margin: '32px 0 0' }
+const brand = { fontSize: '11px', color: '#C4952E', margin: '8px 0 0', fontStyle: 'italic' as const }
