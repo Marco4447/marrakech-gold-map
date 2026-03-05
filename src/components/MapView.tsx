@@ -15,6 +15,7 @@ import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_FILTERS, MOOD_COLORS, MO
 import { useMapData, useMapInstance } from "./map/useMapData";
 import { FloatingBubble, CollapsibleLegend } from "./map/MapOverlays";
 import { isBoosted } from "@/lib/boostedPlaces";
+import { computeEnergyScores, getEnergy } from "@/lib/energy";
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
