@@ -95,14 +95,15 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
                   <img src={vibe.image_url} alt="" className="w-full h-full object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-medium text-[hsl(30,20%,85%)] truncate">
+                  <p className="text-[10px] font-medium text-[hsl(30,20%,85%)] truncate flex items-center gap-1">
+                    {vibe.is_official && <span className="text-[8px] bg-gold/20 text-gold px-1 py-px rounded font-bold uppercase tracking-wider leading-none">Officiel</span>}
                     {vibe.username || vibe.location || "Anonyme"}
                   </p>
                   <p className="text-[9px] text-[hsl(30,10%,55%)]">
                     {vibe.mood ? `${vibe.mood} · ` : ""}{timeAgo(vibe.created_at)}
                   </p>
                 </div>
-                {vibe.is_official && <span className="text-[8px]">⭐</span>}
+                {vibe.is_official && <span className="text-gold text-[10px]">⭐</span>}
               </button>
             ))}
           </motion.div>
