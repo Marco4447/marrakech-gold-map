@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Mail, Lock, User, Loader2, ExternalLink, Copy, Check } from "lucide-react";
+import { Star, Mail, Loader2, ExternalLink, Copy, Check } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -57,8 +57,6 @@ export default function GoPage() {
 
   // Signup state
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -143,32 +141,28 @@ export default function GoPage() {
 
   const handleEmailSignup = async () => {
     setError(null);
-    if (!email || !password) {
-      const msg = lang === "fr" ? "Remplis tous les champs." : "Fill in all fields.";
-      setError(msg);
-      trackEvent("go_signup_validation_error", { reason: "missing_fields", source: utmSource });
-      return;
-    }
-    if (password.length < 6) {
-      const msg = lang === "fr" ? "Mot de passe : 6 caractères min." : "Password: 6 characters min.";
-      setError(msg);
-      trackEvent("go_signup_validation_error", { reason: "password_too_short", source: utmSource });
+    if (!email || !email.includes("@")) {
+      setError(lang === "fr" ? "Entre ton email." : "Enter your email.");
+      trackEvent("go_signup_validation_error", { reason: "invalid_email", source: utmSource });
       return;
     }
     setLoading(true);
     trackEvent("go_email_signup_submit", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
-    ttqTrack("InitiateCheckout", { content_name: "email_signup_attempt" });
-    const { error } = await supabase.auth.signUp({
-      email, password,
-      options: { data: { full_name: name || email.split("@")[0] }, emailRedirectTo: window.location.origin },
+    ttqTrack("InitiateCheckout", { content_name: "magic_link_attempt" });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        data: { full_name: email.split("@")[0] },
+        emailRedirectTo: window.location.origin,
+      },
     });
     if (error) {
       setError(error.message);
       trackEvent("go_email_signup_error", { error: error.message, source: utmSource, campaign: utmCampaign });
     } else {
-      setSuccess(lang === "fr" ? "C'est bon, tu es inscrit ! 🎉" : "You're in! 🎉");
+      setSuccess(lang === "fr" ? "Lien envoyé ! Vérifie ta boîte mail 📩" : "Link sent! Check your inbox 📩");
       trackEvent("go_email_signup_success", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
-      ttqTrack("CompleteRegistration", { content_name: "email_signup" });
+      ttqTrack("CompleteRegistration", { content_name: "magic_link" });
     }
     setLoading(false);
   };
@@ -266,28 +260,14 @@ export default function GoPage() {
             </>
           )}
 
-          {/* Email form */}
+          {/* Email form — single field magic link */}
           {!success && (
-            <div className="space-y-2.5">
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input type="text" placeholder={lang === "fr" ? "Prénom (optionnel)" : "Name (optional)"}
-                  value={name} onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-surface border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors" />
-              </div>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input type="email" placeholder="Email"
-                  value={email} onChange={(e) => { setEmail(e.target.value); setError(null); }}
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-surface border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors" />
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input type="password" placeholder={lang === "fr" ? "Mot de passe" : "Password"}
-                  value={password} onChange={(e) => { setPassword(e.target.value); setError(null); }}
-                  onKeyDown={(e) => e.key === "Enter" && handleEmailSignup()}
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-surface border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors" />
-              </div>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input type="email" placeholder="Email" autoComplete="email" inputMode="email"
+                value={email} onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                onKeyDown={(e) => e.key === "Enter" && handleEmailSignup()}
+                className="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-surface border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors" />
             </div>
           )}
 
@@ -296,9 +276,9 @@ export default function GoPage() {
 
           {!success && (
             <button onClick={handleEmailSignup} disabled={loading}
-              className="w-full mt-3 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3.5 rounded-2xl transition-all shadow-[0_0_30px_hsl(43,76%,52%,0.3)] disabled:opacity-70 text-sm">
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === "fr" ? "Inscription..." : "Signing up..."}</> : (
-                <>{lang === "fr" ? "S'inscrire gratuitement" : "Sign up free"}</>
+              className="w-full mt-2.5 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3.5 rounded-2xl transition-all shadow-[0_0_30px_hsl(43,76%,52%,0.3)] disabled:opacity-70 text-sm">
+              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === "fr" ? "Envoi..." : "Sending..."}</> : (
+                <>{lang === "fr" ? "Recevoir mon accès" : "Get my access"}</>
               )}
             </button>
           )}
