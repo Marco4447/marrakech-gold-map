@@ -19,7 +19,7 @@ const TESTIMONIALS = [
   { name: "Emma", text: { fr: "Indispensable pour sortir à Kech", en: "Essential for going out in Kech" }, flag: "🇬🇧" },
 ];
 
-type ViewMode = "hero" | "signup";
+type ViewMode = "signup";
 
 export default function GoPage() {
   const [searchParams] = useSearchParams();
