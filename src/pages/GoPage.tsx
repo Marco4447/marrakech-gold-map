@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Users, Star, Mail, Lock, User, Loader2, ExternalLink, Copy, Check, ArrowLeft } from "lucide-react";
+import { Star, Mail, Lock, User, Loader2, ExternalLink, Copy, Check } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
