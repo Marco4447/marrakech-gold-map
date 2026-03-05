@@ -14,6 +14,7 @@ import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useNotifications } from "@/hooks/useNotifications";
 
 type Tab = "map" | "live" | "profil";
 
