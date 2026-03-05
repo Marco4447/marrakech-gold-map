@@ -88,8 +88,9 @@ export const createCategoryIcon = (category: string | null, options: { trending?
 
   const markerClass = boosted ? "boosted-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
 
-  // Determine inner content: logo for partners with image, emoji fallback
-  const hasLogo = (isPartner || boosted) && imageUrl;
+  // Determine inner content: show logo for local images (/images/) or Supabase storage, emoji for generic Unsplash
+  const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
+  const hasLogo = (isPartner || boosted || isLocalLogo) && imageUrl;
   const innerContent = boosted
     ? `<img src="/images/kabana-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
     : hasLogo
