@@ -45,9 +45,9 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
-export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string } = {}) => {
+export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
-  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName } = options;
+  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl } = options;
   const boosted = isBoosted(placeName);
 
   // Boosted partner gets premium treatment
@@ -88,6 +88,14 @@ export const createCategoryIcon = (category: string | null, options: { trending?
 
   const markerClass = boosted ? "boosted-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
 
+  // Determine inner content: logo for partners with image, emoji fallback
+  const hasLogo = (isPartner || boosted) && imageUrl;
+  const innerContent = boosted
+    ? `<img src="/images/kabana-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+    : hasLogo
+      ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><span style="font-size:${emojiSize}px;line-height:1;display:none;align-items:center;justify-content:center;width:100%;height:100%">${cat.emoji}</span>`
+      : `<span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>`;
+
   return L.divIcon({
     className: markerClass,
     html: `
@@ -100,10 +108,7 @@ export const createCategoryIcon = (category: string | null, options: { trending?
         position:relative;${blurFilter}overflow:hidden;
       ">
         ${boostedRing}
-        ${boosted
-          ? `<img src="/images/kabana-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
-          : `<span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>`
-        }
+        ${innerContent}
         ${partnerBadge}
         ${trendingBadge}
         ${boostedLabel}
