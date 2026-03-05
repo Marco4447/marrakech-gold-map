@@ -475,6 +475,20 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Follow button */}
+                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleFollow(vibe.user_id!); }}
+                          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all active:scale-95 ${
+                            isFollowing(vibe.user_id)
+                              ? "bg-card border border-border text-muted-foreground"
+                              : "bg-foreground text-background"
+                          }`}
+                        >
+                          {isFollowing(vibe.user_id) ? <UserCheck className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
+                          {isFollowing(vibe.user_id) ? "Suivi" : "Suivre"}
+                        </button>
+                      )}
                       {countdown && (
                         <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                           <Clock className="w-2.5 h-2.5" />{countdown}
