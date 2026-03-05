@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import FeedPage from "@/components/FeedPage";
-import NotificationsPage from "@/components/NotificationsPage";
+import DiscoverTab from "@/components/DiscoverTab";
 import ProfilPage from "@/components/ProfilPage";
 import AdminPage from "@/components/AdminPage";
 import LandingPage from "@/components/LandingPage";
@@ -14,9 +14,11 @@ import WelcomeModal from "@/components/WelcomeModal";
 import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
+import NotificationsPage from "@/components/NotificationsPage";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useNotifications } from "@/hooks/useNotifications";
+import { Bell } from "lucide-react";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("feed");
@@ -26,6 +28,7 @@ const Index = () => {
   const [flyToCoords, setFlyToCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [authStuck, setAuthStuck] = useState(false);
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
   const { user, loading } = useAuth();
   const { t } = useLanguage();
   const { unreadCount, markAllRead } = useNotifications();
@@ -88,12 +91,26 @@ const Index = () => {
     return (<div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden"><AdminPage onBack={() => setShowAdmin(false)} /></div>);
   }
 
+  // Notifications overlay
+  if (showNotifications && user) {
+    return (
+      <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 py-3 flex items-center gap-3">
+          <button onClick={() => setShowNotifications(false)} className="text-sm font-semibold text-foreground">← Retour</button>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <NotificationsPage />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
       <div className="flex-1 relative min-h-0 overflow-hidden">
         {activeTab === "feed" && (isGuest ? <AuthGate /> : <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />)}
         {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
-        {activeTab === "notifications" && (isGuest ? <AuthGate /> : <NotificationsPage />)}
+        {activeTab === "discover" && (isGuest ? <AuthGate /> : <DiscoverTab onGoToMap={handleGoToMap} />)}
         {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("feed")} />)}
       </div>
 
@@ -122,23 +139,34 @@ const Index = () => {
       <BottomNav
         active={activeTab}
         onChange={(tab) => {
-          if (tab === "create") return; // handled by onCreatePress
+          if (tab === "create") return;
           analytics.tabChange(tab);
-          if (tab === "notifications") markAllRead();
           setActiveTab(tab);
         }}
         onCreatePress={() => {
           if (isGuest) { setActiveTab("profil"); return; }
           setShowFlashPost(true);
         }}
-        unreadNotifications={unreadCount}
       />
 
       {!isGuest && <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("feed"); }} />}
 
-      {/* Language toggle + info */}
+      {/* Header: Language toggle + notifications bell + info */}
       {!isGuest && (
         <div className="fixed top-4 right-4 z-[1999] flex items-center gap-2">
+          {/* Notifications bell */}
+          <button
+            onClick={() => { markAllRead(); setShowNotifications(true); }}
+            className="relative w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95"
+            aria-label="Notifications"
+          >
+            <Bell className="w-4 h-4 text-foreground" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
           <LanguageToggle variant="icon" />
           <button onClick={() => setExplainerTab("insider")} className="w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95" aria-label="Info">
             <span className="text-sm">💡</span>

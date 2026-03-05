@@ -15,6 +15,7 @@ import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_FILTERS, MOOD_COLORS, MO
 import { useMapData, useMapInstance } from "./map/useMapData";
 import { FloatingBubble, CollapsibleLegend } from "./map/MapOverlays";
 import { isBoosted } from "@/lib/boostedPlaces";
+import { computeEnergyScores, getEnergy } from "@/lib/energy";
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -95,6 +96,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     const map = mapRef.current;
     if (!map || places.length === 0) return;
 
+    // Compute energy from vibes data
+    const vibesForEnergy = vibePins.map(v => ({
+      location: v.location,
+      likes: 0,
+      super_vibes: 0,
+      created_at: v.created_at,
+      is_official: v.is_official,
+    }));
+    const energyMap = computeEnergyScores(vibesForEnergy);
+
     const markers: L.Marker[] = [];
 
     // Sort places so boosted ones render last (= on top visually)
@@ -122,6 +133,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const isTrending = trendingLocations.has(place.name.toLowerCase());
       // For guests: blur ~40% of non-partner markers to tease
       const shouldBlur = isGuest && !place.is_partner && !isTrending && index % 5 < 2;
+      const energy = getEnergy(energyMap, place.name);
       const icon = createCategoryIcon(place.category, {
         trending: isTrending,
         isPartner: place.is_partner,
@@ -129,6 +141,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         blurred: shouldBlur,
         placeName: place.name,
         imageUrl: place.image_url,
+        energyLabel: energy?.label || null,
+        energyEmoji: energy?.emoji || null,
       });
       const boosted = isBoosted(place.name);
       const zOffset = boosted ? 3000 : place.is_partner ? 2000 : isTrending ? 1000 : 0;

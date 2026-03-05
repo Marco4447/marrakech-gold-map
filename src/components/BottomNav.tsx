@@ -1,15 +1,16 @@
-import { Home, Map, Bell, Plus, User } from "lucide-react";
+import { Home, Map, Compass, Plus, User, Bell } from "lucide-react";
 
-export type Tab = "feed" | "map" | "create" | "notifications" | "profil";
+export type Tab = "feed" | "map" | "create" | "discover" | "profil";
 
 interface BottomNavProps {
   active: Tab;
   onChange: (tab: Tab) => void;
   onCreatePress?: () => void;
   unreadNotifications?: number;
+  onNotificationsPress?: () => void;
 }
 
-export default function BottomNav({ active, onChange, onCreatePress, unreadNotifications = 0 }: BottomNavProps) {
+export default function BottomNav({ active, onChange, onCreatePress, unreadNotifications = 0, onNotificationsPress }: BottomNavProps) {
   const iconClass = (isActive: boolean) =>
     `w-6 h-6 transition-colors duration-150 ${isActive ? "text-foreground" : "text-muted-foreground"}`;
 
@@ -35,14 +36,9 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadNotif
           <Plus className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
         </button>
 
-        {/* Notifications */}
-        <button onClick={() => onChange("notifications")} className="flex flex-col items-center justify-center w-12 h-12 relative">
-          <Bell className={iconClass(active === "notifications")} strokeWidth={active === "notifications" ? 2.5 : 1.5} />
-          {unreadNotifications > 0 && (
-            <span className="absolute top-1.5 right-1 min-w-[14px] h-3.5 px-0.5 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-              {unreadNotifications > 9 ? "9+" : unreadNotifications}
-            </span>
-          )}
+        {/* Discover */}
+        <button onClick={() => onChange("discover")} className="flex flex-col items-center justify-center w-12 h-12">
+          <Compass className={iconClass(active === "discover")} strokeWidth={active === "discover" ? 2.5 : 1.5} />
         </button>
 
         {/* Profile */}
