@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import UsersTab from "./UsersTab";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus } from "lucide-react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users";
+type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges";
 type PassStat = { place_name: string; count: number };
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 type PartnerVibe = { id: string; image_url: string; caption: string | null; location: string | null; likes: number; super_vibes: number; created_at: string; is_official: boolean };
