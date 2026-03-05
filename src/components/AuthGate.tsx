@@ -17,9 +17,9 @@ export default function AuthGate() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const handleGoogleLogin = async () => {
+  const handleOAuthLogin = async (provider: "google" | "apple") => {
     setLoading(true);
-    const { error } = await lovable.auth.signInWithOAuth("google", {
+    const { error } = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: window.location.origin,
     });
     if (error) {
