@@ -24,6 +24,25 @@ const Index = () => {
   const [authStuck, setAuthStuck] = useState(false);
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const { user, loading } = useAuth();
+  const [spotCount, setSpotCount] = useState(0);
+
+  // Fetch spot count for guest CTA
+  useEffect(() => {
+    if (user) return;
+    const fetchCount = async () => {
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      if (!baseUrl || !apiKey) return;
+      try {
+        const res = await fetch(`${baseUrl}/rest/v1/places?select=id`, {
+          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Prefer: "count=exact" },
+        });
+        const count = res.headers.get("content-range")?.split("/")[1];
+        if (count) setSpotCount(parseInt(count, 10));
+      } catch {}
+    };
+    fetchCount();
+  }, [user]);
 
   // Show landing only for users who have never completed onboarding
   const [showLanding, setShowLanding] = useState(() => {
@@ -163,6 +182,16 @@ const Index = () => {
               <p className="text-base font-bold text-foreground mb-1">
                 🔒 Débloque la carte complète
               </p>
+              {spotCount > 0 && (
+                <motion.p
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 2, duration: 0.4 }}
+                  className="text-xs font-semibold text-gold mb-1"
+                >
+                  📍 {spotCount} spots cachés près de toi
+                </motion.p>
+              )}
               <p className="text-xs text-muted-foreground mb-3">
                 Inscris-toi pour voir tous les spots, poster des vibes et profiter des deals exclusifs
               </p>
