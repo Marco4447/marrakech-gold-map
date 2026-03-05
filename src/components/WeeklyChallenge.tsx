@@ -295,5 +295,6 @@ export default function WeeklyChallenge() {
         )}
       </AnimatePresence>
     </motion.div>
+    </>
   );
 }
