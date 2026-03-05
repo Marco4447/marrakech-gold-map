@@ -183,6 +183,36 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [visibleCount, setVisibleCount] = useState(10);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const commentCounts = useCommentCounts(vibes.map((v) => v.id));
+  
+  // Double-tap to like
+  const [doubleTapId, setDoubleTapId] = useState<string | null>(null);
+  const lastTapRef = useRef<{ id: string; time: number } | null>(null);
+  
+  // Emoji reactions
+  const [reactionsVibeId, setReactionsVibeId] = useState<string | null>(null);
+  const [floatingReaction, setFloatingReaction] = useState<{ id: string; emoji: string } | null>(null);
+
+  const handleDoubleTap = (vibeId: string) => {
+    const now = Date.now();
+    if (lastTapRef.current && lastTapRef.current.id === vibeId && now - lastTapRef.current.time < 300) {
+      // Double tap detected!
+      if (!likedIds.has(vibeId)) {
+        handleLike(vibeId);
+      }
+      setDoubleTapId(vibeId);
+      setTimeout(() => setDoubleTapId(null), 800);
+      lastTapRef.current = null;
+    } else {
+      lastTapRef.current = { id: vibeId, time: now };
+    }
+  };
+
+  const handleReaction = (vibeId: string, emoji: string) => {
+    setFloatingReaction({ id: vibeId, emoji });
+    setReactionsVibeId(null);
+    if (!likedIds.has(vibeId)) handleLike(vibeId);
+    setTimeout(() => setFloatingReaction(null), 900);
+  };
 
   // Compute vibe counts per user for tier badges
   const userVibeCounts: Record<string, number> = {};
