@@ -58,10 +58,7 @@ serve(async (req) => {
       });
     }
 
-    // Mark as processed
-    await supabaseAdmin
-      .from("processed_stripe_events")
-      .insert({ event_id: event.id });
+    await supabaseAdmin.from("processed_stripe_events").insert({ event_id: event.id });
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -69,95 +66,91 @@ serve(async (req) => {
       const metaType = session.metadata?.type;
 
       logStep("Session completed", { userId, metaType, sessionId: session.id });
-
-      if (!userId) {
-        logStep("ERROR: No user_id in metadata");
-        throw new Error("Missing user_id in session metadata");
-      }
+      if (!userId) throw new Error("Missing user_id in session metadata");
 
       if (metaType === "b2c_vip") {
         const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-        const { error: updateErr } = await supabaseAdmin
-          .from("profiles")
-          .update({ is_vip: true, vip_expires_at: expiresAt })
-          .eq("user_id", userId);
-
-        if (updateErr) {
-          logStep("ERROR updating VIP status", { error: updateErr.message });
-          throw updateErr;
-        }
-
+        const { error } = await supabaseAdmin.from("profiles").update({ is_vip: true, vip_expires_at: expiresAt }).eq("user_id", userId);
+        if (error) throw error;
         logStep("VIP activated", { userId, expiresAt });
+
       } else if (metaType === "b2b_credits") {
         const credits = parseInt(session.metadata?.credits || "0", 10);
-        if (credits <= 0) {
-          logStep("ERROR: Invalid credit amount", { credits });
-          throw new Error("Invalid credit amount");
-        }
+        if (credits <= 0) throw new Error("Invalid credit amount");
 
-        const { data: existingCredits } = await supabaseAdmin
-          .from("partner_credits")
-          .select("credits")
-          .eq("user_id", userId)
-          .maybeSingle();
-
+        const { data: existingCredits } = await supabaseAdmin.from("partner_credits").select("credits").eq("user_id", userId).maybeSingle();
         if (existingCredits) {
-          const { error: upErr } = await supabaseAdmin
-            .from("partner_credits")
-            .update({ credits: existingCredits.credits + credits })
-            .eq("user_id", userId);
-          if (upErr) throw upErr;
+          await supabaseAdmin.from("partner_credits").update({ credits: existingCredits.credits + credits }).eq("user_id", userId);
         } else {
-          const { error: insErr } = await supabaseAdmin
-            .from("partner_credits")
-            .insert({ user_id: userId, credits });
-          if (insErr) throw insErr;
+          await supabaseAdmin.from("partner_credits").insert({ user_id: userId, credits });
         }
+        logStep("Credits added", { userId, credits });
 
-        logStep("Credits added", { userId, credits, newTotal: (existingCredits?.credits ?? 0) + credits });
-
-        const { data: roleExists } = await supabaseAdmin
-          .from("user_roles")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("role", "partner")
-          .maybeSingle();
-
+        // Ensure partner role
+        const { data: roleExists } = await supabaseAdmin.from("user_roles").select("id").eq("user_id", userId).eq("role", "partner").maybeSingle();
         if (!roleExists) {
-          await supabaseAdmin
-            .from("user_roles")
-            .insert({ user_id: userId, role: "partner" });
+          await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: "partner" });
           logStep("Partner role assigned", { userId });
         }
+
       } else if (metaType === "vibe_boost") {
         const boostType = session.metadata?.boost_type || "24h_visibility";
         const vibeId = session.metadata?.vibe_id;
-        if (!vibeId) {
-          logStep("ERROR: No vibe_id for boost");
-          throw new Error("Missing vibe_id for boost");
-        }
+        if (!vibeId) throw new Error("Missing vibe_id for boost");
 
-        // Boost durations by type
         const durations: Record<string, number> = {
           "24h_visibility": 24 * 60 * 60 * 1000,
           "discover_featured": 48 * 60 * 60 * 1000,
           "map_spotlight": 72 * 60 * 60 * 1000,
         };
-        const duration = durations[boostType] || 24 * 60 * 60 * 1000;
-        const boostExpiresAt = new Date(Date.now() + duration).toISOString();
+        const boostExpiresAt = new Date(Date.now() + (durations[boostType] || 24 * 60 * 60 * 1000)).toISOString();
 
-        const { error: boostErr } = await supabaseAdmin
-          .from("vibe_boosts")
-          .insert({
-            vibe_id: vibeId,
-            user_id: userId,
-            boost_type: boostType,
-            boost_expires_at: boostExpiresAt,
-            stripe_session_id: session.id,
-          });
-        if (boostErr) throw boostErr;
+        await supabaseAdmin.from("vibe_boosts").insert({
+          vibe_id: vibeId, user_id: userId, boost_type: boostType,
+          boost_expires_at: boostExpiresAt, stripe_session_id: session.id,
+        });
         logStep("Vibe boost created", { vibeId, boostType, boostExpiresAt });
+
+      } else if (metaType === "partner_subscription") {
+        const planType = session.metadata?.plan_type || "basic";
+        const placeId = session.metadata?.place_id || null;
+        const stripeSubId = session.subscription as string || null;
+
+        // Deactivate old subscriptions
+        await supabaseAdmin.from("partner_subscriptions").update({ status: "canceled" }).eq("partner_id", userId).eq("status", "active");
+
+        await supabaseAdmin.from("partner_subscriptions").insert({
+          partner_id: userId,
+          place_id: placeId,
+          plan_type: planType,
+          status: "active",
+          stripe_customer_id: session.customer as string || null,
+          stripe_subscription_id: stripeSubId,
+          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+        // Ensure partner role
+        const { data: roleExists } = await supabaseAdmin.from("user_roles").select("id").eq("user_id", userId).eq("role", "partner").maybeSingle();
+        if (!roleExists) {
+          await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: "partner" });
+        }
+
+        logStep("Partner subscription created", { userId, planType });
+
+      } else if (metaType === "sponsored_event") {
+        const placeId = session.metadata?.place_id;
+        const boostLevel = session.metadata?.boost_level || "standard";
+        const title = session.metadata?.sponsored_title || "Événement sponsorisé";
+        const eventDate = session.metadata?.sponsored_date || new Date().toISOString().slice(0, 10);
+
+        if (placeId) {
+          await supabaseAdmin.from("sponsored_events").insert({
+            place_id: placeId, user_id: userId, title, event_date: eventDate,
+            boost_level: boostLevel, price_paid: (session.amount_total || 0) / 100,
+            stripe_session_id: session.id, status: "active",
+          });
+          logStep("Sponsored event created", { userId, placeId, title });
+        }
       } else {
         logStep("Unknown product type, skipping", { metaType });
       }
@@ -170,12 +163,17 @@ serve(async (req) => {
         const sub = await stripe.subscriptions.retrieve(subscriptionId as string);
         const userId = sub.metadata?.user_id;
         if (userId) {
-          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-          await supabaseAdmin
-            .from("profiles")
-            .update({ is_vip: true, vip_expires_at: expiresAt })
-            .eq("user_id", userId);
-          logStep("VIP renewed", { userId, expiresAt });
+          const metaType = sub.metadata?.type;
+          if (metaType === "partner_subscription") {
+            const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            await supabaseAdmin.from("partner_subscriptions").update({ end_date: endDate, status: "active" })
+              .eq("partner_id", userId).eq("stripe_subscription_id", subscriptionId);
+            logStep("Partner subscription renewed", { userId });
+          } else {
+            const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            await supabaseAdmin.from("profiles").update({ is_vip: true, vip_expires_at: expiresAt }).eq("user_id", userId);
+            logStep("VIP renewed", { userId, expiresAt });
+          }
         }
       }
     }
@@ -184,15 +182,18 @@ serve(async (req) => {
       const sub = event.data.object as any;
       const userId = sub.metadata?.user_id;
       if (userId) {
-        await supabaseAdmin
-          .from("profiles")
-          .update({ is_vip: false })
-          .eq("user_id", userId);
-        logStep("VIP deactivated (subscription canceled)", { userId });
+        const metaType = sub.metadata?.type;
+        if (metaType === "partner_subscription") {
+          await supabaseAdmin.from("partner_subscriptions").update({ status: "canceled" })
+            .eq("partner_id", userId).eq("stripe_subscription_id", sub.id);
+          logStep("Partner subscription canceled", { userId });
+        } else {
+          await supabaseAdmin.from("profiles").update({ is_vip: false }).eq("user_id", userId);
+          logStep("VIP deactivated", { userId });
+        }
       }
     }
 
-    // Periodic cleanup of old events
     await supabaseAdmin.rpc("cleanup_old_stripe_events").catch(() => {});
 
     return new Response(JSON.stringify({ received: true }), {
