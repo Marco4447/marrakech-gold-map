@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Trophy, Clock, Crown, Flame, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import GoldConfetti from "@/components/GoldConfetti";
 
 interface Challenge {
   id: string;
