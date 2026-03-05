@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Trophy, Clock, Crown, Flame, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import GoldConfetti from "@/components/GoldConfetti";
 
 interface Challenge {
   id: string;
@@ -50,10 +51,34 @@ export default function WeeklyChallenge() {
   const [leaders, setLeaders] = useState<ChallengeLeader[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [wonChallenge, setWonChallenge] = useState<Challenge | null>(null);
 
   useEffect(() => {
     fetchChallenge();
-  }, []);
+    if (user) checkIfWonRecently();
+  }, [user]);
+
+  async function checkIfWonRecently() {
+    if (!user) return;
+    const { data } = await supabase
+      .from("weekly_challenges" as any)
+      .select("*")
+      .eq("status", "completed")
+      .eq("winner_user_id", user.id)
+      .order("end_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      const key = `wk_challenge_won_${(data as any).id}`;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, "1");
+        setWonChallenge(data as any);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+      }
+    }
+  }
 
   async function fetchChallenge() {
     try {
@@ -121,7 +146,30 @@ export default function WeeklyChallenge() {
 
   const timeLeft = useCountdown(challenge?.end_date || new Date().toISOString());
 
-  if (loading || !challenge) return null;
+  if (loading || (!challenge && !wonChallenge)) return null;
+
+  // Show confetti + winner banner even without active challenge
+  if (!challenge && wonChallenge) {
+    return (
+      <>
+        {showConfetti && <GoldConfetti duration={5000} />}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mx-3 mb-4 rounded-2xl overflow-hidden text-center px-4 py-5"
+          style={{
+            background: "linear-gradient(135deg, hsl(43 76% 52% / 0.2) 0%, hsl(var(--background)) 100%)",
+            border: "1px solid hsl(43 76% 52% / 0.4)",
+          }}
+        >
+          <span className="text-4xl">🏆</span>
+          <p className="text-sm font-bold text-foreground mt-2">Tu as gagné le challenge !</p>
+          <p className="text-xs text-primary font-semibold mt-1">{wonChallenge.emoji} {wonChallenge.title}</p>
+          <p className="text-xs text-muted-foreground mt-1">+7 jours VIP offerts 🎉</p>
+        </motion.div>
+      </>
+    );
+  }
 
   const userRank = user
     ? leaders.findIndex((l) => l.user_id === user.id) + 1
@@ -130,6 +178,8 @@ export default function WeeklyChallenge() {
   const medals = ["🥇", "🥈", "🥉"];
 
   return (
+    <>
+    {showConfetti && <GoldConfetti duration={5000} />}
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -245,5 +295,6 @@ export default function WeeklyChallenge() {
         )}
       </AnimatePresence>
     </motion.div>
+    </>
   );
 }
