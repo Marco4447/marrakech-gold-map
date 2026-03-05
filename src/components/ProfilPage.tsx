@@ -436,15 +436,12 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-xl border-b border-border px-5 pt-12 pb-3 flex items-center justify-between">
-        <h1 className="font-display text-xl font-bold">
-          <span className="text-gold">Mon</span>
-          <span className="text-foreground"> Profil</span>
-        </h1>
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-5 pt-12 pb-3 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-foreground font-display">Profil</h1>
         {onClose && (
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <XIcon className="w-4 h-4" />
           </button>
