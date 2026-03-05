@@ -27,6 +27,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [vibeSheetOpen, setVibeSheetOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [showVibes, setShowVibes] = useState(true);
+  const [vibePulse, setVibePulse] = useState(false);
+  const prevVibeCountRef = useRef(vibePins.length);
   const [bubbleIndex, setBubbleIndex] = useState(0);
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleDismissed, setBubbleDismissed] = useState(() => !!localStorage.getItem("wk_bubble_dismissed"));
