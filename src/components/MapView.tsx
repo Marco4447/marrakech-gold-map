@@ -177,7 +177,15 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       },
     }).addTo(map);
 
-    vibePins.forEach((vibe) => {
+    // Fade in the heat canvas
+    const heatCanvas = (heatLayer as any)._canvas as HTMLCanvasElement | undefined;
+    if (heatCanvas) {
+      heatCanvas.style.transition = "opacity 0.4s ease-out";
+      heatCanvas.style.opacity = "0";
+      requestAnimationFrame(() => { heatCanvas.style.opacity = "1"; });
+    }
+
+    vibePins.forEach((vibe, idx) => {
       if (vibe.latitude == null || vibe.longitude == null) return;
       const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
@@ -207,18 +215,44 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       });
 
       const zOffset = isOfficial ? 1500 : 500;
-      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: zOffset })
+      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: zOffset, opacity: 0 })
         .addTo(map)
         .on("click", () => {
           setSelectedVibe(vibe);
           setVibeSheetOpen(true);
         });
+      // Staggered fade-in
+      const delay = Math.min(idx * 40, 800);
+      setTimeout(() => {
+        const el = marker.getElement();
+        if (el) {
+          el.style.transition = "opacity 0.35s ease-out, transform 0.35s ease-out";
+          el.style.transform = "scale(0.7)";
+          marker.setOpacity(1);
+          requestAnimationFrame(() => { el.style.transform = "scale(1)"; });
+        }
+      }, delay);
       markers.push(marker);
     });
 
     return () => {
-      markers.forEach((m) => m.remove());
-      map.removeLayer(heatLayer);
+      // Fade out before removing
+      if (heatCanvas) {
+        heatCanvas.style.opacity = "0";
+      }
+      markers.forEach((m) => {
+        const el = m.getElement();
+        if (el) {
+          el.style.transition = "opacity 0.25s ease-in, transform 0.25s ease-in";
+          el.style.opacity = "0";
+          el.style.transform = "scale(0.6)";
+        }
+      });
+      // Remove after animation completes
+      setTimeout(() => {
+        markers.forEach((m) => m.remove());
+        map.removeLayer(heatLayer);
+      }, 280);
     };
   }, [vibePins, activeFilter, showVibes]);
 
