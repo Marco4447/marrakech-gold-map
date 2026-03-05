@@ -130,6 +130,53 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_offers: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          expiration_date: string | null
+          id: string
+          is_active: boolean
+          place_id: string
+          title: string
+          updated_at: string
+          vip_only: boolean
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          expiration_date?: string | null
+          id?: string
+          is_active?: boolean
+          place_id: string
+          title: string
+          updated_at?: string
+          vip_only?: boolean
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          expiration_date?: string | null
+          id?: string
+          is_active?: boolean
+          place_id?: string
+          title?: string
+          updated_at?: string
+          vip_only?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_offers_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_requests: {
         Row: {
           business_name: string
@@ -173,7 +220,9 @@ export type Database = {
           id: string
           image_url: string | null
           is_partner: boolean
+          is_premium: boolean
           latitude: number
+          listing_tier: string | null
           longitude: number
           name: string
           neighborhood: string | null
@@ -189,7 +238,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_partner?: boolean
+          is_premium?: boolean
           latitude: number
+          listing_tier?: string | null
           longitude: number
           name: string
           neighborhood?: string | null
@@ -205,7 +256,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_partner?: boolean
+          is_premium?: boolean
           latitude?: number
+          listing_tier?: string | null
           longitude?: number
           name?: string
           neighborhood?: string | null
@@ -335,6 +388,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vibe_boosts: {
+        Row: {
+          boost_expires_at: string
+          boost_type: string
+          created_at: string
+          id: string
+          stripe_session_id: string | null
+          user_id: string
+          vibe_id: string
+        }
+        Insert: {
+          boost_expires_at: string
+          boost_type: string
+          created_at?: string
+          id?: string
+          stripe_session_id?: string | null
+          user_id: string
+          vibe_id: string
+        }
+        Update: {
+          boost_expires_at?: string
+          boost_type?: string
+          created_at?: string
+          id?: string
+          stripe_session_id?: string | null
+          user_id?: string
+          vibe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vibe_boosts_vibe_id_fkey"
+            columns: ["vibe_id"]
+            isOneToOne: false
+            referencedRelation: "vibes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vibe_comments: {
         Row: {
