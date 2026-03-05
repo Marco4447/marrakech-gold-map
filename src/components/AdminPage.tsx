@@ -612,7 +612,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
                   {/* Filter buttons */}
                   <div className="flex gap-1.5 mt-4">
-                    {(["all", "Weshkech", "Jemaride", "Autre"] as const).map((f) => (
+                    {(["all", "Weshkech", "Autre"] as const).map((f) => (
                       <button
                         key={f}
                         onClick={() => setSalesFilter(f)}
@@ -642,7 +642,6 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                               {p.app && (
                                 <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
                                   p.app === "Weshkech" ? "bg-gold/15 text-gold" 
-                                  : p.app === "Jemaride" ? "bg-blue-500/15 text-blue-400" 
                                   : "bg-muted text-muted-foreground"
                                 }`}>
                                   {p.app}
