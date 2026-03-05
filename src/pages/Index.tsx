@@ -192,6 +192,14 @@ const Index = () => {
 
       <ExplainerSheet open={explainerTab !== null} onClose={() => setExplainerTab(null)} initialTab={explainerTab ?? "insider"} />
       {!isGuest && <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />}
+      {!isGuest && (
+        <OnboardingTutorial
+          open={showOnboarding}
+          onComplete={() => setShowOnboarding(false)}
+          onOpenFlashPost={() => setShowFlashPost(true)}
+          onGoToTab={setActiveTab}
+        />
+      )}
     </div>
   );
 };
