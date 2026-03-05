@@ -138,7 +138,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
     }
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); fetchChallenges(); }, []);
 
   const pendingCount = partnerRequests.filter((r) => r.status === "pending").length;
 
