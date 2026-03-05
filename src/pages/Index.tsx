@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { analytics } from "@/lib/analytics";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav from "@/components/BottomNav";
 import LivePage from "@/components/LivePage";
@@ -139,25 +139,46 @@ const Index = () => {
         {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("map")} />)}
       </div>
 
-      {/* Guest signup prompt floating on map */}
+      {/* Guest progressive blur overlay + CTA */}
       {isGuest && activeTab === "map" && (
-        <div className="fixed bottom-20 left-4 right-4 z-[1999]">
-          <div className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl p-4 shadow-2xl shadow-gold/10">
-            <p className="text-sm font-semibold text-foreground text-center mb-2">
-              🔥 Inscris-toi pour poster, liker et débloquer tous les avantages
-            </p>
-            <button
-              onClick={() => {
-                // Show AuthGate by switching to a tab that requires auth
-                setActiveTab("profil");
-              }}
-              className="w-full py-3 rounded-xl font-bold text-sm text-primary-foreground shadow-lg"
-              style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+        <>
+          {/* Progressive blur gradient from bottom */}
+          <div className="fixed inset-x-0 bottom-0 h-[55vh] z-[1998] pointer-events-none"
+            style={{
+              background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.85) 25%, hsl(var(--background) / 0.4) 60%, transparent 100%)",
+              backdropFilter: "blur(3px)",
+              WebkitBackdropFilter: "blur(3px)",
+              maskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)",
+            }}
+          />
+          {/* CTA card */}
+          <div className="fixed bottom-20 left-4 right-4 z-[1999]">
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 1.5, duration: 0.5, type: "spring" }}
+              className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl p-5 shadow-2xl shadow-gold/10 text-center"
             >
-              Continuer avec Google 🚀
-            </button>
+              <p className="text-base font-bold text-foreground mb-1">
+                🔒 Débloque la carte complète
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Inscris-toi pour voir tous les spots, poster des vibes et profiter des deals exclusifs
+              </p>
+              <button
+                onClick={() => setActiveTab("profil")}
+                className="w-full py-3 rounded-xl font-bold text-sm text-primary-foreground shadow-lg active:scale-[0.97] transition-transform"
+                style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+              >
+                Continuer avec Google 🚀
+              </button>
+              <p className="text-[10px] text-muted-foreground mt-2">
+                Gratuit · 10 secondes · Sans spam
+              </p>
+            </motion.div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Jema floating button — only on map tab */}
