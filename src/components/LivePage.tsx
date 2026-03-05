@@ -703,7 +703,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
           )}
 
           {/* ===== MAIN FEED ===== */}
-          <div className="space-y-0">
+          <div className="divide-y divide-border">
             {visibleFeed.map((vibe, i) => {
               const liked = likedIds.has(vibe.id);
               const isAnimating = animatingId === vibe.id;
