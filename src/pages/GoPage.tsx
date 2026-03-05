@@ -92,7 +92,32 @@ export default function GoPage() {
 
   useEffect(() => {
     ttqTrack("ViewContent", { content_name: "go_landing", description: `${utmSource}/${utmCampaign}` });
-    trackEvent("landing_viewed", { source: utmSource, campaign: utmCampaign });
+    trackEvent("go_page_view", {
+      source: utmSource,
+      campaign: utmCampaign,
+      is_inapp: isInApp,
+      is_tiktok: isTikTok,
+      referrer: document.referrer || "direct",
+    });
+  }, []);
+
+  // Track scroll depth
+  useEffect(() => {
+    const thresholds = [25, 50, 75, 100];
+    const fired = new Set<number>();
+    const onScroll = () => {
+      const total = document.body.scrollHeight - window.innerHeight;
+      if (total <= 0) return;
+      const pct = Math.round((window.scrollY / total) * 100);
+      for (const th of thresholds) {
+        if (pct >= th && !fired.has(th)) {
+          fired.add(th);
+          trackEvent("go_scroll_depth", { depth: th, source: utmSource });
+        }
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -108,15 +133,19 @@ export default function GoPage() {
       return;
     }
     setLoading(true);
+    trackEvent("go_oauth_initiated", { source: utmSource, campaign: utmCampaign });
     ttqTrack("CompleteRegistration", { content_name: "go_landing_signup", description: `${utmSource}/${utmCampaign}` });
-    trackEvent("signup_started", { source: "go_page" });
     try { localStorage.setItem("weshkech_utm", JSON.stringify({ source: utmSource, campaign: utmCampaign, ts: Date.now() })); } catch {}
     const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (error) { console.error("OAuth error:", error); setLoading(false); }
+    if (error) {
+      console.error("OAuth error:", error);
+      trackEvent("go_oauth_failed", { error: String(error), source: utmSource });
+      setLoading(false);
+    }
   };
 
   const handleOpenInBrowser = () => {
-    trackEvent("open_in_browser_clicked", { browser: isTikTok ? "tiktok" : "other" });
+    trackEvent("go_open_external_browser", { browser: isTikTok ? "tiktok" : "other" });
     redirectToExternalBrowser();
   };
 
@@ -138,8 +167,8 @@ export default function GoPage() {
     }
   };
 
-  const handleDiscover = () => {
-    trackEvent("preview_clicked", { source: "go_page" });
+  const handleDiscover = (ctaLabel: string) => {
+    trackEvent("go_cta_clicked", { cta: ctaLabel, source: utmSource, campaign: utmCampaign });
     ttqTrack("ViewContent", { content_name: "go_to_discover" });
     navigate("/discover" + (searchParams.toString() ? `?${searchParams.toString()}` : ""));
   };
@@ -223,7 +252,7 @@ export default function GoPage() {
             <div className="space-y-2">
               {trendingPlaces.map((spot, i) => (
                 <motion.div key={spot.name} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 + i * 0.1 }}
-                  className="flex items-center gap-3 bg-card/70 backdrop-blur-md border border-border rounded-2xl p-2.5 cursor-pointer active:scale-[0.98] transition-transform" onClick={handleDiscover}>
+                  className="flex items-center gap-3 bg-card/70 backdrop-blur-md border border-border rounded-2xl p-2.5 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => handleDiscover("trending_card")}>
                   <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 relative">
                     <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" />
                     <div className="absolute top-1 left-1 bg-destructive/90 text-[7px] font-bold text-destructive-foreground px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
@@ -243,7 +272,7 @@ export default function GoPage() {
           </motion.div>
         )}
 
-        <motion.button initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} onClick={handleDiscover}
+        <motion.button initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} onClick={() => handleDiscover("hero_cta")}
           className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-4 rounded-2xl transition-all shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-base tracking-wide flex items-center justify-center gap-2.5 mb-6">
           <MapPin className="w-5 h-5" /> {t("go_seeHottest")} <ArrowRight className="w-5 h-5" />
         </motion.button>
@@ -281,13 +310,14 @@ export default function GoPage() {
           </div>
         </motion.div>
 
-        <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75 }} onClick={handleDiscover}
+        <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75 }} onClick={() => handleDiscover("see_full_map")}
           className="w-full py-3.5 rounded-2xl border border-gold/30 bg-gold/5 text-gold text-sm font-semibold transition-all active:scale-[0.97] flex items-center justify-center gap-2 mb-6">
           <MapPin className="w-4 h-4" /> {t("go_seeFullMap")} <ChevronRight className="w-4 h-4" />
         </motion.button>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }} className="w-full grid grid-cols-2 gap-2 mb-6">
           <button onClick={() => {
+            trackEvent("go_cta_clicked", { cta: "share_whatsapp", source: utmSource });
             const text = t("go_shareText");
             const url = window.location.href;
             if (navigator.share) navigator.share({ title: "Weshkech", text, url }).catch(() => {});
@@ -295,7 +325,7 @@ export default function GoPage() {
           }} className="py-3 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
             {t("go_shareWhatsApp")}
           </button>
-          <button onClick={handleDiscover} className="py-3 rounded-2xl bg-gold/5 border border-gold/20 text-gold text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
+          <button onClick={() => handleDiscover("unlock_vip")} className="py-3 rounded-2xl bg-gold/5 border border-gold/20 text-gold text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
             {t("go_unlockVip")}
           </button>
         </motion.div>
@@ -308,7 +338,7 @@ export default function GoPage() {
 
       <div className="fixed bottom-0 inset-x-0 z-50 p-4 bg-gradient-to-t from-background via-background/95 to-transparent">
         <div className="max-w-md mx-auto">
-          <button onClick={handleDiscover} className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-sm tracking-wide flex items-center justify-center gap-2">
+          <button onClick={() => handleDiscover("sticky_cta")} className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-sm tracking-wide flex items-center justify-center gap-2">
             <Flame className="w-4 h-4" /> {t("go_seeHottestSticky")}
           </button>
         </div>
