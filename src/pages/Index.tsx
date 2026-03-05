@@ -25,23 +25,32 @@ const Index = () => {
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const { user, loading } = useAuth();
   const [spotCount, setSpotCount] = useState(0);
+  const [liveVibeCount, setLiveVibeCount] = useState(0);
 
-  // Fetch spot count for guest CTA
+  // Fetch spot count + live vibe count for guest CTA
   useEffect(() => {
     if (user) return;
-    const fetchCount = async () => {
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      if (!baseUrl || !apiKey) return;
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    if (!baseUrl || !apiKey) return;
+
+    const fetchCounts = async () => {
       try {
-        const res = await fetch(`${baseUrl}/rest/v1/places?select=id`, {
-          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Prefer: "count=exact" },
-        });
-        const count = res.headers.get("content-range")?.split("/")[1];
-        if (count) setSpotCount(parseInt(count, 10));
+        const [placesRes, vibesRes] = await Promise.all([
+          fetch(`${baseUrl}/rest/v1/places?select=id`, {
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Prefer: "count=exact" },
+          }),
+          fetch(`${baseUrl}/rest/v1/vibes?select=id&created_at=gte.${new Date(Date.now() - 3600000).toISOString()}`, {
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Prefer: "count=exact" },
+          }),
+        ]);
+        const spots = placesRes.headers.get("content-range")?.split("/")[1];
+        if (spots) setSpotCount(parseInt(spots, 10));
+        const vibes = vibesRes.headers.get("content-range")?.split("/")[1];
+        if (vibes) setLiveVibeCount(parseInt(vibes, 10));
       } catch {}
     };
-    fetchCount();
+    fetchCounts();
   }, [user]);
 
   // Show landing only for users who have never completed onboarding
@@ -194,6 +203,21 @@ const Index = () => {
                   }}
                 >
                   <span className="text-xs font-bold text-gold">📍 {spotCount} spots cachés près de toi</span>
+                </motion.div>
+              )}
+              {liveVibeCount > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 2.5, duration: 0.4 }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-2 mx-auto"
+                  style={{
+                    background: "hsl(0 70% 50% / 0.12)",
+                    border: "1px solid hsl(0 70% 50% / 0.3)",
+                  }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-[11px] font-semibold text-red-400">{liveVibeCount} vibes postées dans la dernière heure</span>
                 </motion.div>
               )}
               <p className="text-xs text-muted-foreground mb-3">
