@@ -209,6 +209,7 @@ export type Database = {
           created_at: string
           device_id: string
           id: string
+          user_id: string | null
           vibe_id: string
         }
         Insert: {
@@ -216,6 +217,7 @@ export type Database = {
           created_at?: string
           device_id: string
           id?: string
+          user_id?: string | null
           vibe_id: string
         }
         Update: {
@@ -223,6 +225,7 @@ export type Database = {
           created_at?: string
           device_id?: string
           id?: string
+          user_id?: string | null
           vibe_id?: string
         }
         Relationships: [
@@ -240,18 +243,21 @@ export type Database = {
           created_at: string
           device_id: string
           id: string
+          user_id: string | null
           vibe_id: string
         }
         Insert: {
           created_at?: string
           device_id: string
           id?: string
+          user_id?: string | null
           vibe_id: string
         }
         Update: {
           created_at?: string
           device_id?: string
           id?: string
+          user_id?: string | null
           vibe_id?: string
         }
         Relationships: [
@@ -269,18 +275,21 @@ export type Database = {
           created_at: string
           device_id: string
           id: string
+          user_id: string | null
           vibe_id: string
         }
         Insert: {
           created_at?: string
           device_id: string
           id?: string
+          user_id?: string | null
           vibe_id: string
         }
         Update: {
           created_at?: string
           device_id?: string
           id?: string
+          user_id?: string | null
           vibe_id?: string
         }
         Relationships: [
