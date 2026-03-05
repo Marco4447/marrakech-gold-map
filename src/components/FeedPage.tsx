@@ -336,18 +336,15 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <span className="text-xs text-muted-foreground">{vibes.length} vibes live</span>
         </div>
         <div className="flex">
-          <button
-            onClick={() => setActiveTab("foryou")}
-            className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${activeTab === "foryou" ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
-          >
-            Pour toi
-          </button>
-          <button
-            onClick={() => setActiveTab("recents")}
-            className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${activeTab === "recents" ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
-          >
-            Récents
-          </button>
+          {(["foryou", "following", "recents"] as FeedTab[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${activeTab === tab ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
+            >
+              {tab === "foryou" ? "Pour toi" : tab === "following" ? "Suivis" : "Récents"}
+            </button>
+          ))}
         </div>
       </div>
 
