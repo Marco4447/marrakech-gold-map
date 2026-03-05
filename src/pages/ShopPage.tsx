@@ -5,6 +5,7 @@ import { ArrowLeft, Zap, Flame, Check, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import LanguageToggle from "@/components/LanguageToggle";
 
 const CREDIT_PACKS = [
   {
@@ -115,6 +116,9 @@ export default function ShopPage() {
             <p className="text-muted-foreground text-[11px] mt-0.5">
               Publie des Vibes Officielles sur la map ⚡
             </p>
+          </div>
+          <div className="ml-auto">
+            <LanguageToggle />
           </div>
         </div>
       </div>

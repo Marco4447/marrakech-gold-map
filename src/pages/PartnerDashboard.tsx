@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import LanguageToggle from "@/components/LanguageToggle";
 
 function VipOfferSettings({ userId }: { userId: string }) {
   const [perk, setPerk] = useState("");
@@ -416,6 +417,9 @@ export default function PartnerDashboard() {
           <div>
             <h1 className="font-display text-lg font-bold text-foreground">Partner Studio</h1>
             <p className="text-[11px] text-muted-foreground">Publie des Vibes Officielles</p>
+          </div>
+          <div className="ml-auto">
+            <LanguageToggle />
           </div>
         </div>
       </div>

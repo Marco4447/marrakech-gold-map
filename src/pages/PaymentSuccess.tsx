@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Check, Zap, Crown, ArrowRight, Sparkles } from "lucide-react";
 import GoldConfetti from "@/components/GoldConfetti";
 import { ttqTrack } from "@/lib/ttq";
+import LanguageToggle from "@/components/LanguageToggle";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -36,6 +37,9 @@ export default function PaymentSuccess() {
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center relative overflow-hidden px-6">
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageToggle />
+      </div>
       {/* Gold confetti */}
       <GoldConfetti duration={5000} />
 
