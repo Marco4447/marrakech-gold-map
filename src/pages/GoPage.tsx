@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Users, Star, Mail, Lock, User, Loader2, ExternalLink, Copy, Check, ArrowLeft } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -22,10 +23,19 @@ type ViewMode = "hero" | "signup";
 
 export default function GoPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [testimonialIdx, setTestimonialIdx] = useState(0);
   const [copied, setCopied] = useState(false);
   const [view, setView] = useState<ViewMode>("hero");
   const { lang, t } = useLanguage();
+
+  // Redirect authenticated users to home
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   // Signup state
   const [email, setEmail] = useState("");
