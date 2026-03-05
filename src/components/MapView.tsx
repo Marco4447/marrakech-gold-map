@@ -109,7 +109,15 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: zOffset, opacity: 0 })
         .addTo(map)
         .on("click", () => {
-          if (shouldBlur) return; // blurred markers are not clickable for guests
+          if (shouldBlur) {
+            // Show tooltip on blurred marker click
+            L.popup({ closeButton: false, className: "guest-lock-popup", offset: [0, -10] })
+              .setLatLng([place.latitude, place.longitude])
+              .setContent('<div style="text-align:center;font-size:12px;font-weight:600;color:hsl(43,76%,52%)">🔒 Inscris-toi pour voir ce spot</div>')
+              .openOn(map);
+            setTimeout(() => map.closePopup(), 2500);
+            return;
+          }
           setSelectedPlace(place);
           setSheetOpen(true);
         });
