@@ -12,6 +12,7 @@ import FlashPost from "@/components/FlashPost";
 import WelcomeModal from "@/components/WelcomeModal";
 import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
+import OnboardingTutorial from "@/components/OnboardingTutorial";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useNotifications } from "@/hooks/useNotifications";
