@@ -28,6 +28,7 @@ const Index = () => {
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const { user, loading } = useAuth();
   const { t } = useLanguage();
+  const { unreadCount, markAllRead } = useNotifications();
   const [spotCount, setSpotCount] = useState(0);
   const [liveVibeCount, setLiveVibeCount] = useState(0);
 
@@ -158,10 +159,14 @@ const Index = () => {
         </a>
       )}
 
-      <BottomNav active={activeTab} onChange={(tab) => { analytics.tabChange(tab); setActiveTab(tab); }} onHome={handleHome} onFlashPost={() => {
+      <BottomNav active={activeTab} onChange={(tab) => {
+        analytics.tabChange(tab);
+        if (tab === "profil") markAllRead();
+        setActiveTab(tab);
+      }} onHome={handleHome} onFlashPost={() => {
         if (isGuest) { setActiveTab("profil"); return; }
         setShowFlashPost(true);
-      }} />
+      }} unreadNotifications={unreadCount} />
       {!isGuest && <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />}
 
       {/* Language toggle + info button */}
