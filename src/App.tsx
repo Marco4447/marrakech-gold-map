@@ -24,6 +24,7 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCanceled = lazy(() => import("./pages/PaymentCanceled"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
 const GoPage = lazy(() => import("./pages/GoPage"));
+const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
 const PlacePage = lazy(() => import("./pages/PlacePage"));
 const VibePage = lazy(() => import("./pages/VibePage"));
 const ReferralPage = lazy(() => import("./pages/ReferralPage"));
@@ -57,6 +58,7 @@ const AppShell = () => {
               <Route path="/payment-canceled" element={<PaymentCanceled />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/go" element={<GoPage />} />
+              <Route path="/discover" element={<DiscoverPage />} />
               <Route path="/place/:id" element={<PlacePage />} />
               <Route path="/vibe/:id" element={<VibePage />} />
               <Route path="/referral" element={<ReferralPage />} />
