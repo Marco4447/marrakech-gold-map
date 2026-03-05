@@ -617,6 +617,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       >
                         <Share2 className="w-5 h-5 text-foreground group-hover:text-foreground/70 transition-colors" />
                       </button>
+                      {vibe.user_id === userId && (
+                        <button onClick={() => setBoostVibeId(vibe.id)} className="group">
+                          <Rocket className="w-5 h-5 text-foreground group-hover:text-gold transition-colors" />
+                        </button>
+                      )}
                     </div>
                     <button onClick={() => handleSuperVibe(vibe.id)} disabled={!canSuperVibe || superVibeIds.has(vibe.id)} className="group relative">
                       <motion.div animate={superVibeAnimId === vibe.id ? { scale: [1, 1.6, 0.8, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}} transition={{ duration: 0.5, ease: "easeOut" }}>
