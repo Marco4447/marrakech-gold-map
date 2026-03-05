@@ -65,7 +65,7 @@ function TabButton({ active, label, icon: Icon, onClick, badge }: { active: bool
 
 export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [tab, setTab] = useState<Tab>("overview");
-  const [salesFilter, setSalesFilter] = useState<"all" | "Weshkech" | "Jemaride" | "Autre">("all");
+  const [salesFilter, setSalesFilter] = useState<"all" | "Weshkech" | "Autre">("all");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [partnerRequests, setPartnerRequests] = useState<PartnerRequest[]>([]);

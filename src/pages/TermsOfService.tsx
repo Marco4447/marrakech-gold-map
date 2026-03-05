@@ -33,14 +33,10 @@ export default function TermsOfService() {
             <li><strong className="text-foreground">Map</strong> : carte interactive des lieux recommandés à Marrakech</li>
             <li><strong className="text-foreground">Live</strong> : flux communautaire de photos et de recommandations</li>
             <li><strong className="text-foreground">Pass Invité</strong> : QR code informatif associé à un lieu</li>
-            <li><strong className="text-foreground">Estimation taxi</strong> : redirection vers le service tiers Jemaride pour une estimation de prix de course</li>
+            
           </ul>
         </section>
 
-        <section className="space-y-2">
-          <h2 className="font-display text-base font-semibold text-foreground">4. Service de taxi — Jemaride</h2>
-          <p>Weshkech n'est pas un service de transport. Le bouton « Y aller au prix juste » redirige l'utilisateur vers le site tiers <span className="text-gold">jemaride.com</span>, qui est seul responsable de ses services, tarifs et conditions. Weshkech décline toute responsabilité quant aux prestations fournies par Jemaride.</p>
-        </section>
 
         <section className="space-y-2">
           <h2 className="font-display text-base font-semibold text-foreground">5. Contenu utilisateur</h2>
@@ -54,7 +50,7 @@ export default function TermsOfService() {
 
         <section className="space-y-2">
           <h2 className="font-display text-base font-semibold text-foreground">7. Limitation de responsabilité</h2>
-          <p>Weshkech est fourni « en l'état ». Nous ne garantissons pas l'exactitude des informations sur les lieux (horaires, prix, disponibilité). Les estimations de prix de taxi affichées via Jemaride sont indicatives et peuvent différer du tarif final.</p>
+          <p>Weshkech est fourni « en l'état ». Nous ne garantissons pas l'exactitude des informations sur les lieux (horaires, prix, disponibilité).</p>
         </section>
 
         <section className="space-y-2">
