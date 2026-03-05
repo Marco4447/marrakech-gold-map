@@ -60,6 +60,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     return () => clearTimeout(timer);
   }, [bubbleDismissed, onboardingStep, placesLoading]);
 
+  // Pulse when new vibes arrive
+  useEffect(() => {
+    if (vibePins.length > prevVibeCountRef.current) {
+      setVibePulse(true);
+      const t = setTimeout(() => setVibePulse(false), 1500);
+      return () => clearTimeout(t);
+    }
+    prevVibeCountRef.current = vibePins.length;
+  }, [vibePins.length]);
+
   // Fly to coordinates
   useEffect(() => {
     if (flyToCoords && mapRef.current) {
@@ -487,7 +497,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               {vibePins.length > 0 && (
                 <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full text-[9px] font-bold flex items-center justify-center px-1 transition-all ${
                   showVibes ? "bg-primary-foreground text-gold" : "bg-muted text-muted-foreground"
-                }`}>
+                } ${vibePulse ? "animate-[pulse_0.5s_ease-in-out_3]" : ""}`}>
                   {vibePins.length}
                 </span>
               )}
