@@ -15,9 +15,11 @@ import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
 import NotificationsPage from "@/components/NotificationsPage";
+import AutoVibeCard from "@/components/AutoVibeCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useProximityDetection } from "@/hooks/useProximityDetection";
 import { Bell } from "lucide-react";
 
 const Index = () => {
@@ -29,9 +31,11 @@ const Index = () => {
   const [authStuck, setAuthStuck] = useState(false);
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [autoVibePlace, setAutoVibePlace] = useState<string | null>(null);
   const { user, loading } = useAuth();
   const { t } = useLanguage();
   const { unreadCount, markAllRead } = useNotifications();
+  const { nearbyPlace, dismiss: dismissAutoVibe, markPosted: markAutoVibePosted } = useProximityDetection(user?.id);
 
   const [showLanding, setShowLanding] = useState(() => !localStorage.getItem("wk_landed"));
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("wk_welcome_seen"));
@@ -149,7 +153,33 @@ const Index = () => {
         }}
       />
 
-      {!isGuest && <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("feed"); }} />}
+      {!isGuest && (
+        <FlashPost
+          open={showFlashPost}
+          onClose={() => { setShowFlashPost(false); setAutoVibePlace(null); }}
+          onPosted={() => {
+            setFeedRefreshSignal((v) => v + 1);
+            setActiveTab("feed");
+            if (autoVibePlace && nearbyPlace) {
+              markAutoVibePosted(nearbyPlace.id);
+            }
+            setAutoVibePlace(null);
+          }}
+          initialPlace={autoVibePlace}
+        />
+      )}
+
+      {/* Auto-Vibe proximity card */}
+      {!isGuest && !showFlashPost && (
+        <AutoVibeCard
+          place={nearbyPlace}
+          onPost={(place) => {
+            setAutoVibePlace(place.name);
+            setShowFlashPost(true);
+          }}
+          onDismiss={dismissAutoVibe}
+        />
+      )}
 
       {/* Header: Language toggle + notifications bell + info */}
       {!isGuest && (

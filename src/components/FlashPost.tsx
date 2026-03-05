@@ -30,6 +30,8 @@ interface FlashPostProps {
   open: boolean;
   onClose: () => void;
   onPosted?: () => void;
+  /** Pre-fill place name for Auto-Vibe flow */
+  initialPlace?: string | null;
 }
 
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif", "gif", "avif"]);
@@ -117,7 +119,7 @@ function SuccessAnimation({ show }: { show: boolean }) {
   );
 }
 
-export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
+export default function FlashPost({ open, onClose, onPosted, initialPlace }: FlashPostProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
@@ -212,6 +214,14 @@ export default function FlashPost({ open, onClose, onPosted }: FlashPostProps) {
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }, []);
+
+  // Auto-fill place from Auto-Vibe
+  useEffect(() => {
+    if (open && initialPlace) {
+      setGeoName(initialPlace);
+      setNearbyPlace(initialPlace);
+    }
+  }, [open, initialPlace]);
 
   const doFetch = async (url: string, options: RequestInit, token: string) => {
     const controller = new AbortController();
