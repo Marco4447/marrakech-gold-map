@@ -157,6 +157,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [floatingReaction, setFloatingReaction] = useState<{ id: string; emoji: string } | null>(null);
   const { isFollowing, toggleFollow, followingIds } = useFollows();
   const [showReels, setShowReels] = useState(false);
+  const [boostVibeId, setBoostVibeId] = useState<string | null>(null);
 
   const deviceId = getDeviceId();
   const userId = user?.id;
