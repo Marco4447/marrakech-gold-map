@@ -130,6 +130,34 @@ serve(async (req) => {
             .insert({ user_id: userId, role: "partner" });
           logStep("Partner role assigned", { userId });
         }
+      } else if (metaType === "vibe_boost") {
+        const boostType = session.metadata?.boost_type || "24h_visibility";
+        const vibeId = session.metadata?.vibe_id;
+        if (!vibeId) {
+          logStep("ERROR: No vibe_id for boost");
+          throw new Error("Missing vibe_id for boost");
+        }
+
+        // Boost durations by type
+        const durations: Record<string, number> = {
+          "24h_visibility": 24 * 60 * 60 * 1000,
+          "discover_featured": 48 * 60 * 60 * 1000,
+          "map_spotlight": 72 * 60 * 60 * 1000,
+        };
+        const duration = durations[boostType] || 24 * 60 * 60 * 1000;
+        const boostExpiresAt = new Date(Date.now() + duration).toISOString();
+
+        const { error: boostErr } = await supabaseAdmin
+          .from("vibe_boosts")
+          .insert({
+            vibe_id: vibeId,
+            user_id: userId,
+            boost_type: boostType,
+            boost_expires_at: boostExpiresAt,
+            stripe_session_id: session.id,
+          });
+        if (boostErr) throw boostErr;
+        logStep("Vibe boost created", { vibeId, boostType, boostExpiresAt });
       } else {
         logStep("Unknown product type, skipping", { metaType });
       }

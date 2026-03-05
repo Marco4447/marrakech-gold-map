@@ -7,6 +7,9 @@ import { toast } from "sonner";
 import DealTunnel from "./DealTunnel";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { getShareUrl } from "@/lib/shareUrl";
+import { useAuth } from "@/hooks/useAuth";
+import PremiumLock from "./PremiumLock";
+import PartnerOfferCard from "./PartnerOfferCard";
 
 interface Place {
   id: string;
@@ -21,6 +24,7 @@ interface Place {
   is_partner?: boolean;
   has_active_offer?: boolean;
   neighborhood?: string | null;
+  is_premium?: boolean;
 }
 
 interface PlaceSheetProps {
@@ -60,6 +64,23 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const vibeImages = usePlaceGallery(place?.name);
   const viewerCount = useViewerCount(place?.id);
   const { t, lang } = useLanguage();
+  const { user } = useAuth();
+  const [isVip, setIsVip] = useState(false);
+  const [offers, setOffers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user || !open) return;
+    supabase.from("profiles").select("is_vip, vip_expires_at").eq("user_id", user.id).single().then(({ data }) => {
+      setIsVip(!!(data?.is_vip && data?.vip_expires_at && new Date(data.vip_expires_at) > new Date()));
+    });
+  }, [user, open]);
+
+  useEffect(() => {
+    if (!place?.id || !open) return;
+    supabase.from("partner_offers").select("*").eq("place_id", place.id).eq("is_active", true).then(({ data }) => {
+      if (data) setOffers(data.filter((o: any) => !o.expiration_date || new Date(o.expiration_date) > new Date()));
+    });
+  }, [place?.id, open]);
 
   useEffect(() => { setGalleryIndex(0); }, [place?.id]);
 
@@ -144,14 +165,26 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     )}
                   </div>
 
-                  {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
+                  {(place as any).is_premium && !isVip ? (
+                    <PremiumLock placeName={place.name} />
+                  ) : (
+                    <>
+                      {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
 
-                  {isPartner && hasOffer && (
-                    <div className="bg-gold/10 border border-gold/25 rounded-xl p-4 space-y-2">
-                      <div className="flex items-center gap-2"><Gift className="w-4 h-4 text-gold" /><span className="text-sm font-semibold text-gold">{t("place_insiderOffer")}</span></div>
-                      <p className="text-xs text-foreground/80">{t("place_insiderOfferDesc")} {place.name}.</p>
-                    </div>
-                  )}
+                      {isPartner && hasOffer && (
+                        <div className="bg-gold/10 border border-gold/25 rounded-xl p-4 space-y-2">
+                          <div className="flex items-center gap-2"><Gift className="w-4 h-4 text-gold" /><span className="text-sm font-semibold text-gold">{t("place_insiderOffer")}</span></div>
+                          <p className="text-xs text-foreground/80">{t("place_insiderOfferDesc")} {place.name}.</p>
+                        </div>
+                      )}
+
+                      {offers.length > 0 && (
+                        <div className="space-y-2">
+                          {offers.map((offer) => (
+                            <PartnerOfferCard key={offer.id} offer={offer} isVip={isVip} />
+                          ))}
+                        </div>
+                      )}
 
                   {place.address && (
                     <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" /><span className="text-xs">{place.address}</span></div>
@@ -179,6 +212,8 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                       </div>
                       <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
                     </Link>
+                  )}
+                    </>
                   )}
                 </div>
               </div>

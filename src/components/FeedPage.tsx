@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film } from "lucide-react";
+import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import VibeBoostSheet from "./VibeBoostSheet";
 import { useAuth } from "@/hooks/useAuth";
 import VibeComments, { useCommentCounts } from "./VibeComments";
 import SuperVibeParticles from "./SuperVibeParticles";
@@ -157,6 +158,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [floatingReaction, setFloatingReaction] = useState<{ id: string; emoji: string } | null>(null);
   const { isFollowing, toggleFollow, followingIds } = useFollows();
   const [showReels, setShowReels] = useState(false);
+  const [boostVibeId, setBoostVibeId] = useState<string | null>(null);
+  const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -231,6 +234,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     fetchVibes();
     fetchMyLikes();
     fetchMySuperVibes();
+
+    // Fetch active boosts
+    supabase.from("vibe_boosts").select("vibe_id, boost_expires_at").gt("boost_expires_at", new Date().toISOString()).then(({ data }) => {
+      if (data) setBoostedVibeIds(new Set(data.map((b: any) => b.vibe_id)));
+    });
 
     const channel = supabase
       .channel("feed-vibes")
@@ -324,8 +332,16 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         const aPartner = a.is_official ? 1 : 0;
         const bPartner = b.is_official ? 1 : 0;
 
-        const aTotal = aTimeFresh * 0.4 + aDistScore * 0.2 + aEng * 0.3 + aPartner * 0.1;
-        const bTotal = bTimeFresh * 0.4 + bDistScore * 0.2 + bEng * 0.3 + bPartner * 0.1;
+        // Vibe boost (paid boost)
+        const aBoost = boostedVibeIds.has(a.id) ? 0.15 : 0;
+        const bBoost = boostedVibeIds.has(b.id) ? 0.15 : 0;
+
+        // VIP bonus (+10% visibility)
+        const aVip = (a as any).profile?.is_vip ? 0.1 : 0;
+        const bVip = (b as any).profile?.is_vip ? 0.1 : 0;
+
+        const aTotal = aTimeFresh * 0.35 + aDistScore * 0.15 + aEng * 0.25 + aPartner * 0.1 + aBoost + aVip;
+        const bTotal = bTimeFresh * 0.35 + bDistScore * 0.15 + bEng * 0.25 + bPartner * 0.1 + bBoost + bVip;
         return bTotal - aTotal;
       })
     : activeTab === "following"
@@ -616,6 +632,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       >
                         <Share2 className="w-5 h-5 text-foreground group-hover:text-foreground/70 transition-colors" />
                       </button>
+                      {vibe.user_id === userId && (
+                        <button onClick={() => setBoostVibeId(vibe.id)} className="group">
+                          <Rocket className="w-5 h-5 text-foreground group-hover:text-gold transition-colors" />
+                        </button>
+                      )}
                     </div>
                     <button onClick={() => handleSuperVibe(vibe.id)} disabled={!canSuperVibe || superVibeIds.has(vibe.id)} className="group relative">
                       <motion.div animate={superVibeAnimId === vibe.id ? { scale: [1, 1.6, 0.8, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}} transition={{ duration: 0.5, ease: "easeOut" }}>
@@ -669,6 +690,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       <AnimatePresence>
         {showReels && <TikTokFeed open={showReels} onClose={() => setShowReels(false)} />}
       </AnimatePresence>
+
+      {/* Vibe Boost */}
+      <VibeBoostSheet vibeId={boostVibeId || ""} open={!!boostVibeId} onOpenChange={(open) => !open && setBoostVibeId(null)} />
     </div>
   );
 }

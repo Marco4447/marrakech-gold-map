@@ -6,6 +6,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
+import PartnerOffersManager from "@/components/PartnerOffersManager";
+
+function PartnerOffersSection({ userId }: { userId: string }) {
+  const [placeId, setPlaceId] = useState<string | null>(null);
+  useEffect(() => {
+    const load = async () => {
+      const { data: vibes } = await supabase.from("vibes").select("location").eq("user_id", userId).eq("is_official", true).not("location", "is", null).limit(1);
+      if (vibes?.[0]?.location) {
+        const { data: place } = await supabase.from("places").select("id").ilike("name", `%${vibes[0].location}%`).limit(1);
+        if (place?.[0]) setPlaceId(place[0].id);
+      }
+    };
+    load();
+  }, [userId]);
+  if (!placeId) return null;
+  return <PartnerOffersManager placeId={placeId} />;
+}
 
 function VipOfferSettings({ userId }: { userId: string }) {
   const [perk, setPerk] = useState("");
@@ -427,6 +444,9 @@ export default function PartnerDashboard() {
       <div className="px-5 space-y-5 pt-5">
         {/* VIP Offer Settings */}
         <VipOfferSettings userId={user.id} />
+
+        {/* Partner Offers */}
+        <PartnerOffersSection userId={user.id} />
 
         {/* Credits */}
         <CreditCard credits={credits} onBuy={() => navigate("/shop")} />

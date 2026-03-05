@@ -17,6 +17,13 @@ const CREDIT_PACKS: Record<string, number> = {
 // B2C VIP subscription price
 const VIP_PRICE_ID = "price_1T6lnGJ8RyilXHbfsZBKku0a";
 
+// Vibe Boost prices
+const BOOST_PRICES: Record<string, string> = {
+  "price_1T7idcJ8RyilXHbfu8quT9F2": "24h_visibility",
+  "price_1T7idxJ8RyilXHbfUmO06T3U": "discover_featured",
+  "price_1T7ieRJ8RyilXHbfaY93RC1O": "map_spotlight",
+};
+
 const logStep = (step: string, details?: any) => {
   console.log(`[CHECKOUT] ${step}${details ? ` - ${JSON.stringify(details)}` : ""}`);
 };
@@ -41,9 +48,9 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId, productType, creditAmount } = await req.json();
+    const { priceId, productType, creditAmount, boostType, vibeId } = await req.json();
     if (!priceId) throw new Error("Missing priceId");
-    logStep("Request received", { priceId, productType, creditAmount });
+    logStep("Request received", { priceId, productType, creditAmount, boostType, vibeId });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -61,13 +68,18 @@ serve(async (req) => {
 
     // Determine mode and metadata based on product type
     const isVip = productType === "b2c_vip" || priceId === VIP_PRICE_ID;
+    const isBoost = productType === "vibe_boost" || !!BOOST_PRICES[priceId];
     const credits = CREDIT_PACKS[priceId] || creditAmount || 0;
 
     const metadata: Record<string, string> = {
       user_id: user.id,
-      type: isVip ? "b2c_vip" : "b2b_credits",
+      type: isVip ? "b2c_vip" : isBoost ? "vibe_boost" : "b2b_credits",
     };
-    if (!isVip) {
+    if (isBoost) {
+      metadata.boost_type = boostType || BOOST_PRICES[priceId] || "24h_visibility";
+      metadata.vibe_id = vibeId || "";
+    }
+    if (!isVip && !isBoost) {
       metadata.credits = String(credits);
     }
 
@@ -103,14 +115,20 @@ serve(async (req) => {
       mode: isVip ? "subscription" : "payment",
       success_url: isVip
         ? `${origin}/payment-success?type=vip`
-        : `${origin}/payment-success?type=credits&credits=${credits}`,
+        : isBoost
+          ? `${origin}/payment-success?type=boost`
+          : `${origin}/payment-success?type=credits&credits=${credits}`,
       cancel_url: isVip
         ? `${origin}/payment-canceled?type=vip`
-        : `${origin}/payment-canceled?type=credits`,
+        : isBoost
+          ? `${origin}/payment-canceled?type=boost`
+          : `${origin}/payment-canceled?type=credits`,
       metadata,
       ...(isVip ? {} : {
         payment_intent_data: {
-          description: packNames[priceId] || "Marrakech Gold · Vibe Credits",
+          description: isBoost
+            ? `Weshkech · Vibe Boost (${boostType || "visibility"})`
+            : (packNames[priceId] || "Marrakech Gold · Vibe Credits"),
         },
       }),
     };
