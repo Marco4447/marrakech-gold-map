@@ -92,7 +92,6 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                     <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 mb-5 space-y-1.5">
                       <p className="text-xs text-foreground font-medium">100% gratuit — Vous recevrez :</p>
                       <ul className="text-xs text-muted-foreground space-y-1">
-                        <li>📖 PDF <span className="text-gold">« Marrakech : 48h sans pièges à touristes »</span></li>
                         <li>🔑 Accès à la communauté <span className="text-gold">Weshkech</span></li>
                         <li>🎟️ QR code Pass Invité pour {placeName}</li>
                       </ul>
@@ -146,7 +145,7 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                     <h2 className="font-display text-xl font-semibold text-foreground mb-1">Pass Découverte Weshkech 🎉</h2>
                     <p className="text-sm text-gold font-medium mb-0.5">{displayName}</p>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Votre guide <span className="text-gold font-medium">« 48h sans pièges »</span> arrive sur <span className="text-gold font-medium">{displayEmail}</span>
+                      Confirmation envoyée sur <span className="text-gold font-medium">{displayEmail}</span>
                     </p>
 
                     <div className="bg-foreground rounded-2xl p-4 w-48 h-48 mx-auto mb-3 flex items-center justify-center">
