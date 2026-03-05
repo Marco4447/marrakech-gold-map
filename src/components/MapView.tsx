@@ -220,7 +220,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       markers.forEach((m) => m.remove());
       map.removeLayer(heatLayer);
     };
-  }, [vibePins, activeFilter]);
+  }, [vibePins, activeFilter, showVibes]);
 
   const categories = Object.entries(CATEGORY_CONFIG);
 
@@ -437,6 +437,17 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               title="Ma position"
             >
               <Navigation className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setShowVibes(v => !v)}
+              className={`w-10 h-10 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-lg active:scale-95 transition-all ${
+                showVibes
+                  ? "bg-gold/90 border-gold-dark/40 text-primary-foreground"
+                  : "bg-[hsl(0,0%,10%,0.92)] border-border text-muted-foreground"
+              }`}
+              title={showVibes ? "Masquer les vibes" : "Voir les vibes"}
+            >
+              <span className="text-sm">📸</span>
             </button>
             <button
               onClick={handleRecenter}
