@@ -958,6 +958,13 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         open={!!commentVibeId}
         onOpenChange={(open) => !open && setCommentVibeId(null)}
       />
+
+      {/* TikTok-style Reels Feed */}
+      <AnimatePresence>
+        {showTikTokFeed && (
+          <TikTokFeed open={showTikTokFeed} onClose={() => setShowTikTokFeed(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
