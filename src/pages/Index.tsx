@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { analytics } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 import MapView from "@/components/MapView";
-import BottomNav from "@/components/BottomNav";
-import LivePage from "@/components/LivePage";
+import BottomNav, { type Tab } from "@/components/BottomNav";
+import FeedPage from "@/components/FeedPage";
+import DiscoverTab from "@/components/DiscoverTab";
 import ProfilPage from "@/components/ProfilPage";
 import AdminPage from "@/components/AdminPage";
 import LandingPage from "@/components/LandingPage";
@@ -17,10 +18,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type Tab = "map" | "live" | "profil";
-
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<Tab>("map");
+  const [activeTab, setActiveTab] = useState<Tab>("feed");
   const [showAdmin, setShowAdmin] = useState(false);
   const [showFlashPost, setShowFlashPost] = useState(false);
   const [feedRefreshSignal, setFeedRefreshSignal] = useState(0);
@@ -30,29 +29,6 @@ const Index = () => {
   const { user, loading } = useAuth();
   const { t } = useLanguage();
   const { unreadCount, markAllRead } = useNotifications();
-  const [spotCount, setSpotCount] = useState(0);
-  const [liveVibeCount, setLiveVibeCount] = useState(0);
-
-  // Fetch spot count + live vibe count for guest CTA
-  useEffect(() => {
-    if (user) return;
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    if (!baseUrl || !apiKey) return;
-    const fetchCounts = async () => {
-      try {
-        const [placesRes, vibesRes] = await Promise.all([
-          fetch(`${baseUrl}/rest/v1/places?select=id`, { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Prefer: "count=exact" } }),
-          fetch(`${baseUrl}/rest/v1/vibes?select=id&created_at=gte.${new Date(Date.now() - 3600000).toISOString()}`, { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Prefer: "count=exact" } }),
-        ]);
-        const spots = placesRes.headers.get("content-range")?.split("/")[1];
-        if (spots) setSpotCount(parseInt(spots, 10));
-        const vibes = vibesRes.headers.get("content-range")?.split("/")[1];
-        if (vibes) setLiveVibeCount(parseInt(vibes, 10));
-      } catch {}
-    };
-    fetchCounts();
-  }, [user]);
 
   const [showLanding, setShowLanding] = useState(() => !localStorage.getItem("wk_landed"));
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("wk_welcome_seen"));
@@ -86,14 +62,14 @@ const Index = () => {
   const handleWelcomeComplete = (coords: { lat: number; lng: number } | null) => {
     setShowWelcome(false); localStorage.setItem("wk_welcome_seen", "1");
     if (coords) setFlyToCoords(coords);
-    // Start onboarding tutorial if not done yet
     if (!localStorage.getItem("wk_onboarding_done")) {
       setTimeout(() => setShowOnboarding(true), 800);
     }
   };
 
-  const handleHome = () => { localStorage.removeItem("wk_landed"); setShowLanding(true); };
   const handleGoToMap = useCallback((lat: number, lng: number) => { setFlyToCoords({ lat, lng }); setActiveTab("map"); }, []);
+
+  const isGuest = !user;
 
   if (loading) {
     return (
@@ -106,7 +82,6 @@ const Index = () => {
 
   if (showLanding && !user) return <LandingPage onEnter={handleEnter} />;
 
-  const isGuest = !user;
   if (!user && showAdmin) setShowAdmin(false);
 
   if (showAdmin && user) {
@@ -116,12 +91,13 @@ const Index = () => {
   return (
     <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
       <div className="flex-1 relative min-h-0 overflow-hidden">
+        {activeTab === "feed" && (isGuest ? <AuthGate /> : <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />)}
         {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
-        {activeTab === "live" && (isGuest ? <AuthGate /> : <LivePage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />)}
-        {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("map")} />)}
+        {activeTab === "discover" && (isGuest ? <AuthGate /> : <DiscoverTab onGoToMap={handleGoToMap} />)}
+        {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("feed")} />)}
       </div>
 
-      {/* Guest CTA */}
+      {/* Guest CTA on map */}
       {isGuest && activeTab === "map" && (
         <>
           <div className="fixed inset-x-0 bottom-0 h-[55vh] z-[1998] pointer-events-none" style={{
@@ -133,21 +109,6 @@ const Index = () => {
             <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.5, duration: 0.5, type: "spring" }}
               className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl p-5 shadow-2xl shadow-gold/10 text-center">
               <p className="text-base font-bold text-foreground mb-1">{t("guest_unlockMap")}</p>
-              {spotCount > 0 && (
-                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 2, duration: 0.4 }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-2 mx-auto animate-[gold-counter-pulse_2s_ease-in-out_infinite]"
-                  style={{ background: "hsl(43 76% 52% / 0.12)", border: "1px solid hsl(43 76% 52% / 0.3)" }}>
-                  <span className="text-xs font-bold text-gold">📍 {spotCount} {t("guest_hiddenSpots")}</span>
-                </motion.div>
-              )}
-              {liveVibeCount > 0 && (
-                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 2.5, duration: 0.4 }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-2 mx-auto"
-                  style={{ background: "hsl(0 70% 50% / 0.12)", border: "1px solid hsl(0 70% 50% / 0.3)" }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-[11px] font-semibold text-red-400">{liveVibeCount} {t("guest_vibesPosted")}</span>
-                </motion.div>
-              )}
               <p className="text-xs text-muted-foreground mb-3">{t("guest_signupDesc")}</p>
               <button onClick={() => setActiveTab("profil")} className="w-full py-3 rounded-xl font-bold text-sm text-primary-foreground shadow-lg active:scale-[0.97] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
                 {t("guest_continueGoogle")}
@@ -158,18 +119,24 @@ const Index = () => {
         </>
       )}
 
+      <BottomNav
+        active={activeTab}
+        onChange={(tab) => {
+          if (tab === "create") return; // handled by onCreatePress
+          analytics.tabChange(tab);
+          if (tab === "profil") markAllRead();
+          setActiveTab(tab);
+        }}
+        onCreatePress={() => {
+          if (isGuest) { setActiveTab("profil"); return; }
+          setShowFlashPost(true);
+        }}
+        unreadNotifications={unreadCount}
+      />
 
-      <BottomNav active={activeTab} onChange={(tab) => {
-        analytics.tabChange(tab);
-        if (tab === "profil") markAllRead();
-        setActiveTab(tab);
-      }} onHome={handleHome} onFlashPost={() => {
-        if (isGuest) { setActiveTab("profil"); return; }
-        setShowFlashPost(true);
-      }} unreadNotifications={unreadCount} />
-      {!isGuest && <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />}
+      {!isGuest && <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("feed"); }} />}
 
-      {/* Language toggle + info button */}
+      {/* Language toggle + info */}
       {!isGuest && (
         <div className="fixed top-4 right-4 z-[1999] flex items-center gap-2">
           <LanguageToggle variant="icon" />
@@ -191,7 +158,7 @@ const Index = () => {
           open={showOnboarding}
           onComplete={() => setShowOnboarding(false)}
           onOpenFlashPost={() => setShowFlashPost(true)}
-          onGoToTab={setActiveTab}
+          onGoToTab={(tab: string) => setActiveTab(tab as Tab)}
         />
       )}
     </div>
