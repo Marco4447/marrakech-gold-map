@@ -12,6 +12,7 @@ import FlashPost from "@/components/FlashPost";
 import WelcomeModal from "@/components/WelcomeModal";
 import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
+import OnboardingTutorial from "@/components/OnboardingTutorial";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -55,6 +56,7 @@ const Index = () => {
 
   const [showLanding, setShowLanding] = useState(() => !localStorage.getItem("wk_landed"));
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("wk_welcome_seen"));
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     if (!loading) { setAuthStuck(false); return; }
@@ -84,6 +86,10 @@ const Index = () => {
   const handleWelcomeComplete = (coords: { lat: number; lng: number } | null) => {
     setShowWelcome(false); localStorage.setItem("wk_welcome_seen", "1");
     if (coords) setFlyToCoords(coords);
+    // Start onboarding tutorial if not done yet
+    if (!localStorage.getItem("wk_onboarding_done")) {
+      setTimeout(() => setShowOnboarding(true), 800);
+    }
   };
 
   const handleHome = () => { localStorage.removeItem("wk_landed"); setShowLanding(true); };
@@ -186,6 +192,14 @@ const Index = () => {
 
       <ExplainerSheet open={explainerTab !== null} onClose={() => setExplainerTab(null)} initialTab={explainerTab ?? "insider"} />
       {!isGuest && <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />}
+      {!isGuest && (
+        <OnboardingTutorial
+          open={showOnboarding}
+          onComplete={() => setShowOnboarding(false)}
+          onOpenFlashPost={() => setShowFlashPost(true)}
+          onGoToTab={setActiveTab}
+        />
+      )}
     </div>
   );
 };
