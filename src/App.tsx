@@ -5,22 +5,34 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useAutoRefreshOnNewVersion } from "@/hooks/useAutoRefreshOnNewVersion";
+import { lazy, Suspense } from "react";
+
+// Eagerly loaded (critical path)
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import BusinessPage from "./pages/BusinessPage";
-import ShopPage from "./pages/ShopPage";
-import PartnerDashboard from "./pages/PartnerDashboard";
-import VipPass from "./pages/VipPass";
-import VerifyVip from "./pages/VerifyVip";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCanceled from "./pages/PaymentCanceled";
-import PricingPage from "./pages/PricingPage";
-import GoPage from "./pages/GoPage";
-import PlacePage from "./pages/PlacePage";
-import VibePage from "./pages/VibePage";
+
+// Lazy loaded (non-critical routes)
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const BusinessPage = lazy(() => import("./pages/BusinessPage"));
+const ShopPage = lazy(() => import("./pages/ShopPage"));
+const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
+const VipPass = lazy(() => import("./pages/VipPass"));
+const VerifyVip = lazy(() => import("./pages/VerifyVip"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCanceled = lazy(() => import("./pages/PaymentCanceled"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+const GoPage = lazy(() => import("./pages/GoPage"));
+const PlacePage = lazy(() => import("./pages/PlacePage"));
+const VibePage = lazy(() => import("./pages/VibePage"));
+
 const queryClient = new QueryClient();
+
+const LazyFallback = () => (
+  <div className="h-[100dvh] w-full bg-background flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const AppShell = () => {
   useAutoRefreshOnNewVersion();
@@ -31,23 +43,25 @@ const AppShell = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/business" element={<BusinessPage />} />
-            <Route path="/shop" element={<ShopPage />} />
-            <Route path="/partner-dashboard" element={<PartnerDashboard />} />
-            <Route path="/vip-pass" element={<VipPass />} />
-            <Route path="/verify" element={<VerifyVip />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/payment-canceled" element={<PaymentCanceled />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/go" element={<GoPage />} />
-            <Route path="/place/:id" element={<PlacePage />} />
-            <Route path="/vibe/:id" element={<VibePage />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<LazyFallback />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/business" element={<BusinessPage />} />
+              <Route path="/shop" element={<ShopPage />} />
+              <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+              <Route path="/vip-pass" element={<VipPass />} />
+              <Route path="/verify" element={<VerifyVip />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-canceled" element={<PaymentCanceled />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/go" element={<GoPage />} />
+              <Route path="/place/:id" element={<PlacePage />} />
+              <Route path="/vibe/:id" element={<VibePage />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

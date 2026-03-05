@@ -8,6 +8,8 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import BadgesSection from "@/components/BadgesSection";
 import CommunityLeaderboard from "@/components/CommunityLeaderboard";
+import { timeAgo } from "@/lib/timeAgo";
+import { getDeviceId } from "@/lib/deviceId";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
@@ -24,24 +26,7 @@ interface Vibe {
   created_at: string;
 }
 
-function getDeviceId(): string {
-  let id = localStorage.getItem("wk_device_id");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("wk_device_id", id);
-  }
-  return id;
-}
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "à l'instant";
-  if (mins < 60) return `il y a ${mins} min`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `il y a ${hours}h`;
-  return `il y a ${Math.floor(hours / 24)}j`;
-}
+// timeAgo and getDeviceId imported from shared libs
 
 function ProfileCard({
   user,
