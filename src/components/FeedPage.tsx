@@ -343,6 +343,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         const aTotal = aTimeFresh * 0.35 + aDistScore * 0.15 + aEng * 0.25 + aPartner * 0.1 + aBoost + aVip;
         const bTotal = bTimeFresh * 0.35 + bDistScore * 0.15 + bEng * 0.25 + bPartner * 0.1 + bBoost + bVip;
         return bTotal - aTotal;
+      })
+    : activeTab === "following"
+    ? [...vibes].filter(v => v.user_id && followingIds.has(v.user_id)).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    : [...officialVibes, ...regularVibes].sort((a, b) => {
         const aB = isBoosted(a.location);
         const bB = isBoosted(b.location);
         if (aB && !bB) return -1;
