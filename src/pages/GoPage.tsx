@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Camera, Crown, ChevronRight, Sparkles, Zap, Users, BadgeCheck, Loader2, Star, TrendingUp } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import heroImage from "@/assets/marrakech-hero.jpg";
@@ -16,14 +16,19 @@ const TESTIMONIALS = [
 
 export default function GoPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [liveVibes, setLiveVibes] = useState<number | null>(null);
   const [usersCount, setUsersCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [testimonialIdx, setTestimonialIdx] = useState(0);
 
+  // Extract UTM params
+  const utmCampaign = searchParams.get("utm_campaign") || "unknown";
+  const utmSource = searchParams.get("utm_source") || "direct";
+
   useEffect(() => {
-    // Track TikTok ViewContent
-    ttqTrack("ViewContent", { content_name: "go_landing" });
+    // Track TikTok ViewContent with UTM context
+    ttqTrack("ViewContent", { content_name: "go_landing", description: `${utmSource}/${utmCampaign}` });
 
     // Fetch counts
     const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
@@ -49,7 +54,9 @@ export default function GoPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    ttqTrack("CompleteRegistration", { content_name: "go_landing_signup" });
+    ttqTrack("CompleteRegistration", { content_name: "go_landing_signup", description: `${utmSource}/${utmCampaign}` });
+    // Store UTM params for post-login attribution
+    try { localStorage.setItem("weshkech_utm", JSON.stringify({ source: utmSource, campaign: utmCampaign, ts: Date.now() })); } catch {}
     const { error } = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
