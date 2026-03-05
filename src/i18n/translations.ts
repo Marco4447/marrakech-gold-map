@@ -169,6 +169,61 @@ const translations = {
   biz_boostVisibility: { fr: "Boostez votre visibilité auprès de", en: "Boost your visibility to" },
   biz_activeVisitors: { fr: "visiteurs actifs.", en: "active visitors." },
   biz_becomePartner: { fr: "Devenir partenaire", en: "Become a partner" },
+
+  // ===== BUSINESS PAGE =====
+  biz_title: { fr: "Business Partner", en: "Business Partner" },
+  biz_heroTitle: { fr: "Propulsez votre établissement sur", en: "Boost your venue on" },
+  biz_heroDesc: { fr: "Devenez un Spot Certifié, affichez vos offres exclusives et apparaissez en priorité sur le Radar Live.", en: "Become a Certified Spot, display your exclusive offers and appear as a priority on the Live Radar." },
+  biz_certifiedSpot: { fr: "Spot Certifié", en: "Certified Spot" },
+  biz_certifiedDesc: { fr: "Badge exclusif sur la carte et le flux Live.", en: "Exclusive badge on the map and Live feed." },
+  biz_priorityRadar: { fr: "Priorité Radar", en: "Radar Priority" },
+  biz_priorityDesc: { fr: "Votre établissement mis en avant pour les Insiders.", en: "Your venue highlighted for Insiders." },
+  biz_guestPassOffers: { fr: "Offres Pass Invité", en: "Guest Pass Offers" },
+  biz_guestPassDesc: { fr: "Attirez de nouveaux clients avec des avantages exclusifs.", en: "Attract new customers with exclusive perks." },
+  biz_whatYouGet: { fr: "Ce que vous obtenez", en: "What you get" },
+  biz_preview: { fr: "Aperçu", en: "Preview" },
+  biz_vibeCredits: { fr: "Vibe Credits", en: "Vibe Credits" },
+  biz_recharge: { fr: "Recharger", en: "Recharge" },
+  biz_yourPhotoHere: { fr: "Votre photo / vidéo ici", en: "Your photo / video here" },
+  biz_official: { fr: "OFFICIEL", en: "OFFICIAL" },
+  biz_hotYourVenue: { fr: "🔥 Hot · Votre Établissement", en: "🔥 Hot · Your Venue" },
+  biz_feature1: { fr: "Publiez des Vibes visibles 6h sur la carte", en: "Publish Vibes visible 6h on the map" },
+  biz_feature2: { fr: "Badge OFFICIEL sur chaque publication", en: "OFFICIAL badge on every post" },
+  biz_feature3: { fr: "Apparaissez en priorité dans le radar", en: "Appear as priority in the radar" },
+  biz_feature4: { fr: "Définissez votre offre VIP exclusive", en: "Set your exclusive VIP offer" },
+  biz_formTitle: { fr: "Formulaire d'adhésion", en: "Application form" },
+  biz_businessName: { fr: "Nom de l'établissement", en: "Business name" },
+  biz_category: { fr: "Catégorie", en: "Category" },
+  biz_chooseCategory: { fr: "Choisir une catégorie", en: "Choose a category" },
+  biz_guestPassOffer: { fr: "Offre Pass Invité", en: "Guest Pass Offer" },
+  biz_offerPlaceholder: { fr: "Ex: -20% sur l'addition, thé offert, accès VIP rooftop...", en: "Ex: -20% on the bill, free tea, VIP rooftop access..." },
+  biz_whatsapp: { fr: "Numéro WhatsApp", en: "WhatsApp number" },
+  biz_submit: { fr: "Envoyer ma demande", en: "Submit my request" },
+  biz_successTitle: { fr: "Demande envoyée !", en: "Request sent!" },
+  biz_successDesc: { fr: "Merci ! Notre équipe vous contactera sous 24h pour valider votre accès Insider.", en: "Thank you! Our team will contact you within 24h to validate your access." },
+  biz_backToApp: { fr: "← Retour à l'app", en: "← Back to app" },
+
+  // ===== PRICING PAGE =====
+  pricing_title: { fr: "Partner Studio", en: "Partner Studio" },
+  pricing_back: { fr: "Retour", en: "Back" },
+
+  // ===== VIP PASS =====
+  vip_title: { fr: "Insider Pass VIP", en: "VIP Insider Pass" },
+  vip_back: { fr: "Retour", en: "Back" },
+
+  // ===== SHOP PAGE =====
+  shop_title: { fr: "Boutique Crédits", en: "Credits Shop" },
+  shop_back: { fr: "Retour", en: "Back" },
+
+  // ===== PARTNER DASHBOARD =====
+  partner_title: { fr: "Partner Studio", en: "Partner Studio" },
+
+  // ===== PAYMENT =====
+  payment_successTitle: { fr: "Paiement réussi !", en: "Payment successful!" },
+  payment_canceledTitle: { fr: "Paiement annulé", en: "Payment canceled" },
+
+  // ===== REFERRAL =====
+  referral_title: { fr: "Parrainage", en: "Referral" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

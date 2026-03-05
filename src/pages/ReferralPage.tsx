@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { analytics } from "@/lib/analytics";
+import LanguageToggle from "@/components/LanguageToggle";
 
 function generateCode(userId: string): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -102,6 +103,9 @@ export default function ReferralPage() {
           <div>
             <h1 className="font-display text-xl font-bold text-foreground">Parrainage</h1>
             <p className="text-xs text-muted-foreground">Invite tes amis, débloque le VIP</p>
+          </div>
+          <div className="ml-auto">
+            <LanguageToggle />
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ttqTrack } from "@/lib/ttq";
+import LanguageToggle from "@/components/LanguageToggle";
 
 const VIP_PRICE_ID = "price_1T6lnGJ8RyilXHbfsZBKku0a";
 
@@ -132,6 +133,9 @@ export default function VipPass() {
           <div>
             <h1 className="font-display text-lg font-bold text-foreground">Insider Pass</h1>
             <p className="text-[11px] text-muted-foreground">L'expérience VIP Marrakech</p>
+          </div>
+          <div className="ml-auto">
+            <LanguageToggle />
           </div>
         </div>
       </div>

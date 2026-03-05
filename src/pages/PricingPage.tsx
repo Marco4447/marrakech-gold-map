@@ -7,6 +7,7 @@ import {
   Star, Eye, Shield, QrCode, ChevronRight, Check, Users, Building2, HelpCircle, ChevronDown,
   Clock, TrendingUp, MousePointerClick,
 } from "lucide-react";
+import LanguageToggle from "@/components/LanguageToggle";
 
 /* ─── COUNT-UP HOOK ─── */
 function useCountUp(target: number | null, duration = 1200) {
@@ -180,6 +181,9 @@ export default function PricingPage() {
             <p className="text-muted-foreground text-[11px] mt-0.5">
               Marrakech en temps réel
             </p>
+          </div>
+          <div className="ml-auto">
+            <LanguageToggle />
           </div>
         </div>
       </div>

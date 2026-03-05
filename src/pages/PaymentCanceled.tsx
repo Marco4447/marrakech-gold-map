@@ -1,6 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { X, ArrowRight, ShieldQuestion } from "lucide-react";
+import LanguageToggle from "@/components/LanguageToggle";
 
 export default function PaymentCanceled() {
   const navigate = useNavigate();
@@ -10,6 +11,9 @@ export default function PaymentCanceled() {
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center relative overflow-hidden px-6">
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageToggle />
+      </div>
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-muted/10 blur-[120px]" />

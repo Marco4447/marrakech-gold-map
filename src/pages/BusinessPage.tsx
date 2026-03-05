@@ -4,6 +4,8 @@ import { Building2, Tag, Gift, Phone, Send, Check, ArrowLeft, Star, Eye, Zap } f
 import { Link } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const partnerSchema = z.object({
   business_name: z.string().trim().min(2, "Nom requis").max(100),
@@ -25,13 +27,14 @@ const categories = [
   "Autre",
 ];
 
-const perks = [
-  { icon: Star, title: "Spot Certifié", desc: "Badge exclusif sur la carte et le flux Live." },
-  { icon: Eye, title: "Priorité Radar", desc: "Votre établissement mis en avant pour les Insiders." },
-  { icon: Zap, title: "Offres Pass Invité", desc: "Attirez de nouveaux clients avec des avantages exclusifs." },
+const perkKeys = [
+  { icon: Star, titleKey: "biz_certifiedSpot" as const, descKey: "biz_certifiedDesc" as const },
+  { icon: Eye, titleKey: "biz_priorityRadar" as const, descKey: "biz_priorityDesc" as const },
+  { icon: Zap, titleKey: "biz_guestPassOffers" as const, descKey: "biz_guestPassDesc" as const },
 ];
 
 export default function BusinessPage() {
+  const { t } = useLanguage();
   const [form, setForm] = useState({
     business_name: "",
     category: "",
@@ -120,6 +123,9 @@ export default function BusinessPage() {
             <span className="text-gold">Business</span>
             <span className="text-foreground"> Partner</span>
           </h1>
+          <div className="ml-auto">
+            <LanguageToggle />
+          </div>
         </div>
       </div>
 
@@ -132,11 +138,11 @@ export default function BusinessPage() {
           className="space-y-3"
         >
           <h2 className="font-display text-2xl font-bold text-foreground leading-tight">
-            Propulsez votre établissement sur{" "}
+            {t("biz_heroTitle")}{" "}
             <span className="text-gold">Weshkech</span>
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Devenez un Spot Certifié, affichez vos offres exclusives et apparaissez en priorité sur le Radar Live.
+            {t("biz_heroDesc")}
           </p>
         </motion.div>
 
@@ -147,13 +153,13 @@ export default function BusinessPage() {
           transition={{ delay: 0.2, duration: 0.4 }}
           className="grid grid-cols-3 gap-3"
         >
-          {perks.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-surface border border-border rounded-xl p-3 text-center space-y-2">
+          {perkKeys.map(({ icon: Icon, titleKey, descKey }) => (
+            <div key={titleKey} className="bg-surface border border-border rounded-xl p-3 text-center space-y-2">
               <div className="w-9 h-9 mx-auto rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center">
                 <Icon className="w-4 h-4 text-gold" />
               </div>
-              <p className="text-xs font-semibold text-foreground">{title}</p>
-              <p className="text-[10px] text-muted-foreground leading-tight">{desc}</p>
+              <p className="text-xs font-semibold text-foreground">{t(titleKey)}</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">{t(descKey)}</p>
             </div>
           ))}
         </motion.div>
@@ -167,7 +173,7 @@ export default function BusinessPage() {
         >
           <h3 className="font-display text-base font-semibold text-foreground flex items-center gap-2">
             <Eye className="w-4 h-4 text-gold" />
-            Ce que vous obtenez
+            {t("biz_whatYouGet")}
           </h3>
 
           {/* Mockup Partner Studio */}
@@ -178,21 +184,21 @@ export default function BusinessPage() {
                 <Zap className="w-3 h-3 text-gold" />
               </div>
               <span className="text-xs font-display font-semibold text-foreground">Partner Studio</span>
-              <span className="ml-auto text-[9px] text-muted-foreground italic">Aperçu</span>
+              <span className="ml-auto text-[9px] text-muted-foreground italic">{t("biz_preview")}</span>
             </div>
 
             <div className="p-4 space-y-3">
               {/* Credits mockup */}
               <div className="flex items-center justify-between bg-card/60 rounded-xl p-3 border border-border">
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Vibe Credits</p>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("biz_vibeCredits")}</p>
                   <div className="flex items-baseline gap-1 mt-0.5">
                     <span className="text-2xl font-display font-black text-gold">15</span>
                     <Zap className="w-3.5 h-3.5 text-gold" />
                   </div>
                 </div>
                 <div className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-primary-foreground" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
-                  Recharger
+                  {t("biz_recharge")}
                 </div>
               </div>
 
@@ -203,23 +209,23 @@ export default function BusinessPage() {
                   <div className="w-10 h-10 rounded-full bg-gold/15 flex items-center justify-center">
                     <Star className="w-5 h-5 text-gold" />
                   </div>
-                  <p className="text-[10px] text-muted-foreground">Votre photo / vidéo ici</p>
+                  <p className="text-[10px] text-muted-foreground">{t("biz_yourPhotoHere")}</p>
                 </div>
                 <div className="absolute top-2 left-2 bg-gold px-2 py-0.5 rounded text-[8px] font-bold text-primary-foreground">
-                  ⭐ OFFICIEL
+                  ⭐ {t("biz_official")}
                 </div>
                 <div className="absolute bottom-2 left-2">
-                  <p className="text-[10px] font-semibold text-foreground">🔥 Hot · Votre Établissement</p>
+                  <p className="text-[10px] font-semibold text-foreground">{t("biz_hotYourVenue")}</p>
                 </div>
               </div>
 
               {/* Features list */}
               <div className="space-y-2">
                 {[
-                  { emoji: "📸", text: "Publiez des Vibes visibles 6h sur la carte" },
-                  { emoji: "⭐", text: "Badge OFFICIEL sur chaque publication" },
-                  { emoji: "🎯", text: "Apparaissez en priorité dans le radar" },
-                  { emoji: "🎁", text: "Définissez votre offre VIP exclusive" },
+                  { emoji: "📸", text: t("biz_feature1") },
+                  { emoji: "⭐", text: t("biz_feature2") },
+                  { emoji: "🎯", text: t("biz_feature3") },
+                  { emoji: "🎁", text: t("biz_feature4") },
                 ].map((f) => (
                   <div key={f.text} className="flex items-center gap-2.5">
                     <span className="text-sm">{f.emoji}</span>
@@ -243,15 +249,15 @@ export default function BusinessPage() {
               <div className="w-14 h-14 mx-auto rounded-full bg-gold/20 flex items-center justify-center">
                 <Check className="w-7 h-7 text-gold" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-foreground">Demande envoyée !</h3>
+              <h3 className="font-display text-lg font-semibold text-foreground">{t("biz_successTitle")}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Merci ! Notre équipe vous contactera sous 24h pour valider votre accès Insider.
+                {t("biz_successDesc")}
               </p>
               <Link
                 to="/"
                 className="inline-block mt-2 text-sm font-medium text-gold hover:text-gold-light transition-colors"
               >
-                ← Retour à l'app
+                {t("biz_backToApp")}
               </Link>
             </motion.div>
           ) : (
@@ -264,13 +270,13 @@ export default function BusinessPage() {
             >
               <h3 className="font-display text-base font-semibold text-foreground flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-gold" />
-                Formulaire d'adhésion
+                {t("biz_formTitle")}
               </h3>
 
               {/* Business name */}
               <div className="space-y-1.5">
                 <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                  <Building2 className="w-3 h-3" /> Nom de l'établissement
+                  <Building2 className="w-3 h-3" /> {t("biz_businessName")}
                 </label>
                 <input
                   value={form.business_name}
@@ -285,14 +291,14 @@ export default function BusinessPage() {
               {/* Category */}
               <div className="space-y-1.5">
                 <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                  <Tag className="w-3 h-3" /> Catégorie
+                  <Tag className="w-3 h-3" /> {t("biz_category")}
                 </label>
                 <select
                   value={form.category}
                   onChange={(e) => handleChange("category", e.target.value)}
                   className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all appearance-none"
                 >
-                  <option value="" disabled>Choisir une catégorie</option>
+                  <option value="" disabled>{t("biz_chooseCategory")}</option>
                   {categories.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
@@ -303,12 +309,12 @@ export default function BusinessPage() {
               {/* Offer */}
               <div className="space-y-1.5">
                 <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                  <Gift className="w-3 h-3" /> Offre Pass Invité
+                  <Gift className="w-3 h-3" /> {t("biz_guestPassOffer")}
                 </label>
                 <textarea
                   value={form.offer_description}
                   onChange={(e) => handleChange("offer_description", e.target.value)}
-                  placeholder="Ex: -20% sur l'addition, thé offert, accès VIP rooftop..."
+                  placeholder={t("biz_offerPlaceholder")}
                   maxLength={500}
                   rows={3}
                   className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all resize-none"
@@ -319,7 +325,7 @@ export default function BusinessPage() {
               {/* WhatsApp */}
               <div className="space-y-1.5">
                 <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                  <Phone className="w-3 h-3" /> Numéro WhatsApp
+                  <Phone className="w-3 h-3" /> {t("biz_whatsapp")}
                 </label>
                 <input
                   value={form.whatsapp_number}
@@ -348,7 +354,7 @@ export default function BusinessPage() {
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    Envoyer ma demande
+                    {t("biz_submit")}
                   </>
                 )}
               </button>
