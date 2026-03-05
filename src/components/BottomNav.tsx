@@ -53,6 +53,7 @@ export default function BottomNav({ active, onChange, onHome, onFlashPost, unrea
                 {unreadNotifications > 9 ? "9+" : unreadNotifications}
               </span>
             )}
+          </div>
           <span className="text-[10px] font-semibold tracking-wide uppercase">{t("nav_enjoy")}</span>
           {active === "profil" && <div className="w-1 h-1 rounded-full bg-gold mt-0.5" />}
         </button>
