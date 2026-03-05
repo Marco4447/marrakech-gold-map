@@ -38,7 +38,7 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
     const { data } = await supabase
       .from("vibes")
       .select("id, image_url, location, caption, mood, username, created_at, media_type, is_official, latitude, longitude")
-      .gte("created_at", since)
+      .or(`created_at.gte.${since},is_official.eq.true`)
       .order("created_at", { ascending: false })
       .limit(20);
     if (data) setVibes(data as RecentVibe[]);
