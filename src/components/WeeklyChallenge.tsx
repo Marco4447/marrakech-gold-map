@@ -59,6 +59,27 @@ export default function WeeklyChallenge() {
     if (user) checkIfWonRecently();
   }, [user]);
 
+  async function checkIfWonRecently() {
+    if (!user) return;
+    const { data } = await supabase
+      .from("weekly_challenges" as any)
+      .select("*")
+      .eq("status", "completed")
+      .eq("winner_user_id", user.id)
+      .order("end_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      const key = `wk_challenge_won_${(data as any).id}`;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, "1");
+        setWonChallenge(data as any);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+      }
+    }
+  }
+
   async function fetchChallenge() {
     try {
       // Get active challenge
