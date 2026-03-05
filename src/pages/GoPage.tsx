@@ -19,15 +19,12 @@ const TESTIMONIALS = [
   { name: "Emma", text: { fr: "Indispensable pour sortir à Kech", en: "Essential for going out in Kech" }, flag: "🇬🇧" },
 ];
 
-type ViewMode = "signup";
-
 export default function GoPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [testimonialIdx, setTestimonialIdx] = useState(0);
   const [copied, setCopied] = useState(false);
-  const [view, setView] = useState<ViewMode>("hero");
   const { lang, t } = useLanguage();
 
   // Redirect authenticated users to home
@@ -68,15 +65,6 @@ export default function GoPage() {
     queryFn: async () => {
       const { count } = await supabase.from("profiles").select("id", { count: "exact", head: true });
       return count || 0;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: recentVibeImages } = useQuery({
-    queryKey: ["go-recent-vibe-images"],
-    queryFn: async () => {
-      const { data } = await supabase.from("vibes").select("image_url").order("created_at", { ascending: false }).limit(6);
-      return data || [];
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -148,12 +136,6 @@ export default function GoPage() {
       ttqTrack("CompleteRegistration", { content_name: "email_signup" });
     }
     setLoading(false);
-  };
-
-  const showSignup = () => {
-    trackEvent("go_cta_clicked", { cta: "main", source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
-    ttqTrack("ClickButton", { content_name: "rejoindre_gratuitement" });
-    setView("signup");
   };
 
   return (
