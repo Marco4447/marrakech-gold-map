@@ -98,30 +98,51 @@ export default function GoPage() {
   // ---- Auth handlers ----
   const handleGoogleSignup = async () => {
     setLoading(true);
-    trackEvent("go_google_signup_click", { source: utmSource });
+    trackEvent("go_google_signup_click", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
+    ttqTrack("InitiateCheckout", { content_name: "google_signup_attempt" });
     const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (error) { console.error("OAuth error:", error); setLoading(false); }
+    if (error) {
+      console.error("OAuth error:", error);
+      trackEvent("go_google_signup_error", { error: String(error), source: utmSource });
+      setLoading(false);
+    }
   };
 
   const handleEmailSignup = async () => {
     setError(null);
-    if (!email || !password) { setError(lang === "fr" ? "Remplis tous les champs." : "Fill in all fields."); return; }
-    if (password.length < 6) { setError(lang === "fr" ? "Mot de passe : 6 caractères min." : "Password: 6 characters min."); return; }
+    if (!email || !password) {
+      const msg = lang === "fr" ? "Remplis tous les champs." : "Fill in all fields.";
+      setError(msg);
+      trackEvent("go_signup_validation_error", { reason: "missing_fields", source: utmSource });
+      return;
+    }
+    if (password.length < 6) {
+      const msg = lang === "fr" ? "Mot de passe : 6 caractères min." : "Password: 6 characters min.";
+      setError(msg);
+      trackEvent("go_signup_validation_error", { reason: "password_too_short", source: utmSource });
+      return;
+    }
     setLoading(true);
-    trackEvent("go_email_signup_submit", { source: utmSource });
+    trackEvent("go_email_signup_submit", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
+    ttqTrack("InitiateCheckout", { content_name: "email_signup_attempt" });
     const { error } = await supabase.auth.signUp({
       email, password,
       options: { data: { full_name: name || email.split("@")[0] }, emailRedirectTo: window.location.origin },
     });
-    if (error) { setError(error.message); } else {
-      setSuccess(lang === "fr" ? "Check ta boîte mail pour confirmer 📩" : "Check your inbox to confirm 📩");
+    if (error) {
+      setError(error.message);
+      trackEvent("go_email_signup_error", { error: error.message, source: utmSource, campaign: utmCampaign });
+    } else {
+      setSuccess(lang === "fr" ? "C'est bon, tu es inscrit ! 🎉" : "You're in! 🎉");
+      trackEvent("go_email_signup_success", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
       ttqTrack("CompleteRegistration", { content_name: "email_signup" });
     }
     setLoading(false);
   };
 
   const showSignup = () => {
-    trackEvent("go_cta_clicked", { cta: "main", source: utmSource, campaign: utmCampaign });
+    trackEvent("go_cta_clicked", { cta: "main", source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
+    ttqTrack("ClickButton", { content_name: "rejoindre_gratuitement" });
     setView("signup");
   };
 
