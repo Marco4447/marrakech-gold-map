@@ -73,11 +73,10 @@ export default function GoPage() {
     if (refCode) try { localStorage.setItem("weshkech_ref", refCode); } catch {}
   }, [refCode]);
 
-  // Auto-attempt redirect for TikTok WebView
+  // Track TikTok WebView visits — do NOT auto-redirect (kills conversion)
   useEffect(() => {
     if (isTikTok) {
-      trackEvent("tiktok_webview_auto_redirect_attempt", { source: utmSource });
-      redirectToExternalBrowser();
+      trackEvent("tiktok_webview_detected", { source: utmSource });
     }
   }, [isTikTok]);
 
