@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck } from "lucide-react";
+import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import WeeklyChallenge from "./WeeklyChallenge";
 import { useFollows } from "@/hooks/useFollows";
+import TikTokFeed from "./TikTokFeed";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
@@ -153,6 +154,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [reactionsVibeId, setReactionsVibeId] = useState<string | null>(null);
   const [floatingReaction, setFloatingReaction] = useState<{ id: string; emoji: string } | null>(null);
   const { isFollowing, toggleFollow, followingIds } = useFollows();
+  const [showReels, setShowReels] = useState(false);
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -333,7 +335,16 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 pb-0">
         <div className="flex items-center justify-between pb-2.5">
           <h1 className="text-xl font-bold text-foreground tracking-tight font-display">Weshkech</h1>
-          <span className="text-xs text-muted-foreground">{vibes.length} vibes live</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowReels(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border hover:border-gold/40 active:scale-95 transition-all"
+            >
+              <Film className="w-4 h-4 text-gold" />
+              <span className="text-xs font-semibold text-foreground">Reels</span>
+            </button>
+            <span className="text-xs text-muted-foreground">{vibes.length} vibes</span>
+          </div>
         </div>
         <div className="flex">
           {(["foryou", "following", "recents"] as FeedTab[]).map(tab => (
@@ -616,6 +627,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
       {/* Comments sheet */}
       <VibeComments vibeId={commentVibeId || ""} open={!!commentVibeId} onOpenChange={(open) => !open && setCommentVibeId(null)} />
+
+      {/* Reels fullscreen */}
+      <AnimatePresence>
+        {showReels && <TikTokFeed open={showReels} onClose={() => setShowReels(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
