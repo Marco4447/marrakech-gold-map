@@ -666,7 +666,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  className="bg-card border-b border-border"
+                  className="bg-card"
                 >
                   {/* ── Instagram-style HEADER ── */}
                   <div className="flex items-center justify-between px-3 py-2.5">
