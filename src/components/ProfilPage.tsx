@@ -513,6 +513,83 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
           <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180 group-hover:text-gold transition-colors" />
         </Link>
       </motion.div>
+
+      {/* Notifications Panel */}
+      {user && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-5 pt-4">
+          <button
+            onClick={async () => {
+              if (!showNotifications && notifList.length === 0) {
+                const { data } = await supabase
+                  .from("notifications")
+                  .select("*")
+                  .eq("user_id", user.id)
+                  .order("created_at", { ascending: false })
+                  .limit(30);
+                if (data) setNotifList(data);
+                // Mark all as read
+                await supabase
+                  .from("notifications")
+                  .update({ is_read: true })
+                  .eq("user_id", user.id)
+                  .eq("is_read", false);
+              }
+              setShowNotifications(!showNotifications);
+            }}
+            className="w-full flex items-center gap-3 bg-card border border-border hover:border-gold/30 rounded-xl px-4 py-3 transition-colors group text-left"
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+              <Bell className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                Notifications
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                Likes, commentaires, challenges
+              </p>
+            </div>
+            <ChevronLeft className={`w-4 h-4 text-muted-foreground transition-transform ${showNotifications ? "rotate-90" : "rotate-180"}`} />
+          </button>
+
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-2 space-y-2 max-h-[300px] overflow-y-auto no-scrollbar">
+                  {notifList.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">Aucune notification pour le moment</p>
+                  ) : (
+                    notifList.map((n) => (
+                      <div
+                        key={n.id}
+                        className={`flex items-start gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
+                          n.is_read ? "bg-card border-border" : "bg-primary/5 border-primary/20"
+                        }`}
+                      >
+                        <div className="text-base mt-0.5">
+                          {n.type === "like" ? "❤️" : n.type === "comment" ? "💬" : n.type === "challenge_win" ? "🏆" : "🔔"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground">{n.title}</p>
+                          {n.body && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
+                          <p className="text-[9px] text-muted-foreground mt-1">{timeAgo(n.created_at)}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
       {/* Badges / Gamification */}
       {user && <BadgesSection userId={user.id} />}
 
