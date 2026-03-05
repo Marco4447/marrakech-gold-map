@@ -50,8 +50,11 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl } = options;
   const boosted = isBoosted(placeName);
 
-  // Boosted partner gets premium treatment
-  const size = boosted ? 52 : isPartner ? 42 : trending ? 42 : 34;
+  // Check if place has a local logo
+  const hasLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
+
+  // Boosted partner gets premium treatment, local logos get slightly bigger markers
+  const size = boosted ? 52 : isPartner ? 42 : hasLocalLogo ? 40 : trending ? 42 : 34;
   const emojiSize = boosted ? 22 : isPartner ? 18 : trending ? 18 : 15;
 
   const borderColor = boosted ? "hsl(43,76%,52%)" : isPartner ? "hsl(43,76%,52%)" : cat.color;
