@@ -45,9 +45,9 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
-export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean } = {}) => {
+export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
-  const { trending = false, isPartner = false, hasOffer = false } = options;
+  const { trending = false, isPartner = false, hasOffer = false, blurred = false } = options;
   const size = isPartner ? 42 : trending ? 42 : 34;
   const emojiSize = isPartner ? 18 : trending ? 18 : 15;
 
@@ -65,6 +65,11 @@ export const createCategoryIcon = (category: string | null, options: { trending?
     ? `<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(30,20%,95%);font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;white-space:nowrap;letter-spacing:0.05em">LIVE</div>`
     : "";
 
+  const blurFilter = blurred ? "filter:blur(4px) grayscale(0.5);opacity:0.6;" : "";
+  const lockBadge = blurred
+    ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:2">🔒</div>`
+    : "";
+
   return L.divIcon({
     className: trending ? "trending-marker" : isPartner ? "gold-marker" : "",
     html: `
@@ -74,12 +79,13 @@ export const createCategoryIcon = (category: string | null, options: { trending?
         border:${borderWidth} solid ${borderColor};
         box-shadow:${glow};
         display:flex;align-items:center;justify-content:center;
-        position:relative;
+        position:relative;${blurFilter}
       ">
         <span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>
         ${partnerBadge}
         ${trendingBadge}
       </div>
+      ${lockBadge}
     `,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
