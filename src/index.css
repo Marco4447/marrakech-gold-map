@@ -270,3 +270,19 @@
     box-shadow: 0 0 0 8px hsl(43 76% 52% / 0), 0 0 12px hsl(43 76% 52% / 0.15);
   }
 }
+
+/* Energy HOT marker pulse */
+.energy-hot-marker {
+  animation: energy-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes energy-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px hsl(15 80% 50% / 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px hsl(15 80% 50% / 0.7));
+    transform: scale(1.05);
+  }
+}
