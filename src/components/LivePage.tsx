@@ -11,6 +11,10 @@ import { getDeviceId } from "@/lib/deviceId";
 import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
 import { isBoosted } from "@/lib/boostedPlaces";
+import VibeStories from "./VibeStories";
+import DoubleTapHeart from "./DoubleTapHeart";
+import VibeReactions, { FloatingReaction } from "./VibeReactions";
+import StreakBadge from "./StreakBadge";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -179,6 +183,36 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [visibleCount, setVisibleCount] = useState(10);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const commentCounts = useCommentCounts(vibes.map((v) => v.id));
+  
+  // Double-tap to like
+  const [doubleTapId, setDoubleTapId] = useState<string | null>(null);
+  const lastTapRef = useRef<{ id: string; time: number } | null>(null);
+  
+  // Emoji reactions
+  const [reactionsVibeId, setReactionsVibeId] = useState<string | null>(null);
+  const [floatingReaction, setFloatingReaction] = useState<{ id: string; emoji: string } | null>(null);
+
+  const handleDoubleTap = (vibeId: string) => {
+    const now = Date.now();
+    if (lastTapRef.current && lastTapRef.current.id === vibeId && now - lastTapRef.current.time < 300) {
+      // Double tap detected!
+      if (!likedIds.has(vibeId)) {
+        handleLike(vibeId);
+      }
+      setDoubleTapId(vibeId);
+      setTimeout(() => setDoubleTapId(null), 800);
+      lastTapRef.current = null;
+    } else {
+      lastTapRef.current = { id: vibeId, time: now };
+    }
+  };
+
+  const handleReaction = (vibeId: string, emoji: string) => {
+    setFloatingReaction({ id: vibeId, emoji });
+    setReactionsVibeId(null);
+    if (!likedIds.has(vibeId)) handleLike(vibeId);
+    setTimeout(() => setFloatingReaction(null), 900);
+  };
 
   // Compute vibe counts per user for tier badges
   const userVibeCounts: Record<string, number> = {};
@@ -472,7 +506,15 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         </div>
       </div>
 
-      {/* Mini Tutorial Overlay */}
+      {/* Stories */}
+      <VibeStories onVibeClick={(vibeId) => setCommentVibeId(vibeId)} />
+
+      {/* Streak badge */}
+      {user && (
+        <div className="px-4 pb-1">
+          <StreakBadge userId={user.id} />
+        </div>
+      )}
       <AnimatePresence>
         {showTutorial && (
           <motion.div
@@ -678,9 +720,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       : "border border-border"
                   }`}
                 >
-                  <div className="aspect-[3/4] relative">
+                  <div className="aspect-[3/4] relative" onClick={() => handleDoubleTap(vibe.id)}>
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
+                    <DoubleTapHeart show={doubleTapId === vibe.id} />
 
                     {/* Sponsored / Official badge */}
                     {vibe.is_official && (
@@ -793,27 +835,44 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             </span>
                           </button>
 
-                          {/* Like */}
-                          <button
-                            onClick={() => handleLike(vibe.id)}
-                            className="flex flex-col items-center gap-0.5 group"
-                          >
-                            <motion.div
-                              animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}}
-                              transition={{ duration: 0.4, ease: "easeOut" }}
+                          {/* Like with long-press reactions */}
+                          <div className="relative">
+                            <VibeReactions
+                              show={reactionsVibeId === vibe.id}
+                              onReact={(emoji) => handleReaction(vibe.id, emoji)}
+                              onClose={() => setReactionsVibeId(null)}
+                            />
+                            <button
+                              onClick={() => handleLike(vibe.id)}
+                              onContextMenu={(e) => { e.preventDefault(); setReactionsVibeId(vibe.id); }}
+                              onTouchStart={() => {
+                                const timer = setTimeout(() => setReactionsVibeId(vibe.id), 500);
+                                (window as any).__reactionTimer = timer;
+                              }}
+                              onTouchEnd={() => clearTimeout((window as any).__reactionTimer)}
+                              className="flex flex-col items-center gap-0.5 group"
                             >
-                              <Heart
-                                className={`w-7 h-7 transition-colors duration-200 ${
-                                  liked
-                                    ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
-                                    : "text-foreground/70 group-hover:text-gold/70"
-                                }`}
-                              />
-                            </motion.div>
-                            <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
-                              {vibe.likes}
-                            </span>
-                          </button>
+                              <motion.div
+                                animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                              >
+                                <Heart
+                                  className={`w-7 h-7 transition-colors duration-200 ${
+                                    liked
+                                      ? "fill-gold text-gold drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]"
+                                      : "text-foreground/70 group-hover:text-gold/70"
+                                  }`}
+                                />
+                              </motion.div>
+                              <span className={`text-xs font-semibold ${liked ? "text-gold" : "text-foreground/70"}`}>
+                                {vibe.likes}
+                              </span>
+                            </button>
+                            <FloatingReaction
+                              emoji={floatingReaction?.id === vibe.id ? floatingReaction.emoji : null}
+                              show={floatingReaction?.id === vibe.id}
+                            />
+                          </div>
 
                           {/* Super Vibe */}
                           <button
