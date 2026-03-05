@@ -16,6 +16,7 @@ export default function AuthGate() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [forgotSent, setForgotSent] = useState(false);
 
   const handleOAuthLogin = async (provider: "google" | "apple") => {
     setLoading(true);
