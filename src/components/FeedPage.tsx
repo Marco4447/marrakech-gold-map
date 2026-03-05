@@ -305,7 +305,28 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         if (!aB && bB) return 1;
         if (a.is_official && !b.is_official) return -1;
         if (!a.is_official && b.is_official) return 1;
-        return getScore(b) - getScore(a);
+
+        // Time decay (newer = higher, 0.4 weight)
+        const now = Date.now();
+        const SIX_H = 6 * 3600000;
+        const aTimeFresh = Math.max(0, 1 - (now - new Date(a.created_at).getTime()) / SIX_H);
+        const bTimeFresh = Math.max(0, 1 - (now - new Date(b.created_at).getTime()) / SIX_H);
+
+        // Distance score (closer = higher, 0.2 weight)
+        const aDistScore = userLocation && a.latitude != null ? Math.max(0, 1 - getDistanceMeters(userLocation.lat, userLocation.lng, a.latitude!, a.longitude!) / 10000) : 0.5;
+        const bDistScore = userLocation && b.latitude != null ? Math.max(0, 1 - getDistanceMeters(userLocation.lat, userLocation.lng, b.latitude!, b.longitude!) / 10000) : 0.5;
+
+        // Engagement (0.3 weight)
+        const aEng = getScore(a) / Math.max(1, ...regularVibes.map(v => getScore(v)));
+        const bEng = getScore(b) / Math.max(1, ...regularVibes.map(v => getScore(v)));
+
+        // Partner boost (0.1 weight)
+        const aPartner = a.is_official ? 1 : 0;
+        const bPartner = b.is_official ? 1 : 0;
+
+        const aTotal = aTimeFresh * 0.4 + aDistScore * 0.2 + aEng * 0.3 + aPartner * 0.1;
+        const bTotal = bTimeFresh * 0.4 + bDistScore * 0.2 + bEng * 0.3 + bPartner * 0.1;
+        return bTotal - aTotal;
       })
     : activeTab === "following"
     ? [...vibes].filter(v => v.user_id && followingIds.has(v.user_id)).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
