@@ -10,6 +10,7 @@ import { timeAgo } from "@/lib/timeAgo";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import type { VibeProfile } from "@/types/models";
+import { getShareUrl } from "@/lib/shareUrl";
 
 interface ReelVibe {
   id: string;
