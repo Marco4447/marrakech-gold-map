@@ -16,6 +16,7 @@ export default function AuthGate() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [forgotSent, setForgotSent] = useState(false);
 
   const handleOAuthLogin = async (provider: "google" | "apple") => {
     setLoading(true);
@@ -71,12 +72,31 @@ export default function AuthGate() {
     setLoading(false);
   };
 
+  const handleForgotPassword = async () => {
+    setError(null);
+    if (!email) {
+      setError("Veuillez entrer votre adresse email.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
+      setForgotSent(true);
+    }
+    setLoading(false);
+  };
+
   const resetForm = () => {
     setEmail("");
     setPassword("");
     setName("");
     setError(null);
     setSuccess(null);
+    setForgotSent(false);
   };
 
   return (
@@ -266,8 +286,26 @@ export default function AuthGate() {
                 </div>
               </div>
 
+              {/* Forgot password link */}
+              {mode === "login" && !forgotSent && (
+                <button
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="self-end mt-1 text-xs text-gold hover:text-gold-light transition-colors disabled:opacity-70"
+                >
+                  Mot de passe oublié ?
+                </button>
+              )}
+
+              {/* Forgot password sent */}
+              {forgotSent && (
+                <p className="text-xs text-green-400 mt-3 text-center">
+                  Un email de réinitialisation a été envoyé à {email}. Vérifiez votre boîte mail.
+                </p>
+              )}
+
               {/* Error / Success */}
-              {error && <p className="text-xs text-red-400 mt-3 text-center">{error}</p>}
+              {error && <p className="text-xs text-destructive mt-3 text-center">{error}</p>}
               {success && <p className="text-xs text-green-400 mt-3 text-center">{success}</p>}
 
               {/* Submit */}

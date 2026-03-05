@@ -29,6 +29,7 @@ const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
 const PlacePage = lazy(() => import("./pages/PlacePage"));
 const VibePage = lazy(() => import("./pages/VibePage"));
 const ReferralPage = lazy(() => import("./pages/ReferralPage"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const AppShell = () => {
               <Route path="/place/:id" element={<PlacePage />} />
               <Route path="/vibe/:id" element={<VibePage />} />
               <Route path="/referral" element={<ReferralPage />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="*" element={<NotFound />} />
