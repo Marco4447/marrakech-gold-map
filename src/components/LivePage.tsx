@@ -160,6 +160,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const { user } = useAuth();
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [animatingId, setAnimatingId] = useState<string | null>(null);
   const [postLimitReached, setPostLimitReached] = useState(false);
@@ -172,6 +173,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [showTutorial, setShowTutorial] = useState(() => {
     return !localStorage.getItem("weshkech_vibez_tutorial_seen");
   });
+  // Infinite scroll
+  const [visibleCount, setVisibleCount] = useState(10);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const commentCounts = useCommentCounts(vibes.map((v) => v.id));
 
   // Compute vibe counts per user for tier badges
@@ -193,52 +197,77 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const deviceId = getDeviceId();
 
   const fetchVibes = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("vibes")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error && data) {
-      const userIds = [...new Set((data as any[]).filter(v => v.user_id).map(v => v.user_id))];
-      let profilesMap: Record<string, VibeProfile> = {};
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles_public" as any)
-          .select("user_id, full_name, avatar_url, is_vip")
-          .in("user_id", userIds);
-        if (profiles) {
-          profilesMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p]));
+    setFetchError(null);
+    try {
+      const { data, error } = await supabase
+        .from("vibes")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      if (data) {
+        const userIds = [...new Set((data as any[]).filter(v => v.user_id).map(v => v.user_id))];
+        let profilesMap: Record<string, VibeProfile> = {};
+        if (userIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles_public" as any)
+            .select("user_id, full_name, avatar_url, is_vip")
+            .in("user_id", userIds);
+          if (profiles) {
+            profilesMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p]));
+          }
         }
+        const vibesWithProfiles = (data as any[]).map(v => ({
+          ...v,
+          profile: v.user_id ? profilesMap[v.user_id] || null : null,
+        }));
+        setVibes(vibesWithProfiles);
       }
-      const vibesWithProfiles = (data as any[]).map(v => ({
-        ...v,
-        profile: v.user_id ? profilesMap[v.user_id] || null : null,
-      }));
-      setVibes(vibesWithProfiles);
+    } catch (err) {
+      console.error("Feed fetch error:", err);
+      setFetchError("Impossible de charger le feed. Vérifie ta connexion.");
     }
     setLoading(false);
   }, []);
 
+  // Use user_id for likes/super_vibes (more secure than device_id)
+  const userId = user?.id;
+
   const fetchMyLikes = useCallback(async () => {
+    if (!userId) return;
     const { data } = await supabase
       .from("vibe_likes")
       .select("vibe_id")
-      .eq("device_id", deviceId);
+      .eq("user_id", userId as any);
     if (data) {
       setLikedIds(new Set(data.map((l: any) => l.vibe_id)));
     }
-  }, [deviceId]);
+    // Fallback: also check device_id for old likes
+    const { data: oldData } = await supabase
+      .from("vibe_likes")
+      .select("vibe_id")
+      .eq("device_id", deviceId)
+      .is("user_id" as any, null);
+    if (oldData) {
+      setLikedIds(prev => {
+        const next = new Set(prev);
+        oldData.forEach((l: any) => next.add(l.vibe_id));
+        return next;
+      });
+    }
+  }, [userId, deviceId]);
 
   const fetchMySuperVibes = useCallback(async () => {
+    if (!userId) return;
     const { data } = await supabase
       .from("vibe_super_vibes")
       .select("vibe_id, created_at")
-      .eq("device_id", deviceId);
+      .eq("user_id", userId as any);
     if (data) {
       setSuperVibeIds(new Set(data.map((s: any) => s.vibe_id)));
       const recent = (data as any[]).some((s) => Date.now() - new Date(s.created_at).getTime() < SIX_HOURS);
       setCanSuperVibe(!recent);
     }
-  }, [deviceId]);
+  }, [userId]);
 
   const checkPostLimit = useCallback(async () => {
     const localPosts = JSON.parse(localStorage.getItem("wk_post_timestamps") || "[]") as number[];
@@ -297,12 +326,16 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     if (alreadyLiked) {
       setLikedIds((prev) => { const next = new Set(prev); next.delete(vibeId); return next; });
       setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v)));
-      await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId);
+      // Delete by user_id first, fallback to device_id for old likes
+      if (userId) {
+        await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("user_id", userId as any);
+      }
+      await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId).is("user_id" as any, null);
       await supabase.from("vibes").update({ likes: Math.max(0, (vibes.find(v => v.id === vibeId)?.likes ?? 1) - 1) }).eq("id", vibeId);
     } else {
       setLikedIds((prev) => new Set(prev).add(vibeId));
       setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v)));
-      await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId });
+      await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId } as any);
       await supabase.from("vibes").update({ likes: (vibes.find(v => v.id === vibeId)?.likes ?? 0) + 1 }).eq("id", vibeId);
     }
   };
@@ -315,7 +348,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     setSuperVibeIds((prev) => new Set(prev).add(vibeId));
     setCanSuperVibe(false);
     setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, super_vibes: (v.super_vibes || 0) + 1 } : v)));
-    await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId });
+    await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId } as any);
     await supabase.from("vibes").update({ super_vibes: (vibes.find(v => v.id === vibeId)?.super_vibes ?? 0) + 1 }).eq("id", vibeId);
   };
 
@@ -359,6 +392,26 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
       });
 
   const rankMedals = ["🥇", "🥈", "🥉"];
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((prev) => prev + 10);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [sortedFeed.length]);
+
+  // Reset visible count when tab changes
+  useEffect(() => { setVisibleCount(10); }, [activeTab]);
+
+  const visibleFeed = sortedFeed.slice(0, visibleCount);
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
@@ -481,7 +534,15 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         )}
       </AnimatePresence>
 
-      {loading ? (
+      {fetchError ? (
+        <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+            <AlertCircle className="w-7 h-7 text-destructive" />
+          </div>
+          <p className="text-sm text-muted-foreground mb-3">{fetchError}</p>
+          <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-xs font-bold text-gold underline">Réessayer</button>
+        </div>
+      ) : loading ? (
         <div className="space-y-4 p-5">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="aspect-[3/4] bg-surface animate-pulse rounded-2xl" />
@@ -587,7 +648,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
           {/* ===== MAIN FEED ===== */}
           <div className="space-y-4 p-4">
-            {sortedFeed.map((vibe, i) => {
+            {visibleFeed.map((vibe, i) => {
               const liked = likedIds.has(vibe.id);
               const isAnimating = animatingId === vibe.id;
 
@@ -776,6 +837,12 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                 </motion.div>
               );
             })}
+            {/* Infinite scroll sentinel */}
+            {visibleCount < sortedFeed.length && (
+              <div ref={sentinelRef} className="flex justify-center py-4">
+                <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
         </>
       )}
