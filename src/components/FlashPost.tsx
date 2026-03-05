@@ -215,6 +215,14 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     );
   }, []);
 
+  // Auto-fill place from Auto-Vibe
+  useEffect(() => {
+    if (open && initialPlace) {
+      setGeoName(initialPlace);
+      setNearbyPlace(initialPlace);
+    }
+  }, [open, initialPlace]);
+
   const doFetch = async (url: string, options: RequestInit, token: string) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
