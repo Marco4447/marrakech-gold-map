@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
 
         <section className="space-y-2">
           <h2 className="font-display text-base font-semibold text-foreground">1. Responsable du traitement</h2>
-          <p>Weshkech est un city guide digital dédié à Marrakech, proposant également des estimations de prix de taxi via son partenaire Jemaride. Le responsable du traitement des données est l'éditeur de l'application Weshkech.</p>
+          <p>Weshkech est un city guide digital dédié à Marrakech. Le responsable du traitement des données est l'éditeur de l'application Weshkech.</p>
         </section>
 
         <section className="space-y-2">
@@ -38,7 +38,7 @@ export default function PrivacyPolicy() {
           <ul className="list-disc pl-5 space-y-1">
             <li>Création et gestion de votre compte utilisateur</li>
             <li>Personnalisation de votre expérience (Pass Invité, favoris)</li>
-            <li>Redirection vers le service d'estimation de taxi Jemaride</li>
+            
             <li>Amélioration du service et statistiques anonymes</li>
           </ul>
         </section>
@@ -55,7 +55,7 @@ export default function PrivacyPolicy() {
             <li>Google (authentification OAuth)</li>
             <li>Notre hébergeur cloud (stockage sécurisé)</li>
           </ul>
-          <p>Lorsque vous cliquez sur le bouton « Y aller au prix juste », vous êtes redirigé vers Jemaride dans un nouvel onglet. Seul le nom du lieu est transmis en paramètre d'URL, aucune donnée personnelle.</p>
+          
         </section>
 
         <section className="space-y-2">
