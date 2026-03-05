@@ -146,7 +146,30 @@ export default function WeeklyChallenge() {
 
   const timeLeft = useCountdown(challenge?.end_date || new Date().toISOString());
 
-  if (loading || !challenge) return null;
+  if (loading || (!challenge && !wonChallenge)) return null;
+
+  // Show confetti + winner banner even without active challenge
+  if (!challenge && wonChallenge) {
+    return (
+      <>
+        {showConfetti && <GoldConfetti duration={5000} />}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mx-3 mb-4 rounded-2xl overflow-hidden text-center px-4 py-5"
+          style={{
+            background: "linear-gradient(135deg, hsl(43 76% 52% / 0.2) 0%, hsl(var(--background)) 100%)",
+            border: "1px solid hsl(43 76% 52% / 0.4)",
+          }}
+        >
+          <span className="text-4xl">🏆</span>
+          <p className="text-sm font-bold text-foreground mt-2">Tu as gagné le challenge !</p>
+          <p className="text-xs text-primary font-semibold mt-1">{wonChallenge.emoji} {wonChallenge.title}</p>
+          <p className="text-xs text-muted-foreground mt-1">+7 jours VIP offerts 🎉</p>
+        </motion.div>
+      </>
+    );
+  }
 
   const userRank = user
     ? leaders.findIndex((l) => l.user_id === user.id) + 1
