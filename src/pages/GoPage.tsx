@@ -21,9 +21,17 @@ export default function GoPage() {
   const [loading, setLoading] = useState(false);
   const [testimonialIdx, setTestimonialIdx] = useState(0);
 
-  // Extract UTM params
+  // Extract UTM params + referral code
   const utmCampaign = searchParams.get("utm_campaign") || "unknown";
   const utmSource = searchParams.get("utm_source") || "direct";
+  const refCode = searchParams.get("ref");
+
+  // Store referral code for post-login processing
+  useEffect(() => {
+    if (refCode) {
+      try { localStorage.setItem("weshkech_ref", refCode); } catch {}
+    }
+  }, [refCode]);
 
   // Cached queries (staleTime = 5min)
   const { data: liveVibes } = useQuery({

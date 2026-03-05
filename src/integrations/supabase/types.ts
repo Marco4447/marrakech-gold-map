@@ -200,6 +200,59 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_uses: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_uses_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
