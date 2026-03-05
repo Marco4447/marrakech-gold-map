@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import FeedPage from "@/components/FeedPage";
-import DiscoverTab from "@/components/DiscoverTab";
+import NotificationsPage from "@/components/NotificationsPage";
 import ProfilPage from "@/components/ProfilPage";
 import AdminPage from "@/components/AdminPage";
 import LandingPage from "@/components/LandingPage";
@@ -93,7 +93,7 @@ const Index = () => {
       <div className="flex-1 relative min-h-0 overflow-hidden">
         {activeTab === "feed" && (isGuest ? <AuthGate /> : <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />)}
         {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
-        {activeTab === "discover" && (isGuest ? <AuthGate /> : <DiscoverTab onGoToMap={handleGoToMap} />)}
+        {activeTab === "notifications" && (isGuest ? <AuthGate /> : <NotificationsPage />)}
         {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("feed")} />)}
       </div>
 
@@ -124,7 +124,7 @@ const Index = () => {
         onChange={(tab) => {
           if (tab === "create") return; // handled by onCreatePress
           analytics.tabChange(tab);
-          if (tab === "profil") markAllRead();
+          if (tab === "notifications") markAllRead();
           setActiveTab(tab);
         }}
         onCreatePress={() => {
