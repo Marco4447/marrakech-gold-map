@@ -27,9 +27,30 @@ export default function GoPage() {
   const [copied, setCopied] = useState(false);
   const { lang, t } = useLanguage();
 
-  // Redirect authenticated users to home
+  // Redirect authenticated users to home + capture Google signup completion after OAuth callback
   useEffect(() => {
     if (!authLoading && user) {
+      try {
+        const pendingRaw = sessionStorage.getItem("wk_google_signup_pending");
+        if (pendingRaw) {
+          const pending = JSON.parse(pendingRaw) as { source?: string; campaign?: string };
+          const source = pending.source || "direct";
+          const campaign = pending.campaign || "unknown";
+          const trackedKey = `wk_google_signup_tracked_${user.id}`;
+
+          if (!sessionStorage.getItem(trackedKey)) {
+            trackEvent("go_google_signup_success", { source, campaign });
+            trackEvent("sign_up", { method: "google", source, campaign });
+            ttqTrack("CompleteRegistration", { content_name: "google_signup", source, campaign });
+            sessionStorage.setItem(trackedKey, "1");
+          }
+
+          sessionStorage.removeItem("wk_google_signup_pending");
+        }
+      } catch {
+        // no-op
+      }
+
       navigate("/", { replace: true });
     }
   }, [user, authLoading, navigate]);
@@ -96,11 +117,26 @@ export default function GoPage() {
   // ---- Auth handlers ----
   const handleGoogleSignup = async () => {
     setLoading(true);
+    try {
+      sessionStorage.setItem(
+        "wk_google_signup_pending",
+        JSON.stringify({ source: utmSource, campaign: utmCampaign, at: Date.now() })
+      );
+    } catch {
+      // ignore storage errors
+    }
+
     trackEvent("go_google_signup_click", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
     ttqTrack("InitiateCheckout", { content_name: "google_signup_attempt" });
+
     const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (error) {
       console.error("OAuth error:", error);
+      try {
+        sessionStorage.removeItem("wk_google_signup_pending");
+      } catch {
+        // ignore storage errors
+      }
       trackEvent("go_google_signup_error", { error: String(error), source: utmSource });
       setLoading(false);
     }
