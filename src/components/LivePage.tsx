@@ -475,9 +475,18 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
               Éphémère · Disparaît après 6h
             </p>
           </div>
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Clock className="w-3.5 h-3.5" />
-            <span className="text-xs font-medium">{vibes.length} live</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowTikTokFeed(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gold/10 border border-gold/20 hover:bg-gold/20 active:scale-95 transition-all"
+            >
+              <Play className="w-3.5 h-3.5 text-gold fill-gold" />
+              <span className="text-[10px] font-bold text-gold">Reels</span>
+            </button>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">{vibes.length} live</span>
+            </div>
           </div>
         </div>
 
