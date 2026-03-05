@@ -152,7 +152,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   // Add vibe pins + heatmap
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || activeFilter === "offers") return;
+    if (!map || activeFilter === "offers" || !showVibes) return;
 
     const markers: L.Marker[] = [];
     const heatPoints: [number, number, number][] = [];
