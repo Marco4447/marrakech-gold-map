@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useAutoRefreshOnNewVersion } from "@/hooks/useAutoRefreshOnNewVersion";
 import { lazy, Suspense } from "react";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Eagerly loaded (critical path)
 import Index from "./pages/Index";
@@ -69,9 +70,11 @@ const AppShell = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AppShell />
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AppShell />
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

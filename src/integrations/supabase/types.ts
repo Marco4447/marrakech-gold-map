@@ -149,6 +149,21 @@ export type Database = {
         }
         Relationships: []
       }
+      processed_stripe_events: {
+        Row: {
+          event_id: string
+          processed_at: string
+        }
+        Insert: {
+          event_id: string
+          processed_at?: string
+        }
+        Update: {
+          event_id?: string
+          processed_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -378,12 +393,21 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_old_stripe_events: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_vibe_likes: {
+        Args: { p_delta?: number; p_vibe_id: string }
+        Returns: undefined
+      }
+      increment_vibe_super_vibes: {
+        Args: { p_delta?: number; p_vibe_id: string }
+        Returns: undefined
       }
       publish_vibe_use_credit: {
         Args: {

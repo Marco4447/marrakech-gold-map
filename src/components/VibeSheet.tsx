@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Crown, Gift, Lock } from "lucide-react";
+import { X, MapPin, Crown, Gift, Lock, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useVibeCountdown, isUnderTwoHours } from "@/hooks/useVibeCountdown";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
@@ -255,6 +256,22 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
 
                 {/* CTA Buttons */}
                 <div className="flex gap-2">
+                  {/* Share */}
+                  <button
+                    onClick={async () => {
+                      const url = `${window.location.origin}/vibe/${vibe.id}`;
+                      const text = `${vibe.location || "Marrakech"} sur Weshkech 🔥`;
+                      if (navigator.share) {
+                        try { await navigator.share({ title: "Weshkech", text, url }); } catch {}
+                      } else {
+                        await navigator.clipboard.writeText(url);
+                        toast.success("Lien copié !");
+                      }
+                    }}
+                    className="w-12 flex items-center justify-center rounded-2xl border border-border bg-card active:scale-[0.97] transition-all"
+                  >
+                    <Share2 className="w-4 h-4 text-foreground" />
+                  </button>
                   {/* VIP Pass CTA */}
                   <button
                     onClick={handleVipCta}
