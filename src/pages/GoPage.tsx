@@ -35,6 +35,14 @@ export default function GoPage() {
     if (refCode) try { localStorage.setItem("weshkech_ref", refCode); } catch {}
   }, [refCode]);
 
+  // Auto-attempt redirect for TikTok WebView
+  useEffect(() => {
+    if (isTikTok) {
+      trackEvent("tiktok_webview_auto_redirect_attempt", { source: utmSource });
+      redirectToExternalBrowser();
+    }
+  }, [isTikTok]);
+
   const { data: usersCount } = useQuery({
     queryKey: ["go-users-count"],
     queryFn: async () => {
@@ -109,30 +117,33 @@ export default function GoPage() {
         <LanguageToggle />
       </div>
 
-      {/* In-app browser banner */}
+      {/* In-app browser banner — more prominent */}
       {isInApp && (
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-          className="absolute top-14 left-4 right-4 z-30 bg-gold/95 backdrop-blur-md rounded-2xl p-4 shadow-lg">
-          <p className="text-primary-foreground text-xs font-bold mb-1">
-            {lang === "fr" ? "⚠️ Ouvre dans ton navigateur" : "⚠️ Open in your browser"}
+          className="absolute top-14 left-4 right-4 z-30 bg-gold backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_hsl(43_76%_52%/0.4)]">
+          <p className="text-primary-foreground text-sm font-bold mb-1">
+            {lang === "fr" ? "👆 Une dernière étape" : "👆 One last step"}
           </p>
-          <p className="text-primary-foreground/80 text-[10px] leading-relaxed mb-3">
+          <p className="text-primary-foreground/90 text-xs leading-relaxed mb-3">
             {lang === "fr"
-              ? "L'inscription ne fonctionne pas dans l'app. Ouvre dans Safari/Chrome."
-              : "Sign-up doesn't work in-app. Open in Safari/Chrome."}
+              ? "Pour t'inscrire, ouvre ce lien dans Safari ou Chrome. C'est plus rapide et sécurisé !"
+              : "To sign up, open this link in Safari or Chrome. It's faster and more secure!"}
           </p>
           <div className="flex gap-2">
             <button onClick={handleOpenInBrowser}
-              className="flex-1 py-2.5 rounded-xl bg-background text-gold text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
-              <ExternalLink className="w-3.5 h-3.5" />
-              {lang === "fr" ? "Ouvrir Safari" : "Open Safari"}
+              className="flex-1 py-3 rounded-xl bg-background text-gold text-sm font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform shadow-md">
+              <ExternalLink className="w-4 h-4" />
+              {lang === "fr" ? "Ouvrir Safari ↗" : "Open Safari ↗"}
             </button>
             <button onClick={handleCopyLink}
-              className="py-2.5 px-3 rounded-xl bg-background/80 text-gold text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              className="py-3 px-4 rounded-xl bg-background/80 text-gold text-sm font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               {copied ? "✓" : lang === "fr" ? "Copier" : "Copy"}
             </button>
           </div>
+          <p className="text-primary-foreground/70 text-[9px] text-center mt-2">
+            {lang === "fr" ? "Ou continue ici — l'inscription par email marche aussi 👇" : "Or continue here — email signup works too 👇"}
+          </p>
         </motion.div>
       )}
 
