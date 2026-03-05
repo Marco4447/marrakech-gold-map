@@ -154,18 +154,14 @@ export default function WeeklyChallenge() {
       <>
         {showConfetti && <GoldConfetti duration={5000} />}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mx-3 mb-4 rounded-2xl overflow-hidden text-center px-4 py-5"
-          style={{
-            background: "linear-gradient(135deg, hsl(43 76% 52% / 0.2) 0%, hsl(var(--background)) 100%)",
-            border: "1px solid hsl(43 76% 52% / 0.4)",
-          }}
+          className="mx-4 mb-3 rounded-lg overflow-hidden text-center px-4 py-4 bg-card border border-border"
         >
-          <span className="text-4xl">🏆</span>
-          <p className="text-sm font-bold text-foreground mt-2">Tu as gagné le challenge !</p>
-          <p className="text-xs text-primary font-semibold mt-1">{wonChallenge.emoji} {wonChallenge.title}</p>
-          <p className="text-xs text-muted-foreground mt-1">+7 jours VIP offerts 🎉</p>
+          <span className="text-3xl">🏆</span>
+          <p className="text-[13px] font-semibold text-foreground mt-2">Tu as gagné le challenge !</p>
+          <p className="text-[12px] text-foreground mt-1">{wonChallenge.emoji} {wonChallenge.title}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">+7 jours VIP offerts 🎉</p>
         </motion.div>
       </>
     );
@@ -181,44 +177,37 @@ export default function WeeklyChallenge() {
     <>
     {showConfetti && <GoldConfetti duration={5000} />}
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: -5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-3 mb-4 rounded-2xl overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--background)) 100%)",
-        border: "1px solid hsl(var(--primary) / 0.3)",
-      }}
+      className="mx-4 mb-3 rounded-lg overflow-hidden bg-card border border-border"
     >
-      {/* Header - always visible */}
+      {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full px-4 py-3 flex items-center gap-3 text-left"
+        className="w-full px-3 py-2.5 flex items-center gap-2.5 text-left"
       >
-        <span className="text-2xl">{challenge.emoji}</span>
+        <span className="text-xl">{challenge.emoji}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground truncate">
+          <p className="text-[13px] font-semibold text-foreground truncate">
             {challenge.title}
           </p>
           <div className="flex items-center gap-2 mt-0.5">
-            <Clock className="w-3 h-3 text-primary" />
-            <span className="text-xs text-primary font-semibold">{timeLeft}</span>
+            <Clock className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground font-medium">{timeLeft}</span>
             {userRank > 0 && (
-              <span className="text-xs text-muted-foreground">
-                · Tu es {userRank === 1 ? "1er 🔥" : `${userRank}ème`}
+              <span className="text-[11px] text-muted-foreground">
+                · {userRank === 1 ? "1er 🔥" : `${userRank}ème`}
               </span>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1 text-primary">
-          <Crown className="w-4 h-4" />
-          <span className="text-xs font-bold">VIP</span>
-        </div>
+        <span className="text-[11px] font-semibold text-foreground">VIP</span>
         <ChevronRight
           className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`}
         />
       </button>
 
-      {/* Expanded content */}
+      {/* Expanded */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -228,65 +217,60 @@ export default function WeeklyChallenge() {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4">
+            <div className="px-3 pb-3 border-t border-border pt-2.5">
               {challenge.description && (
-                <p className="text-xs text-muted-foreground mb-3">
+                <p className="text-[11px] text-muted-foreground mb-2.5">
                   {challenge.description}
                 </p>
               )}
 
-              {/* Prize */}
-              <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-primary/10">
-                <Trophy className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold text-primary">
-                  🏆 Le gagnant remporte 7 jours VIP gratuits !
+              <div className="flex items-center gap-2 mb-2.5 px-2.5 py-1.5 rounded-lg bg-card border border-border">
+                <Trophy className="w-3.5 h-3.5 text-foreground" />
+                <span className="text-[11px] font-medium text-foreground">
+                  🏆 Le gagnant remporte 7 jours VIP gratuits
                 </span>
               </div>
 
-              {/* Leaderboard */}
               {leaders.length > 0 ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     Classement
                   </p>
                   {leaders.map((leader, i) => (
                     <div
                       key={leader.user_id}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl ${
+                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${
                         leader.user_id === user?.id
-                          ? "bg-primary/15 ring-1 ring-primary/30"
-                          : "bg-muted/30"
+                          ? "bg-foreground/5 ring-1 ring-border"
+                          : ""
                       }`}
                     >
-                      <span className="text-sm w-6 text-center">
+                      <span className="text-[12px] w-5 text-center">
                         {medals[i] || `${i + 1}.`}
                       </span>
                       {leader.avatar_url ? (
                         <img
                           src={leader.avatar_url}
                           alt=""
-                          className="w-6 h-6 rounded-full object-cover"
+                          className="w-5 h-5 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">
+                        <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px]">
                           {(leader.full_name || "?")[0]}
                         </div>
                       )}
-                      <span className="flex-1 text-xs font-medium text-foreground truncate">
+                      <span className="flex-1 text-[12px] font-medium text-foreground truncate">
                         {leader.full_name}
                         {leader.user_id === user?.id && " (toi)"}
                       </span>
-                      <div className="flex items-center gap-1">
-                        <Flame className="w-3 h-3 text-primary" />
-                        <span className="text-xs font-bold text-primary">
-                          {leader.score}
-                        </span>
-                      </div>
+                      <span className="text-[11px] font-semibold text-foreground">
+                        {leader.score}
+                      </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground text-center py-2">
+                <p className="text-[11px] text-muted-foreground text-center py-2">
                   Publie des vibes pour participer ! 📸
                 </p>
               )}

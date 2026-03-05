@@ -93,27 +93,27 @@ export default function VibeStories({ onVibeClick }: { onVibeClick?: (vibeId: st
   return (
     <>
       {/* Story bubbles */}
-      <div ref={scrollRef} className="flex gap-3 overflow-x-auto no-scrollbar px-4 py-3">
+      <div ref={scrollRef} className="flex gap-3 overflow-x-auto no-scrollbar px-4 py-2.5 border-b border-border">
         {stories.map((story, i) => (
           <button
             key={story.id}
             onClick={() => setActiveIndex(i)}
             className="flex flex-col items-center gap-1 flex-shrink-0"
           >
-            <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-br from-gold via-amber-400 to-orange-500">
+            <div className="w-[62px] h-[62px] rounded-full p-[2px] bg-gradient-to-tr from-[hsl(330,80%,55%)] via-[hsl(25,95%,55%)] to-[hsl(280,70%,55%)]">
               <div className="w-full h-full rounded-full overflow-hidden border-2 border-background">
                 {story.avatar_url ? (
                   <img src={story.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-gold/20 flex items-center justify-center">
-                    <span className="text-sm font-bold text-gold">
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <span className="text-sm font-medium text-foreground">
                       {story.mood ? MOOD_EMOJI[story.mood] || "📸" : "📸"}
                     </span>
                   </div>
                 )}
               </div>
             </div>
-            <span className="text-[10px] font-medium text-foreground/80 truncate w-16 text-center">
+            <span className="text-[10px] font-normal text-foreground/70 truncate w-[62px] text-center">
               {getName(story)}
             </span>
           </button>
