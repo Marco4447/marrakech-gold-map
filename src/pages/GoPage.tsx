@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Camera, Crown, ChevronRight, Sparkles, Zap, Users, BadgeCheck, Loader2, Star, TrendingUp } from "lucide-react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import heroImage from "@/assets/marrakech-hero.jpg";
@@ -17,8 +18,6 @@ const TESTIMONIALS = [
 export default function GoPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [liveVibes, setLiveVibes] = useState<number | null>(null);
-  const [usersCount, setUsersCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [testimonialIdx, setTestimonialIdx] = useState(0);
 
@@ -26,22 +25,33 @@ export default function GoPage() {
   const utmCampaign = searchParams.get("utm_campaign") || "unknown";
   const utmSource = searchParams.get("utm_source") || "direct";
 
+  // Cached queries (staleTime = 5min)
+  const { data: liveVibes } = useQuery({
+    queryKey: ["go-live-vibes"],
+    queryFn: async () => {
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+      const { count } = await supabase
+        .from("vibes")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", sixHoursAgo);
+      return count || 0;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: usersCount } = useQuery({
+    queryKey: ["go-users-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true });
+      return count || 0;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   useEffect(() => {
-    // Track TikTok ViewContent with UTM context
     ttqTrack("ViewContent", { content_name: "go_landing", description: `${utmSource}/${utmCampaign}` });
-
-    // Fetch counts
-    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-    supabase
-      .from("vibes")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", sixHoursAgo)
-      .then(({ count }) => setLiveVibes(count || 0));
-
-    supabase
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .then(({ count }) => setUsersCount(count || 0));
   }, []);
 
   // Rotate testimonials
@@ -117,7 +127,7 @@ export default function GoPage() {
           transition={{ delay: 0.25 }}
           className="flex items-center gap-3 mb-6"
         >
-          {liveVibes !== null && (
+          {liveVibes !== undefined && liveVibes !== null && (
             <div className="flex items-center gap-1.5 bg-destructive/10 border border-destructive/20 rounded-full px-3 py-1.5">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
@@ -126,7 +136,7 @@ export default function GoPage() {
               <span className="text-xs font-bold text-destructive-foreground">{liveVibes} vibes live</span>
             </div>
           )}
-          {usersCount !== null && (
+          {usersCount !== undefined && usersCount !== null && (
             <div className="flex items-center gap-1.5 bg-card border border-border rounded-full px-3 py-1.5">
               <Users className="w-3 h-3 text-gold" />
               <span className="text-xs font-semibold text-foreground">{usersCount}+ insiders</span>

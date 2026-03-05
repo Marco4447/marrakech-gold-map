@@ -2,31 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Radio, ChevronDown, ChevronUp } from "lucide-react";
-
-interface RecentVibe {
-  id: string;
-  image_url: string;
-  location: string | null;
-  caption: string | null;
-  mood: string | null;
-  username: string | null;
-  created_at: string;
-  media_type: string;
-  is_official: boolean;
-  latitude: number | null;
-  longitude: number | null;
-}
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const secs = Math.floor(diff / 1000);
-  if (secs < 60) return "à l'instant";
-  const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}min`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}j`;
-}
+import { timeAgoShort } from "@/lib/timeAgo";
+import type { RecentVibe } from "@/types/models";
 
 export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe: RecentVibe) => void }) {
   const [vibes, setVibes] = useState<RecentVibe[]>([]);
@@ -100,7 +77,7 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
                     {vibe.username || vibe.location || "Anonyme"}
                   </p>
                   <p className="text-[9px] text-[hsl(30,10%,55%)]">
-                    {vibe.mood ? `${vibe.mood} · ` : ""}{timeAgo(vibe.created_at)}
+                    {vibe.mood ? `${vibe.mood} · ` : ""}{timeAgoShort(vibe.created_at)}
                   </p>
                 </div>
                 {vibe.is_official && <span className="text-gold text-[10px]">⭐</span>}

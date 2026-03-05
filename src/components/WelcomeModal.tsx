@@ -33,6 +33,8 @@ export default function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
   const [loading, setLoading] = useState(false);
 
   const handleContinue = () => {
+    // Persist immediately so closing the app mid-tutorial doesn't loop
+    localStorage.setItem("wk_welcome_seen", "1");
     setStep("geoloc");
   };
 

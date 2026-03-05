@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Mail, Camera, Clock } from "lucide-react";
+import { timeAgoShort } from "@/lib/timeAgo";
 
 interface UserProfile {
   user_id: string;
@@ -13,14 +14,7 @@ interface UserProfile {
   last_vibe_at: string | null;
 }
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}min`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}j`;
-}
+// timeAgo imported from shared lib
 
 export default function UsersTab() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -114,12 +108,12 @@ export default function UsersTab() {
                   <Camera className="w-2.5 h-2.5" /> {u.vibes_count} vibes
                 </span>
                 <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                  <Clock className="w-2.5 h-2.5" /> {u.last_vibe_at ? timeAgo(u.last_vibe_at) : "aucune"}
+                  <Clock className="w-2.5 h-2.5" /> {u.last_vibe_at ? timeAgoShort(u.last_vibe_at) : "aucune"}
                 </span>
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-[10px] text-muted-foreground">{timeAgo(u.created_at)}</p>
+              <p className="text-[10px] text-muted-foreground">{timeAgoShort(u.created_at)}</p>
             </div>
           </div>
         ))}

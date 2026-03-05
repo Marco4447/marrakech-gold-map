@@ -6,18 +6,16 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import VibeComments, { useCommentCounts } from "./VibeComments";
 import SuperVibeParticles from "./SuperVibeParticles";
+import { timeAgo } from "@/lib/timeAgo";
+import { getDeviceId } from "@/lib/deviceId";
+import type { VibeProfile } from "@/types/models";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
 
-interface VibeProfile {
-  full_name: string | null;
-  avatar_url: string | null;
-  email: string | null;
-  is_vip?: boolean;
-}
+// VibeProfile imported from @/types/models
 
 // Badge tier logic (mirrors BadgesSection)
 function getUserTier(vibeCount: number): { emoji: string; label: string } | null {
@@ -135,23 +133,7 @@ function getScore(v: Vibe) {
   return v.likes + (v.super_vibes || 0) * 3;
 }
 
-function getDeviceId(): string {
-  let id = localStorage.getItem("wk_device_id");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("wk_device_id", id);
-  }
-  return id;
-}
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "à l'instant";
-  if (mins < 60) return `il y a ${mins} min`;
-  const hours = Math.floor(mins / 60);
-  return `il y a ${hours}h`;
-}
+// timeAgo and getDeviceId imported from shared libs
 
 function vibeCountdown(dateStr: string, isOfficial?: boolean) {
   if (isOfficial) return null;

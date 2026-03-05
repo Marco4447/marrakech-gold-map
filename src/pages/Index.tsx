@@ -138,16 +138,18 @@ const Index = () => {
         {activeTab === "profil" && <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("map")} />}
       </div>
 
-      {/* Jema floating button */}
-      <a
-        href="https://www.jemaride.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-20 right-4 z-[1999] flex items-center gap-1.5 bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 text-foreground px-3 py-2 rounded-full shadow-lg shadow-black/20 transition-all active:scale-95"
-      >
-        <span className="text-base">🚕</span>
-        <span className="text-[11px] font-bold">Jema</span>
-      </a>
+      {/* Jema floating button — only on map tab */}
+      {activeTab === "map" && (
+        <a
+          href="https://www.jemaride.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-20 right-4 z-[1999] flex items-center gap-1.5 bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 text-foreground px-3 py-2 rounded-full shadow-lg shadow-black/20 transition-all active:scale-95"
+        >
+          <span className="text-base">🚕</span>
+          <span className="text-[11px] font-bold">Jema</span>
+        </a>
+      )}
 
       <BottomNav active={activeTab} onChange={setActiveTab} onHome={handleHome} onFlashPost={() => setShowFlashPost(true)} />
       <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("live"); }} />

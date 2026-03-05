@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { timeAgoShort } from "@/lib/timeAgo";
+import { getDeviceId } from "@/lib/deviceId";
 
 interface Comment {
   id: string;
@@ -14,24 +16,6 @@ interface VibeCommentsProps {
   vibeId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-function getDeviceId(): string {
-  let id = localStorage.getItem("wk_device_id");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("wk_device_id", id);
-  }
-  return id;
-}
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "à l'instant";
-  if (mins < 60) return `${mins}min`;
-  const hours = Math.floor(mins / 60);
-  return `${hours}h`;
 }
 
 export default function VibeComments({ vibeId, open, onOpenChange }: VibeCommentsProps) {
@@ -144,7 +128,7 @@ export default function VibeComments({ vibeId, open, onOpenChange }: VibeComment
                           <span className="text-xs font-semibold text-foreground">
                             {c.device_id === deviceId ? "Vous" : `User ${c.device_id.slice(0, 4)}`}
                           </span>
-                          <span className="text-[10px] text-muted-foreground">{timeAgo(c.created_at)}</span>
+                          <span className="text-[10px] text-muted-foreground">{timeAgoShort(c.created_at)}</span>
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed break-words">{c.content}</p>
                       </div>
