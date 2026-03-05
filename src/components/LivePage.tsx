@@ -720,9 +720,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       : "border border-border"
                   }`}
                 >
-                  <div className="aspect-[3/4] relative">
+                  <div className="aspect-[3/4] relative" onClick={() => handleDoubleTap(vibe.id)}>
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/90 to-transparent" />
+                    <DoubleTapHeart show={doubleTapId === vibe.id} />
 
                     {/* Sponsored / Official badge */}
                     {vibe.is_official && (
