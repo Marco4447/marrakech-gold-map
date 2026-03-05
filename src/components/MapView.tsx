@@ -114,6 +114,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         isPartner: place.is_partner,
         hasOffer: place.has_active_offer,
         blurred: shouldBlur,
+        placeName: place.name,
       });
       const boosted = isBoosted(place.name);
       const zOffset = boosted ? 3000 : place.is_partner ? 2000 : isTrending ? 1000 : 0;
