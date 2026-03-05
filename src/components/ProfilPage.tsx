@@ -11,6 +11,7 @@ import CommunityLeaderboard from "@/components/CommunityLeaderboard";
 import { timeAgo } from "@/lib/timeAgo";
 import { getDeviceId } from "@/lib/deviceId";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useFollows } from "@/hooks/useFollows";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
