@@ -16,6 +16,7 @@ import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import StreakBadge from "./StreakBadge";
 import TikTokFeed from "./TikTokFeed";
+import WeeklyChallenge from "./WeeklyChallenge";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -516,6 +517,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
           </button>
         </div>
       </div>
+
+      {/* Weekly Challenge */}
+      <WeeklyChallenge />
 
       {/* Stories */}
       <VibeStories onVibeClick={(vibeId) => setCommentVibeId(vibeId)} />

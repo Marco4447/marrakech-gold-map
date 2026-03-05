@@ -421,6 +421,45 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_challenges: {
+        Row: {
+          created_at: string
+          description: string | null
+          emoji: string
+          end_date: string
+          id: string
+          start_date: string
+          status: string
+          theme_tag: string | null
+          title: string
+          winner_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: string
+          theme_tag?: string | null
+          title: string
+          winner_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: string
+          theme_tag?: string | null
+          title?: string
+          winner_user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       profiles_public: {
