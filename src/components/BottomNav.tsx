@@ -8,9 +8,10 @@ interface BottomNavProps {
   onChange: (tab: Tab) => void;
   onHome: () => void;
   onFlashPost?: () => void;
+  unreadNotifications?: number;
 }
 
-export default function BottomNav({ active, onChange, onHome, onFlashPost }: BottomNavProps) {
+export default function BottomNav({ active, onChange, onHome, onFlashPost, unreadNotifications = 0 }: BottomNavProps) {
   const { t } = useLanguage();
 
   return (
@@ -47,6 +48,11 @@ export default function BottomNav({ active, onChange, onHome, onFlashPost }: Bot
         <button onClick={() => onChange("profil")} className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors ${active === "profil" ? "text-gold bg-gold/10" : "text-muted-foreground hover:text-foreground hover:bg-surface"}`}>
           <div className="relative">
             <Gift className={`w-5 h-5 ${active === "profil" ? "drop-shadow-[0_0_6px_hsl(43,56%,52%,0.5)]" : ""}`} />
+            {unreadNotifications > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                {unreadNotifications > 9 ? "9+" : unreadNotifications}
+              </span>
+            )}
           </div>
           <span className="text-[10px] font-semibold tracking-wide uppercase">{t("nav_enjoy")}</span>
           {active === "profil" && <div className="w-1 h-1 rounded-full bg-gold mt-0.5" />}
