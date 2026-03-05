@@ -10,6 +10,7 @@ import { timeAgo } from "@/lib/timeAgo";
 import { getDeviceId } from "@/lib/deviceId";
 import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
+import { isBoosted } from "@/lib/boostedPlaces";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -379,15 +380,24 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     .sort((a, b) => getScore(b) - getScore(a))
     .slice(0, 3);
 
-  // Feed sorted by active tab
+  // Feed sorted by active tab — boosted places first
   const sortedFeed = activeTab === "tendances"
     ? [...officialVibes, ...regularVibes].sort((a, b) => {
-        // Official (sponsored) always first
+        // Boosted partner locations first
+        const aB = isBoosted(a.location);
+        const bB = isBoosted(b.location);
+        if (aB && !bB) return -1;
+        if (!aB && bB) return 1;
+        // Official (sponsored) next
         if (a.is_official && !b.is_official) return -1;
         if (!a.is_official && b.is_official) return 1;
         return getScore(b) - getScore(a);
       })
     : [...officialVibes, ...regularVibes].sort((a, b) => {
+        const aB = isBoosted(a.location);
+        const bB = isBoosted(b.location);
+        if (aB && !bB) return -1;
+        if (!aB && bB) return 1;
         if (a.is_official && !b.is_official) return -1;
         if (!a.is_official && b.is_official) return 1;
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();

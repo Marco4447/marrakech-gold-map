@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { isBoosted } from "@/lib/boostedPlaces";
 
 interface HotPlace {
   name: string;
@@ -51,7 +52,13 @@ export default function TopLivePlaces({ onPlaceClick }: { onPlaceClick?: (name: 
     }
 
     const sorted = Array.from(map.entries())
-      .sort((a, b) => b[1].count - a[1].count)
+      .sort((a, b) => {
+        const aB = isBoosted(a[0]);
+        const bB = isBoosted(b[0]);
+        if (aB && !bB) return -1;
+        if (!aB && bB) return 1;
+        return b[1].count - a[1].count;
+      })
       .slice(0, 3)
       .map(([name, info]) => ({
         name,

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Radio, ChevronDown, ChevronUp } from "lucide-react";
 import { timeAgoShort } from "@/lib/timeAgo";
 import type { RecentVibe } from "@/types/models";
+import { isBoosted } from "@/lib/boostedPlaces";
 
 export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe: RecentVibe) => void }) {
   const [vibes, setVibes] = useState<RecentVibe[]>([]);
@@ -18,7 +19,16 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
       .or(`created_at.gte.${since},is_official.eq.true`)
       .order("created_at", { ascending: false })
       .limit(20);
-    if (data) setVibes(data as RecentVibe[]);
+    if (data) {
+      const sorted = (data as RecentVibe[]).sort((a, b) => {
+        const aB = isBoosted(a.location);
+        const bB = isBoosted(b.location);
+        if (aB && !bB) return -1;
+        if (!aB && bB) return 1;
+        return 0;
+      });
+      setVibes(sorted);
+    }
   };
 
   useEffect(() => {

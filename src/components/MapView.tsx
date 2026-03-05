@@ -14,6 +14,7 @@ import type { Place, VibePin } from "@/types/models";
 import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_FILTERS, MOOD_COLORS, MOOD_EMOJIS, CATEGORY_CONFIG, createCategoryIcon } from "./map/mapConstants";
 import { useMapData, useMapInstance } from "./map/useMapData";
 import { FloatingBubble, CollapsibleLegend } from "./map/MapOverlays";
+import { isBoosted } from "@/lib/boostedPlaces";
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,7 +84,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     const markers: L.Marker[] = [];
 
-    places.forEach((place, index) => {
+    // Sort places so boosted ones render last (= on top visually)
+    const sortedPlaces = [...places].sort((a, b) => {
+      const aB = isBoosted(a.name);
+      const bB = isBoosted(b.name);
+      if (aB && !bB) return 1; // boosted rendered last = on top
+      if (!aB && bB) return -1;
+      return 0;
+    });
+
+    sortedPlaces.forEach((place, index) => {
       if (activeFilter) {
         const mood = MOOD_FILTERS.find(m => m.key === activeFilter);
         if (mood) {
@@ -105,7 +115,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         hasOffer: place.has_active_offer,
         blurred: shouldBlur,
       });
-      const zOffset = place.is_partner ? 2000 : isTrending ? 1000 : 0;
+      const boosted = isBoosted(place.name);
+      const zOffset = boosted ? 3000 : place.is_partner ? 2000 : isTrending ? 1000 : 0;
       const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: zOffset, opacity: 0 })
         .addTo(map)
         .on("click", () => {
