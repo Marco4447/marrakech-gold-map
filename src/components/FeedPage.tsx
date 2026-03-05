@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame } from "lucide-react";
+import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import VibeStories from "./VibeStories";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import WeeklyChallenge from "./WeeklyChallenge";
+import { useFollows } from "@/hooks/useFollows";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
@@ -129,7 +130,7 @@ function isNew(dateStr: string) {
   return Date.now() - new Date(dateStr).getTime() < THIRTY_MIN;
 }
 
-type FeedTab = "foryou" | "recents";
+type FeedTab = "foryou" | "following" | "recents";
 
 export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSignal?: number; onGoToMap?: (lat: number, lng: number) => void }) {
   const { user } = useAuth();
@@ -151,6 +152,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const lastTapRef = useRef<{ id: string; time: number } | null>(null);
   const [reactionsVibeId, setReactionsVibeId] = useState<string | null>(null);
   const [floatingReaction, setFloatingReaction] = useState<{ id: string; emoji: string } | null>(null);
+  const { isFollowing, toggleFollow, followingIds } = useFollows();
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -299,6 +301,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         if (!a.is_official && b.is_official) return 1;
         return getScore(b) - getScore(a);
       })
+    : activeTab === "following"
+    ? [...vibes].filter(v => v.user_id && followingIds.has(v.user_id)).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     : [...officialVibes, ...regularVibes].sort((a, b) => {
         const aB = isBoosted(a.location);
         const bB = isBoosted(b.location);
