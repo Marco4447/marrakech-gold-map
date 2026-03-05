@@ -11,6 +11,7 @@ import { getDeviceId } from "@/lib/deviceId";
 import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
 import { isBoosted } from "@/lib/boostedPlaces";
+import { getShareUrl } from "@/lib/shareUrl";
 import VibeStories from "./VibeStories";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";

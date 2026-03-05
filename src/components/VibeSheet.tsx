@@ -7,6 +7,7 @@ import { useVibeCountdown, isUnderTwoHours } from "@/hooks/useVibeCountdown";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getShareUrl } from "@/lib/shareUrl";
 
 function VipPerkBox({ location }: { location: string | null }) {
   const navigate = useNavigate();
