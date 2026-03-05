@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ import CommunityLeaderboard from "@/components/CommunityLeaderboard";
 import { timeAgo } from "@/lib/timeAgo";
 import { getDeviceId } from "@/lib/deviceId";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useFollows } from "@/hooks/useFollows";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
@@ -302,6 +303,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const deviceId = getDeviceId();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifList, setNotifList] = useState<any[]>([]);
+  const { followerCount, followingCount } = useFollows();
   const { user, profile, signOut, refreshProfile } = useAuth();
   const displayName =
     profile?.full_name ||
@@ -459,6 +461,19 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         onAvatarChanged={() => window.location.reload()}
         onProfileUpdated={refreshProfile}
       />
+
+      {/* Follow Stats */}
+      <div className="flex items-center justify-center gap-8 px-5 py-3">
+        <div className="text-center">
+          <p className="text-lg font-bold text-foreground">{followerCount}</p>
+          <p className="text-[11px] text-muted-foreground">Abonnés</p>
+        </div>
+        <div className="w-px h-8 bg-border" />
+        <div className="text-center">
+          <p className="text-lg font-bold text-foreground">{followingCount}</p>
+          <p className="text-[11px] text-muted-foreground">Abonnements</p>
+        </div>
+      </div>
 
       {/* VIP CTA */}
       <motion.div

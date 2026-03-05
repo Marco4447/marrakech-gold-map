@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame } from "lucide-react";
+import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import VibeStories from "./VibeStories";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import WeeklyChallenge from "./WeeklyChallenge";
+import { useFollows } from "@/hooks/useFollows";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
@@ -129,7 +130,7 @@ function isNew(dateStr: string) {
   return Date.now() - new Date(dateStr).getTime() < THIRTY_MIN;
 }
 
-type FeedTab = "foryou" | "recents";
+type FeedTab = "foryou" | "following" | "recents";
 
 export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSignal?: number; onGoToMap?: (lat: number, lng: number) => void }) {
   const { user } = useAuth();
@@ -151,6 +152,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const lastTapRef = useRef<{ id: string; time: number } | null>(null);
   const [reactionsVibeId, setReactionsVibeId] = useState<string | null>(null);
   const [floatingReaction, setFloatingReaction] = useState<{ id: string; emoji: string } | null>(null);
+  const { isFollowing, toggleFollow, followingIds } = useFollows();
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -299,6 +301,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         if (!a.is_official && b.is_official) return 1;
         return getScore(b) - getScore(a);
       })
+    : activeTab === "following"
+    ? [...vibes].filter(v => v.user_id && followingIds.has(v.user_id)).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     : [...officialVibes, ...regularVibes].sort((a, b) => {
         const aB = isBoosted(a.location);
         const bB = isBoosted(b.location);
@@ -332,18 +336,15 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <span className="text-xs text-muted-foreground">{vibes.length} vibes live</span>
         </div>
         <div className="flex">
-          <button
-            onClick={() => setActiveTab("foryou")}
-            className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${activeTab === "foryou" ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
-          >
-            Pour toi
-          </button>
-          <button
-            onClick={() => setActiveTab("recents")}
-            className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${activeTab === "recents" ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
-          >
-            Récents
-          </button>
+          {(["foryou", "following", "recents"] as FeedTab[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${activeTab === tab ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
+            >
+              {tab === "foryou" ? "Pour toi" : tab === "following" ? "Suivis" : "Récents"}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -380,6 +381,17 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           </div>
           <h2 className="text-base font-semibold text-foreground mb-1.5">Aucune vibe live</h2>
           <p className="text-[13px] text-muted-foreground">Sois le premier à partager ton vibe !</p>
+        </div>
+      ) : activeTab === "following" && sortedFeed.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-3">
+            <UserPlus className="w-7 h-7 text-muted-foreground" />
+          </div>
+          <h2 className="text-base font-semibold text-foreground mb-1.5">Aucun contenu</h2>
+          <p className="text-[13px] text-muted-foreground mb-4">Suis des utilisateurs depuis le feed "Pour toi" pour voir leurs vibes ici.</p>
+          <button onClick={() => setActiveTab("foryou")} className="px-4 py-2 rounded-xl bg-foreground text-background text-sm font-semibold active:scale-95 transition-transform">
+            Explorer le feed
+          </button>
         </div>
       ) : (
         <>
@@ -474,6 +486,20 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Follow button */}
+                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleFollow(vibe.user_id!); }}
+                          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all active:scale-95 ${
+                            isFollowing(vibe.user_id)
+                              ? "bg-card border border-border text-muted-foreground"
+                              : "bg-foreground text-background"
+                          }`}
+                        >
+                          {isFollowing(vibe.user_id) ? <UserCheck className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
+                          {isFollowing(vibe.user_id) ? "Suivi" : "Suivre"}
+                        </button>
+                      )}
                       {countdown && (
                         <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                           <Clock className="w-2.5 h-2.5" />{countdown}
