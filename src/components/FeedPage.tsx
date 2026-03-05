@@ -486,7 +486,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             <span className="text-[10px] text-muted-foreground">{getUserTier(userVibeCounts[vibe.user_id] || 0)!.emoji}</span>
                           )}
                         </p>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {vibe.location && (
                             <span className="text-[11px] text-muted-foreground truncate flex items-center gap-0.5">
                               <MapPin className="w-2.5 h-2.5" />{vibe.location}
@@ -496,6 +496,18 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             <button onClick={(e) => { e.stopPropagation(); onGoToMap(vibe.latitude!, vibe.longitude!); }} className="text-[10px] text-gold font-medium">
                               Voir
                             </button>
+                          )}
+                          {(() => {
+                            const energy = getEnergy(energyMap, vibe.location);
+                            if (energy) return (
+                              <span className={`text-[10px] font-bold ${energy.color}`}>{energy.emoji} {energy.label}</span>
+                            );
+                            return null;
+                          })()}
+                          {userLocation && vibe.latitude != null && vibe.longitude != null && (
+                            <span className="text-[10px] text-muted-foreground">
+                              · {formatDistance(getDistanceMeters(userLocation.lat, userLocation.lng, vibe.latitude, vibe.longitude))}
+                            </span>
                           )}
                         </div>
                       </div>
