@@ -474,7 +474,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             </button>
             <button
               onClick={() => setShowVibes(v => !v)}
-              className={`w-10 h-10 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-lg active:scale-95 transition-all ${
+              className={`relative w-10 h-10 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-lg active:scale-95 transition-all ${
                 showVibes
                   ? "bg-gold/90 border-gold-dark/40 text-primary-foreground"
                   : "bg-[hsl(0,0%,10%,0.92)] border-border text-muted-foreground"
@@ -482,6 +482,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               title={showVibes ? "Masquer les vibes" : "Voir les vibes"}
             >
               <span className="text-sm">📸</span>
+              {vibePins.length > 0 && (
+                <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full text-[9px] font-bold flex items-center justify-center px-1 transition-all ${
+                  showVibes ? "bg-primary-foreground text-gold" : "bg-muted text-muted-foreground"
+                }`}>
+                  {vibePins.length}
+                </span>
+              )}
             </button>
             <button
               onClick={handleRecenter}
