@@ -7,6 +7,7 @@ import { useVibeCountdown, isUnderTwoHours } from "@/hooks/useVibeCountdown";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getShareUrl } from "@/lib/shareUrl";
 
 function VipPerkBox({ location }: { location: string | null }) {
   const navigate = useNavigate();
@@ -259,7 +260,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                   {/* Share */}
                   <button
                     onClick={async () => {
-                      const url = `${window.location.origin}/vibe/${vibe.id}`;
+                      const url = getShareUrl("vibe", vibe.id);
                       const text = `${vibe.location || "Marrakech"} sur Weshkech 🔥`;
                       if (navigator.share) {
                         try { await navigator.share({ title: "Weshkech", text, url }); } catch {}

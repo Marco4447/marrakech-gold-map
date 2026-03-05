@@ -10,6 +10,7 @@ import { timeAgo } from "@/lib/timeAgo";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import type { VibeProfile } from "@/types/models";
+import { getShareUrl } from "@/lib/shareUrl";
 
 interface ReelVibe {
   id: string;
@@ -286,7 +287,7 @@ export default function TikTokFeed({ open, onClose }: { open: boolean; onClose: 
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();
-                          const url = `${window.location.origin}/vibe/${vibe.id}`;
+                          const url = getShareUrl("vibe", vibe.id);
                           const text = `${vibe.location || "Marrakech"} sur Weshkech 🔥`;
                           if (navigator.share) {
                             try { await navigator.share({ title: "Weshkech", text, url }); } catch {}

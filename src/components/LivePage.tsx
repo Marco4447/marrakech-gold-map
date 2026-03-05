@@ -11,6 +11,7 @@ import { getDeviceId } from "@/lib/deviceId";
 import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
 import { isBoosted } from "@/lib/boostedPlaces";
+import { getShareUrl } from "@/lib/shareUrl";
 import VibeStories from "./VibeStories";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
@@ -826,7 +827,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
-                              const url = `${window.location.origin}/vibe/${vibe.id}`;
+                              const url = getShareUrl("vibe", vibe.id);
                               const text = `${vibe.location || "Marrakech"} sur Weshkech 🔥`;
                               if (navigator.share) {
                                 try { await navigator.share({ title: "Weshkech", text, url }); } catch {}

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import DealTunnel from "./DealTunnel";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { getShareUrl } from "@/lib/shareUrl";
 
 interface Place {
   id: string;
@@ -78,7 +79,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
 
   const handleShare = async () => {
-    const deepLinkUrl = `${window.location.origin}/place/${place.id}`;
+    const deepLinkUrl = getShareUrl("place", place.id);
     const text = `${place.name} ${lang === "fr" ? "sur" : "on"} Weshkech 🔥`;
     if (navigator.share) {
       try { await navigator.share({ title: place.name, text, url: deepLinkUrl }); } catch {}
