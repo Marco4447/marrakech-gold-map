@@ -153,7 +153,33 @@ const Index = () => {
         }}
       />
 
-      {!isGuest && <FlashPost open={showFlashPost} onClose={() => setShowFlashPost(false)} onPosted={() => { setFeedRefreshSignal((v) => v + 1); setActiveTab("feed"); }} />}
+      {!isGuest && (
+        <FlashPost
+          open={showFlashPost}
+          onClose={() => { setShowFlashPost(false); setAutoVibePlace(null); }}
+          onPosted={() => {
+            setFeedRefreshSignal((v) => v + 1);
+            setActiveTab("feed");
+            if (autoVibePlace && nearbyPlace) {
+              markAutoVibePosted(nearbyPlace.id);
+            }
+            setAutoVibePlace(null);
+          }}
+          initialPlace={autoVibePlace}
+        />
+      )}
+
+      {/* Auto-Vibe proximity card */}
+      {!isGuest && !showFlashPost && (
+        <AutoVibeCard
+          place={nearbyPlace}
+          onPost={(place) => {
+            setAutoVibePlace(place.name);
+            setShowFlashPost(true);
+          }}
+          onDismiss={dismissAutoVibe}
+        />
+      )}
 
       {/* Header: Language toggle + notifications bell + info */}
       {!isGuest && (
