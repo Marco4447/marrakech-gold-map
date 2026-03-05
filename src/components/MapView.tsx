@@ -151,7 +151,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   // Add vibe pins + heatmap
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || activeFilter === "offers") return;
 
     const markers: L.Marker[] = [];
     const heatPoints: [number, number, number][] = [];
@@ -219,7 +219,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       markers.forEach((m) => m.remove());
       map.removeLayer(heatLayer);
     };
-  }, [vibePins]);
+  }, [vibePins, activeFilter]);
 
   const categories = Object.entries(CATEGORY_CONFIG);
 
