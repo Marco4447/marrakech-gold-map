@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, MapPin, Tag, Zap, Gift, Navigation, Share2, Users, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import DealTunnel from "./DealTunnel";
 
 interface Place {
@@ -72,6 +73,19 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   // Reset gallery index when place changes
   useEffect(() => { setGalleryIndex(0); }, [place?.id]);
 
+  // TikTok ViewContent tracking
+  useEffect(() => {
+    if (open && place) {
+      import("@/lib/ttq").then(({ ttqTrack }) => {
+        ttqTrack("ViewContent", {
+          content_type: "place",
+          content_id: place.id,
+          content_name: place.name,
+        });
+      });
+    }
+  }, [open, place?.id]);
+
   if (!place) return null;
 
   const isPartner = place.is_partner ?? false;
@@ -86,12 +100,13 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
 
   const handleShare = async () => {
-    const ogUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-place?id=${place.id}`;
+    const deepLinkUrl = `${window.location.origin}/place/${place.id}`;
     const text = `${place.name} sur Weshkech 🔥`;
     if (navigator.share) {
-      try { await navigator.share({ title: place.name, text, url: ogUrl }); } catch {}
+      try { await navigator.share({ title: place.name, text, url: deepLinkUrl }); } catch {}
     } else {
-      await navigator.clipboard.writeText(ogUrl);
+      await navigator.clipboard.writeText(deepLinkUrl);
+      toast.success("Lien copié !");
     }
   };
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Flame, Sparkles, Crown } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Flame, Sparkles, Crown, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -326,17 +326,16 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     if (alreadyLiked) {
       setLikedIds((prev) => { const next = new Set(prev); next.delete(vibeId); return next; });
       setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v)));
-      // Delete by user_id first, fallback to device_id for old likes
       if (userId) {
         await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("user_id", userId as any);
       }
       await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId).is("user_id" as any, null);
-      await supabase.from("vibes").update({ likes: Math.max(0, (vibes.find(v => v.id === vibeId)?.likes ?? 1) - 1) }).eq("id", vibeId);
+      await supabase.rpc("increment_vibe_likes", { p_vibe_id: vibeId, p_delta: -1 });
     } else {
       setLikedIds((prev) => new Set(prev).add(vibeId));
       setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v)));
       await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId } as any);
-      await supabase.from("vibes").update({ likes: (vibes.find(v => v.id === vibeId)?.likes ?? 0) + 1 }).eq("id", vibeId);
+      await supabase.rpc("increment_vibe_likes", { p_vibe_id: vibeId, p_delta: 1 });
     }
   };
 
@@ -349,7 +348,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     setCanSuperVibe(false);
     setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, super_vibes: (v.super_vibes || 0) + 1 } : v)));
     await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId } as any);
-    await supabase.from("vibes").update({ super_vibes: (vibes.find(v => v.id === vibeId)?.super_vibes ?? 0) + 1 }).eq("id", vibeId);
+    await supabase.rpc("increment_vibe_super_vibes", { p_vibe_id: vibeId, p_delta: 1 });
   };
 
   const handleDeleteVibe = async (vibeId: string) => {
@@ -753,6 +752,23 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
                         {/* Action buttons */}
                         <div className="flex items-center gap-3">
+                          {/* Share */}
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const url = `${window.location.origin}/vibe/${vibe.id}`;
+                              const text = `${vibe.location || "Marrakech"} sur Weshkech 🔥`;
+                              if (navigator.share) {
+                                try { await navigator.share({ title: "Weshkech", text, url }); } catch {}
+                              } else {
+                                await navigator.clipboard.writeText(url);
+                                toast.success("Lien copié !");
+                              }
+                            }}
+                            className="flex flex-col items-center gap-0.5 group"
+                          >
+                            <Share2 className="w-5 h-5 text-foreground/70 group-hover:text-gold/70 transition-colors" />
+                          </button>
                           {/* Comment */}
                           <button
                             onClick={() => setCommentVibeId(vibe.id)}
@@ -838,9 +854,15 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
               );
             })}
             {/* Infinite scroll sentinel */}
-            {visibleCount < sortedFeed.length && (
+            {visibleCount < sortedFeed.length ? (
               <div ref={sentinelRef} className="flex justify-center py-4">
                 <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : sortedFeed.length > 0 && (
+              <div className="flex flex-col items-center py-8 text-center gap-2">
+                <span className="text-2xl">🔥</span>
+                <p className="text-sm font-semibold text-foreground">Tu as tout vu !</p>
+                <p className="text-xs text-muted-foreground max-w-[200px]">Reviens bientôt pour de nouvelles vibes ou partage la tienne.</p>
               </div>
             )}
           </div>

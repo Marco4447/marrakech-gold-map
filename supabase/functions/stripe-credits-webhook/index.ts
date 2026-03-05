@@ -43,6 +43,26 @@ serve(async (req) => {
 
     logStep("Event received", { type: event.type, id: event.id });
 
+    // === IDEMPOTENCE CHECK ===
+    const { data: existing } = await supabaseAdmin
+      .from("processed_stripe_events")
+      .select("event_id")
+      .eq("event_id", event.id)
+      .maybeSingle();
+
+    if (existing) {
+      logStep("Event already processed, skipping", { id: event.id });
+      return new Response(JSON.stringify({ received: true, skipped: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Mark as processed
+    await supabaseAdmin
+      .from("processed_stripe_events")
+      .insert({ event_id: event.id });
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.user_id;
@@ -56,7 +76,6 @@ serve(async (req) => {
       }
 
       if (metaType === "b2c_vip") {
-        // ===== VIP Guest Pass Activation =====
         const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
         const { error: updateErr } = await supabaseAdmin
@@ -71,24 +90,22 @@ serve(async (req) => {
 
         logStep("VIP activated", { userId, expiresAt });
       } else if (metaType === "b2b_credits") {
-        // ===== B2B Credit Top-up =====
         const credits = parseInt(session.metadata?.credits || "0", 10);
         if (credits <= 0) {
           logStep("ERROR: Invalid credit amount", { credits });
           throw new Error("Invalid credit amount");
         }
 
-        // Upsert credits (increment if exists, insert if not)
-        const { data: existing } = await supabaseAdmin
+        const { data: existingCredits } = await supabaseAdmin
           .from("partner_credits")
           .select("credits")
           .eq("user_id", userId)
           .maybeSingle();
 
-        if (existing) {
+        if (existingCredits) {
           const { error: upErr } = await supabaseAdmin
             .from("partner_credits")
-            .update({ credits: existing.credits + credits })
+            .update({ credits: existingCredits.credits + credits })
             .eq("user_id", userId);
           if (upErr) throw upErr;
         } else {
@@ -98,9 +115,8 @@ serve(async (req) => {
           if (insErr) throw insErr;
         }
 
-        logStep("Credits added", { userId, credits, newTotal: (existing?.credits ?? 0) + credits });
+        logStep("Credits added", { userId, credits, newTotal: (existingCredits?.credits ?? 0) + credits });
 
-        // Ensure partner role
         const { data: roleExists } = await supabaseAdmin
           .from("user_roles")
           .select("id")
@@ -119,12 +135,10 @@ serve(async (req) => {
       }
     }
 
-    // Handle subscription renewals
     if (event.type === "invoice.payment_succeeded") {
       const invoice = event.data.object as any;
       const subscriptionId = invoice.subscription;
       if (subscriptionId && invoice.billing_reason === "subscription_cycle") {
-        // Renewal: extend VIP by 30 days
         const sub = await stripe.subscriptions.retrieve(subscriptionId as string);
         const userId = sub.metadata?.user_id;
         if (userId) {
@@ -138,7 +152,6 @@ serve(async (req) => {
       }
     }
 
-    // Handle subscription cancellations
     if (event.type === "customer.subscription.deleted") {
       const sub = event.data.object as any;
       const userId = sub.metadata?.user_id;
@@ -150,6 +163,9 @@ serve(async (req) => {
         logStep("VIP deactivated (subscription canceled)", { userId });
       }
     }
+
+    // Periodic cleanup of old events
+    await supabaseAdmin.rpc("cleanup_old_stripe_events").catch(() => {});
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
