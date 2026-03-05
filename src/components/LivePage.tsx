@@ -526,53 +526,30 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
             className="absolute inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-6"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-card border border-gold/30 rounded-2xl p-6 max-w-sm w-full shadow-xl"
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border border-border rounded-xl p-5 max-w-sm w-full"
             >
-              <h2 className="font-display text-lg font-bold text-gold text-center mb-5">Comment ça marche ?</h2>
+              <h2 className="text-base font-semibold text-foreground text-center mb-4">Comment ça marche ?</h2>
 
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
-                    <Heart className="w-5 h-5 text-gold" />
+              <div className="space-y-3.5">
+                {[
+                  { icon: Heart, label: "Like ❤️", desc: "Montre ton soutien — plus un post est liké, plus il monte." },
+                  { icon: Zap, label: "Super Vibe ⚡", desc: "Booste x3 ! Propulse un post dans le Top 3. Limité à 1/6h." },
+                  { icon: MessageCircle, label: "Commentaires", desc: "Clique sur un post pour laisser un commentaire." },
+                  { icon: Flame, label: "Top 3 🔥", desc: "Les 3 vibes les plus populaires sont mises en avant." },
+                ].map(({ icon: Icon, label, desc }) => (
+                  <div key={label} className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 text-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-semibold text-foreground">{label}</p>
+                      <p className="text-[11px] text-muted-foreground">{desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Like ❤️</p>
-                    <p className="text-xs text-muted-foreground">Montre ton soutien — plus un post est liké, plus il monte dans les Tendances.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
-                    <Zap className="w-5 h-5 text-gold" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Super Vibe ⚡</p>
-                    <p className="text-xs text-muted-foreground">Booste x3 ! Propulse un post dans le Top 3. Limité à 1 toutes les 6h.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
-                    <MessageCircle className="w-5 h-5 text-gold" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Commentaires</p>
-                    <p className="text-xs text-muted-foreground">Clique sur un post pour laisser un commentaire et échanger.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
-                    <Flame className="w-5 h-5 text-gold" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Top 3 🔥</p>
-                    <p className="text-xs text-muted-foreground">Les 3 vibes les plus populaires du moment sont mises en avant.</p>
-                  </div>
-                </div>
+                ))}
               </div>
 
               <button
@@ -580,10 +557,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   localStorage.setItem("weshkech_vibez_tutorial_seen", "1");
                   setShowTutorial(false);
                 }}
-                className="mt-6 w-full py-2.5 rounded-xl text-sm font-bold text-primary-foreground"
-                style={{ background: "linear-gradient(to bottom right, #BF953F, #FCF6BA, #B38728)" }}
+                className="mt-5 w-full py-2.5 rounded-lg text-[13px] font-semibold bg-foreground text-background"
               >
-                C'est compris ! 🔥
+                C'est compris !
               </button>
             </motion.div>
           </motion.div>
@@ -592,108 +568,84 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-            <AlertCircle className="w-7 h-7 text-destructive" />
+          <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-3">
+            <AlertCircle className="w-6 h-6 text-muted-foreground" />
           </div>
-          <p className="text-sm text-muted-foreground mb-3">{fetchError}</p>
-          <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-xs font-bold text-gold underline">Réessayer</button>
+          <p className="text-[13px] text-muted-foreground mb-3">{fetchError}</p>
+          <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-[13px] font-semibold text-foreground underline">Réessayer</button>
         </div>
       ) : loading ? (
-        <div className="space-y-4 p-5">
+        <div className="space-y-0 divide-y divide-border">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="aspect-[3/4] bg-surface animate-pulse rounded-2xl" />
+            <div key={i} className="p-3">
+              <div className="flex items-center gap-2.5 mb-2.5">
+                <div className="w-8 h-8 rounded-full bg-card animate-pulse" />
+                <div className="h-3 w-24 bg-card animate-pulse rounded" />
+              </div>
+              <div className="aspect-[4/5] bg-card animate-pulse" />
+            </div>
           ))}
         </div>
       ) : vibes.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
-          <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mb-4">
-            <Camera className="w-8 h-8 text-gold" />
+          <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-3">
+            <Camera className="w-7 h-7 text-muted-foreground" />
           </div>
-          <h2 className="font-display text-lg font-semibold text-foreground mb-2">Aucun vibe live</h2>
-          <p className="text-sm text-muted-foreground">
-            Sois le premier à partager ton vibe ! Les photos disparaissent après 6 heures.
+          <h2 className="text-base font-semibold text-foreground mb-1.5">Aucun vibe live</h2>
+          <p className="text-[13px] text-muted-foreground">
+            Sois le premier à partager ton vibe !
           </p>
         </div>
       ) : (
         <>
           {/* ===== TOP 3 PODIUM ===== */}
-          {top3Vibes.length > 0 && activeTab === "tendances" && (
-            <div className="pt-4 pb-2 px-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Flame className="w-4 h-4 text-gold" />
-                <h2 className="font-display text-sm font-semibold text-foreground">Top 3 du Moment</h2>
+           {top3Vibes.length > 0 && activeTab === "tendances" && (
+            <div className="pt-3 pb-2 px-4">
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className="text-sm">🔥</span>
+                <h2 className="text-[13px] font-semibold text-foreground">Top 3</h2>
                 <div className="flex-1 h-px bg-border" />
-                <span className="text-[10px] text-muted-foreground">Score = ❤️ + ⚡×3</span>
               </div>
-              <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
                 {top3Vibes.map((vibe, i) => (
                   <motion.div
                     key={`top-${vibe.id}`}
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.1 }}
+                    transition={{ delay: i * 0.08 }}
                     onClick={() => setCommentVibeId(vibe.id)}
-                    className={`relative flex-shrink-0 w-[45vw] aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-transform ${
-                      i === 0 ? "border-2 border-gold shadow-lg shadow-gold/20" : "border border-gold/20"
+                    className={`relative flex-shrink-0 w-[42vw] aspect-[3/4] rounded-lg overflow-hidden cursor-pointer active:scale-[0.97] transition-transform ${
+                      i === 0 ? "ring-2 ring-foreground/20" : "ring-1 ring-border"
                     }`}
                   >
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
 
-                    {/* Rank medal */}
-                    <div className={`absolute top-2 left-2 flex items-center gap-1 px-2.5 py-1 rounded-lg shadow-lg overflow-hidden ${
-                      i === 0 ? "bg-gold" : "bg-background/70 backdrop-blur-md border border-gold/30"
+                    {/* Rank */}
+                    <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                      i === 0 ? "bg-foreground text-background" : "bg-background/70 backdrop-blur-md text-foreground"
                     }`}>
-                      <span className="text-sm">{rankMedals[i]}</span>
-                      <span className={`text-[10px] font-black uppercase tracking-wider ${
-                        i === 0 ? "text-primary-foreground" : "text-gold"
-                      }`}>
-                        #{i + 1}
+                      {rankMedals[i]} #{i + 1}
+                    </div>
+
+                    {/* Score */}
+                    <div className="absolute top-2 right-2 bg-background/70 backdrop-blur-md px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-foreground flex items-center gap-0.5">
+                        <Zap className="w-2.5 h-2.5" />{getScore(vibe)}
                       </span>
-                      {i === 0 && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" style={{ transform: "skewX(-20deg)" }} />
-                      )}
                     </div>
 
-                    {/* Score badge */}
-                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
-                      <Zap className="w-3 h-3 text-gold" />
-                      <span className="text-[10px] font-bold text-gold">{getScore(vibe)}</span>
-                    </div>
-
-                    {/* Bottom info */}
-                    <div className="absolute bottom-0 inset-x-0 p-3">
+                    {/* Bottom */}
+                    <div className="absolute bottom-0 inset-x-0 p-2.5">
                       <div className="flex items-center gap-1.5">
-                        {getAvatarUrl(vibe) && (
-                          <img src={getAvatarUrl(vibe)!} alt="" className="w-5 h-5 rounded-full border border-gold/30 object-cover" />
-                        )}
-                        <p className="text-xs font-semibold text-foreground truncate flex items-center gap-1">
-                          {getDisplayName(vibe)}
-                          {vibe.profile?.is_vip && <Crown className="w-3 h-3 text-gold" />}
-                          {vibe.user_id && getUserTier(userVibeCounts[vibe.user_id] || 0) && (
-                            <span className="text-[9px] opacity-80">{getUserTier(userVibeCounts[vibe.user_id] || 0)!.emoji}</span>
-                          )}
-                        </p>
+                        {getAvatarUrl(vibe) ? (
+                          <img src={getAvatarUrl(vibe)!} alt="" className="w-4 h-4 rounded-full border border-border object-cover" />
+                        ) : null}
+                        <p className="text-[11px] font-semibold text-foreground truncate">{getDisplayName(vibe)}</p>
                       </div>
-                      {vibe.location && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-2.5 h-2.5 text-gold" />
-                          <span className="text-[10px] text-foreground/70 truncate">{vibe.location}</span>
-                        </div>
-                      )}
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-3 h-3 fill-gold text-gold" />
-                          <span className="text-[10px] font-bold text-gold">{vibe.likes}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Zap className="w-3 h-3 text-gold" />
-                          <span className="text-[10px] font-bold text-gold">{vibe.super_vibes || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MessageCircle className="w-3 h-3 text-foreground/60" />
-                          <span className="text-[10px] font-medium text-foreground/60">{commentCounts[vibe.id] || 0}</span>
-                        </div>
+                        <span className="text-[10px] text-foreground/70 flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{vibe.likes}</span>
+                        <span className="text-[10px] text-foreground/70 flex items-center gap-0.5"><MessageCircle className="w-2.5 h-2.5" />{commentCounts[vibe.id] || 0}</span>
                       </div>
                     </div>
                   </motion.div>
