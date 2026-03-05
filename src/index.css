@@ -216,3 +216,13 @@
 .vibe-radar-pulse {
   animation: vibe-radar-ring 1.5s ease-in-out infinite;
 }
+
+/* Gold counter pulse for guest CTA */
+@keyframes gold-counter-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(43 76% 52% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px hsl(43 76% 52% / 0), 0 0 12px hsl(43 76% 52% / 0.15);
+  }
+}

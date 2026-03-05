@@ -183,14 +183,18 @@ const Index = () => {
                 🔒 Débloque la carte complète
               </p>
               {spotCount > 0 && (
-                <motion.p
+                <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 2, duration: 0.4 }}
-                  className="text-xs font-semibold text-gold mb-1"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-2 mx-auto animate-[gold-counter-pulse_2s_ease-in-out_infinite]"
+                  style={{
+                    background: "hsl(43 76% 52% / 0.12)",
+                    border: "1px solid hsl(43 76% 52% / 0.3)",
+                  }}
                 >
-                  📍 {spotCount} spots cachés près de toi
-                </motion.p>
+                  <span className="text-xs font-bold text-gold">📍 {spotCount} spots cachés près de toi</span>
+                </motion.div>
               )}
               <p className="text-xs text-muted-foreground mb-3">
                 Inscris-toi pour voir tous les spots, poster des vibes et profiter des deals exclusifs
