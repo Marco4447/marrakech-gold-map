@@ -97,10 +97,13 @@ export const createCategoryIcon = (category: string | null, options: { trending?
         border:${borderWidth} solid ${borderColor};
         box-shadow:${glow};
         display:flex;align-items:center;justify-content:center;
-        position:relative;${blurFilter}
+        position:relative;${blurFilter}overflow:hidden;
       ">
         ${boostedRing}
-        <span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>
+        ${boosted
+          ? `<img src="/images/kabana-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+          : `<span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>`
+        }
         ${partnerBadge}
         ${trendingBadge}
         ${boostedLabel}
