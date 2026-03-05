@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
 
+import { Crown } from "lucide-react";
+
 const CREDIT_PACKS = [
   {
     id: "price_1T6lm6J8RyilXHbfYe1I2cPh",
@@ -29,6 +31,17 @@ const CREDIT_PACKS = [
     icon: Flame,
     popular: true,
     badge: "Best Value",
+  },
+  {
+    id: "price_1T7jDDJ8RyilXHbfdeswNi24",
+    priceId: "price_1T7jDDJ8RyilXHbfdeswNi24",
+    name: "Empire Pack",
+    credits: 20,
+    price: "129 €",
+    unitPrice: "6,45 €/crédit",
+    icon: Crown,
+    popular: false,
+    badge: "Volume Pro",
   },
 ];
 
