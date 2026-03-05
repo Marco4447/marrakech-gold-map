@@ -127,6 +127,9 @@
 
 .gold-marker {
   animation: marker-pulse 2s ease-in-out infinite;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 50%;
 }
 
 /* Hide scrollbar but keep scroll */
@@ -179,6 +182,9 @@
   animation: trending-pulse 1.5s ease-in-out infinite;
   width: 40px !important;
   height: 40px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 50%;
 }
 
 /* User GPS blue dot */
