@@ -45,9 +45,9 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
-export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null } = {}) => {
+export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null; energyLabel?: string | null; energyEmoji?: string | null } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
-  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl } = options;
+  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji } = options;
   const boosted = isBoosted(placeName);
 
   // Check if place has a local logo
@@ -89,7 +89,11 @@ export const createCategoryIcon = (category: string | null, options: { trending?
     ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:2">🔒</div>`
     : "";
 
-  const markerClass = boosted ? "boosted-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
+  const isHotEnergy = energyLabel === "HOT NOW" || energyLabel === "PACKED";
+  const energyBadge = energyLabel && !boosted && !blurred
+    ? `<div style="position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);background:hsl(0,0%,5%,0.85);backdrop-filter:blur(4px);color:white;font-size:7px;font-weight:800;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.03em">${energyEmoji || ""} ${energyLabel}</div>`
+    : "";
+  const markerClass = boosted ? "boosted-marker gold-marker" : isHotEnergy ? "energy-hot-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
 
   // Determine inner content: show logo for local images (/images/) or Supabase storage, emoji for generic Unsplash
   const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
@@ -116,6 +120,7 @@ export const createCategoryIcon = (category: string | null, options: { trending?
         ${partnerBadge}
         ${trendingBadge}
         ${boostedLabel}
+        ${energyBadge}
       </div>
       ${lockBadge}
     `,
