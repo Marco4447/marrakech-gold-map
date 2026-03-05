@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Lock, ChevronRight, Flame, Eye, Loader2, ArrowLeft, Crown, Sparkles, Users } from "lucide-react";
+import { MapPin, Lock, ChevronRight, Flame, Eye, Loader2, ArrowLeft, Crown, Sparkles, Users, Mail, User } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,12 +9,22 @@ import { ttqTrack } from "@/lib/ttq";
 import { trackEvent } from "@/lib/analytics";
 import { useLanguage } from "@/i18n/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
+import { isInAppBrowser } from "@/lib/openInExternalBrowser";
 
 export default function DiscoverPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
+  const inApp = isInAppBrowser();
+
+  // Email signup state
+  const [showEmailForm, setShowEmailForm] = useState(inApp); // auto-show for WebView users
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const utmSource = searchParams.get("utm_source") || "direct";
   const utmCampaign = searchParams.get("utm_campaign") || "unknown";
@@ -48,16 +58,47 @@ export default function DiscoverPage() {
 
   useEffect(() => {
     ttqTrack("ViewContent", { content_name: "discover_page", description: `${utmSource}/${utmCampaign}` });
-    trackEvent("discover_viewed", { source: utmSource });
+    trackEvent("discover_viewed", { source: utmSource, is_inapp: inApp });
   }, []);
 
-  const handleSignup = async () => {
+  const handleGoogleSignup = async () => {
     setLoading(true);
-    ttqTrack("CompleteRegistration", { content_name: "discover_signup", description: `${utmSource}/${utmCampaign}` });
-    trackEvent("unlock_cta_clicked", { source: "discover_page" });
+    ttqTrack("CompleteRegistration", { content_name: "discover_signup_google", description: `${utmSource}/${utmCampaign}` });
+    trackEvent("unlock_cta_clicked", { source: "discover_page", method: "google" });
     try { localStorage.setItem("weshkech_utm", JSON.stringify({ source: utmSource, campaign: utmCampaign, ts: Date.now() })); } catch {}
     const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (error) { console.error("OAuth error:", error); setLoading(false); }
+  };
+
+  const handleEmailSignup = async () => {
+    setError(null);
+    if (!email || !password) {
+      setError(lang === "fr" ? "Remplissez tous les champs." : "Fill in all fields.");
+      return;
+    }
+    if (password.length < 6) {
+      setError(lang === "fr" ? "Mot de passe : 6 caractères min." : "Password: 6 characters min.");
+      return;
+    }
+    setLoading(true);
+    ttqTrack("CompleteRegistration", { content_name: "discover_signup_email", description: `${utmSource}/${utmCampaign}` });
+    trackEvent("unlock_cta_clicked", { source: "discover_page", method: "email" });
+    try { localStorage.setItem("weshkech_utm", JSON.stringify({ source: utmSource, campaign: utmCampaign, ts: Date.now() })); } catch {}
+    
+    const { error: signupError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name || email.split("@")[0] },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    if (signupError) {
+      setError(signupError.message);
+    } else {
+      setSuccess(lang === "fr" ? "Vérifiez votre email pour confirmer ✉️" : "Check your email to confirm ✉️");
+    }
+    setLoading(false);
   };
 
   const visiblePlaces = places?.slice(0, 3) || [];
@@ -163,24 +204,99 @@ export default function DiscoverPage() {
               </div>
             ))}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-card/90 backdrop-blur-xl border border-gold/25 rounded-2xl p-5 text-center max-w-[260px] shadow-[0_0_40px_hsl(43_76%_52%/0.15)]">
+              <div className="bg-card/90 backdrop-blur-xl border border-gold/25 rounded-2xl p-5 text-center max-w-[280px] shadow-[0_0_40px_hsl(43_76%_52%/0.15)]">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center"><Crown className="w-6 h-6 text-gold" /></div>
                 <p className="text-sm font-display font-bold text-foreground mb-1">{t("discover_unlockMap")}</p>
                 <p className="text-[10px] text-muted-foreground mb-3">{t("free")} · {t("discover_joinInsiders")} {usersCount || "500"}+ {t("discover_insidersLabel")}</p>
-                <button onClick={handleSignup} disabled={loading}
-                  className="cta-shimmer relative overflow-hidden w-full bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-3 rounded-xl transition-all shadow-[0_6px_20px_-4px_hsl(43_76%_52%/0.4)] text-sm flex items-center justify-center gap-2 disabled:opacity-70">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                    <>
-                      <svg className="w-4 h-4" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                      </svg>
-                      {t("discover_createFree")}
-                    </>
-                  )}
-                </button>
+                
+                {/* Email signup form (primary for WebView, toggle for others) */}
+                {showEmailForm ? (
+                  <div className="space-y-2 mb-3">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder={lang === "fr" ? "Nom (optionnel)" : "Name (optional)"}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors"
+                      />
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                        className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors"
+                      />
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        placeholder={lang === "fr" ? "Mot de passe (6+ car.)" : "Password (6+ chars)"}
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                        onKeyDown={(e) => e.key === "Enter" && handleEmailSignup()}
+                        className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors"
+                      />
+                    </div>
+                    {error && <p className="text-[10px] text-destructive">{error}</p>}
+                    {success && <p className="text-[10px] text-green-400">{success}</p>}
+                    {!success && (
+                      <button onClick={handleEmailSignup} disabled={loading}
+                        className="cta-shimmer relative overflow-hidden w-full bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-2.5 rounded-xl transition-all shadow-[0_6px_20px_-4px_hsl(43_76%_52%/0.4)] text-xs flex items-center justify-center gap-2 disabled:opacity-70">
+                        {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (
+                          <><Mail className="w-3.5 h-3.5" /> {lang === "fr" ? "S'inscrire avec Email" : "Sign up with Email"}</>
+                        )}
+                      </button>
+                    )}
+                    {!inApp && (
+                      <button onClick={() => setShowEmailForm(false)} className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+                        {lang === "fr" ? "← Continuer avec Google" : "← Continue with Google"}
+                      </button>
+                    )}
+                    {!inApp && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="text-[9px] text-muted-foreground">{lang === "fr" ? "ou" : "or"}</span>
+                        <div className="flex-1 h-px bg-border" />
+                      </div>
+                    )}
+                    {!inApp && (
+                      <button onClick={handleGoogleSignup} disabled={loading}
+                        className="w-full bg-background border border-border text-foreground font-medium py-2 rounded-xl text-[10px] flex items-center justify-center gap-1.5 hover:border-gold/40 transition-colors disabled:opacity-70">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24">
+                          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+                          <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                          <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                          <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                        </svg>
+                        Google
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <button onClick={handleGoogleSignup} disabled={loading}
+                      className="cta-shimmer relative overflow-hidden w-full bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-2.5 rounded-xl transition-all shadow-[0_6px_20px_-4px_hsl(43_76%_52%/0.4)] text-xs flex items-center justify-center gap-2 disabled:opacity-70">
+                      {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (
+                        <>
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+                            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                          </svg>
+                          {t("discover_createFree")}
+                        </>
+                      )}
+                    </button>
+                    <button onClick={() => setShowEmailForm(true)} className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+                      <Mail className="w-3 h-3 inline mr-1" />
+                      {lang === "fr" ? "Ou s'inscrire avec Email" : "Or sign up with Email"}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -205,12 +321,20 @@ export default function DiscoverPage() {
         </p>
       </div>
 
+      {/* Bottom sticky CTA */}
       <div className="fixed bottom-0 inset-x-0 z-50 p-4 bg-gradient-to-t from-background via-background/95 to-transparent">
         <div className="max-w-md mx-auto">
-          <button onClick={handleSignup} disabled={loading}
-            className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-70">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Crown className="w-4 h-4" /> {t("discover_unlockAll")}</>}
-          </button>
+          {showEmailForm || inApp ? (
+            <button onClick={() => { document.querySelector('input[type="email"]')?.scrollIntoView({ behavior: "smooth", block: "center" }); (document.querySelector('input[type="email"]') as HTMLInputElement)?.focus(); }}
+              className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-sm tracking-wide flex items-center justify-center gap-2">
+              <Mail className="w-4 h-4" /> {lang === "fr" ? "S'inscrire — Tout débloquer" : "Sign up — Unlock all"}
+            </button>
+          ) : (
+            <button onClick={handleGoogleSignup} disabled={loading}
+              className="cta-shimmer relative w-full overflow-hidden bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-6px_hsl(43_76%_52%/0.4)] text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-70">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Crown className="w-4 h-4" /> {t("discover_unlockAll")}</>}
+            </button>
+          )}
         </div>
       </div>
     </div>
