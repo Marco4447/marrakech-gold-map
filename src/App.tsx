@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { LanguageProvider } from "@/i18n/LanguageContext";
 import { useAutoRefreshOnNewVersion } from "@/hooks/useAutoRefreshOnNewVersion";
 import { lazy, Suspense } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -41,6 +42,7 @@ const AppShell = () => {
   useAutoRefreshOnNewVersion();
 
   return (
+    <LanguageProvider>
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
@@ -70,6 +72,7 @@ const AppShell = () => {
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
+    </LanguageProvider>
   );
 };
 
