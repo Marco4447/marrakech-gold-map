@@ -23,10 +23,19 @@ type ViewMode = "hero" | "signup";
 
 export default function GoPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [testimonialIdx, setTestimonialIdx] = useState(0);
   const [copied, setCopied] = useState(false);
   const [view, setView] = useState<ViewMode>("hero");
   const { lang, t } = useLanguage();
+
+  // Redirect authenticated users to home
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   // Signup state
   const [email, setEmail] = useState("");
