@@ -1,6 +1,6 @@
-import { Home, Map, Compass, Plus, User } from "lucide-react";
+import { Home, Map, Bell, Plus, User } from "lucide-react";
 
-export type Tab = "feed" | "map" | "create" | "discover" | "profil";
+export type Tab = "feed" | "map" | "create" | "notifications" | "profil";
 
 interface BottomNavProps {
   active: Tab;
@@ -35,19 +35,19 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadNotif
           <Plus className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
         </button>
 
-        {/* Discover */}
-        <button onClick={() => onChange("discover")} className="flex flex-col items-center justify-center w-12 h-12">
-          <Compass className={iconClass(active === "discover")} strokeWidth={active === "discover" ? 2.5 : 1.5} />
-        </button>
-
-        {/* Profile */}
-        <button onClick={() => onChange("profil")} className="flex flex-col items-center justify-center w-12 h-12 relative">
-          <User className={iconClass(active === "profil")} strokeWidth={active === "profil" ? 2.5 : 1.5} />
+        {/* Notifications */}
+        <button onClick={() => onChange("notifications")} className="flex flex-col items-center justify-center w-12 h-12 relative">
+          <Bell className={iconClass(active === "notifications")} strokeWidth={active === "notifications" ? 2.5 : 1.5} />
           {unreadNotifications > 0 && (
             <span className="absolute top-1.5 right-1 min-w-[14px] h-3.5 px-0.5 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
               {unreadNotifications > 9 ? "9+" : unreadNotifications}
             </span>
           )}
+        </button>
+
+        {/* Profile */}
+        <button onClick={() => onChange("profil")} className="flex flex-col items-center justify-center w-12 h-12">
+          <User className={iconClass(active === "profil")} strokeWidth={active === "profil" ? 2.5 : 1.5} />
         </button>
       </div>
       <div className="h-[env(safe-area-inset-bottom)]" />
