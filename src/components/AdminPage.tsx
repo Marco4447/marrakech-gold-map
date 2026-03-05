@@ -99,6 +99,20 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [selectedSpotId, setSelectedSpotId] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Challenge state
+  type Challenge = { id: string; title: string; description: string | null; emoji: string; theme_tag: string | null; start_date: string; end_date: string; status: string; winner_user_id: string | null };
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [chTitle, setChTitle] = useState("");
+  const [chDesc, setChDesc] = useState("");
+  const [chEmoji, setChEmoji] = useState("🏆");
+  const [chDays, setChDays] = useState("7");
+  const [savingCh, setSavingCh] = useState(false);
+
+  const fetchChallenges = async () => {
+    const { data } = await supabase.from("weekly_challenges" as any).select("*").order("created_at", { ascending: false }).limit(20);
+    if (data) setChallenges(data as any);
+  };
+
   const fetchAll = async () => {
     setLoading(true);
     try {
