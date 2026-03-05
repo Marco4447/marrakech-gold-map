@@ -12,6 +12,8 @@ import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { getShareUrl } from "@/lib/shareUrl";
+import { computeEnergyScores, getEnergy, getDistanceMeters, formatDistance } from "@/lib/energy";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import VibeStories from "./VibeStories";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
@@ -158,6 +160,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
   const deviceId = getDeviceId();
   const userId = user?.id;
+  const userLocation = useUserLocation();
+  const energyMap = computeEnergyScores(vibes);
 
   const userVibeCounts: Record<string, number> = {};
   vibes.forEach((v) => {
