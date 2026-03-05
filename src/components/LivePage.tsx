@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Flame, Sparkles, Crown, Share2 } from "lucide-react";
+import { Camera, MapPin, Clock, X, Loader2, Send, ImageIcon, Heart, TrendingUp, AlertCircle, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Flame, Sparkles, Crown, Share2, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import VibeStories from "./VibeStories";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import StreakBadge from "./StreakBadge";
+import TikTokFeed from "./TikTokFeed";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -175,6 +176,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [superVibeAnimId, setSuperVibeAnimId] = useState<string | null>(null);
   const [canSuperVibe, setCanSuperVibe] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showTikTokFeed, setShowTikTokFeed] = useState(false);
   const [activeTab, setActiveTab] = useState<FeedTab>("tendances");
   const [showTutorial, setShowTutorial] = useState(() => {
     return !localStorage.getItem("weshkech_vibez_tutorial_seen");
@@ -473,9 +475,18 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
               Éphémère · Disparaît après 6h
             </p>
           </div>
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Clock className="w-3.5 h-3.5" />
-            <span className="text-xs font-medium">{vibes.length} live</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowTikTokFeed(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gold/10 border border-gold/20 hover:bg-gold/20 active:scale-95 transition-all"
+            >
+              <Play className="w-3.5 h-3.5 text-gold fill-gold" />
+              <span className="text-[10px] font-bold text-gold">Reels</span>
+            </button>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">{vibes.length} live</span>
+            </div>
           </div>
         </div>
 
@@ -947,6 +958,13 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         open={!!commentVibeId}
         onOpenChange={(open) => !open && setCommentVibeId(null)}
       />
+
+      {/* TikTok-style Reels Feed */}
+      <AnimatePresence>
+        {showTikTokFeed && (
+          <TikTokFeed open={showTikTokFeed} onClose={() => setShowTikTokFeed(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
