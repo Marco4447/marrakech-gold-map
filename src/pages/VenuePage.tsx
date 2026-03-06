@@ -350,36 +350,48 @@ export default function VenuePage() {
 
         {/* Info section */}
         {(place.opening_hours || place.price_range || place.music_style || place.dress_code) && (
-          <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+          <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border p-5 space-y-3">
             <h2 className="font-display text-sm font-semibold text-foreground">Infos pratiques</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {place.opening_hours && (
-                <div className="flex items-start gap-2">
-                  <Clock className="w-4 h-4 text-gold mt-0.5 shrink-0" />
-                  <div><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Horaires</p><p className="text-xs text-foreground">{place.opening_hours}</p></div>
+                <div className="bg-muted/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-gold" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Horaires</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{place.opening_hours}</p>
                 </div>
               )}
               {place.price_range && (
-                <div className="flex items-start gap-2">
-                  <DollarSign className="w-4 h-4 text-gold mt-0.5 shrink-0" />
-                  <div><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Prix</p><p className="text-xs text-foreground">{place.price_range}</p></div>
+                <div className="bg-muted/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-gold" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Prix</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{place.price_range}</p>
                 </div>
               )}
               {place.music_style && (
-                <div className="flex items-start gap-2">
-                  <Music className="w-4 h-4 text-gold mt-0.5 shrink-0" />
-                  <div><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Musique</p><p className="text-xs text-foreground">{place.music_style}</p></div>
+                <div className="bg-muted/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Music className="w-3.5 h-3.5 text-gold" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Musique</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{place.music_style}</p>
                 </div>
               )}
               {place.dress_code && (
-                <div className="flex items-start gap-2">
-                  <Shirt className="w-4 h-4 text-gold mt-0.5 shrink-0" />
-                  <div><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Dress code</p><p className="text-xs text-foreground">{place.dress_code}</p></div>
+                <div className="bg-muted/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Shirt className="w-3.5 h-3.5 text-gold" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Dress code</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{place.dress_code}</p>
                 </div>
               )}
             </div>
             {place.address && (
-              <div className="flex items-center gap-2 text-muted-foreground pt-1 border-t border-border">
+              <div className="flex items-center gap-2 text-muted-foreground pt-2 border-t border-border">
                 <MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" />
                 <span className="text-xs">{place.address}</span>
               </div>
@@ -387,16 +399,18 @@ export default function VenuePage() {
           </div>
         )}
 
-        {/* Mini map */}
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
-          <div className="h-40 bg-surface flex items-center justify-center">
-            <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer"
-              className="flex flex-col items-center gap-2 text-muted-foreground hover:text-gold transition-colors">
-              <MapPin className="w-8 h-8" />
-              <span className="text-xs font-medium">Voir sur Google Maps</span>
-            </a>
+        {/* Mini map CTA */}
+        <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-4 bg-card/95 backdrop-blur-xl rounded-2xl border border-border p-4 hover:border-gold/30 transition-colors group">
+          <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+            <Navigation className="w-5 h-5 text-gold" />
           </div>
-        </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground group-hover:text-gold transition-colors">Itinéraire</p>
+            <p className="text-[11px] text-muted-foreground">Ouvrir dans Google Maps</p>
+          </div>
+          <ChevronR className="w-5 h-5 text-muted-foreground group-hover:text-gold transition-colors" />
+        </a>
 
         {/* User vibes */}
         {userVibes.length > 0 && (
