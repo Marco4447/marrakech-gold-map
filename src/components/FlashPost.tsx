@@ -535,6 +535,22 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
         setPartnerCredits((c) => Math.max(0, c - 1));
       }
 
+      // Also create a user story (24h visibility)
+      if (user) {
+        try {
+          await supabase.from("stories" as any).insert({
+            source_type: isOfficial ? "partner" : "user",
+            user_id: user.id,
+            media_url: publicUrl,
+            media_type: mediaType,
+            badge: isOfficial ? null : "INSIDER",
+            caption: null,
+            latitude: resolvedCoords?.lat || null,
+            longitude: resolvedCoords?.lng || null,
+          } as any);
+        } catch {}
+      }
+
       const willAppearOnMap = resolvedCoords?.lat != null && resolvedCoords?.lng != null;
 
       setUploadProgress(100);
