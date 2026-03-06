@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MapPin, Star, TrendingUp, Crown, Heart, Flame, ChevronRight } from "lucide-react";
+import { MapPin, Star, TrendingUp, Crown, Heart, Flame, ChevronRight, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,43 +17,120 @@ interface TrendingVibe {
   is_official: boolean;
 }
 
+interface TrendingPlace {
+  place: Place;
+  score: number;
+  vibeCount: number;
+  checkinCount: number;
+}
+
 const MOOD_EMOJI: Record<string, string> = {
   hot: "🔥", chill: "🍸", secret: "✨", foodie: "🥗",
 };
 
 const CATEGORY_EMOJI: Record<string, string> = {
   restaurant: "🍽️", rooftop: "🌇", club: "🎶", bar: "🍸", cafe: "☕", spa: "💆", experience: "🎭", hotel: "🏨",
+  Nightlife: "🎶", Luxury: "🏨", Restaurant: "🍽️", Rooftop: "🌅", "Pool Party": "🏖️", "Dinner Show": "🎭",
+  Chill: "🍸", "Cocktail Bar": "🍹", Café: "☕", Food: "🍽️", Night: "🎶", Hôtel: "🏨", Secret: "✨",
 };
 
 export default function DiscoverTab({ onGoToMap }: { onGoToMap?: (lat: number, lng: number) => void }) {
   const { user } = useAuth();
   const [places, setPlaces] = useState<Place[]>([]);
   const [trendingVibes, setTrendingVibes] = useState<TrendingVibe[]>([]);
+  const [trendingPlaces, setTrendingPlaces] = useState<TrendingPlace[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetch = async () => {
-      const [placesRes, vibesRes] = await Promise.all([
+    const fetchData = async () => {
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+
+      const [placesRes, vibesRes, recentVibesRes, checkinsRes, qrScansRes, redemptionsRes] = await Promise.all([
         supabase.from("places").select("*").order("name"),
         supabase.from("vibes").select("id, image_url, location, likes, super_vibes, mood, is_official").order("likes", { ascending: false }).limit(20),
+        supabase.from("vibes").select("location, likes, super_vibes, is_official").gte("created_at", sixHoursAgo),
+        supabase.from("checkins").select("place_id").gte("created_at", sixHoursAgo),
+        supabase.from("qr_scans").select("place_id").gte("created_at", sixHoursAgo),
+        supabase.from("vip_redemptions").select("place_id").gte("redeemed_at", sixHoursAgo),
       ]);
-      if (placesRes.data) {
-        const sorted = [...placesRes.data].sort((a, b) => {
-          const aB = isBoosted(a.name);
-          const bB = isBoosted(b.name);
-          if (aB && !bB) return -1;
-          if (!aB && bB) return 1;
-          if (a.is_partner && !b.is_partner) return -1;
-          if (!a.is_partner && b.is_partner) return 1;
-          return 0;
-        });
-        setPlaces(sorted as Place[]);
-      }
+
+      const allPlaces = (placesRes.data || []) as Place[];
+      const sorted = [...allPlaces].sort((a, b) => {
+        const aB = isBoosted(a.name);
+        const bB = isBoosted(b.name);
+        if (aB && !bB) return -1;
+        if (!aB && bB) return 1;
+        if (a.is_partner && !b.is_partner) return -1;
+        if (!a.is_partner && b.is_partner) return 1;
+        return 0;
+      });
+      setPlaces(sorted);
+
       if (vibesRes.data) setTrendingVibes(vibesRes.data as TrendingVibe[]);
+
+      // Compute Trending Tonight scores
+      const placeMap = new Map(allPlaces.map(p => [p.id, p]));
+      const placeNameMap = new Map(allPlaces.map(p => [p.name.toLowerCase(), p]));
+      const scores = new Map<string, { vibeCount: number; checkinCount: number; score: number }>();
+
+      const getOrInit = (id: string) => {
+        if (!scores.has(id)) scores.set(id, { vibeCount: 0, checkinCount: 0, score: 0 });
+        return scores.get(id)!;
+      };
+
+      // Vibes score
+      (recentVibesRes.data || []).forEach((v: any) => {
+        if (!v.location) return;
+        const place = placeNameMap.get(v.location.toLowerCase());
+        if (!place) return;
+        const s = getOrInit(place.id);
+        s.vibeCount++;
+        s.score += 3 + (v.likes || 0) * 0.5 + (v.super_vibes || 0) * 2 + (v.is_official ? 5 : 0);
+      });
+
+      // Check-ins
+      (checkinsRes.data || []).forEach((c: any) => {
+        const s = getOrInit(c.place_id);
+        s.checkinCount++;
+        s.score += 4;
+      });
+
+      // QR scans
+      (qrScansRes.data || []).forEach((q: any) => {
+        const s = getOrInit(q.place_id);
+        s.score += 2;
+      });
+
+      // VIP redemptions
+      (redemptionsRes.data || []).forEach((r: any) => {
+        const s = getOrInit(r.place_id);
+        s.score += 6;
+      });
+
+      // Boosted/partner bonus
+      scores.forEach((val, id) => {
+        const place = placeMap.get(id);
+        if (place && isBoosted(place.name)) val.score += 15;
+        if (place?.is_partner) val.score += 5;
+      });
+
+      const trending: TrendingPlace[] = Array.from(scores.entries())
+        .filter(([, val]) => val.score > 0)
+        .map(([id, val]) => ({
+          place: placeMap.get(id)!,
+          score: Math.round(val.score),
+          vibeCount: val.vibeCount,
+          checkinCount: val.checkinCount,
+        }))
+        .filter(t => t.place)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      setTrendingPlaces(trending);
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, []);
 
   const categories = [...new Set(places.map(p => p.category).filter(Boolean))] as string[];
@@ -78,7 +155,6 @@ export default function DiscoverTab({ onGoToMap }: { onGoToMap?: (lat: number, l
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 pb-3">
         <h1 className="text-xl font-bold text-foreground font-display mb-3">Discover</h1>
-        {/* Category filters */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setSelectedCategory(null)}
@@ -98,6 +174,60 @@ export default function DiscoverTab({ onGoToMap }: { onGoToMap?: (lat: number, l
         </div>
       </div>
 
+      {/* 🔥 Trending Tonight */}
+      {trendingPlaces.length > 0 && !selectedCategory && (
+        <div className="px-4 pt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Flame className="w-4 h-4 text-gold" />
+            <h2 className="text-sm font-semibold text-foreground">Trending Tonight</h2>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+          <div className="space-y-2">
+            {trendingPlaces.map((tp, i) => (
+              <motion.div
+                key={tp.place.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.06 }}
+                onClick={() => onGoToMap?.(tp.place.latitude, tp.place.longitude)}
+                className="flex items-center gap-3 bg-card border border-border rounded-xl p-3 cursor-pointer active:scale-[0.98] transition-transform"
+              >
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
+                  i === 0 ? "bg-gold/20 text-gold" : i === 1 ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  {i + 1}
+                </div>
+                {tp.place.image_url ? (
+                  <img src={tp.place.image_url} alt={tp.place.name} className="w-11 h-11 rounded-lg object-cover flex-shrink-0" loading="lazy" />
+                ) : (
+                  <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">{CATEGORY_EMOJI[tp.place.category || ""] || "📍"}</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-semibold text-foreground truncate">{tp.place.name}</p>
+                    {isBoosted(tp.place.name) && <span className="text-[8px]">👑</span>}
+                    {tp.place.is_partner && !isBoosted(tp.place.name) && (
+                      <span className="text-[7px] bg-gold/15 text-gold px-1 py-0.5 rounded font-bold flex-shrink-0">PRO</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {tp.vibeCount > 0 && <span className="text-[10px] text-muted-foreground">📸 {tp.vibeCount}</span>}
+                    {tp.checkinCount > 0 && <span className="text-[10px] text-muted-foreground">📍 {tp.checkinCount}</span>}
+                    {tp.place.category && <span className="text-[10px] text-muted-foreground">{CATEGORY_EMOJI[tp.place.category] || ""} {tp.place.category}</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 bg-gold/10 px-2 py-1 rounded-lg flex-shrink-0">
+                  <Zap className="w-3 h-3 text-gold" />
+                  <span className="text-xs font-bold text-gold">{tp.score}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Trending Vibes */}
       {trendingVibes.length > 0 && !selectedCategory && (
         <div className="px-4 pt-4">
@@ -107,7 +237,7 @@ export default function DiscoverTab({ onGoToMap }: { onGoToMap?: (lat: number, l
             <div className="flex-1 h-px bg-border" />
           </div>
           <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2">
-            {trendingVibes.slice(0, 8).map((vibe, i) => (
+            {trendingVibes.slice(0, 8).map((vibe) => (
               <Link
                 key={vibe.id}
                 to={`/vibe/${vibe.id}`}
