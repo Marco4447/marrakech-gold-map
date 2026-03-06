@@ -1,0 +1,1 @@
+ALTER TABLE places ADD COLUMN drinks_menu_url text;

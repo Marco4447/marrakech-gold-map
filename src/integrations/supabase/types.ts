@@ -369,6 +369,7 @@ export type Database = {
           created_at: string
           description: string | null
           dress_code: string | null
+          drinks_menu_url: string | null
           has_active_offer: boolean
           id: string
           image_url: string | null
@@ -394,6 +395,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           dress_code?: string | null
+          drinks_menu_url?: string | null
           has_active_offer?: boolean
           id?: string
           image_url?: string | null
@@ -419,6 +421,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           dress_code?: string | null
+          drinks_menu_url?: string | null
           has_active_offer?: boolean
           id?: string
           image_url?: string | null
