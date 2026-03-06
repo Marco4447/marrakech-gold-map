@@ -252,7 +252,7 @@ export default function VenuePage() {
 
         {/* Viewer count */}
         <div className="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-background/40 backdrop-blur-xl px-3 py-1.5 rounded-full">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
           <span className="text-[11px] text-foreground font-medium">{viewerCount} en ligne</span>
         </div>
       </div>
