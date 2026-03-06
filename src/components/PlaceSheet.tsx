@@ -58,12 +58,12 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const [isVip, setIsVip] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);
   const [vipOffers, setVipOffers] = useState<any[]>([]);
-  const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string } | null>(null);
+  const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string; drinks_menu_url?: string } | null>(null);
   const [placePhotos, setPlacePhotos] = useState<{ id: string; photo_url: string; caption: string | null }[]>([]);
 
   useEffect(() => {
     if (!place?.id || !open) return;
-    supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url").eq("id", place.id).single().then(({ data }) => {
+    supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url").eq("id", place.id).single().then(({ data }) => {
       if (data) setPlaceDetails(data as any);
     });
     // Fetch place photos
@@ -180,7 +180,24 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                             <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">
                               {lang === "fr" ? "Voir la carte / menu" : "View menu"}
                             </p>
-                            <p className="text-[10px] text-muted-foreground truncate">{lang === "fr" ? "Boissons, plats, tarifs" : "Drinks, food, prices"}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{lang === "fr" ? "Plats & tarifs" : "Food & prices"}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+                        </a>
+                      )}
+
+                      {/* Drinks menu link */}
+                      {(placeDetails as any)?.drinks_menu_url && (
+                        <a href={(placeDetails as any).drinks_menu_url} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-3 bg-muted/50 hover:bg-muted rounded-xl px-4 py-3 transition-colors group">
+                          <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                            <span className="text-sm">🍸</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">
+                              {lang === "fr" ? "Carte des boissons" : "Drinks menu"}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground truncate">{lang === "fr" ? "Cocktails, vins, softs" : "Cocktails, wines, softs"}</p>
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
                         </a>

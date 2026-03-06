@@ -396,6 +396,33 @@ export default function VenuePage() {
                 <span className="text-xs">{place.address}</span>
               </div>
             )}
+            {/* Menu links */}
+            {((place as any).menu_url || (place as any).drinks_menu_url) && (
+              <div className="space-y-2 pt-2 border-t border-border">
+                {(place as any).menu_url && (
+                  <a href={(place as any).menu_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 hover:bg-muted/50 rounded-xl px-2 py-2 transition-colors group">
+                    <span className="text-base">🍽️</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">Carte / Menu</p>
+                      <p className="text-[10px] text-muted-foreground">Plats & tarifs</p>
+                    </div>
+                    <ChevronR className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+                  </a>
+                )}
+                {(place as any).drinks_menu_url && (
+                  <a href={(place as any).drinks_menu_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 hover:bg-muted/50 rounded-xl px-2 py-2 transition-colors group">
+                    <span className="text-base">🍸</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">Carte des boissons</p>
+                      <p className="text-[10px] text-muted-foreground">Cocktails, vins, softs</p>
+                    </div>
+                    <ChevronR className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         )}
 
