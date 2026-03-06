@@ -61,7 +61,25 @@ export function useMapData(refreshSignal: number) {
       fetchPlaces();
     });
 
-    return () => subscription.unsubscribe();
+    // Realtime: update has_active_offer in-place when it changes
+    const placesChannel = supabase
+      .channel("places-realtime")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "places" },
+        (payload) => {
+          const updated = payload.new as Place;
+          setPlaces((prev) =>
+            prev.map((p) => (p.id === updated.id ? { ...p, has_active_offer: updated.has_active_offer } : p))
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+      supabase.removeChannel(placesChannel);
+    };
   }, []);
 
   // Fetch active VIP offers to know which places have offers tonight
