@@ -140,6 +140,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const { user } = useAuth();
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [partnerPlaceNames, setPartnerPlaceNames] = useState<Set<string>>(new Set());
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [animatingId, setAnimatingId] = useState<string | null>(null);
@@ -238,6 +239,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     // Fetch active boosts
     supabase.from("vibe_boosts").select("vibe_id, boost_expires_at").gt("boost_expires_at", new Date().toISOString()).then(({ data }) => {
       if (data) setBoostedVibeIds(new Set(data.map((b: any) => b.vibe_id)));
+    });
+
+    // Fetch partner place names
+    supabase.from("places").select("name").eq("is_partner", true).then(({ data }) => {
+      if (data) setPartnerPlaceNames(new Set(data.map((p: any) => (p.name as string).toLowerCase())));
     });
 
     const channel = supabase
@@ -530,6 +536,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                           {vibe.location && (
                             <span className="text-[11px] text-muted-foreground truncate flex items-center gap-0.5">
                               <MapPin className="w-2.5 h-2.5" />{vibe.location}
+                              {partnerPlaceNames.has(vibe.location.toLowerCase()) && (
+                                <span className="ml-1 text-[8px] font-bold tracking-wider uppercase px-1.5 py-px rounded-sm bg-gold/15 text-gold border border-gold/20">
+                                  ✨ Partner
+                                </span>
+                              )}
                             </span>
                           )}
                           {vibe.location && vibe.latitude != null && onGoToMap && (
