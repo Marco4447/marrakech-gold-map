@@ -13,6 +13,7 @@ import PartnerBilling from "@/components/partner/PartnerBilling";
 import PartnerPromotions from "@/components/partner/PartnerPromotions";
 import { planAllows, type PlanType } from "@/lib/partnerPlans";
 import PartnerQRCode from "@/components/partner/PartnerQRCode";
+import PartnerStoryPublisher from "@/components/partner/PartnerStoryPublisher";
 import VipOfferManager from "@/components/partner/VipOfferManager";
 import VenueEditor from "@/components/partner/VenueEditor";
 import PartnerStatsBanner from "@/components/partner/PartnerStatsBanner";
@@ -471,6 +472,9 @@ export default function PartnerDashboard() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Partner Story Publisher */}
+            <PartnerStoryPublisher userId={user.id} placeId={placeId} />
 
             {/* History */}
             <div>

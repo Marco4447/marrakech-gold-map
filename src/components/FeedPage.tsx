@@ -15,7 +15,7 @@ import { isBoosted, boostPriority } from "@/lib/boostedPlaces";
 import { getShareUrl } from "@/lib/shareUrl";
 import { computeEnergyScores, getEnergy, getDistanceMeters, formatDistance } from "@/lib/energy";
 import { useUserLocation } from "@/hooks/useUserLocation";
-import VibeStories from "./VibeStories";
+import StoriesModule from "./stories/StoriesModule";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import WeeklyChallenge from "./WeeklyChallenge";
@@ -413,7 +413,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       <WeeklyChallenge />
 
       {/* Stories */}
-      <VibeStories onVibeClick={(vibeId) => setCommentVibeId(vibeId)} />
+      <StoriesModule userId={user?.id} />
 
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">

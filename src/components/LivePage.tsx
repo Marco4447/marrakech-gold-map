@@ -12,7 +12,7 @@ import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { getShareUrl } from "@/lib/shareUrl";
-import VibeStories from "./VibeStories";
+import StoriesModule from "./stories/StoriesModule";
 import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import StreakBadge from "./StreakBadge";
@@ -509,7 +509,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
       <WeeklyChallenge />
 
       {/* Stories */}
-      <VibeStories onVibeClick={(vibeId) => setCommentVibeId(vibeId)} />
+      <StoriesModule userId={user?.id} />
 
       {/* Streak badge */}
       {user && (
