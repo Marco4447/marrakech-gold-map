@@ -45,17 +45,19 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
-export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null; energyLabel?: string | null; energyEmoji?: string | null } = {}) => {
+export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null; energyLabel?: string | null; energyEmoji?: string | null; listingTier?: string | null; hasActiveVipOffer?: boolean } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
-  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji } = options;
+  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji, listingTier, hasActiveVipOffer = false } = options;
   const boosted = isBoosted(placeName);
 
   // Check if place has a local logo
   const hasLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
 
-  // Boosted partner gets premium treatment, local logos get slightly bigger markers
-  const size = boosted ? 52 : isPartner ? 42 : hasLocalLogo ? 40 : trending ? 42 : 34;
-  const emojiSize = boosted ? 22 : isPartner ? 18 : trending ? 18 : 15;
+  // Tier-based sizing: Featured > Premium > Basic/standard
+  const isFeatured = listingTier === "featured";
+  const isPremium = listingTier === "premium";
+  const size = boosted ? 52 : isFeatured ? 48 : isPremium ? 44 : isPartner ? 42 : hasLocalLogo ? 40 : trending ? 42 : 34;
+  const emojiSize = boosted ? 22 : isFeatured ? 20 : isPremium ? 18 : isPartner ? 18 : trending ? 18 : 15;
 
   const borderColor = boosted ? "hsl(43,76%,52%)" : isPartner ? "hsl(43,76%,52%)" : cat.color;
   const borderWidth = boosted ? "3px" : isPartner ? "3px" : "2px";
