@@ -39,7 +39,7 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
   { key: "offers", emoji: "✨", label: "Offres", categories: [] },
   { key: "party", emoji: "💃", label: "Party", categories: ["Nightlife", "Night", "Dinner Show"] },
   { key: "chill", emoji: "🍸", label: "Chill", categories: ["Rooftop", "Chill", "Cocktail Bar", "Café", "Hôtel"] },
-  { key: "pool", emoji: "🏖️", label: "Pool", categories: ["Pool Party"] },
+  
   { key: "food", emoji: "🍽️", label: "Food", categories: ["Restaurant", "Food"] },
 ];
 
