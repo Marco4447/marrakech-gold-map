@@ -193,6 +193,34 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     <>
                       {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
 
+                      {placeDetails && (placeDetails.opening_hours || placeDetails.price_range || placeDetails.music_style || placeDetails.dress_code) && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {placeDetails.opening_hours && (
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                              <Clock className="w-3.5 h-3.5 text-gold shrink-0" />
+                              <span className="text-[11px] text-foreground">{placeDetails.opening_hours}</span>
+                            </div>
+                          )}
+                          {placeDetails.price_range && (
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                              <DollarSign className="w-3.5 h-3.5 text-gold shrink-0" />
+                              <span className="text-[11px] text-foreground">{placeDetails.price_range}</span>
+                            </div>
+                          )}
+                          {placeDetails.music_style && (
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                              <Music className="w-3.5 h-3.5 text-gold shrink-0" />
+                              <span className="text-[11px] text-foreground">{placeDetails.music_style}</span>
+                            </div>
+                          )}
+                          {placeDetails.dress_code && (
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                              <Shirt className="w-3.5 h-3.5 text-gold shrink-0" />
+                              <span className="text-[11px] text-foreground">{placeDetails.dress_code}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {isPartner && vipOffers.length > 0 && (
                         <div className="space-y-2">
                           {vipOffers.map((vip) => {
