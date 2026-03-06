@@ -92,6 +92,9 @@ export default function VenuePage() {
   const userVibes = useUserVibes(place?.name);
   const viewerCount = useViewerCount(place?.id);
 
+  // Detect if image_url is a logo (small local file or contains "logo")
+  const isLogoOnly = place?.image_url ? (place.image_url.includes("logo") || place.image_url.startsWith("/images/")) : false;
+
   // Load place
   useEffect(() => {
     if (!slug) return;
