@@ -5,7 +5,7 @@ import { timeAgo } from "@/lib/timeAgo";
 import type { Story } from "@/hooks/useStories";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import StoryReactions, { StoryDoubleTapHeart } from "./StoryReactions";
+import StoryReactions from "./StoryReactions";
 import { supabase } from "@/integrations/supabase/client";
 import { getDeviceId } from "@/lib/deviceId";
 
@@ -214,9 +214,6 @@ export default function StoryViewer({ stories, initialIndex, onClose, onViewed }
             />
           )}
 
-          {/* Double-tap heart animation */}
-          <StoryDoubleTapHeart show={showHeart} />
-
           {/* Caption overlay */}
           {story.caption && (
             <div className="absolute bottom-24 left-4 right-16 text-center">
@@ -226,12 +223,13 @@ export default function StoryViewer({ stories, initialIndex, onClose, onViewed }
             </div>
           )}
 
-          {/* Reaction buttons */}
+          {/* Reaction buttons + double-tap heart */}
           <StoryReactions
             storyId={story.id}
             userId={user?.id}
             paused={paused}
             onPause={setPaused}
+            doubleTapSignal={doubleTapSignal}
           />
         </div>
 
