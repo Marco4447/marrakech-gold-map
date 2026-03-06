@@ -41,6 +41,38 @@ export type Database = {
         }
         Relationships: []
       }
+      checkins: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          place_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          place_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          place_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkins_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -266,6 +298,7 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          dress_code: string | null
           has_active_offer: boolean
           id: string
           image_url: string | null
@@ -274,9 +307,13 @@ export type Database = {
           latitude: number
           listing_tier: string | null
           longitude: number
+          music_style: string | null
           name: string
           neighborhood: string | null
+          opening_hours: string | null
+          price_range: string | null
           rating: number | null
+          slug: string | null
           vip_perk_description: string | null
         }
         Insert: {
@@ -284,6 +321,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          dress_code?: string | null
           has_active_offer?: boolean
           id?: string
           image_url?: string | null
@@ -292,9 +330,13 @@ export type Database = {
           latitude: number
           listing_tier?: string | null
           longitude: number
+          music_style?: string | null
           name: string
           neighborhood?: string | null
+          opening_hours?: string | null
+          price_range?: string | null
           rating?: number | null
+          slug?: string | null
           vip_perk_description?: string | null
         }
         Update: {
@@ -302,6 +344,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          dress_code?: string | null
           has_active_offer?: boolean
           id?: string
           image_url?: string | null
@@ -310,9 +353,13 @@ export type Database = {
           latitude?: number
           listing_tier?: string | null
           longitude?: number
+          music_style?: string | null
           name?: string
           neighborhood?: string | null
+          opening_hours?: string | null
+          price_range?: string | null
           rating?: number | null
+          slug?: string | null
           vip_perk_description?: string | null
         }
         Relationships: []
@@ -367,6 +414,35 @@ export type Database = {
           vip_expires_at?: string | null
         }
         Relationships: []
+      }
+      qr_scans: {
+        Row: {
+          created_at: string
+          id: string
+          place_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          place_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          place_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_scans_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_codes: {
         Row: {
@@ -709,6 +785,143 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_offers: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          end_time: string | null
+          id: string
+          is_active: boolean
+          limit_per_user: number
+          max_redemptions: number | null
+          perk_type: string
+          place_id: string
+          start_time: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          limit_per_user?: number
+          max_redemptions?: number | null
+          perk_type?: string
+          place_id: string
+          start_time?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          limit_per_user?: number
+          max_redemptions?: number | null
+          perk_type?: string
+          place_id?: string
+          start_time?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vip_offers_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vip_passes: {
+        Row: {
+          expires_at: string
+          generated_at: string
+          id: string
+          offer_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          expires_at: string
+          generated_at?: string
+          id?: string
+          offer_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          expires_at?: string
+          generated_at?: string
+          id?: string
+          offer_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vip_passes_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "vip_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vip_redemptions: {
+        Row: {
+          id: string
+          offer_id: string
+          pass_id: string
+          place_id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          offer_id: string
+          pass_id: string
+          place_id: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          offer_id?: string
+          pass_id?: string
+          place_id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vip_redemptions_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "vip_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vip_redemptions_pass_id_fkey"
+            columns: ["pass_id"]
+            isOneToOne: false
+            referencedRelation: "vip_passes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vip_redemptions_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weekly_challenges: {
         Row: {
           created_at: string
@@ -774,6 +987,7 @@ export type Database = {
     }
     Functions: {
       cleanup_old_stripe_events: { Args: never; Returns: undefined }
+      generate_place_slug: { Args: { place_name: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

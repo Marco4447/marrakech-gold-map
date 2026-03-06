@@ -12,6 +12,8 @@ import PartnerAnalytics from "@/components/partner/PartnerAnalytics";
 import PartnerBilling from "@/components/partner/PartnerBilling";
 import PartnerPromotions from "@/components/partner/PartnerPromotions";
 import { planAllows, type PlanType } from "@/lib/partnerPlans";
+import PartnerQRCode from "@/components/partner/PartnerQRCode";
+import VipOfferManager from "@/components/partner/VipOfferManager";
 
 // --- Sub-components (kept from original) ---
 
@@ -165,11 +167,12 @@ function VibeHistory({ vibes }: { vibes: HistoryVibe[] }) {
 }
 
 // --- Tabs ---
-type DashboardTab = "overview" | "vibes" | "promotions" | "analytics" | "billing";
+type DashboardTab = "overview" | "vibes" | "qr" | "promotions" | "analytics" | "billing";
 
 const TABS: { key: DashboardTab; label: string; icon: any }[] = [
   { key: "overview", label: "Aperçu", icon: LayoutDashboard },
   { key: "vibes", label: "Vibes", icon: Camera },
+  { key: "qr", label: "QR & VIP", icon: Gift },
   { key: "promotions", label: "Promos", icon: Megaphone },
   { key: "analytics", label: "Stats", icon: BarChart3 },
   { key: "billing", label: "Billing", icon: Receipt },
@@ -455,6 +458,16 @@ export default function PartnerDashboard() {
                 <Clock className="w-4 h-4 text-gold" /> Historique ({vibes.length})
               </h2>
               <VibeHistory vibes={vibes} />
+            </div>
+          </div>
+        )}
+
+        {/* QR & VIP Tab */}
+        {activeTab === "qr" && (
+          <div className="space-y-6">
+            <PartnerQRCode userId={user.id} placeId={placeId} />
+            <div className="border-t border-border pt-5">
+              <VipOfferManager placeId={placeId} />
             </div>
           </div>
         )}

@@ -31,6 +31,9 @@ const VibePage = lazy(() => import("./pages/VibePage"));
 const ReferralPage = lazy(() => import("./pages/ReferralPage"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PosterPage = lazy(() => import("./pages/PosterPage"));
+const VenueContextPage = lazy(() => import("./pages/VenueContextPage"));
+const VipPassPage = lazy(() => import("./pages/VipPassPage"));
+const ScanPage = lazy(() => import("./pages/ScanPage"));
 
 const queryClient = new QueryClient();
 
@@ -70,6 +73,9 @@ const AppShell = () => {
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/poster" element={<PosterPage />} />
+              <Route path="/go/:slug" element={<VenueContextPage />} />
+              <Route path="/pass/:id" element={<VipPassPage />} />
+              <Route path="/scan" element={<ScanPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
