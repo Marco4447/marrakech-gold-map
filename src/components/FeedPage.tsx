@@ -11,7 +11,7 @@ import { timeAgo } from "@/lib/timeAgo";
 import { getDeviceId } from "@/lib/deviceId";
 import { analytics } from "@/lib/analytics";
 import type { VibeProfile } from "@/types/models";
-import { isBoosted } from "@/lib/boostedPlaces";
+import { isBoosted, boostPriority } from "@/lib/boostedPlaces";
 import { getShareUrl } from "@/lib/shareUrl";
 import { computeEnergyScores, getEnergy, getDistanceMeters, formatDistance } from "@/lib/energy";
 import { useUserLocation } from "@/hooks/useUserLocation";
@@ -307,10 +307,13 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
   const sortedFeed = activeTab === "foryou"
     ? [...officialVibes, ...regularVibes].sort((a, b) => {
-        const aB = isBoosted(a.location);
-        const bB = isBoosted(b.location);
+        const aP = boostPriority(a.location);
+        const bP = boostPriority(b.location);
+        const aB = aP >= 0;
+        const bB = bP >= 0;
         if (aB && !bB) return -1;
         if (!aB && bB) return 1;
+        if (aB && bB) return aP - bP;
         if (a.is_official && !b.is_official) return -1;
         if (!a.is_official && b.is_official) return 1;
 
