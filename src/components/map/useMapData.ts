@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 import { supabase } from "@/integrations/supabase/client";
 import type { Place, VibePin } from "@/types/models";
-import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_FILTERS, MOOD_COLORS, MOOD_EMOJIS, createCategoryIcon } from "./mapConstants";
+import { MARRAKECH_CENTER } from "./mapConstants";
 
 export function useMapData(refreshSignal: number) {
   const [places, setPlaces] = useState<Place[]>([]);
@@ -61,7 +61,6 @@ export function useMapData(refreshSignal: number) {
       fetchPlaces();
     });
 
-    // Realtime: update has_active_offer in-place when it changes
     const placesChannel = supabase
       .channel("places-realtime")
       .on(
@@ -82,7 +81,7 @@ export function useMapData(refreshSignal: number) {
     };
   }, []);
 
-  // Fetch active VIP offers to know which places have offers tonight
+  // Fetch active VIP offers
   useEffect(() => {
     const fetchActiveOffers = async () => {
       const now = new Date().toISOString();
@@ -133,8 +132,9 @@ export function useMapData(refreshSignal: number) {
 export function useMapInstance(containerRef: React.RefObject<HTMLDivElement | null>) {
   const mapRef = useRef<L.Map | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
+  const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Init map
+  // Init map — NO tile layer here, MapThemeManager handles it
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
@@ -144,10 +144,6 @@ export function useMapInstance(containerRef: React.RefObject<HTMLDivElement | nu
       zoomControl: false,
       attributionControl: false,
     });
-
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-    }).addTo(map);
 
     mapRef.current = map;
     requestAnimationFrame(() => { map.invalidateSize(); });
@@ -172,6 +168,7 @@ export function useMapInstance(containerRef: React.RefObject<HTMLDivElement | nu
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const latlng: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         if (userMarkerRef.current) {
           userMarkerRef.current.setLatLng(latlng);
         } else if (mapRef.current) {
@@ -212,5 +209,5 @@ export function useMapInstance(containerRef: React.RefObject<HTMLDivElement | nu
     mapRef.current?.flyTo(MARRAKECH_CENTER, 14, { duration: 0.8 });
   }, []);
 
-  return { mapRef, userMarkerRef, handleGeolocate, handleRecenter };
+  return { mapRef, userMarkerRef, userPosition, handleGeolocate, handleRecenter };
 }
