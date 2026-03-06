@@ -286,3 +286,8 @@
     transform: scale(1.05);
   }
 }
+
+@keyframes scan-line {
+  0%, 100% { top: 15%; opacity: 0.4; }
+  50% { top: 80%; opacity: 1; }
+}
