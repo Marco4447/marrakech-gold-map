@@ -180,6 +180,8 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     </div>
                   </div>
                 )}
+
+                <div className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <Link to={`/venue/${(place as any).slug || place.id}`} onClick={() => onOpenChange(false)}
