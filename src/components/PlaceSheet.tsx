@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, MapPin, Tag, Zap, Gift, Navigation, Share2, Users, ChevronLeft, ChevronRight, Building2, Clock, DollarSign, Music, Shirt } from "lucide-react";
+import { X, Star, MapPin, Tag, Zap, Gift, Navigation, Share2, Users, ChevronLeft, ChevronRight, Building2, Clock, DollarSign, Music, Shirt, UtensilsCrossed, Image as ImageIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -10,6 +10,9 @@ import { getShareUrl } from "@/lib/shareUrl";
 import { useAuth } from "@/hooks/useAuth";
 import PremiumLock from "./PremiumLock";
 import PartnerOfferCard from "./PartnerOfferCard";
+import PlacePhotoGallery from "./place/PlacePhotoGallery";
+import PlaceInfoCards from "./place/PlaceInfoCards";
+import PlaceVipSection from "./place/PlaceVipSection";
 
 interface Place {
   id: string;
@@ -33,17 +36,6 @@ interface PlaceSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function usePlaceGallery(placeName: string | undefined) {
-  const [images, setImages] = useState<string[]>([]);
-  useEffect(() => {
-    if (!placeName) return;
-    supabase.from("vibes").select("image_url").ilike("location", placeName).order("created_at", { ascending: false }).limit(5).then(({ data }) => {
-      if (data) setImages(data.map((v) => v.image_url));
-    });
-  }, [placeName]);
-  return images;
-}
-
 function useViewerCount(placeId: string | undefined) {
   const [count, setCount] = useState(0);
   useEffect(() => {
@@ -60,20 +52,23 @@ function useViewerCount(placeId: string | undefined) {
 
 export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProps) {
   const [dealOpen, setDealOpen] = useState(false);
-  const [galleryIndex, setGalleryIndex] = useState(0);
-  const vibeImages = usePlaceGallery(place?.name);
   const viewerCount = useViewerCount(place?.id);
   const { t, lang } = useLanguage();
   const { user } = useAuth();
   const [isVip, setIsVip] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);
   const [vipOffers, setVipOffers] = useState<any[]>([]);
-  const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string } | null>(null);
+  const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string } | null>(null);
+  const [placePhotos, setPlacePhotos] = useState<{ id: string; photo_url: string; caption: string | null }[]>([]);
 
   useEffect(() => {
     if (!place?.id || !open) return;
-    supabase.from("places").select("opening_hours, price_range, music_style, dress_code").eq("id", place.id).single().then(({ data }) => {
-      if (data) setPlaceDetails(data);
+    supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url").eq("id", place.id).single().then(({ data }) => {
+      if (data) setPlaceDetails(data as any);
+    });
+    // Fetch place photos
+    (supabase.from("place_photos") as any).select("id, photo_url, caption").eq("place_id", place.id).order("sort_order", { ascending: true }).then(({ data }: any) => {
+      if (data) setPlacePhotos(data);
     });
   }, [place?.id, open]);
 
@@ -89,7 +84,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
     supabase.from("partner_offers").select("*").eq("place_id", place.id).eq("is_active", true).then(({ data }) => {
       if (data) setOffers(data.filter((o: any) => !o.expiration_date || new Date(o.expiration_date) > new Date()));
     });
-    // Fetch active VIP offers for this place
     const now = new Date().toISOString();
     (supabase.from("vip_offers") as any)
       .select("id, title, description, perk_type, start_time, end_time")
@@ -100,8 +94,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
         if (data) setVipOffers(data);
       });
   }, [place?.id, open]);
-
-  useEffect(() => { setGalleryIndex(0); }, [place?.id]);
 
   useEffect(() => {
     if (open && place) {
@@ -115,7 +107,10 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
 
   const isPartner = place.is_partner ?? false;
   const hasOffer = place.has_active_offer ?? false;
-  const allImages = [...(place.image_url ? [place.image_url] : []), ...vibeImages.filter((img) => img !== place.image_url)].slice(0, 5);
+  // Build gallery: place_photos first, fallback to place.image_url
+  const allImages = placePhotos.length > 0
+    ? placePhotos.map(p => p.photo_url)
+    : (place.image_url ? [place.image_url] : []);
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
 
   const handleShare = async () => {
@@ -137,51 +132,17 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
           <motion.div className="absolute bottom-0 left-0 right-0 z-[1002] px-4 pb-20 max-h-[85vh] flex flex-col" initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} transition={{ type: "spring", damping: 28, stiffness: 300 }}
             drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={0.3} onDragEnd={(_, info) => { if (info.offset.y > 100 || info.velocity.y > 300) onOpenChange(false); }}>
             <div className={`bg-card rounded-2xl overflow-hidden border shadow-2xl flex flex-col max-h-full ${isPartner ? "border-gold/40 shadow-gold/10" : "border-border shadow-gold/5"}`}>
+              {/* Drag handle */}
               <div className="flex items-center justify-center pt-3 pb-1 flex-shrink-0">
                 <button onClick={() => onOpenChange(false)} className="w-10 h-1.5 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
               </div>
-              <div className="overflow-y-auto no-scrollbar flex-1">
-                {allImages.length > 0 && (
-                  <div className="relative h-48 overflow-hidden">
-                    <AnimatePresence mode="wait">
-                      <motion.img key={galleryIndex} src={allImages[galleryIndex]} alt={place.name} className="w-full h-full object-cover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} />
-                    </AnimatePresence>
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                    {allImages.length > 1 && (
-                      <>
-                        <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + allImages.length) % allImages.length); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground"><ChevronLeft className="w-4 h-4" /></button>
-                        <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % allImages.length); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground"><ChevronRight className="w-4 h-4" /></button>
-                      </>
-                    )}
-                    <button onClick={() => onOpenChange(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-background/80 transition-colors"><X className="w-4 h-4" /></button>
-                    {isPartner && (
-                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-gold px-3 py-1.5 rounded-full shadow-lg">
-                        <span className="text-xs">⭐</span>
-                        <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">{t("place_partner")}</span>
-                      </div>
-                    )}
-                    <div className="absolute bottom-2 right-3 flex items-center gap-1 bg-background/60 backdrop-blur-md px-2 py-1 rounded-full">
-                      <Users className="w-3 h-3 text-gold" />
-                      <span className="text-[10px] text-foreground font-medium">{viewerCount} {t("place_watching")}</span>
-                    </div>
-                  </div>
-                )}
 
-                {/* Mini gallery - horizontal scroll thumbnails */}
-                {allImages.length > 1 && (
-                  <div className="px-4 pt-2 pb-1">
-                    <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-                      {allImages.map((img, i) => (
-                        <button key={i} onClick={() => setGalleryIndex(i)}
-                          className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${i === galleryIndex ? "border-gold shadow-md shadow-gold/20 scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              <div className="overflow-y-auto no-scrollbar flex-1">
+                {/* Photo Gallery */}
+                <PlacePhotoGallery images={allImages} placeName={place.name} isPartner={isPartner} viewerCount={viewerCount} onClose={() => onOpenChange(false)} />
 
                 <div className="p-5 space-y-3">
+                  {/* Header: Name + Rating */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <Link to={`/venue/${(place as any).slug || place.id}`} onClick={() => onOpenChange(false)}
@@ -202,65 +163,33 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     <PremiumLock placeName={place.name} />
                   ) : (
                     <>
+                      {/* Description */}
                       {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
 
-                      {placeDetails && (placeDetails.opening_hours || placeDetails.price_range || placeDetails.music_style || placeDetails.dress_code) && (
-                        <div className="grid grid-cols-2 gap-2">
-                          {placeDetails.opening_hours && (
-                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
-                              <Clock className="w-3.5 h-3.5 text-gold shrink-0" />
-                              <span className="text-[11px] text-foreground">{placeDetails.opening_hours}</span>
-                            </div>
-                          )}
-                          {placeDetails.price_range && (
-                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
-                              <DollarSign className="w-3.5 h-3.5 text-gold shrink-0" />
-                              <span className="text-[11px] text-foreground">{placeDetails.price_range}</span>
-                            </div>
-                          )}
-                          {placeDetails.music_style && (
-                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
-                              <Music className="w-3.5 h-3.5 text-gold shrink-0" />
-                              <span className="text-[11px] text-foreground">{placeDetails.music_style}</span>
-                            </div>
-                          )}
-                          {placeDetails.dress_code && (
-                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
-                              <Shirt className="w-3.5 h-3.5 text-gold shrink-0" />
-                              <span className="text-[11px] text-foreground">{placeDetails.dress_code}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {isPartner && vipOffers.length > 0 && (
-                        <div className="space-y-2">
-                          {vipOffers.map((vip) => {
-                            const perkEmoji = vip.perk_type === "drink" ? "🍸" : vip.perk_type === "food" ? "🍽️" : vip.perk_type === "entry" ? "🎫" : "🎁";
-                            return (
-                              <div key={vip.id} className="bg-gold/10 border border-gold/25 rounded-xl p-4 space-y-1.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-base">{perkEmoji}</span>
-                                  <span className="text-sm font-bold text-gold">{vip.title}</span>
-                                </div>
-                                <p className="text-xs text-foreground/80 leading-relaxed">{vip.description}</p>
-                                {vip.end_time && (
-                                  <p className="text-[10px] text-muted-foreground">
-                                    Jusqu'à {new Date(vip.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                                  </p>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
+                      {/* Info Cards (horaires, prix, musique, dress code) */}
+                      <PlaceInfoCards details={placeDetails} />
+
+                      {/* Menu / Carte link */}
+                      {placeDetails?.menu_url && (
+                        <a href={placeDetails.menu_url} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-3 bg-muted/50 hover:bg-muted rounded-xl px-4 py-3 transition-colors group">
+                          <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                            <UtensilsCrossed className="w-4 h-4 text-gold" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">
+                              {lang === "fr" ? "Voir la carte / menu" : "View menu"}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground truncate">{lang === "fr" ? "Boissons, plats, tarifs" : "Drinks, food, prices"}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+                        </a>
                       )}
 
-                      {isPartner && hasOffer && vipOffers.length === 0 && (
-                        <div className="bg-gold/10 border border-gold/25 rounded-xl p-4 space-y-2">
-                          <div className="flex items-center gap-2"><Gift className="w-4 h-4 text-gold" /><span className="text-sm font-semibold text-gold">{t("place_insiderOffer")}</span></div>
-                          <p className="text-xs text-foreground/80">{t("place_insiderOfferDesc")} {place.name}.</p>
-                        </div>
-                      )}
+                      {/* VIP Offers */}
+                      <PlaceVipSection isPartner={isPartner} hasOffer={hasOffer} vipOffers={vipOffers} placeName={place.name} />
 
+                      {/* Partner Offers */}
                       {offers.length > 0 && (
                         <div className="space-y-2">
                           {offers.map((offer) => (
@@ -269,33 +198,35 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                         </div>
                       )}
 
-                  {place.address && (
-                    <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" /><span className="text-xs">{place.address}</span></div>
-                  )}
+                      {/* Address */}
+                      {place.address && (
+                        <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" /><span className="text-xs">{place.address}</span></div>
+                      )}
 
-                  <div className="flex gap-2 pt-1">
-                    <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20">
-                      <Navigation className="w-4 h-4" /> {t("place_goThere")}
-                    </a>
-                    <button onClick={handleShare} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors"><Share2 className="w-4 h-4 text-foreground" /></button>
-                  </div>
-
-                  {isPartner && hasOffer && (
-                    <button onClick={() => setDealOpen(true)} className="w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-2xl transition-colors border bg-gold hover:bg-gold-light text-primary-foreground border-gold/30 shadow-lg shadow-gold/20">
-                      <Zap className="w-4 h-4" /> {t("place_usePass")}
-                    </button>
-                  )}
-
-                  {!isPartner && (
-                    <Link to="/business" className="flex items-center gap-2.5 bg-card border border-border hover:border-gold/30 rounded-xl px-4 py-3 transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0"><Building2 className="w-4 h-4 text-gold" /></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">{t("place_areYouManager")}</p>
-                        <p className="text-[10px] text-muted-foreground">{t("place_joinWeshkech")}</p>
+                      {/* Action buttons */}
+                      <div className="flex gap-2 pt-1">
+                        <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20">
+                          <Navigation className="w-4 h-4" /> {t("place_goThere")}
+                        </a>
+                        <button onClick={handleShare} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors"><Share2 className="w-4 h-4 text-foreground" /></button>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
-                    </Link>
-                  )}
+
+                      {isPartner && hasOffer && (
+                        <button onClick={() => setDealOpen(true)} className="w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-2xl transition-colors border bg-gold hover:bg-gold-light text-primary-foreground border-gold/30 shadow-lg shadow-gold/20">
+                          <Zap className="w-4 h-4" /> {t("place_usePass")}
+                        </button>
+                      )}
+
+                      {!isPartner && (
+                        <Link to="/business" className="flex items-center gap-2.5 bg-card border border-border hover:border-gold/30 rounded-xl px-4 py-3 transition-colors group">
+                          <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0"><Building2 className="w-4 h-4 text-gold" /></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">{t("place_areYouManager")}</p>
+                            <p className="text-[10px] text-muted-foreground">{t("place_joinWeshkech")}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+                        </Link>
+                      )}
                     </>
                   )}
                 </div>
