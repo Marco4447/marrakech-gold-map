@@ -125,9 +125,9 @@ export function useStories(userId?: string | null) {
       if (!a.viewed && b.viewed) return -1;
       if (a.viewed && !b.viewed) return 1;
       // Proximity
-      if (position && a.latitude && b.latitude && a.longitude && b.longitude) {
-        const distA = getDistance(position.lat, position.lng, a.latitude, a.longitude);
-        const distB = getDistance(position.lat, position.lng, b.latitude, b.longitude);
+      if (location && a.latitude && b.latitude && a.longitude && b.longitude) {
+        const distA = getDistance(location.lat, location.lng, a.latitude, a.longitude);
+        const distB = getDistance(location.lat, location.lng, b.latitude, b.longitude);
         if (Math.abs(distA - distB) > 500) return distA - distB;
       }
       // Freshness
@@ -136,7 +136,7 @@ export function useStories(userId?: string | null) {
 
     setStories(enriched);
     setLoading(false);
-  }, [userId, position]);
+  }, [userId, location]);
 
   useEffect(() => {
     fetchStories();
