@@ -175,7 +175,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     });
 
     return () => { markers.forEach((m) => m.remove()); };
-  }, [places, trendingLocations, activeFilter, isGuest]);
+  }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds]);
 
   // Add vibe pins + heatmap
   useEffect(() => {
