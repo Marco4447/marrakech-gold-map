@@ -34,6 +34,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds } = useMapData(refreshSignal);
   const { mapRef, userMarkerRef, userPosition, handleGeolocate, handleRecenter } = useMapInstance(containerRef);
 
+  // Stable refs to avoid re-triggering place markers effect
+  const vibePinsRef = useRef(vibePins);
+  vibePinsRef.current = vibePins;
+  const userPositionRef = useRef(userPosition);
+  userPositionRef.current = userPosition;
+
   // Day/Night theme
   const { isNight } = useMapTheme(mapRef.current);
 
