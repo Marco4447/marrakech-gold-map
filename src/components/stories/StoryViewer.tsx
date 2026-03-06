@@ -32,12 +32,12 @@ export default function StoryViewer({ stories, initialIndex, onClose, onViewed }
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [showHeart, setShowHeart] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const touchStartY = useRef<number | null>(null);
   const lastTapTime = useRef(0);
-  const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const doubleTapRef = useRef(0); // increments on double-tap to signal StoryReactions
+  const [doubleTapSignal, setDoubleTapSignal] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -74,18 +74,11 @@ export default function StoryViewer({ stories, initialIndex, onClose, onViewed }
     setCurrentIndex((i) => Math.max(0, i - 1));
   }, []);
 
-  // Double-tap like handler
-  const handleDoubleTapLike = useCallback(async () => {
-    setShowHeart(true);
-    if (heartTimer.current) clearTimeout(heartTimer.current);
-    heartTimer.current = setTimeout(() => setShowHeart(false), 800);
-
-    const deviceId = getDeviceId();
-    await supabase.from("story_reactions" as any).upsert(
-      { story_id: story.id, user_id: user?.id || null, device_id: deviceId, emoji: "❤️" } as any,
-      { onConflict: "story_id,device_id,emoji" }
-    );
-  }, [story?.id, user?.id]);
+  // Double-tap like handler — just signal StoryReactions
+  const handleDoubleTapLike = useCallback(() => {
+    doubleTapRef.current += 1;
+    setDoubleTapSignal(doubleTapRef.current);
+  }, []);
 
   // Tap navigation with double-tap detection
   const handleTap = (e: React.MouseEvent) => {
