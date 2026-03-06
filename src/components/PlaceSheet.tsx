@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, MapPin, Tag, Zap, Gift, Navigation, Share2, Users, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { X, Star, MapPin, Tag, Zap, Gift, Navigation, Share2, Users, ChevronLeft, ChevronRight, Building2, Clock, DollarSign, Music, Shirt } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -68,6 +68,14 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const [isVip, setIsVip] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);
   const [vipOffers, setVipOffers] = useState<any[]>([]);
+  const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string } | null>(null);
+
+  useEffect(() => {
+    if (!place?.id || !open) return;
+    supabase.from("places").select("opening_hours, price_range, music_style, dress_code").eq("id", place.id).single().then(({ data }) => {
+      if (data) setPlaceDetails(data);
+    });
+  }, [place?.id, open]);
 
   useEffect(() => {
     if (!user || !open) return;
@@ -185,6 +193,34 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     <>
                       {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
 
+                      {placeDetails && (placeDetails.opening_hours || placeDetails.price_range || placeDetails.music_style || placeDetails.dress_code) && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {placeDetails.opening_hours && (
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                              <Clock className="w-3.5 h-3.5 text-gold shrink-0" />
+                              <span className="text-[11px] text-foreground">{placeDetails.opening_hours}</span>
+                            </div>
+                          )}
+                          {placeDetails.price_range && (
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                              <DollarSign className="w-3.5 h-3.5 text-gold shrink-0" />
+                              <span className="text-[11px] text-foreground">{placeDetails.price_range}</span>
+                            </div>
+                          )}
+                          {placeDetails.music_style && (
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                              <Music className="w-3.5 h-3.5 text-gold shrink-0" />
+                              <span className="text-[11px] text-foreground">{placeDetails.music_style}</span>
+                            </div>
+                          )}
+                          {placeDetails.dress_code && (
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                              <Shirt className="w-3.5 h-3.5 text-gold shrink-0" />
+                              <span className="text-[11px] text-foreground">{placeDetails.dress_code}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {isPartner && vipOffers.length > 0 && (
                         <div className="space-y-2">
                           {vipOffers.map((vip) => {
