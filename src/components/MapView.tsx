@@ -160,7 +160,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     const map = mapRef.current;
     if (!map || places.length === 0) return;
 
-    const vibesForEnergy = vibePins.map(v => ({
+    const currentVibePins = vibePinsRef.current;
+    const vibesForEnergy = currentVibePins.map(v => ({
       location: v.location,
       likes: 0,
       super_vibes: 0,
