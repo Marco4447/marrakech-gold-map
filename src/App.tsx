@@ -34,6 +34,7 @@ const PosterPage = lazy(() => import("./pages/PosterPage"));
 const VenueContextPage = lazy(() => import("./pages/VenueContextPage"));
 const VipPassPage = lazy(() => import("./pages/VipPassPage"));
 const ScanPage = lazy(() => import("./pages/ScanPage"));
+const VenuePage = lazy(() => import("./pages/VenuePage"));
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const AppShell = () => {
               <Route path="/go/:slug" element={<VenueContextPage />} />
               <Route path="/pass/:id" element={<VipPassPage />} />
               <Route path="/scan" element={<ScanPage />} />
+              <Route path="/venue/:slug" element={<VenuePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
