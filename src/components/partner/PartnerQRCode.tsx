@@ -22,9 +22,9 @@ export default function PartnerQRCode({ userId, placeId }: Props) {
   useEffect(() => {
     if (!placeId) { setLoading(false); return; }
     const load = async () => {
-      const { data } = await supabase
-        .from("places")
-        .select("name, slug" as any)
+      const { data } = await (supabase
+        .from("places") as any)
+        .select("name, slug")
         .eq("id", placeId)
         .single();
       if (data) {

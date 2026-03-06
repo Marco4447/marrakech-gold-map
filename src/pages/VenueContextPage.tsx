@@ -55,22 +55,21 @@ export default function VenueContextPage() {
   useEffect(() => {
     if (!slug) { navigate("/"); return; }
     const load = async () => {
-      const { data: p } = await supabase
-        .from("places")
+      const { data: p } = await (supabase
+        .from("places") as any)
         .select("id, name, category, description, image_url, neighborhood, address, opening_hours, price_range, music_style, dress_code, is_partner, has_active_offer")
-        .eq("slug" as any, slug)
+        .eq("slug", slug)
         .maybeSingle();
 
       if (!p) { navigate("/"); return; }
       setPlace(p as any);
 
       // Record QR scan
-      await supabase.from("qr_scans" as any).insert({ place_id: p.id, user_id: user?.id || null });
+      await (supabase.from("qr_scans" as any) as any).insert({ place_id: p.id, user_id: user?.id || null });
 
       // Fetch active offers
-      const now = new Date().toISOString();
-      const { data: offersData } = await supabase
-        .from("vip_offers" as any)
+      const { data: offersData } = await (supabase
+        .from("vip_offers" as any) as any)
         .select("id, title, description, perk_type, start_time, end_time, max_redemptions, limit_per_user")
         .eq("place_id", p.id)
         .eq("is_active", true);
@@ -84,8 +83,8 @@ export default function VenueContextPage() {
 
       // Check-in count (last 3h)
       const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
-      const { count } = await supabase
-        .from("checkins" as any)
+      const { count } = await (supabase
+        .from("checkins" as any) as any)
         .select("id", { count: "exact", head: true })
         .eq("place_id", p.id)
         .gte("created_at", threeHoursAgo);
@@ -93,8 +92,9 @@ export default function VenueContextPage() {
 
       // Check if user is checked in
       if (user) {
-        const { data: existing } = await supabase
-          .from("checkins" as any)
+        const now = new Date().toISOString();
+        const { data: existing } = await (supabase
+          .from("checkins" as any) as any)
           .select("id")
           .eq("place_id", p.id)
           .eq("user_id", user.id)
@@ -111,7 +111,7 @@ export default function VenueContextPage() {
   const handleCheckin = async () => {
     if (!user) { toast.error("Connecte-toi pour faire un check-in"); return; }
     if (!place) return;
-    const { error } = await supabase.from("checkins" as any).insert({ user_id: user.id, place_id: place.id });
+    const { error } = await (supabase.from("checkins" as any) as any).insert({ user_id: user.id, place_id: place.id });
     if (error) { toast.error("Erreur"); console.error(error); return; }
     setIsCheckedIn(true);
     setCheckinCount((c) => c + 1);
@@ -124,8 +124,8 @@ export default function VenueContextPage() {
     setClaiming(offer.id);
 
     // Check limit per user
-    const { count: existingCount } = await supabase
-      .from("vip_passes" as any)
+    const { count: existingCount } = await (supabase
+      .from("vip_passes" as any) as any)
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
       .eq("offer_id", offer.id);
@@ -138,8 +138,8 @@ export default function VenueContextPage() {
 
     // Generate pass
     const expiresAt = offer.end_time || new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
-    const { data: pass, error } = await supabase
-      .from("vip_passes" as any)
+    const { data: pass, error } = await (supabase
+      .from("vip_passes" as any) as any)
       .insert({ user_id: user.id, offer_id: offer.id, expires_at: expiresAt })
       .select("id")
       .single();
