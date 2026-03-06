@@ -110,8 +110,10 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   // Determine inner content: show logo for local images (/images/) or Supabase storage, emoji for generic Unsplash
   const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
   const hasLogo = (isPartner || boosted || isLocalLogo) && imageUrl;
-  const innerContent = boosted
-    ? `<img src="/images/kabana-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+  const innerContent = boosted && imageUrl
+    ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+    : boosted
+      ? `<img src="/images/kabana-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
     : hasLogo
       ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><span style="font-size:${emojiSize}px;line-height:1;display:none;align-items:center;justify-content:center;width:100%;height:100%">${cat.emoji}</span>`
       : `<span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>`;
