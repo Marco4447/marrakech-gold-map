@@ -258,26 +258,26 @@ export default function VenuePage() {
       </div>
 
       {/* Main content */}
-      <div className="px-5 -mt-8 relative z-10 space-y-5">
-        {/* Title */}
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-xl shadow-background/50">
+      <div className="px-5 -mt-10 relative z-10 space-y-4">
+        {/* Title card */}
+        <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border p-5 shadow-2xl shadow-background/60">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="font-display text-2xl font-bold text-foreground">{place.name}</h1>
-              <div className="flex items-center gap-2 mt-1">
+            <div className="flex-1 min-w-0">
+              <h1 className="font-display text-2xl font-bold text-foreground leading-tight">{place.name}</h1>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                 {place.category && (
-                  <div className="flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 bg-gold/10 px-2.5 py-0.5 rounded-full">
                     <Tag className="w-3 h-3 text-gold" />
-                    <span className="text-xs text-gold font-medium uppercase tracking-wider">{place.category}</span>
-                  </div>
+                    <span className="text-[11px] text-gold font-semibold uppercase tracking-wider">{place.category}</span>
+                  </span>
                 )}
-                {place.neighborhood && <span className="text-[11px] text-muted-foreground">· {place.neighborhood}</span>}
+                {place.neighborhood && <span className="text-[11px] text-muted-foreground">📍 {place.neighborhood}</span>}
               </div>
             </div>
             {place.rating && (
-              <div className="flex items-center gap-1 bg-gold/10 px-3 py-1.5 rounded-full shrink-0">
+              <div className="flex items-center gap-1 bg-gold/15 px-3 py-2 rounded-xl shrink-0">
                 <Star className="w-4 h-4 text-gold fill-gold" />
-                <span className="text-sm font-bold text-gold">{place.rating}</span>
+                <span className="text-base font-bold text-gold">{place.rating}</span>
               </div>
             )}
           </div>
@@ -287,11 +287,12 @@ export default function VenuePage() {
           {/* Action buttons */}
           <div className="flex gap-2 mt-4">
             <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20">
+              className="flex-1 flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-gold/20 text-primary-foreground"
+              style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)))" }}>
               <Navigation className="w-4 h-4" /> J'y vais
             </a>
             <button onClick={handleCheckin} disabled={checkedIn || checkingIn}
-              className={`px-5 flex items-center justify-center gap-2 font-semibold py-3 rounded-xl transition-colors border ${
+              className={`px-5 flex items-center justify-center gap-2 font-semibold py-3.5 rounded-xl transition-all active:scale-[0.98] border ${
                 checkedIn ? "bg-accent border-accent text-accent-foreground" : "bg-card border-border text-foreground hover:border-gold/40"
               }`}>
               <MapPin className="w-4 h-4" />
