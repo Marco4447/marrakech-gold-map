@@ -170,64 +170,80 @@ export default function VenuePage() {
 
   const isPartner = place.is_partner;
   const hasOffer = place.has_active_offer;
-  const allImages = [...(place.image_url ? [place.image_url] : []), ...vibeImages.filter(img => img !== place.image_url)].slice(0, 8);
+  // For gallery: use vibe images as hero if place only has a logo, exclude logo from gallery
+  const heroImages = isLogoOnly
+    ? vibeImages.slice(0, 8)
+    : [...(place.image_url ? [place.image_url] : []), ...vibeImages.filter(img => img !== place.image_url)].slice(0, 8);
+  const allImages = heroImages;
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
 
   return (
     <div className="min-h-[100dvh] bg-background pb-24">
       {/* Hero */}
-      <div className="relative h-72 overflow-hidden">
+      <div className="relative h-80 overflow-hidden">
         {allImages.length > 0 ? (
           <>
             <AnimatePresence mode="wait">
               <motion.img key={galleryIndex} src={allImages[galleryIndex]} alt={place.name}
-                className="w-full h-full object-cover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} />
+                className="w-full h-full object-cover" initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} />
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-black/20" />
             {allImages.length > 1 && (
               <>
                 <button onClick={() => setGalleryIndex(i => (i - 1 + allImages.length) % allImages.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground">
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/40 backdrop-blur-xl flex items-center justify-center text-foreground hover:bg-background/60 transition-colors">
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button onClick={() => setGalleryIndex(i => (i + 1) % allImages.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/40 backdrop-blur-xl flex items-center justify-center text-foreground hover:bg-background/60 transition-colors">
                   <ChevronRight className="w-5 h-5" />
                 </button>
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-1.5">
+                <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-1.5">
                   {allImages.map((_, i) => (
-                    <div key={i} className={`h-1.5 rounded-full transition-all ${i === galleryIndex ? "w-5 bg-gold" : "w-1.5 bg-foreground/30"}`} />
+                    <button key={i} onClick={() => setGalleryIndex(i)}
+                      className={`h-1.5 rounded-full transition-all ${i === galleryIndex ? "w-6 bg-gold" : "w-1.5 bg-foreground/40"}`} />
                   ))}
                 </div>
               </>
             )}
           </>
         ) : (
-          <div className="w-full h-full bg-surface flex items-center justify-center">
-            <Building2 className="w-16 h-16 text-muted-foreground/30" />
+          <div className="w-full h-full bg-gradient-to-br from-gold/20 via-background to-background flex flex-col items-center justify-center gap-3">
+            {isLogoOnly && place.image_url ? (
+              <img src={place.image_url} alt={place.name} className="w-24 h-24 object-contain rounded-2xl" />
+            ) : (
+              <Building2 className="w-16 h-16 text-muted-foreground/20" />
+            )}
+          </div>
+        )}
+
+        {/* Logo overlay if we have hero images AND a logo */}
+        {isLogoOnly && place.image_url && allImages.length > 0 && (
+          <div className="absolute bottom-20 left-5 w-16 h-16 rounded-2xl bg-card border-2 border-border shadow-xl overflow-hidden">
+            <img src={place.image_url} alt="" className="w-full h-full object-contain p-1.5" />
           </div>
         )}
 
         {/* Nav */}
         <div className="absolute top-12 left-4 right-4 flex items-center justify-between">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-background/40 backdrop-blur-xl flex items-center justify-center hover:bg-background/60 transition-colors">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <button onClick={handleShare} className="w-10 h-10 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center">
+          <button onClick={handleShare} className="w-10 h-10 rounded-full bg-background/40 backdrop-blur-xl flex items-center justify-center hover:bg-background/60 transition-colors">
             <Share2 className="w-5 h-5 text-foreground" />
           </button>
         </div>
 
         {/* Badges */}
-        <div className="absolute bottom-16 left-4 flex items-center gap-2">
+        <div className="absolute bottom-20 right-4 flex flex-col items-end gap-1.5">
           {isPartner && (
-            <div className="flex items-center gap-1.5 bg-gold px-3 py-1.5 rounded-full shadow-lg">
+            <div className="flex items-center gap-1.5 bg-gold/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <span className="text-xs">⭐</span>
               <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">Partenaire</span>
             </div>
           )}
           {hasOffer && (
-            <div className="flex items-center gap-1.5 bg-destructive px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+            <div className="flex items-center gap-1.5 bg-destructive/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg animate-pulse">
               <span className="text-xs">🔥</span>
               <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wider">Offre ce soir</span>
             </div>
@@ -235,8 +251,8 @@ export default function VenuePage() {
         </div>
 
         {/* Viewer count */}
-        <div className="absolute bottom-16 right-4 flex items-center gap-1 bg-background/60 backdrop-blur-md px-2.5 py-1.5 rounded-full">
-          <Users className="w-3.5 h-3.5 text-gold" />
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-background/40 backdrop-blur-xl px-3 py-1.5 rounded-full">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-[11px] text-foreground font-medium">{viewerCount} en ligne</span>
         </div>
       </div>
