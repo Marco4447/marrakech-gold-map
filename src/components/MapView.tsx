@@ -34,6 +34,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds } = useMapData(refreshSignal);
   const { mapRef, userMarkerRef, userPosition, handleGeolocate, handleRecenter } = useMapInstance(containerRef);
 
+  // Stable refs to avoid re-triggering place markers effect
+  const vibePinsRef = useRef(vibePins);
+  vibePinsRef.current = vibePins;
+  const userPositionRef = useRef(userPosition);
+  userPositionRef.current = userPosition;
+
   // Day/Night theme
   const { isNight } = useMapTheme(mapRef.current);
 
@@ -114,8 +120,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     // Tonight mode: only show venues with official vibe, VIP offer, or recent checkins
     if (tonightMode) {
+      const currentVibePins = vibePinsRef.current;
       const vibeLocations = new Set(
-        vibePins.filter(v => {
+        currentVibePins.filter(v => {
           const age = Date.now() - new Date(v.created_at).getTime();
           return age < SIX_HOURS || v.is_official;
         }).map(v => v.location?.toLowerCase()).filter(Boolean)
@@ -133,9 +140,10 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         filtered = filtered.filter(p => trendingLocations.has(p.name.toLowerCase()));
       } else if (activeFilter === "offers") {
         filtered = filtered.filter(p => p.is_partner && p.has_active_offer);
-      } else if (activeFilter === "near" && userPosition) {
+      } else if (activeFilter === "near" && userPositionRef.current) {
+        const uPos = userPositionRef.current;
         filtered = filtered
-          .map(p => ({ ...p, _dist: getDistanceMeters(userPosition.lat, userPosition.lng, p.latitude, p.longitude) }))
+          .map(p => ({ ...p, _dist: getDistanceMeters(uPos.lat, uPos.lng, p.latitude, p.longitude) }))
           .filter(p => (p as any)._dist < 1500)
           .sort((a, b) => (a as any)._dist - (b as any)._dist);
       } else if (FILTER_CATEGORIES[activeFilter]) {
@@ -145,14 +153,15 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
 
     return filtered;
-  }, [places, activeFilter, tonightMode, vibePins, activeVipPlaceIds, trendingLocations, userPosition]);
+  }, [places, activeFilter, tonightMode, activeVipPlaceIds, trendingLocations]);
 
   // Add place markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map || places.length === 0) return;
 
-    const vibesForEnergy = vibePins.map(v => ({
+    const currentVibePins = vibePinsRef.current;
+    const vibesForEnergy = currentVibePins.map(v => ({
       location: v.location,
       likes: 0,
       super_vibes: 0,
@@ -225,7 +234,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     });
 
     return () => { markers.forEach((m) => m.remove()); };
-  }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds, tonightMode, vibePins, userPosition]);
+  }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds, tonightMode]);
 
   // Add vibe pins + heatmap
   useEffect(() => {
