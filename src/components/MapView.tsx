@@ -600,7 +600,26 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       </AnimatePresence>
 
       {/* Legend */}
-      {bubbleDismissed && !previewPlace && <CollapsibleLegend categories={categories} />}
+      {bubbleDismissed && !previewPlace && (
+        <CollapsibleLegend
+          categories={categories}
+          activeCategory={activeFilter}
+          onCategoryClick={(cat) => {
+            if (!cat) {
+              setActiveFilter(null);
+            } else {
+              // Map category name to filter key if possible, otherwise filter by exact category
+              const filterMap: Record<string, string> = {
+                Nightlife: "party", Night: "party", "Dinner Show": "party",
+                Restaurant: "food", Food: "food",
+                Rooftop: "rooftop",
+                Chill: "chill", "Cocktail Bar": "chill", Café: "chill", Hôtel: "chill",
+              };
+              setActiveFilter(filterMap[cat] || cat);
+            }
+          }}
+        />
+      )}
 
       {/* Tonight mode active indicator */}
       <AnimatePresence>
