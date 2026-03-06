@@ -327,6 +327,41 @@ export type Database = {
           },
         ]
       }
+      place_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          photo_url: string
+          place_id: string
+          sort_order: number
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_url: string
+          place_id: string
+          sort_order?: number
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_url?: string
+          place_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "place_photos_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       places: {
         Row: {
           address: string | null
@@ -342,6 +377,7 @@ export type Database = {
           latitude: number
           listing_tier: string | null
           longitude: number
+          menu_url: string | null
           music_style: string | null
           name: string
           neighborhood: string | null
@@ -366,6 +402,7 @@ export type Database = {
           latitude: number
           listing_tier?: string | null
           longitude: number
+          menu_url?: string | null
           music_style?: string | null
           name: string
           neighborhood?: string | null
@@ -390,6 +427,7 @@ export type Database = {
           latitude?: number
           listing_tier?: string | null
           longitude?: number
+          menu_url?: string | null
           music_style?: string | null
           name?: string
           neighborhood?: string | null
