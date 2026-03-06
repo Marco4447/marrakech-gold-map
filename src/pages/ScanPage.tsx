@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { QrCode, CheckCircle2, XCircle, AlertTriangle, Loader2, ArrowLeft } from "lucide-react";
+import { QrCode, CheckCircle2, XCircle, AlertTriangle, Loader2, ArrowLeft, Camera, KeyboardIcon } from "lucide-react";
+import QrScanner from "qr-scanner";
 
 type ScanResult = {
   status: "valid" | "already_used" | "expired" | "invalid" | "max_reached" | "error";
@@ -19,6 +20,10 @@ export default function ScanPage() {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [manualId, setManualId] = useState("");
+  const [cameraMode, setCameraMode] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const scannerRef = useRef<QrScanner | null>(null);
   const passId = searchParams.get("pass");
 
   const validate = async (pid: string) => {
@@ -38,11 +43,60 @@ export default function ScanPage() {
     }
   };
 
+  // Extract pass ID from scanned URL or raw ID
+  const extractPassId = (raw: string): string | null => {
+    try {
+      const url = new URL(raw);
+      return url.searchParams.get("pass") || url.pathname.split("/pass/").pop() || null;
+    } catch {
+      // Not a URL, treat as raw ID (UUID format)
+      const trimmed = raw.trim();
+      if (trimmed.length >= 20) return trimmed;
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (passId && user && !authLoading) {
       validate(passId);
     }
   }, [passId, user, authLoading]);
+
+  // Camera scanner lifecycle
+  useEffect(() => {
+    if (!cameraMode || !videoRef.current) return;
+
+    setCameraError(null);
+    const scanner = new QrScanner(
+      videoRef.current,
+      (scanResult) => {
+        const pid = extractPassId(scanResult.data);
+        if (pid) {
+          scanner.stop();
+          setCameraMode(false);
+          validate(pid);
+        }
+      },
+      {
+        returnDetailedScanResult: true,
+        highlightScanRegion: true,
+        highlightCodeOutline: true,
+        preferredCamera: "environment",
+      }
+    );
+
+    scannerRef.current = scanner;
+    scanner.start().catch((err) => {
+      setCameraError("Impossible d'accéder à la caméra. Vérifiez les permissions.");
+      setCameraMode(false);
+    });
+
+    return () => {
+      scanner.stop();
+      scanner.destroy();
+      scannerRef.current = null;
+    };
+  }, [cameraMode, user]);
 
   if (authLoading) {
     return (
@@ -114,13 +168,15 @@ export default function ScanPage() {
     <div className="min-h-[100dvh] bg-background flex flex-col">
       {/* Header */}
       <div className="px-5 pt-12 pb-4 flex items-center gap-3 border-b border-border">
-        <button onClick={() => navigate("/")}
+        <button onClick={() => { if (cameraMode) { setCameraMode(false); } else { navigate("/"); } }}
           className="w-9 h-9 rounded-full bg-surface flex items-center justify-center active:scale-95">
           <ArrowLeft className="w-4 h-4 text-foreground" />
         </button>
         <div>
           <h1 className="font-display text-lg font-bold text-foreground">Scanner VIP</h1>
-          <p className="text-[11px] text-muted-foreground">Scannez les passes clients</p>
+          <p className="text-[11px] text-muted-foreground">
+            {cameraMode ? "Pointez la caméra vers le QR code" : "Scannez les passes clients"}
+          </p>
         </div>
       </div>
 
@@ -146,6 +202,32 @@ export default function ScanPage() {
                 Scanner un autre pass
               </button>
             </motion.div>
+          ) : cameraMode ? (
+            <motion.div key="camera" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="w-full max-w-sm space-y-4 text-center">
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black border-2 border-gold/30">
+                <video ref={videoRef} className="w-full h-full object-cover" />
+                {/* Corner guides */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute top-4 left-4 w-10 h-10 border-t-2 border-l-2 border-gold rounded-tl-lg" />
+                  <div className="absolute top-4 right-4 w-10 h-10 border-t-2 border-r-2 border-gold rounded-tr-lg" />
+                  <div className="absolute bottom-4 left-4 w-10 h-10 border-b-2 border-l-2 border-gold rounded-bl-lg" />
+                  <div className="absolute bottom-4 right-4 w-10 h-10 border-b-2 border-r-2 border-gold rounded-br-lg" />
+                </div>
+                {/* Scanning line animation */}
+                <div className="absolute left-4 right-4 h-0.5 bg-gold/60 animate-[scan-line_2s_ease-in-out_infinite]" />
+              </div>
+              {cameraError && (
+                <p className="text-xs text-destructive">{cameraError}</p>
+              )}
+              <button
+                onClick={() => setCameraMode(false)}
+                className="flex items-center justify-center gap-2 mx-auto px-5 py-2.5 rounded-xl bg-card border border-border text-sm text-foreground"
+              >
+                <KeyboardIcon className="w-4 h-4" />
+                Saisie manuelle
+              </button>
+            </motion.div>
           ) : (
             <motion.div key="input" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="w-full max-w-sm space-y-6 text-center">
@@ -153,9 +235,27 @@ export default function ScanPage() {
               <div>
                 <h2 className="font-display text-lg font-bold text-foreground">Scannez un pass VIP</h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Utilisez l'appareil photo de votre téléphone pour scanner le QR du client, ou entrez l'ID manuellement.
+                  Scannez le QR code du client ou entrez l'ID manuellement.
                 </p>
               </div>
+
+              {/* Camera button */}
+              <button
+                onClick={() => setCameraMode(true)}
+                className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-gold/15 border border-gold/30 text-gold font-semibold text-sm active:scale-[0.98] transition-transform"
+              >
+                <Camera className="w-5 h-5" />
+                Ouvrir la caméra
+              </button>
+
+              {/* Separator */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">ou</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              {/* Manual input */}
               <div className="flex gap-2">
                 <input
                   value={manualId}
