@@ -167,7 +167,19 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                   </div>
                 )}
 
-                <div className="p-5 space-y-3">
+                {/* Mini gallery - horizontal scroll thumbnails */}
+                {allImages.length > 1 && (
+                  <div className="px-4 pt-2 pb-1">
+                    <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                      {allImages.map((img, i) => (
+                        <button key={i} onClick={() => setGalleryIndex(i)}
+                          className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${i === galleryIndex ? "border-gold shadow-md shadow-gold/20 scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
+                          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <Link to={`/venue/${(place as any).slug || place.id}`} onClick={() => onOpenChange(false)}
