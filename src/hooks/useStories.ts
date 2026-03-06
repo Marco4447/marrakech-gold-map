@@ -42,7 +42,7 @@ export function useStories(userId?: string | null) {
   const location = useUserLocation();
 
   const fetchStories = useCallback(async () => {
-    // Fetch stories
+    // Fetch real stories
     const { data: rawStories } = await supabase
       .from("stories" as any)
       .select("*")
@@ -51,13 +51,47 @@ export function useStories(userId?: string | null) {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (!rawStories || rawStories.length === 0) {
+    const hasRealStories = rawStories && rawStories.length > 0;
+
+    // Fallback: use recent vibes as stories when table is empty
+    let storiesData: any[] = [];
+    if (hasRealStories) {
+      storiesData = rawStories as any[];
+    } else {
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+      const { data: vibes } = await supabase
+        .from("vibes")
+        .select("*")
+        .gt("created_at", sixHoursAgo)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (vibes && vibes.length > 0) {
+        storiesData = vibes.map((v: any) => ({
+          id: v.id,
+          source_type: v.is_official ? "partner" : "user",
+          user_id: v.user_id,
+          place_id: null,
+          media_url: v.image_url,
+          media_type: v.media_type || "photo",
+          badge: v.is_official ? "ROOFTOP" : "INSIDER",
+          caption: v.caption,
+          is_featured: v.is_official,
+          latitude: v.latitude,
+          longitude: v.longitude,
+          created_at: v.created_at,
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          _vibe_location: v.location,
+          _vibe_username: v.username,
+        }));
+      }
+    }
+
+    if (storiesData.length === 0) {
       setStories([]);
       setLoading(false);
       return;
     }
-
-    const storiesData = rawStories as any[];
 
     // Fetch place info for stories with place_id
     const placeIds = [...new Set(storiesData.filter((s) => s.place_id).map((s) => s.place_id!))];
@@ -81,9 +115,9 @@ export function useStories(userId?: string | null) {
       if (profiles) profilesMap = Object.fromEntries((profiles as any[]).map((p) => [p.user_id, p]));
     }
 
-    // Fetch viewed story IDs
+    // Fetch viewed story IDs (only for real stories)
     let viewed = new Set<string>();
-    if (userId) {
+    if (userId && hasRealStories) {
       const storyIds = storiesData.map((s) => s.id);
       const { data: views } = await supabase
         .from("story_views" as any)
@@ -100,13 +134,13 @@ export function useStories(userId?: string | null) {
       const profile = s.user_id ? profilesMap[s.user_id] : null;
       return {
         ...s,
-        place_name: place?.name || null,
+        place_name: place?.name || s._vibe_location || null,
         place_category: place?.category || null,
         place_rating: place?.rating || null,
         place_address: place?.address || null,
         place_slug: place?.slug || null,
         avatar_url: place?.image_url || profile?.avatar_url || null,
-        author_name: s.source_type === "admin" ? "Weshkech" : (place?.name || profile?.full_name || "Anon"),
+        author_name: s.source_type === "admin" ? "Weshkech" : (place?.name || s._vibe_location || profile?.full_name || s._vibe_username || "Anon"),
         viewed: viewed.has(s.id),
       };
     });
@@ -114,23 +148,18 @@ export function useStories(userId?: string | null) {
     // Sort: priority admin > partner > user, then unviewed first, then proximity/freshness
     enriched.sort((a, b) => {
       const typePriority: Record<string, number> = { admin: 0, partner: 1, user: 2 };
-      // Featured first
       if (a.is_featured && !b.is_featured) return -1;
       if (!a.is_featured && b.is_featured) return 1;
-      // Source type
       const ta = typePriority[a.source_type] ?? 2;
       const tb = typePriority[b.source_type] ?? 2;
       if (ta !== tb) return ta - tb;
-      // Unviewed first
       if (!a.viewed && b.viewed) return -1;
       if (a.viewed && !b.viewed) return 1;
-      // Proximity
       if (location && a.latitude && b.latitude && a.longitude && b.longitude) {
         const distA = getDistance(location.lat, location.lng, a.latitude, a.longitude);
         const distB = getDistance(location.lat, location.lng, b.latitude, b.longitude);
         if (Math.abs(distA - distB) > 500) return distA - distB;
       }
-      // Freshness
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
