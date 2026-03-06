@@ -52,6 +52,25 @@ export default function StoryReactions({ storyId, userId, paused, onPause, doubl
     })();
   }, [storyId]);
 
+  // Handle double-tap signal from StoryViewer
+  useEffect(() => {
+    if (doubleTapSignal > 0 && doubleTapSignal !== prevSignal.current) {
+      prevSignal.current = doubleTapSignal;
+      if (!liked) {
+        // Like it
+        setLiked(true);
+        supabase.from("story_reactions" as any).upsert(
+          { story_id: storyId, user_id: userId || null, device_id: deviceId.current, emoji: "❤️" } as any,
+          { onConflict: "story_id,device_id,emoji" }
+        );
+      }
+      // Always show the big heart animation
+      setShowDoubleTapHeart(true);
+      if (heartTimer.current) clearTimeout(heartTimer.current);
+      heartTimer.current = setTimeout(() => setShowDoubleTapHeart(false), 800);
+    }
+  }, [doubleTapSignal, liked, storyId, userId]);
+
   // Toggle like (Instagram-style)
   const toggleLike = useCallback(async () => {
     const newLiked = !liked;
