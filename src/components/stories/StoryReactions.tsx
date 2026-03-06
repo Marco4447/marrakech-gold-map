@@ -41,7 +41,7 @@ export default function StoryReactions({ storyId, userId, paused, onPause }: Sto
         .eq("story_id", storyId)
         .eq("device_id", deviceId.current) as any;
       if (data && data.length > 0) {
-        const emojis = new Set(data.map((r: any) => r.emoji));
+        const emojis = new Set<string>(data.map((r: any) => r.emoji as string));
         if (emojis.has("❤️")) setLiked(true);
         setSentEmojis(emojis);
       }
