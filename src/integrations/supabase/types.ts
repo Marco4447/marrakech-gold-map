@@ -138,6 +138,41 @@ export type Database = {
           },
         ]
       }
+      partner_accounts: {
+        Row: {
+          approved: boolean
+          created_at: string
+          id: string
+          place_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          approved?: boolean
+          created_at?: string
+          id?: string
+          place_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          approved?: boolean
+          created_at?: string
+          id?: string
+          place_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_accounts_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_credits: {
         Row: {
           created_at: string
@@ -314,6 +349,7 @@ export type Database = {
           price_range: string | null
           rating: number | null
           slug: string | null
+          updated_at: string
           vip_perk_description: string | null
         }
         Insert: {
@@ -337,6 +373,7 @@ export type Database = {
           price_range?: string | null
           rating?: number | null
           slug?: string | null
+          updated_at?: string
           vip_perk_description?: string | null
         }
         Update: {
@@ -360,6 +397,7 @@ export type Database = {
           price_range?: string | null
           rating?: number | null
           slug?: string | null
+          updated_at?: string
           vip_perk_description?: string | null
         }
         Relationships: []
