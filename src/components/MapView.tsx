@@ -153,7 +153,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
 
     return filtered;
-  }, [places, activeFilter, tonightMode, vibePins, activeVipPlaceIds, trendingLocations, userPosition]);
+  }, [places, activeFilter, tonightMode, activeVipPlaceIds, trendingLocations]);
 
   // Add place markers
   useEffect(() => {
