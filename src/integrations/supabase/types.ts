@@ -626,6 +626,97 @@ export type Database = {
           },
         ]
       }
+      stories: {
+        Row: {
+          badge: string | null
+          caption: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          is_featured: boolean
+          is_hidden: boolean
+          latitude: number | null
+          longitude: number | null
+          media_type: string
+          media_url: string
+          place_id: string | null
+          source_type: string
+          user_id: string | null
+        }
+        Insert: {
+          badge?: string | null
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_featured?: boolean
+          is_hidden?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          media_type?: string
+          media_url: string
+          place_id?: string | null
+          source_type?: string
+          user_id?: string | null
+        }
+        Update: {
+          badge?: string | null
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_featured?: boolean
+          is_hidden?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          media_type?: string
+          media_url?: string
+          place_id?: string | null
+          source_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_views: {
+        Row: {
+          device_id: string | null
+          id: string
+          story_id: string
+          user_id: string | null
+          viewed_at: string
+        }
+        Insert: {
+          device_id?: string | null
+          id?: string
+          story_id: string
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Update: {
+          device_id?: string | null
+          id?: string
+          story_id?: string
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
