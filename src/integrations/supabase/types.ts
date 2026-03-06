@@ -685,6 +685,41 @@ export type Database = {
           },
         ]
       }
+      story_reactions: {
+        Row: {
+          created_at: string
+          device_id: string
+          emoji: string
+          id: string
+          story_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          emoji?: string
+          id?: string
+          story_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          emoji?: string
+          id?: string
+          story_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_reactions_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       story_views: {
         Row: {
           device_id: string | null
