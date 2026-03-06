@@ -87,9 +87,9 @@ export const createCategoryIcon = (category: string | null, options: { trending?
     ? `<div style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#BF953F,#FCF6BA,#B38728);color:hsl(30,20%,10%);font-size:6px;font-weight:900;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.08em;box-shadow:0 2px 6px hsl(43,76%,52%,0.4)">PARTENAIRE</div>`
     : "";
 
-  // 🔥 OFFER TONIGHT badge for places with active VIP offers
+  // 🔥 OFFER TONIGHT badge for places with active VIP offers — animated
   const offerTonightBadge = hasActiveVipOffer && !boosted && !blurred
-    ? `<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,hsl(15,80%,50%),hsl(30,90%,50%));color:white;font-size:6px;font-weight:900;padding:2px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em;box-shadow:0 2px 6px hsl(15,80%,50%,0.5);z-index:3">🔥 OFFER TONIGHT</div>`
+    ? `<div class="offer-tonight-badge" style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,hsl(15,80%,50%),hsl(30,90%,50%));color:white;font-size:6px;font-weight:900;padding:2px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em;box-shadow:0 2px 6px hsl(15,80%,50%,0.5);z-index:3;animation:offer-badge-pulse 2s ease-in-out infinite">🔥 OFFER TONIGHT</div>`
     : "";
 
   const trendingBadge = trending && !isPartner && !boosted && !hasActiveVipOffer
