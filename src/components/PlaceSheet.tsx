@@ -151,9 +151,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                       <>
                         <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + allImages.length) % allImages.length); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground"><ChevronLeft className="w-4 h-4" /></button>
                         <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % allImages.length); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground"><ChevronRight className="w-4 h-4" /></button>
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                          {allImages.map((_, i) => (<div key={i} className={`h-1.5 rounded-full transition-all ${i === galleryIndex ? "w-4 bg-gold" : "w-1.5 bg-foreground/30"}`} />))}
-                        </div>
                       </>
                     )}
                     <button onClick={() => onOpenChange(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-background/80 transition-colors"><X className="w-4 h-4" /></button>
@@ -166,6 +163,20 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     <div className="absolute bottom-2 right-3 flex items-center gap-1 bg-background/60 backdrop-blur-md px-2 py-1 rounded-full">
                       <Users className="w-3 h-3 text-gold" />
                       <span className="text-[10px] text-foreground font-medium">{viewerCount} {t("place_watching")}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mini gallery - horizontal scroll thumbnails */}
+                {allImages.length > 1 && (
+                  <div className="px-4 pt-2 pb-1">
+                    <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                      {allImages.map((img, i) => (
+                        <button key={i} onClick={() => setGalleryIndex(i)}
+                          className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${i === galleryIndex ? "border-gold shadow-md shadow-gold/20 scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
+                          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
