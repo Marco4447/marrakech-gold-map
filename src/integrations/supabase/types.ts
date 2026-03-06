@@ -772,6 +772,35 @@ export type Database = {
           },
         ]
       }
+      vibe_views: {
+        Row: {
+          id: string
+          user_id: string | null
+          vibe_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          vibe_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          vibe_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vibe_views_vibe_id_fkey"
+            columns: ["vibe_id"]
+            isOneToOne: false
+            referencedRelation: "vibes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vibes: {
         Row: {
           caption: string | null
@@ -1060,6 +1089,10 @@ export type Database = {
           vip_expires_at: string
         }[]
       }
+      weekly_checkins: { Args: { p_place_id: string }; Returns: number }
+      weekly_place_views: { Args: { p_place_id: string }; Returns: number }
+      weekly_qr_redemptions: { Args: { p_place_id: string }; Returns: number }
+      weekly_vibe_views: { Args: { p_place_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "partner"
