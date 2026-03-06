@@ -12,6 +12,7 @@ export function useMapData(refreshSignal: number) {
   const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
   const [placesLoading, setPlacesLoading] = useState(true);
   const [placesError, setPlacesError] = useState<string | null>(null);
+  const [activeVipPlaceIds, setActiveVipPlaceIds] = useState<Set<string>>(new Set());
 
   // Fetch places
   useEffect(() => {
@@ -63,6 +64,23 @@ export function useMapData(refreshSignal: number) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Fetch active VIP offers to know which places have offers tonight
+  useEffect(() => {
+    const fetchActiveOffers = async () => {
+      const now = new Date().toISOString();
+      const { data } = await supabase
+        .from("vip_offers")
+        .select("place_id")
+        .eq("is_active", true)
+        .or(`start_time.is.null,start_time.lte.${now}`)
+        .or(`end_time.is.null,end_time.gte.${now}`);
+      if (data) {
+        setActiveVipPlaceIds(new Set(data.map((d: any) => d.place_id)));
+      }
+    };
+    fetchActiveOffers();
+  }, [refreshSignal]);
+
   // Fetch trending + vibe pins
   useEffect(() => {
     const fetchVibeData = async () => {
@@ -91,7 +109,7 @@ export function useMapData(refreshSignal: number) {
     return () => { supabase.removeChannel(channel); };
   }, [refreshSignal]);
 
-  return { places, vibePins, trendingLocations, placesLoading, placesError };
+  return { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds };
 }
 
 export function useMapInstance(containerRef: React.RefObject<HTMLDivElement | null>) {

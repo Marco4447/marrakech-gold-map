@@ -19,7 +19,7 @@ import { computeEnergyScores, getEnergy } from "@/lib/energy";
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { places, vibePins, trendingLocations, placesLoading, placesError } = useMapData(refreshSignal);
+  const { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds } = useMapData(refreshSignal);
   const { mapRef, userMarkerRef, handleGeolocate, handleRecenter } = useMapInstance(containerRef);
 
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -143,6 +143,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         imageUrl: place.image_url,
         energyLabel: energy?.label || null,
         energyEmoji: energy?.emoji || null,
+        listingTier: place.listing_tier || null,
+        hasActiveVipOffer: activeVipPlaceIds.has(place.id),
       });
       const boosted = isBoosted(place.name);
       const zOffset = boosted ? 3000 : place.is_partner ? 2000 : isTrending ? 1000 : 0;
@@ -173,7 +175,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     });
 
     return () => { markers.forEach((m) => m.remove()); };
-  }, [places, trendingLocations, activeFilter, isGuest]);
+  }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds]);
 
   // Add vibe pins + heatmap
   useEffect(() => {

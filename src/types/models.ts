@@ -41,6 +41,8 @@ export interface Place {
   is_partner: boolean;
   has_active_offer: boolean;
   vip_perk_description: string | null;
+  listing_tier?: string | null;
+  has_active_vip_offer?: boolean;
 }
 
 export interface VibePin {

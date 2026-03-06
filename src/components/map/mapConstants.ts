@@ -45,30 +45,37 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
-export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null; energyLabel?: string | null; energyEmoji?: string | null } = {}) => {
+export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null; energyLabel?: string | null; energyEmoji?: string | null; listingTier?: string | null; hasActiveVipOffer?: boolean } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
-  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji } = options;
+  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji, listingTier, hasActiveVipOffer = false } = options;
   const boosted = isBoosted(placeName);
 
   // Check if place has a local logo
   const hasLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
 
-  // Boosted partner gets premium treatment, local logos get slightly bigger markers
-  const size = boosted ? 52 : isPartner ? 42 : hasLocalLogo ? 40 : trending ? 42 : 34;
-  const emojiSize = boosted ? 22 : isPartner ? 18 : trending ? 18 : 15;
+  // Tier-based sizing: Featured > Premium > Basic/standard
+  const isFeatured = listingTier === "featured";
+  const isPremium = listingTier === "premium";
+  const size = boosted ? 52 : isFeatured ? 48 : isPremium ? 44 : isPartner ? 42 : hasLocalLogo ? 40 : trending ? 42 : 34;
+  const emojiSize = boosted ? 22 : isFeatured ? 20 : isPremium ? 18 : isPartner ? 18 : trending ? 18 : 15;
 
-  const borderColor = boosted ? "hsl(43,76%,52%)" : isPartner ? "hsl(43,76%,52%)" : cat.color;
-  const borderWidth = boosted ? "3px" : isPartner ? "3px" : "2px";
+  const borderColor = boosted ? "hsl(43,76%,52%)" : isFeatured ? "hsl(43,76%,52%)" : isPartner ? "hsl(43,76%,52%)" : cat.color;
+  const borderWidth = boosted ? "3px" : isFeatured ? "3px" : isPremium ? "2.5px" : isPartner ? "3px" : "2px";
   const glow = boosted
     ? "0 0 20px hsl(43,76%,52%,0.7), 0 0 40px hsl(43,76%,52%,0.3)"
-    : isPartner
-      ? "0 0 12px hsl(43,76%,52%,0.5)"
-      : `0 2px ${trending ? 12 : 6}px ${cat.color.replace(")", ",0.35)")}`;
+    : isFeatured
+      ? "0 0 18px hsl(43,76%,52%,0.6), 0 0 35px hsl(43,76%,52%,0.25)"
+      : isPartner
+        ? "0 0 12px hsl(43,76%,52%,0.5)"
+        : `0 2px ${trending ? 12 : 6}px ${cat.color.replace(")", ",0.35)")}`;
 
   const boostedRing = boosted
     ? `<div class="boosted-ring" style="position:absolute;inset:-5px;border-radius:50%;border:2px solid hsl(43,76%,52%,0.6);animation:boosted-pulse 2s ease-in-out infinite"></div>
        <div class="boosted-ring-2" style="position:absolute;inset:-10px;border-radius:50%;border:1.5px solid hsl(43,76%,52%,0.25);animation:boosted-pulse 2s ease-in-out 0.5s infinite"></div>`
-    : "";
+    : isFeatured
+      ? `<div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid hsl(43,76%,52%,0.5);animation:boosted-pulse 2s ease-in-out infinite"></div>
+         <div style="position:absolute;inset:-8px;border-radius:50%;border:1px solid hsl(43,76%,52%,0.2);animation:boosted-pulse 2s ease-in-out 0.5s infinite"></div>`
+      : "";
 
   const partnerBadge = boosted
     ? `<div style="position:absolute;top:-10px;right:-10px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#BF953F,#FCF6BA,#B38728);display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 8px hsl(43,76%,52%,0.6)">👑</div>`
@@ -80,7 +87,12 @@ export const createCategoryIcon = (category: string | null, options: { trending?
     ? `<div style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#BF953F,#FCF6BA,#B38728);color:hsl(30,20%,10%);font-size:6px;font-weight:900;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.08em;box-shadow:0 2px 6px hsl(43,76%,52%,0.4)">PARTENAIRE</div>`
     : "";
 
-  const trendingBadge = trending && !isPartner && !boosted
+  // 🔥 OFFER TONIGHT badge for places with active VIP offers
+  const offerTonightBadge = hasActiveVipOffer && !boosted && !blurred
+    ? `<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,hsl(15,80%,50%),hsl(30,90%,50%));color:white;font-size:6px;font-weight:900;padding:2px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.05em;box-shadow:0 2px 6px hsl(15,80%,50%,0.5);z-index:3">🔥 OFFER TONIGHT</div>`
+    : "";
+
+  const trendingBadge = trending && !isPartner && !boosted && !hasActiveVipOffer
     ? `<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:hsl(43,56%,52%);color:hsl(30,20%,95%);font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;white-space:nowrap;letter-spacing:0.05em">LIVE</div>`
     : "";
 
@@ -90,10 +102,10 @@ export const createCategoryIcon = (category: string | null, options: { trending?
     : "";
 
   const isHotEnergy = energyLabel === "HOT NOW" || energyLabel === "PACKED";
-  const energyBadge = energyLabel && !boosted && !blurred
+  const energyBadge = energyLabel && !boosted && !blurred && !hasActiveVipOffer
     ? `<div style="position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);background:hsl(0,0%,5%,0.85);backdrop-filter:blur(4px);color:white;font-size:7px;font-weight:800;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.03em">${energyEmoji || ""} ${energyLabel}</div>`
     : "";
-  const markerClass = boosted ? "boosted-marker gold-marker" : isHotEnergy ? "energy-hot-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
+  const markerClass = boosted ? "boosted-marker gold-marker" : isFeatured ? "featured-marker gold-marker" : isHotEnergy ? "energy-hot-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
 
   // Determine inner content: show logo for local images (/images/) or Supabase storage, emoji for generic Unsplash
   const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
@@ -109,7 +121,7 @@ export const createCategoryIcon = (category: string | null, options: { trending?
     html: `
       <div class="category-marker" style="
         width:${size}px;height:${size}px;border-radius:50%;
-        background:${boosted ? "linear-gradient(135deg, hsl(0,0%,8%), hsl(30,10%,12%))" : "hsl(0,0%,8%)"};
+        background:${boosted ? "linear-gradient(135deg, hsl(0,0%,8%), hsl(30,10%,12%))" : isFeatured ? "linear-gradient(135deg, hsl(0,0%,8%), hsl(30,10%,12%))" : "hsl(0,0%,8%)"};
         border:${borderWidth} solid ${borderColor};
         box-shadow:${glow};
         display:flex;align-items:center;justify-content:center;
@@ -118,13 +130,14 @@ export const createCategoryIcon = (category: string | null, options: { trending?
         ${boostedRing}
         ${innerContent}
         ${partnerBadge}
+        ${offerTonightBadge}
         ${trendingBadge}
         ${boostedLabel}
         ${energyBadge}
       </div>
       ${lockBadge}
     `,
-    iconSize: [size + (boosted ? 20 : 0), size + (boosted ? 20 : 0)],
-    iconAnchor: [(size + (boosted ? 20 : 0)) / 2, size + (boosted ? 20 : 0)],
+    iconSize: [size + (boosted || isFeatured ? 20 : 0), size + (boosted || isFeatured ? 20 : 0)],
+    iconAnchor: [(size + (boosted || isFeatured ? 20 : 0)) / 2, size + (boosted || isFeatured ? 20 : 0)],
   });
 };
