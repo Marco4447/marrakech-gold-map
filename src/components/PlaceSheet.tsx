@@ -151,9 +151,6 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                       <>
                         <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + allImages.length) % allImages.length); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground"><ChevronLeft className="w-4 h-4" /></button>
                         <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % allImages.length); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground"><ChevronRight className="w-4 h-4" /></button>
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                          {allImages.map((_, i) => (<div key={i} className={`h-1.5 rounded-full transition-all ${i === galleryIndex ? "w-4 bg-gold" : "w-1.5 bg-foreground/30"}`} />))}
-                        </div>
                       </>
                     )}
                     <button onClick={() => onOpenChange(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-background/80 transition-colors"><X className="w-4 h-4" /></button>
