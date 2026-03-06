@@ -1,11 +1,10 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getDeviceId } from "@/lib/deviceId";
 
 const REACTIONS = [
-  { emoji: "❤️", label: "Love" },
   { emoji: "🔥", label: "Hot" },
   { emoji: "😍", label: "Wow" },
   { emoji: "🤤", label: "Foodie" },
@@ -20,14 +19,63 @@ interface StoryReactionsProps {
 }
 
 export default function StoryReactions({ storyId, userId, paused, onPause }: StoryReactionsProps) {
-  const [reactedEmojis, setReactedEmojis] = useState<Set<string>>(new Set());
+  const [liked, setLiked] = useState(false);
+  const [sentEmojis, setSentEmojis] = useState<Set<string>>(new Set());
   const [floatingEmoji, setFloatingEmoji] = useState<string | null>(null);
   const [showBar, setShowBar] = useState(false);
   const floatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deviceId = useRef(getDeviceId());
 
+  // Reset state when story changes
+  useEffect(() => {
+    setLiked(false);
+    setSentEmojis(new Set());
+    setShowBar(false);
+    setFloatingEmoji(null);
+
+    // Check if already liked
+    (async () => {
+      const { data } = await supabase
+        .from("story_reactions" as any)
+        .select("emoji")
+        .eq("story_id", storyId)
+        .eq("device_id", deviceId.current) as any;
+      if (data && data.length > 0) {
+        const emojis = new Set(data.map((r: any) => r.emoji));
+        if (emojis.has("❤️")) setLiked(true);
+        setSentEmojis(emojis);
+      }
+    })();
+  }, [storyId]);
+
+  // Toggle like (Instagram-style)
+  const toggleLike = useCallback(async () => {
+    const newLiked = !liked;
+    setLiked(newLiked);
+
+    if (newLiked) {
+      // Show floating heart
+      setFloatingEmoji("❤️");
+      if (floatTimer.current) clearTimeout(floatTimer.current);
+      floatTimer.current = setTimeout(() => setFloatingEmoji(null), 800);
+
+      await supabase.from("story_reactions" as any).upsert(
+        { story_id: storyId, user_id: userId || null, device_id: deviceId.current, emoji: "❤️" } as any,
+        { onConflict: "story_id,device_id,emoji" }
+      );
+    } else {
+      await supabase
+        .from("story_reactions" as any)
+        .delete()
+        .eq("story_id", storyId)
+        .eq("device_id", deviceId.current)
+        .eq("emoji", "❤️");
+    }
+  }, [liked, storyId, userId]);
+
+  // Send emoji reaction (can send multiple times on Insta, here one per type)
   const handleReact = useCallback(async (emoji: string) => {
-    if (reactedEmojis.has(emoji)) return;
-    setReactedEmojis((prev) => new Set(prev).add(emoji));
+    setSentEmojis((prev) => new Set(prev).add(emoji));
     setFloatingEmoji(emoji);
     setShowBar(false);
     onPause(false);
@@ -35,12 +83,11 @@ export default function StoryReactions({ storyId, userId, paused, onPause }: Sto
     if (floatTimer.current) clearTimeout(floatTimer.current);
     floatTimer.current = setTimeout(() => setFloatingEmoji(null), 800);
 
-    const deviceId = getDeviceId();
     await supabase.from("story_reactions" as any).upsert(
-      { story_id: storyId, user_id: userId || null, device_id: deviceId, emoji } as any,
+      { story_id: storyId, user_id: userId || null, device_id: deviceId.current, emoji } as any,
       { onConflict: "story_id,device_id,emoji" }
     );
-  }, [storyId, userId, reactedEmojis, onPause]);
+  }, [storyId, userId, onPause]);
 
   const toggleBar = useCallback(() => {
     setShowBar((v) => {
@@ -51,17 +98,19 @@ export default function StoryReactions({ storyId, userId, paused, onPause }: Sto
 
   return (
     <>
-      {/* Reaction bar button */}
+      {/* Action buttons */}
       <div className="absolute bottom-28 right-4 z-20 flex flex-col items-center gap-3">
-        {/* Like button */}
+        {/* Like toggle button */}
         <motion.button
           whileTap={{ scale: 1.3 }}
-          onClick={(e) => { e.stopPropagation(); handleReact("❤️"); }}
+          onClick={(e) => { e.stopPropagation(); toggleLike(); }}
           className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center"
         >
           <Heart
-            className={`w-6 h-6 transition-colors ${
-              reactedEmojis.has("❤️") ? "fill-gold text-gold" : "text-white"
+            className={`w-6 h-6 transition-all duration-200 ${
+              liked
+                ? "fill-gold text-gold scale-110"
+                : "text-white"
             }`}
           />
         </motion.button>
@@ -95,7 +144,7 @@ export default function StoryReactions({ storyId, userId, paused, onPause }: Sto
                 transition={{ delay: i * 0.04, type: "spring", stiffness: 500 }}
                 onClick={() => handleReact(r.emoji)}
                 className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${
-                  reactedEmojis.has(r.emoji) ? "bg-gold/20 scale-110" : "hover:bg-white/10 active:scale-125"
+                  sentEmojis.has(r.emoji) ? "bg-gold/20" : "hover:bg-white/10 active:scale-125"
                 }`}
               >
                 <span className="text-2xl">{r.emoji}</span>
