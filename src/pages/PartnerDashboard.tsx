@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Zap, Camera, Video, Upload, Clock, Loader2, Image as ImageIcon, X, Check, Sparkles, Gift, Save, LayoutDashboard, Megaphone, BarChart3, Receipt } from "lucide-react";
+import { ArrowLeft, Zap, Camera, Video, Upload, Clock, Loader2, Image as ImageIcon, X, Check, Sparkles, Gift, Save, LayoutDashboard, Megaphone, BarChart3, Receipt, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +14,7 @@ import PartnerPromotions from "@/components/partner/PartnerPromotions";
 import { planAllows, type PlanType } from "@/lib/partnerPlans";
 import PartnerQRCode from "@/components/partner/PartnerQRCode";
 import VipOfferManager from "@/components/partner/VipOfferManager";
+import VenueEditor from "@/components/partner/VenueEditor";
 
 // --- Sub-components (kept from original) ---
 
@@ -167,10 +168,11 @@ function VibeHistory({ vibes }: { vibes: HistoryVibe[] }) {
 }
 
 // --- Tabs ---
-type DashboardTab = "overview" | "vibes" | "qr" | "promotions" | "analytics" | "billing";
+type DashboardTab = "overview" | "venue" | "vibes" | "qr" | "promotions" | "analytics" | "billing";
 
 const TABS: { key: DashboardTab; label: string; icon: any }[] = [
   { key: "overview", label: "Aperçu", icon: LayoutDashboard },
+  { key: "venue", label: "Ma Fiche", icon: Pencil },
   { key: "vibes", label: "Vibes", icon: Camera },
   { key: "qr", label: "QR & VIP", icon: Gift },
   { key: "promotions", label: "Promos", icon: Megaphone },
@@ -342,6 +344,11 @@ export default function PartnerDashboard() {
         {/* Overview Tab */}
         {activeTab === "overview" && (
           <PartnerOverview userId={user.id} placeId={placeId} planType={planType} credits={credits} />
+        )}
+
+        {/* Venue Editor Tab */}
+        {activeTab === "venue" && (
+          <VenueEditor userId={user.id} placeId={placeId} />
         )}
 
         {/* Vibes Tab */}
