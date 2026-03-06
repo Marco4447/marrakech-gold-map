@@ -121,6 +121,9 @@ export default function StoryReactions({ storyId, userId, paused, onPause, doubl
 
   return (
     <>
+      {/* Double-tap heart animation */}
+      <StoryDoubleTapHeart show={showDoubleTapHeart} />
+
       {/* Action buttons */}
       <div className="absolute bottom-28 right-4 z-20 flex flex-col items-center gap-3">
         {/* Like toggle button */}
