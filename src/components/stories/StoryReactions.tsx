@@ -16,15 +16,19 @@ interface StoryReactionsProps {
   userId?: string | null;
   paused: boolean;
   onPause: (p: boolean) => void;
+  doubleTapSignal?: number;
 }
 
-export default function StoryReactions({ storyId, userId, paused, onPause }: StoryReactionsProps) {
+export default function StoryReactions({ storyId, userId, paused, onPause, doubleTapSignal = 0 }: StoryReactionsProps) {
   const [liked, setLiked] = useState(false);
   const [sentEmojis, setSentEmojis] = useState<Set<string>>(new Set());
   const [floatingEmoji, setFloatingEmoji] = useState<string | null>(null);
   const [showBar, setShowBar] = useState(false);
+  const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false);
   const floatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const deviceId = useRef(getDeviceId());
+  const prevSignal = useRef(0);
 
   // Reset state when story changes
   useEffect(() => {
