@@ -59,13 +59,15 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   const size = boosted ? 52 : isFeatured ? 48 : isPremium ? 44 : isPartner ? 42 : hasLocalLogo ? 40 : trending ? 42 : 34;
   const emojiSize = boosted ? 22 : isFeatured ? 20 : isPremium ? 18 : isPartner ? 18 : trending ? 18 : 15;
 
-  const borderColor = boosted ? "hsl(43,76%,52%)" : isPartner ? "hsl(43,76%,52%)" : cat.color;
-  const borderWidth = boosted ? "3px" : isPartner ? "3px" : "2px";
+  const borderColor = boosted ? "hsl(43,76%,52%)" : isFeatured ? "hsl(43,76%,52%)" : isPartner ? "hsl(43,76%,52%)" : cat.color;
+  const borderWidth = boosted ? "3px" : isFeatured ? "3px" : isPremium ? "2.5px" : isPartner ? "3px" : "2px";
   const glow = boosted
     ? "0 0 20px hsl(43,76%,52%,0.7), 0 0 40px hsl(43,76%,52%,0.3)"
-    : isPartner
-      ? "0 0 12px hsl(43,76%,52%,0.5)"
-      : `0 2px ${trending ? 12 : 6}px ${cat.color.replace(")", ",0.35)")}`;
+    : isFeatured
+      ? "0 0 18px hsl(43,76%,52%,0.6), 0 0 35px hsl(43,76%,52%,0.25)"
+      : isPartner
+        ? "0 0 12px hsl(43,76%,52%,0.5)"
+        : `0 2px ${trending ? 12 : 6}px ${cat.color.replace(")", ",0.35)")}`;
 
   const boostedRing = boosted
     ? `<div class="boosted-ring" style="position:absolute;inset:-5px;border-radius:50%;border:2px solid hsl(43,76%,52%,0.6);animation:boosted-pulse 2s ease-in-out infinite"></div>
