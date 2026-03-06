@@ -120,8 +120,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     // Tonight mode: only show venues with official vibe, VIP offer, or recent checkins
     if (tonightMode) {
+      const currentVibePins = vibePinsRef.current;
       const vibeLocations = new Set(
-        vibePins.filter(v => {
+        currentVibePins.filter(v => {
           const age = Date.now() - new Date(v.created_at).getTime();
           return age < SIX_HOURS || v.is_official;
         }).map(v => v.location?.toLowerCase()).filter(Boolean)
@@ -139,9 +140,10 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         filtered = filtered.filter(p => trendingLocations.has(p.name.toLowerCase()));
       } else if (activeFilter === "offers") {
         filtered = filtered.filter(p => p.is_partner && p.has_active_offer);
-      } else if (activeFilter === "near" && userPosition) {
+      } else if (activeFilter === "near" && userPositionRef.current) {
+        const uPos = userPositionRef.current;
         filtered = filtered
-          .map(p => ({ ...p, _dist: getDistanceMeters(userPosition.lat, userPosition.lng, p.latitude, p.longitude) }))
+          .map(p => ({ ...p, _dist: getDistanceMeters(uPos.lat, uPos.lng, p.latitude, p.longitude) }))
           .filter(p => (p as any)._dist < 1500)
           .sort((a, b) => (a as any)._dist - (b as any)._dist);
       } else if (FILTER_CATEGORIES[activeFilter]) {
