@@ -15,6 +15,9 @@ import { planAllows, type PlanType } from "@/lib/partnerPlans";
 import PartnerQRCode from "@/components/partner/PartnerQRCode";
 import VipOfferManager from "@/components/partner/VipOfferManager";
 import VenueEditor from "@/components/partner/VenueEditor";
+import PartnerStatsBanner from "@/components/partner/PartnerStatsBanner";
+import InstantVibeButton from "@/components/partner/InstantVibeButton";
+import CompetitorMapWidget from "@/components/partner/CompetitorMapWidget";
 
 // --- Sub-components (kept from original) ---
 
@@ -343,7 +346,17 @@ export default function PartnerDashboard() {
       <div className="px-5 pt-5">
         {/* Overview Tab */}
         {activeTab === "overview" && (
-          <PartnerOverview userId={user.id} placeId={placeId} planType={planType} credits={credits} />
+          <div className="space-y-5">
+            <PartnerStatsBanner placeId={placeId} />
+            <InstantVibeButton userId={user.id} credits={credits} onPublished={() => {
+              setCredits(c => c - 1);
+              supabase.from("vibes").select("id, image_url, location, caption, created_at, media_type")
+                .eq("user_id", user.id).eq("is_official", true).order("created_at", { ascending: false }).limit(20)
+                .then(({ data }) => setVibes((data as HistoryVibe[]) || []));
+            }} />
+            <PartnerOverview userId={user.id} placeId={placeId} planType={planType} credits={credits} />
+            <CompetitorMapWidget placeId={placeId} />
+          </div>
         )}
 
         {/* Venue Editor Tab */}
