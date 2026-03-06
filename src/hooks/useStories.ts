@@ -39,7 +39,7 @@ export function useStories(userId?: string | null) {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
-  const { position } = useUserLocation();
+  const location = useUserLocation();
 
   const fetchStories = useCallback(async () => {
     // Fetch stories
