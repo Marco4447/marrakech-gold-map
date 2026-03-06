@@ -67,6 +67,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const { user } = useAuth();
   const [isVip, setIsVip] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);
+  const [vipOffers, setVipOffers] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user || !open) return;
@@ -80,6 +81,16 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
     supabase.from("partner_offers").select("*").eq("place_id", place.id).eq("is_active", true).then(({ data }) => {
       if (data) setOffers(data.filter((o: any) => !o.expiration_date || new Date(o.expiration_date) > new Date()));
     });
+    // Fetch active VIP offers for this place
+    const now = new Date().toISOString();
+    (supabase.from("vip_offers") as any)
+      .select("id, title, description, perk_type, start_time, end_time")
+      .eq("place_id", place.id)
+      .eq("is_active", true)
+      .or(`end_time.is.null,end_time.gte.${now}`)
+      .then(({ data }: any) => {
+        if (data) setVipOffers(data);
+      });
   }, [place?.id, open]);
 
   useEffect(() => { setGalleryIndex(0); }, [place?.id]);
