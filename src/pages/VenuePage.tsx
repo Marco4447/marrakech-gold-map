@@ -92,6 +92,9 @@ export default function VenuePage() {
   const userVibes = useUserVibes(place?.name);
   const viewerCount = useViewerCount(place?.id);
 
+  // Detect if image_url is a logo (small local file or contains "logo")
+  const isLogoOnly = place?.image_url ? (place.image_url.includes("logo") || place.image_url.startsWith("/images/")) : false;
+
   // Load place
   useEffect(() => {
     if (!slug) return;
@@ -167,64 +170,80 @@ export default function VenuePage() {
 
   const isPartner = place.is_partner;
   const hasOffer = place.has_active_offer;
-  const allImages = [...(place.image_url ? [place.image_url] : []), ...vibeImages.filter(img => img !== place.image_url)].slice(0, 8);
+  // For gallery: use vibe images as hero if place only has a logo, exclude logo from gallery
+  const heroImages = isLogoOnly
+    ? vibeImages.slice(0, 8)
+    : [...(place.image_url ? [place.image_url] : []), ...vibeImages.filter(img => img !== place.image_url)].slice(0, 8);
+  const allImages = heroImages;
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
 
   return (
     <div className="min-h-[100dvh] bg-background pb-24">
       {/* Hero */}
-      <div className="relative h-72 overflow-hidden">
+      <div className="relative h-80 overflow-hidden">
         {allImages.length > 0 ? (
           <>
             <AnimatePresence mode="wait">
               <motion.img key={galleryIndex} src={allImages[galleryIndex]} alt={place.name}
-                className="w-full h-full object-cover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} />
+                className="w-full h-full object-cover" initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} />
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-black/20" />
             {allImages.length > 1 && (
               <>
                 <button onClick={() => setGalleryIndex(i => (i - 1 + allImages.length) % allImages.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground">
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/40 backdrop-blur-xl flex items-center justify-center text-foreground hover:bg-background/60 transition-colors">
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button onClick={() => setGalleryIndex(i => (i + 1) % allImages.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/40 backdrop-blur-xl flex items-center justify-center text-foreground hover:bg-background/60 transition-colors">
                   <ChevronRight className="w-5 h-5" />
                 </button>
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-1.5">
+                <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-1.5">
                   {allImages.map((_, i) => (
-                    <div key={i} className={`h-1.5 rounded-full transition-all ${i === galleryIndex ? "w-5 bg-gold" : "w-1.5 bg-foreground/30"}`} />
+                    <button key={i} onClick={() => setGalleryIndex(i)}
+                      className={`h-1.5 rounded-full transition-all ${i === galleryIndex ? "w-6 bg-gold" : "w-1.5 bg-foreground/40"}`} />
                   ))}
                 </div>
               </>
             )}
           </>
         ) : (
-          <div className="w-full h-full bg-surface flex items-center justify-center">
-            <Building2 className="w-16 h-16 text-muted-foreground/30" />
+          <div className="w-full h-full bg-gradient-to-br from-gold/20 via-background to-background flex flex-col items-center justify-center gap-3">
+            {isLogoOnly && place.image_url ? (
+              <img src={place.image_url} alt={place.name} className="w-24 h-24 object-contain rounded-2xl" />
+            ) : (
+              <Building2 className="w-16 h-16 text-muted-foreground/20" />
+            )}
+          </div>
+        )}
+
+        {/* Logo overlay if we have hero images AND a logo */}
+        {isLogoOnly && place.image_url && allImages.length > 0 && (
+          <div className="absolute bottom-20 left-5 w-16 h-16 rounded-2xl bg-card border-2 border-border shadow-xl overflow-hidden">
+            <img src={place.image_url} alt="" className="w-full h-full object-contain p-1.5" />
           </div>
         )}
 
         {/* Nav */}
         <div className="absolute top-12 left-4 right-4 flex items-center justify-between">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-background/40 backdrop-blur-xl flex items-center justify-center hover:bg-background/60 transition-colors">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <button onClick={handleShare} className="w-10 h-10 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center">
+          <button onClick={handleShare} className="w-10 h-10 rounded-full bg-background/40 backdrop-blur-xl flex items-center justify-center hover:bg-background/60 transition-colors">
             <Share2 className="w-5 h-5 text-foreground" />
           </button>
         </div>
 
         {/* Badges */}
-        <div className="absolute bottom-16 left-4 flex items-center gap-2">
+        <div className="absolute bottom-20 right-4 flex flex-col items-end gap-1.5">
           {isPartner && (
-            <div className="flex items-center gap-1.5 bg-gold px-3 py-1.5 rounded-full shadow-lg">
+            <div className="flex items-center gap-1.5 bg-gold/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <span className="text-xs">⭐</span>
               <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">Partenaire</span>
             </div>
           )}
           {hasOffer && (
-            <div className="flex items-center gap-1.5 bg-destructive px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+            <div className="flex items-center gap-1.5 bg-destructive/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg animate-pulse">
               <span className="text-xs">🔥</span>
               <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wider">Offre ce soir</span>
             </div>
@@ -232,33 +251,33 @@ export default function VenuePage() {
         </div>
 
         {/* Viewer count */}
-        <div className="absolute bottom-16 right-4 flex items-center gap-1 bg-background/60 backdrop-blur-md px-2.5 py-1.5 rounded-full">
-          <Users className="w-3.5 h-3.5 text-gold" />
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-background/40 backdrop-blur-xl px-3 py-1.5 rounded-full">
+          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
           <span className="text-[11px] text-foreground font-medium">{viewerCount} en ligne</span>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="px-5 -mt-8 relative z-10 space-y-5">
-        {/* Title */}
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-xl shadow-background/50">
+      <div className="px-5 -mt-10 relative z-10 space-y-4">
+        {/* Title card */}
+        <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border p-5 shadow-2xl shadow-background/60">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="font-display text-2xl font-bold text-foreground">{place.name}</h1>
-              <div className="flex items-center gap-2 mt-1">
+            <div className="flex-1 min-w-0">
+              <h1 className="font-display text-2xl font-bold text-foreground leading-tight">{place.name}</h1>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                 {place.category && (
-                  <div className="flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 bg-gold/10 px-2.5 py-0.5 rounded-full">
                     <Tag className="w-3 h-3 text-gold" />
-                    <span className="text-xs text-gold font-medium uppercase tracking-wider">{place.category}</span>
-                  </div>
+                    <span className="text-[11px] text-gold font-semibold uppercase tracking-wider">{place.category}</span>
+                  </span>
                 )}
-                {place.neighborhood && <span className="text-[11px] text-muted-foreground">· {place.neighborhood}</span>}
+                {place.neighborhood && <span className="text-[11px] text-muted-foreground">📍 {place.neighborhood}</span>}
               </div>
             </div>
             {place.rating && (
-              <div className="flex items-center gap-1 bg-gold/10 px-3 py-1.5 rounded-full shrink-0">
+              <div className="flex items-center gap-1 bg-gold/15 px-3 py-2 rounded-xl shrink-0">
                 <Star className="w-4 h-4 text-gold fill-gold" />
-                <span className="text-sm font-bold text-gold">{place.rating}</span>
+                <span className="text-base font-bold text-gold">{place.rating}</span>
               </div>
             )}
           </div>
@@ -268,11 +287,12 @@ export default function VenuePage() {
           {/* Action buttons */}
           <div className="flex gap-2 mt-4">
             <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20">
+              className="flex-1 flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-gold/20 text-primary-foreground"
+              style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)))" }}>
               <Navigation className="w-4 h-4" /> J'y vais
             </a>
             <button onClick={handleCheckin} disabled={checkedIn || checkingIn}
-              className={`px-5 flex items-center justify-center gap-2 font-semibold py-3 rounded-xl transition-colors border ${
+              className={`px-5 flex items-center justify-center gap-2 font-semibold py-3.5 rounded-xl transition-all active:scale-[0.98] border ${
                 checkedIn ? "bg-accent border-accent text-accent-foreground" : "bg-card border-border text-foreground hover:border-gold/40"
               }`}>
               <MapPin className="w-4 h-4" />
@@ -330,36 +350,48 @@ export default function VenuePage() {
 
         {/* Info section */}
         {(place.opening_hours || place.price_range || place.music_style || place.dress_code) && (
-          <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+          <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border p-5 space-y-3">
             <h2 className="font-display text-sm font-semibold text-foreground">Infos pratiques</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {place.opening_hours && (
-                <div className="flex items-start gap-2">
-                  <Clock className="w-4 h-4 text-gold mt-0.5 shrink-0" />
-                  <div><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Horaires</p><p className="text-xs text-foreground">{place.opening_hours}</p></div>
+                <div className="bg-muted/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-gold" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Horaires</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{place.opening_hours}</p>
                 </div>
               )}
               {place.price_range && (
-                <div className="flex items-start gap-2">
-                  <DollarSign className="w-4 h-4 text-gold mt-0.5 shrink-0" />
-                  <div><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Prix</p><p className="text-xs text-foreground">{place.price_range}</p></div>
+                <div className="bg-muted/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-gold" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Prix</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{place.price_range}</p>
                 </div>
               )}
               {place.music_style && (
-                <div className="flex items-start gap-2">
-                  <Music className="w-4 h-4 text-gold mt-0.5 shrink-0" />
-                  <div><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Musique</p><p className="text-xs text-foreground">{place.music_style}</p></div>
+                <div className="bg-muted/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Music className="w-3.5 h-3.5 text-gold" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Musique</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{place.music_style}</p>
                 </div>
               )}
               {place.dress_code && (
-                <div className="flex items-start gap-2">
-                  <Shirt className="w-4 h-4 text-gold mt-0.5 shrink-0" />
-                  <div><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Dress code</p><p className="text-xs text-foreground">{place.dress_code}</p></div>
+                <div className="bg-muted/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Shirt className="w-3.5 h-3.5 text-gold" />
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Dress code</span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{place.dress_code}</p>
                 </div>
               )}
             </div>
             {place.address && (
-              <div className="flex items-center gap-2 text-muted-foreground pt-1 border-t border-border">
+              <div className="flex items-center gap-2 text-muted-foreground pt-2 border-t border-border">
                 <MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" />
                 <span className="text-xs">{place.address}</span>
               </div>
@@ -367,16 +399,18 @@ export default function VenuePage() {
           </div>
         )}
 
-        {/* Mini map */}
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
-          <div className="h-40 bg-surface flex items-center justify-center">
-            <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer"
-              className="flex flex-col items-center gap-2 text-muted-foreground hover:text-gold transition-colors">
-              <MapPin className="w-8 h-8" />
-              <span className="text-xs font-medium">Voir sur Google Maps</span>
-            </a>
+        {/* Mini map CTA */}
+        <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-4 bg-card/95 backdrop-blur-xl rounded-2xl border border-border p-4 hover:border-gold/30 transition-colors group">
+          <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+            <Navigation className="w-5 h-5 text-gold" />
           </div>
-        </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground group-hover:text-gold transition-colors">Itinéraire</p>
+            <p className="text-[11px] text-muted-foreground">Ouvrir dans Google Maps</p>
+          </div>
+          <ChevronR className="w-5 h-5 text-muted-foreground group-hover:text-gold transition-colors" />
+        </a>
 
         {/* User vibes */}
         {userVibes.length > 0 && (
