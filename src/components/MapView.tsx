@@ -11,16 +11,32 @@ import MapSearchBar from "./MapSearchBar";
 import { LocateFixed, Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Place, VibePin } from "@/types/models";
-import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_FILTERS, MOOD_COLORS, MOOD_EMOJIS, CATEGORY_CONFIG, createCategoryIcon } from "./map/mapConstants";
+import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_COLORS, MOOD_EMOJIS, CATEGORY_CONFIG, createCategoryIcon } from "./map/mapConstants";
 import { useMapData, useMapInstance } from "./map/useMapData";
 import { FloatingBubble, CollapsibleLegend } from "./map/MapOverlays";
+import { useMapTheme } from "./map/MapThemeManager";
+import MapFiltersBar from "./map/MapFiltersBar";
+import VenuePreviewCard from "./map/VenuePreviewCard";
+import DistanceRings from "./map/DistanceRings";
 import { isBoosted } from "@/lib/boostedPlaces";
-import { computeEnergyScores, getEnergy } from "@/lib/energy";
+import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy";
+
+// Filter config for category matching
+const FILTER_CATEGORIES: Record<string, string[]> = {
+  rooftop: ["Rooftop"],
+  party: ["Nightlife", "Night", "Dinner Show"],
+  food: ["Restaurant", "Food"],
+  chill: ["Chill", "Cocktail Bar", "Café"],
+  pool: ["Pool Party"],
+};
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds } = useMapData(refreshSignal);
-  const { mapRef, userMarkerRef, handleGeolocate, handleRecenter } = useMapInstance(containerRef);
+  const { mapRef, userMarkerRef, userPosition, handleGeolocate, handleRecenter } = useMapInstance(containerRef);
+
+  // Day/Night theme
+  const { isNight } = useMapTheme(mapRef.current);
 
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -33,6 +49,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [bubbleIndex, setBubbleIndex] = useState(0);
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleDismissed, setBubbleDismissed] = useState(() => !!localStorage.getItem("wk_bubble_dismissed"));
+  const [tonightMode, setTonightMode] = useState(false);
+  const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
 
   // Map onboarding tooltips
   const [onboardingStep, setOnboardingStep] = useState(() => {
@@ -91,12 +109,50 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   }, [deepLinkPlaceId, places]);
 
+  // Filter places based on active filter + tonight mode
+  const getFilteredPlaces = useCallback(() => {
+    let filtered = [...places];
+
+    // Tonight mode: only show venues with official vibe, VIP offer, or recent checkins
+    if (tonightMode) {
+      const vibeLocations = new Set(
+        vibePins.filter(v => {
+          const age = Date.now() - new Date(v.created_at).getTime();
+          return age < SIX_HOURS || v.is_official;
+        }).map(v => v.location?.toLowerCase()).filter(Boolean)
+      );
+      filtered = filtered.filter(p =>
+        vibeLocations.has(p.name.toLowerCase()) ||
+        activeVipPlaceIds.has(p.id) ||
+        p.has_active_offer
+      );
+    }
+
+    // Category / special filters
+    if (activeFilter) {
+      if (activeFilter === "hot") {
+        filtered = filtered.filter(p => trendingLocations.has(p.name.toLowerCase()));
+      } else if (activeFilter === "offers") {
+        filtered = filtered.filter(p => p.is_partner && p.has_active_offer);
+      } else if (activeFilter === "near" && userPosition) {
+        filtered = filtered
+          .map(p => ({ ...p, _dist: getDistanceMeters(userPosition.lat, userPosition.lng, p.latitude, p.longitude) }))
+          .filter(p => (p as any)._dist < 1500)
+          .sort((a, b) => (a as any)._dist - (b as any)._dist);
+      } else if (FILTER_CATEGORIES[activeFilter]) {
+        const cats = FILTER_CATEGORIES[activeFilter];
+        filtered = filtered.filter(p => cats.includes(p.category || ""));
+      }
+    }
+
+    return filtered;
+  }, [places, activeFilter, tonightMode, vibePins, activeVipPlaceIds, trendingLocations, userPosition]);
+
   // Add place markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map || places.length === 0) return;
 
-    // Compute energy from vibes data
     const vibesForEnergy = vibePins.map(v => ({
       location: v.location,
       likes: 0,
@@ -107,31 +163,20 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     const energyMap = computeEnergyScores(vibesForEnergy);
 
     const markers: L.Marker[] = [];
+    const filteredPlaces = getFilteredPlaces();
+    const filteredIds = new Set(filteredPlaces.map(p => p.id));
 
     // Sort places so boosted ones render last (= on top visually)
-    const sortedPlaces = [...places].sort((a, b) => {
+    const sortedPlaces = [...filteredPlaces].sort((a, b) => {
       const aB = isBoosted(a.name);
       const bB = isBoosted(b.name);
-      if (aB && !bB) return 1; // boosted rendered last = on top
+      if (aB && !bB) return 1;
       if (!aB && bB) return -1;
       return 0;
     });
 
     sortedPlaces.forEach((place, index) => {
-      if (activeFilter) {
-        const mood = MOOD_FILTERS.find(m => m.key === activeFilter);
-        if (mood) {
-          if (mood.key === "hot") {
-            if (!trendingLocations.has(place.name.toLowerCase())) return;
-          } else if (mood.key === "offers") {
-            if (!place.is_partner || !place.has_active_offer) return;
-          } else if (mood.categories.length > 0 && !mood.categories.includes(place.category || "")) {
-            return;
-          }
-        }
-      }
       const isTrending = trendingLocations.has(place.name.toLowerCase());
-      // For guests: blur ~40% of non-partner markers to tease
       const shouldBlur = isGuest && !place.is_partner && !isTrending && index % 5 < 2;
       const energy = getEnergy(energyMap, place.name);
       const icon = createCategoryIcon(place.category, {
@@ -152,7 +197,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         .addTo(map)
         .on("click", () => {
           if (shouldBlur) {
-            // Show tooltip on blurred marker click
             L.popup({ closeButton: false, className: "guest-lock-popup", offset: [0, -10] })
               .setLatLng([place.latitude, place.longitude])
               .setContent('<div style="text-align:center;font-size:12px;font-weight:600;color:hsl(43,76%,52%)">🔒 Inscris-toi pour voir ce spot</div>')
@@ -160,22 +204,29 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             setTimeout(() => map.closePopup(), 2500);
             return;
           }
-          setSelectedPlace(place);
-          setSheetOpen(true);
+          // Show preview card instead of directly opening sheet
+          setPreviewPlace(place);
+          map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 15), { duration: 0.6 });
         });
-      // Staggered fade-in animation
-      const delay = isGuest ? Math.min(index * 80, 3000) : 0;
+
+      // Staggered discovery animation
+      const delay = Math.min(index * 60, 2500);
       setTimeout(() => {
         if (marker.getElement()) {
           marker.setOpacity(1);
-          marker.getElement()!.style.transition = "opacity 0.4s ease-out";
+          const el = marker.getElement()!;
+          el.style.transition = "opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+          el.style.transform = "scale(0)";
+          requestAnimationFrame(() => {
+            el.style.transform = "scale(1)";
+          });
         }
       }, delay);
       markers.push(marker);
     });
 
     return () => { markers.forEach((m) => m.remove()); };
-  }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds]);
+  }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds, tonightMode, vibePins, userPosition]);
 
   // Add vibe pins + heatmap
   useEffect(() => {
@@ -195,17 +246,23 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     const heatLayer = (L as any).heatLayer(heatPoints, {
       radius: 35, blur: 25, maxZoom: 17, minOpacity: 0.25, max: 1.0,
-      gradient: {
+      gradient: isNight ? {
         0.0: "rgba(0,0,0,0)",
         0.2: "hsla(30, 100%, 50%, 0.3)",
         0.4: "hsla(25, 100%, 50%, 0.5)",
         0.6: "hsla(15, 100%, 50%, 0.65)",
         0.8: "hsla(5, 90%, 50%, 0.8)",
         1.0: "hsla(0, 100%, 55%, 0.9)",
+      } : {
+        0.0: "rgba(0,0,0,0)",
+        0.2: "hsla(45, 100%, 60%, 0.25)",
+        0.4: "hsla(35, 100%, 55%, 0.4)",
+        0.6: "hsla(25, 100%, 50%, 0.55)",
+        0.8: "hsla(15, 90%, 50%, 0.7)",
+        1.0: "hsla(5, 100%, 50%, 0.85)",
       },
     }).addTo(map);
 
-    // Fade in the heat canvas
     const heatCanvas = (heatLayer as any)._canvas as HTMLCanvasElement | undefined;
     if (heatCanvas) {
       heatCanvas.style.transition = "opacity 0.4s ease-out";
@@ -249,7 +306,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           setSelectedVibe(vibe);
           setVibeSheetOpen(true);
         });
-      // Staggered fade-in
       const delay = Math.min(idx * 40, 800);
       setTimeout(() => {
         const el = marker.getElement();
@@ -264,7 +320,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     });
 
     return () => {
-      // Fade out before removing
       if (heatCanvas) {
         heatCanvas.style.opacity = "0";
       }
@@ -276,13 +331,19 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           el.style.transform = "scale(0.6)";
         }
       });
-      // Remove after animation completes
       setTimeout(() => {
         markers.forEach((m) => m.remove());
         map.removeLayer(heatLayer);
       }, 280);
     };
-  }, [vibePins, activeFilter, showVibes]);
+  }, [vibePins, activeFilter, showVibes, isNight]);
+
+  // Close preview when opening sheet
+  const handleOpenSheet = (place: Place) => {
+    setPreviewPlace(null);
+    setSelectedPlace(place);
+    setSheetOpen(true);
+  };
 
   const categories = Object.entries(CATEGORY_CONFIG);
 
@@ -290,9 +351,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     <div className="relative h-full w-full">
       <div
         ref={containerRef}
-        className="h-full w-full z-0 transition-[filter] duration-500 ease-out"
+        className={`h-full w-full z-0 transition-[filter] duration-500 ease-out ${isNight ? "" : "map-day-mode"}`}
         style={{ filter: sheetOpen || vibeSheetOpen ? "blur(6px) brightness(0.7)" : "none" }}
       />
+
+      {/* Distance rings */}
+      <DistanceRings map={mapRef.current} userPosition={userPosition} isNight={isNight} />
 
       {/* ===== UNIFIED HEADER ===== */}
       <AnimatePresence>
@@ -325,46 +389,37 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                     onSelect={(searchPlace) => {
                       const fullPlace = places.find((p) => p.id === searchPlace.id);
                       if (fullPlace) {
-                        setSelectedPlace(fullPlace);
-                        setSheetOpen(true);
+                        handleOpenSheet(fullPlace);
                         mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
                       }
                     }}
                   />
                 </div>
-                <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-foreground text-[9px] font-medium">
-                    {placesLoading ? "…" : `${places.length}`}
-                  </span>
+                <div className="flex items-center gap-1.5">
+                  {/* Night mode indicator */}
+                  {isNight && (
+                    <div className="flex items-center gap-1 bg-[hsl(280,50%,20%,0.6)] backdrop-blur-md border border-[hsl(280,60%,50%,0.3)] rounded-full px-2 py-0.5 shrink-0">
+                      <span className="text-[9px]">🌙</span>
+                      <span className="text-[hsl(280,60%,70%)] text-[9px] font-medium">Night</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-foreground text-[9px] font-medium">
+                      {placesLoading ? "…" : `${places.length}`}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-1 overflow-x-auto no-scrollbar mt-1.5 pointer-events-auto">
-                <button
-                  onClick={() => setActiveFilter(null)}
-                  className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all border ${
-                    activeFilter === null
-                      ? "bg-gold text-primary-foreground border-gold"
-                      : "bg-card/80 backdrop-blur-md text-muted-foreground border-border"
-                  }`}
-                >
-                  Tous
-                </button>
-                {MOOD_FILTERS.map((mood) => (
-                  <button
-                    key={mood.key}
-                    onClick={() => setActiveFilter(activeFilter === mood.key ? null : mood.key)}
-                    className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all border ${
-                      activeFilter === mood.key
-                        ? "bg-gold text-primary-foreground border-gold"
-                        : "bg-card/80 backdrop-blur-md text-muted-foreground border-border"
-                    }`}
-                  >
-                    <span className="text-[10px]">{mood.emoji}</span>
-                    {mood.label}
-                  </button>
-                ))}
+              {/* Enhanced filter bar */}
+              <div className="mt-1.5 pointer-events-auto">
+                <MapFiltersBar
+                  activeFilter={activeFilter}
+                  onFilterChange={setActiveFilter}
+                  tonightMode={tonightMode}
+                  onTonightToggle={() => setTonightMode(t => !t)}
+                />
               </div>
             </div>
           </motion.div>
@@ -448,8 +503,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               onPlaceClick={(name) => {
                 const place = places.find(p => p.name === name);
                 if (place) {
-                  setSelectedPlace(place);
-                  setSheetOpen(true);
+                  handleOpenSheet(place);
                   mapRef.current?.flyTo([place.latitude, place.longitude], 16, { duration: 0.8 });
                 }
               }}
@@ -458,9 +512,26 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Floating bubble */}
+      {/* Venue Preview Card (swipeable) */}
       <AnimatePresence>
-        {showBubble && !bubbleDismissed && !sheetOpen && !vibeSheetOpen && (
+        {previewPlace && !sheetOpen && !vibeSheetOpen && (
+          <VenuePreviewCard
+            places={getFilteredPlaces()}
+            selectedPlace={previewPlace}
+            onSelect={(p) => {
+              setPreviewPlace(p);
+              mapRef.current?.flyTo([p.latitude, p.longitude], Math.max(mapRef.current.getZoom(), 15), { duration: 0.6 });
+            }}
+            onOpenSheet={handleOpenSheet}
+            userPosition={userPosition}
+            activeVipPlaceIds={activeVipPlaceIds}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Floating bubble — hide when preview is showing */}
+      <AnimatePresence>
+        {showBubble && !bubbleDismissed && !sheetOpen && !vibeSheetOpen && !previewPlace && (
           <motion.div
             key="floating-bubble"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -472,7 +543,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               places={places}
               bubbleIndex={bubbleIndex}
               setBubbleIndex={setBubbleIndex}
-              onPlaceClick={(place) => { setSelectedPlace(place); setSheetOpen(true); }}
+              onPlaceClick={(place) => { handleOpenSheet(place); }}
               onDismiss={() => {
                 setBubbleDismissed(true);
                 localStorage.setItem("wk_bubble_dismissed", "1");
@@ -530,7 +601,27 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       </AnimatePresence>
 
       {/* Legend */}
-      {bubbleDismissed && <CollapsibleLegend categories={categories} />}
+      {bubbleDismissed && !previewPlace && <CollapsibleLegend categories={categories} />}
+
+      {/* Tonight mode active indicator */}
+      <AnimatePresence>
+        {tonightMode && !sheetOpen && !vibeSheetOpen && (
+          <motion.div
+            key="tonight-indicator"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-[88px] left-3 z-[999]"
+          >
+            <div className="flex items-center gap-1.5 bg-[hsl(280,50%,15%,0.9)] backdrop-blur-xl border border-[hsl(280,60%,50%,0.3)] rounded-full px-3 py-1.5 shadow-lg">
+              <span className="text-xs">🌙</span>
+              <span className="text-[10px] font-bold text-[hsl(280,60%,75%)]">Tonight Mode</span>
+              <span className="text-[10px] text-[hsl(280,40%,60%)]">·</span>
+              <span className="text-[10px] text-[hsl(280,40%,60%)]">{getFilteredPlaces().length} spots</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Onboarding tooltips */}
       <AnimatePresence>
@@ -594,7 +685,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         </div>
       )}
 
-      <PlaceSheet place={selectedPlace} open={sheetOpen} onOpenChange={setSheetOpen} />
+      <PlaceSheet place={selectedPlace} open={sheetOpen} onOpenChange={(open) => { setSheetOpen(open); if (!open) setPreviewPlace(null); }} />
       <VibeSheet vibe={selectedVibe} open={vibeSheetOpen} onOpenChange={setVibeSheetOpen} />
     </div>
   );
