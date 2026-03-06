@@ -67,6 +67,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const { user } = useAuth();
   const [isVip, setIsVip] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);
+  const [vipOffers, setVipOffers] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user || !open) return;
@@ -80,6 +81,16 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
     supabase.from("partner_offers").select("*").eq("place_id", place.id).eq("is_active", true).then(({ data }) => {
       if (data) setOffers(data.filter((o: any) => !o.expiration_date || new Date(o.expiration_date) > new Date()));
     });
+    // Fetch active VIP offers for this place
+    const now = new Date().toISOString();
+    (supabase.from("vip_offers") as any)
+      .select("id, title, description, perk_type, start_time, end_time")
+      .eq("place_id", place.id)
+      .eq("is_active", true)
+      .or(`end_time.is.null,end_time.gte.${now}`)
+      .then(({ data }: any) => {
+        if (data) setVipOffers(data);
+      });
   }, [place?.id, open]);
 
   useEffect(() => { setGalleryIndex(0); }, [place?.id]);
@@ -171,7 +182,29 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     <>
                       {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
 
-                      {isPartner && hasOffer && (
+                      {isPartner && vipOffers.length > 0 && (
+                        <div className="space-y-2">
+                          {vipOffers.map((vip) => {
+                            const perkEmoji = vip.perk_type === "drink" ? "🍸" : vip.perk_type === "food" ? "🍽️" : vip.perk_type === "entry" ? "🎫" : "🎁";
+                            return (
+                              <div key={vip.id} className="bg-gold/10 border border-gold/25 rounded-xl p-4 space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-base">{perkEmoji}</span>
+                                  <span className="text-sm font-bold text-gold">{vip.title}</span>
+                                </div>
+                                <p className="text-xs text-foreground/80 leading-relaxed">{vip.description}</p>
+                                {vip.end_time && (
+                                  <p className="text-[10px] text-muted-foreground">
+                                    Jusqu'à {new Date(vip.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {isPartner && hasOffer && vipOffers.length === 0 && (
                         <div className="bg-gold/10 border border-gold/25 rounded-xl p-4 space-y-2">
                           <div className="flex items-center gap-2"><Gift className="w-4 h-4 text-gold" /><span className="text-sm font-semibold text-gold">{t("place_insiderOffer")}</span></div>
                           <p className="text-xs text-foreground/80">{t("place_insiderOfferDesc")} {place.name}.</p>
