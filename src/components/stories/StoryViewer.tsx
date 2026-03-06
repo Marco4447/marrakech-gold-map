@@ -4,6 +4,10 @@ import { X, MapPin, Star, ChevronRight } from "lucide-react";
 import { timeAgo } from "@/lib/timeAgo";
 import type { Story } from "@/hooks/useStories";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import StoryReactions, { StoryDoubleTapHeart } from "./StoryReactions";
+import { supabase } from "@/integrations/supabase/client";
+import { getDeviceId } from "@/lib/deviceId";
 
 const BADGE_COLORS: Record<string, string> = {
   "HOT TONIGHT": "bg-destructive",
@@ -21,17 +25,21 @@ interface StoryViewerProps {
   onViewed: (storyId: string) => void;
 }
 
-const STORY_DURATION = 10000; // 10s
+const STORY_DURATION = 10000;
 const TICK = 50;
 
 export default function StoryViewer({ stories, initialIndex, onClose, onViewed }: StoryViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [showHeart, setShowHeart] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const touchStartY = useRef<number | null>(null);
+  const lastTapTime = useRef(0);
+  const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const story = stories[currentIndex];
 
@@ -66,12 +74,40 @@ export default function StoryViewer({ stories, initialIndex, onClose, onViewed }
     setCurrentIndex((i) => Math.max(0, i - 1));
   }, []);
 
-  // Tap navigation
+  // Double-tap like handler
+  const handleDoubleTapLike = useCallback(async () => {
+    setShowHeart(true);
+    if (heartTimer.current) clearTimeout(heartTimer.current);
+    heartTimer.current = setTimeout(() => setShowHeart(false), 800);
+
+    const deviceId = getDeviceId();
+    await supabase.from("story_reactions" as any).upsert(
+      { story_id: story.id, user_id: user?.id || null, device_id: deviceId, emoji: "❤️" } as any,
+      { onConflict: "story_id,device_id,emoji" }
+    );
+  }, [story?.id, user?.id]);
+
+  // Tap navigation with double-tap detection
   const handleTap = (e: React.MouseEvent) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    if (x < rect.width / 3) goPrev();
-    else if (x > (rect.width * 2) / 3) goNext();
+    const now = Date.now();
+    if (now - lastTapTime.current < 300) {
+      // Double tap
+      e.stopPropagation();
+      handleDoubleTapLike();
+      lastTapTime.current = 0;
+      return;
+    }
+    lastTapTime.current = now;
+
+    // Delay single tap to avoid conflict with double tap
+    setTimeout(() => {
+      if (Date.now() - lastTapTime.current >= 280) {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        if (x < rect.width / 3) goPrev();
+        else if (x > (rect.width * 2) / 3) goNext();
+      }
+    }, 300);
   };
 
   // Swipe down to close
@@ -185,14 +221,25 @@ export default function StoryViewer({ stories, initialIndex, onClose, onViewed }
             />
           )}
 
+          {/* Double-tap heart animation */}
+          <StoryDoubleTapHeart show={showHeart} />
+
           {/* Caption overlay */}
           {story.caption && (
-            <div className="absolute bottom-24 left-4 right-4 text-center">
+            <div className="absolute bottom-24 left-4 right-16 text-center">
               <p className="text-white text-sm font-medium drop-shadow-lg bg-black/30 backdrop-blur-sm px-4 py-2 rounded-xl inline-block">
                 {story.caption}
               </p>
             </div>
           )}
+
+          {/* Reaction buttons */}
+          <StoryReactions
+            storyId={story.id}
+            userId={user?.id}
+            paused={paused}
+            onPause={setPaused}
+          />
         </div>
 
         {/* Place info card at bottom */}
