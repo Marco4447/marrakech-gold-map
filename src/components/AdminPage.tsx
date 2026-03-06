@@ -991,6 +991,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
               )}
             </>
           )}
+
+          {/* === VIP OFFERS === */}
+          {tab === "vip" && <AdminVipOffers />}
         </div>
       )}
     </div>
