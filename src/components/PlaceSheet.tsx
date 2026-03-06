@@ -68,6 +68,14 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
   const [isVip, setIsVip] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);
   const [vipOffers, setVipOffers] = useState<any[]>([]);
+  const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string } | null>(null);
+
+  useEffect(() => {
+    if (!place?.id || !open) return;
+    supabase.from("places").select("opening_hours, price_range, music_style, dress_code").eq("id", place.id).single().then(({ data }) => {
+      if (data) setPlaceDetails(data);
+    });
+  }, [place?.id, open]);
 
   useEffect(() => {
     if (!user || !open) return;
