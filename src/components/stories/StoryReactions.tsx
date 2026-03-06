@@ -16,15 +16,19 @@ interface StoryReactionsProps {
   userId?: string | null;
   paused: boolean;
   onPause: (p: boolean) => void;
+  doubleTapSignal?: number;
 }
 
-export default function StoryReactions({ storyId, userId, paused, onPause }: StoryReactionsProps) {
+export default function StoryReactions({ storyId, userId, paused, onPause, doubleTapSignal = 0 }: StoryReactionsProps) {
   const [liked, setLiked] = useState(false);
   const [sentEmojis, setSentEmojis] = useState<Set<string>>(new Set());
   const [floatingEmoji, setFloatingEmoji] = useState<string | null>(null);
   const [showBar, setShowBar] = useState(false);
+  const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false);
   const floatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const deviceId = useRef(getDeviceId());
+  const prevSignal = useRef(0);
 
   // Reset state when story changes
   useEffect(() => {
@@ -47,6 +51,25 @@ export default function StoryReactions({ storyId, userId, paused, onPause }: Sto
       }
     })();
   }, [storyId]);
+
+  // Handle double-tap signal from StoryViewer
+  useEffect(() => {
+    if (doubleTapSignal > 0 && doubleTapSignal !== prevSignal.current) {
+      prevSignal.current = doubleTapSignal;
+      if (!liked) {
+        // Like it
+        setLiked(true);
+        supabase.from("story_reactions" as any).upsert(
+          { story_id: storyId, user_id: userId || null, device_id: deviceId.current, emoji: "❤️" } as any,
+          { onConflict: "story_id,device_id,emoji" }
+        );
+      }
+      // Always show the big heart animation
+      setShowDoubleTapHeart(true);
+      if (heartTimer.current) clearTimeout(heartTimer.current);
+      heartTimer.current = setTimeout(() => setShowDoubleTapHeart(false), 800);
+    }
+  }, [doubleTapSignal, liked, storyId, userId]);
 
   // Toggle like (Instagram-style)
   const toggleLike = useCallback(async () => {
@@ -98,6 +121,9 @@ export default function StoryReactions({ storyId, userId, paused, onPause }: Sto
 
   return (
     <>
+      {/* Double-tap heart animation */}
+      <StoryDoubleTapHeart show={showDoubleTapHeart} />
+
       {/* Action buttons */}
       <div className="absolute bottom-28 right-4 z-20 flex flex-col items-center gap-3">
         {/* Like toggle button */}
