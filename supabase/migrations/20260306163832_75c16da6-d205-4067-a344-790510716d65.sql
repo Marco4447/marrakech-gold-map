@@ -1,0 +1,1 @@
+UPDATE places SET image_url = 'https://pyocqorzbsshawgknmpr.supabase.co/storage/v1/object/public/vibes_media/places/coco-logo.png' WHERE id = '081592db-b7b2-4094-85cf-cf7f5dd5d099';
