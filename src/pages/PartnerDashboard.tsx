@@ -161,11 +161,25 @@ export default function PartnerDashboard() {
         .eq("partner_id", user.id).eq("status", "active").order("created_at", { ascending: false }).limit(1).maybeSingle();
       if (subData) {
         setPlanType(subData.plan_type as PlanType);
-        setPlaceId(subData.place_id);
+        if (subData.place_id) setPlaceId(subData.place_id);
       }
 
-      // Fallback: find place from vibes
+      // Resolve place_id: subscription > partner_accounts > vibes fallback
       let resolvedPlaceId = subData?.place_id ?? null;
+
+      if (!resolvedPlaceId) {
+        const { data: accountData } = await supabase.from("partner_accounts")
+          .select("place_id")
+          .eq("user_id", user.id)
+          .eq("approved", true)
+          .limit(1)
+          .maybeSingle();
+        if (accountData?.place_id) {
+          resolvedPlaceId = accountData.place_id;
+          setPlaceId(resolvedPlaceId);
+        }
+      }
+
       if (!resolvedPlaceId) {
         const { data: vb } = await supabase.from("vibes").select("location").eq("user_id", user.id).eq("is_official", true).not("location", "is", null).limit(1);
         if (vb?.[0]?.location) {
