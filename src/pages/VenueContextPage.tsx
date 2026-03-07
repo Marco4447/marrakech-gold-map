@@ -275,22 +275,29 @@ export default function VenueContextPage() {
         </motion.div>
 
         {/* Check-in button */}
-        <motion.button
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          onClick={handleCheckin}
-          disabled={isCheckedIn}
-          className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
-            isCheckedIn
-              ? "bg-green-500/15 border border-green-500/30 text-green-400"
-              : "bg-gold/15 border border-gold/30 text-gold hover:bg-gold/25"
-          }`}
-        >
-          {isCheckedIn ? (
-            <><CheckCircle2 className="w-4 h-4" /> Checked-in ✓</>
-          ) : (
-            <><MapPin className="w-4 h-4" /> Check-in ici</>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="space-y-2">
+          <button
+            onClick={handleCheckin}
+            disabled={isCheckedIn}
+            className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
+              isCheckedIn
+                ? "bg-green-500/15 border border-green-500/30 text-green-400"
+                : "bg-gold/15 border border-gold/30 text-gold hover:bg-gold/25"
+            }`}
+          >
+            {isCheckedIn ? (
+              <><CheckCircle2 className="w-4 h-4" /> Tu es ici · {checkinCount} {checkinCount > 1 ? "personnes" : "personne"} présente{checkinCount > 1 ? "s" : ""}</>
+            ) : (
+              <><MapPin className="w-4 h-4" /> Check-in ici</>
+            )}
+          </button>
+          {!isCheckedIn && (
+            <p className="text-[11px] text-muted-foreground text-center">
+              🔓 Check-in pour débloquer les offres VIP de ce lieu
+            </p>
           )}
-        </motion.button>
+        </motion.div>
 
         {/* Inline Auth Prompt */}
         <AnimatePresence>
