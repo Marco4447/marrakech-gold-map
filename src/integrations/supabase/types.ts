@@ -235,6 +235,7 @@ export type Database = {
           initial_plan: string | null
           initial_plan_days: number
           place_id: string
+          referred_by: string | null
           token: string
           used_at: string | null
           used_by: string | null
@@ -249,6 +250,7 @@ export type Database = {
           initial_plan?: string | null
           initial_plan_days?: number
           place_id: string
+          referred_by?: string | null
           token?: string
           used_at?: string | null
           used_by?: string | null
@@ -263,6 +265,7 @@ export type Database = {
           initial_plan?: string | null
           initial_plan_days?: number
           place_id?: string
+          referred_by?: string | null
           token?: string
           used_at?: string | null
           used_by?: string | null
