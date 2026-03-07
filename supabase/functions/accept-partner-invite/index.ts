@@ -23,7 +23,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // User client to get the authenticated user
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -43,7 +42,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Admin client for privileged operations
     const admin = createClient(supabaseUrl, serviceKey);
 
     // Fetch the invite
@@ -86,26 +84,45 @@ Deno.serve(async (req) => {
       { onConflict: "user_id,place_id" }
     );
 
-    // 3. Initialize partner credits
+    // 3. Initialize partner credits (with initial_credits from invite)
+    const initialCredits = invite.initial_credits || 0;
     await admin.from("partner_credits").upsert(
-      { user_id: user.id, credits: 0 },
+      { user_id: user.id, credits: initialCredits },
       { onConflict: "user_id" }
     );
 
     // 4. Set place as partner
     await admin.from("places").update({ is_partner: true }).eq("id", invite.place_id);
 
-    // 5. Mark invite as used
+    // 5. Create subscription if initial_plan is set
+    if (invite.initial_plan) {
+      const planDays = invite.initial_plan_days || 30;
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + planDays);
+
+      await admin.from("partner_subscriptions").insert({
+        partner_id: user.id,
+        place_id: invite.place_id,
+        plan_type: invite.initial_plan,
+        status: "active",
+        start_date: new Date().toISOString(),
+        end_date: endDate.toISOString(),
+      });
+    }
+
+    // 6. Mark invite as used
     await admin.from("partner_invites").update({
       used_by: user.id,
       used_at: new Date().toISOString(),
     }).eq("id", invite.id);
 
-    // 6. Log admin event
+    // 7. Log admin event
+    const planLabel = invite.initial_plan ? ` — Plan ${invite.initial_plan} (${invite.initial_plan_days}j)` : "";
+    const creditsLabel = initialCredits > 0 ? ` + ${initialCredits} crédits` : "";
     await admin.from("admin_events").insert({
       event_type: "partner_onboarded",
       title: "🤝 Partenaire activé",
-      body: `${invite.business_name} — via lien d'invitation`,
+      body: `${invite.business_name}${planLabel}${creditsLabel}`,
       metadata: { user_id: user.id, place_id: invite.place_id, invite_id: invite.id },
     });
 
