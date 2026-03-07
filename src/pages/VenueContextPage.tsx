@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn } from "lucide-react";
+import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn, Star } from "lucide-react";
 import { toast } from "sonner";
 
 interface VenuePlace {
@@ -56,7 +56,11 @@ export default function VenueContextPage() {
   const [loading, setLoading] = useState(true);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [totalUserCheckins, setTotalUserCheckins] = useState(0);
   const pendingActionRef = useRef<PendingAction | null>(null);
+
+  const HABITUE_THRESHOLD = 3;
+  const isHabitue = totalUserCheckins >= HABITUE_THRESHOLD;
 
   // Persist pending action across auth redirects
   useEffect(() => {
@@ -117,6 +121,14 @@ export default function VenueContextPage() {
           .gte("expires_at", now)
           .limit(1);
         setIsCheckedIn((existing?.length ?? 0) > 0);
+
+        // Total check-ins for loyalty
+        const { count: totalCount } = await (supabase
+          .from("checkins" as any) as any)
+          .select("id", { count: "exact", head: true })
+          .eq("place_id", p.id)
+          .eq("user_id", user.id);
+        setTotalUserCheckins(totalCount ?? 0);
       }
 
       setLoading(false);
@@ -169,7 +181,13 @@ export default function VenueContextPage() {
     if (error) { toast.error("Erreur"); console.error(error); return; }
     setIsCheckedIn(true);
     setCheckinCount((c) => c + 1);
-    toast.success("Check-in réussi ! 🎉");
+    const newTotal = totalUserCheckins + 1;
+    setTotalUserCheckins(newTotal);
+    if (newTotal >= HABITUE_THRESHOLD) {
+      toast.success(`⭐ Tu es maintenant Habitué de ${place.name} !`, { duration: 5000 });
+    } else {
+      toast.success(`Check-in réussi ! 🎉 (${newTotal}/${HABITUE_THRESHOLD} pour devenir Habitué)`);
+    }
   };
 
   const handleCheckin = async () => {
@@ -299,7 +317,46 @@ export default function VenueContextPage() {
           )}
         </motion.div>
 
-        {/* Inline Auth Prompt */}
+        {/* Loyalty progress */}
+        {user && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+            className={`rounded-2xl p-4 border ${isHabitue ? "bg-gold/10 border-gold/30" : "bg-card/80 border-border"}`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isHabitue ? "bg-gold/20" : "bg-muted"}`}>
+                <Star className={`w-5 h-5 ${isHabitue ? "text-gold fill-gold" : "text-muted-foreground"}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-foreground">
+                    {isHabitue ? "⭐ Habitué" : "Fidélité"}
+                  </p>
+                  {isHabitue && (
+                    <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded-full font-semibold">
+                      Statut débloqué
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {isHabitue
+                    ? `${totalUserCheckins} visites · Le staff te reconnaît 🤝`
+                    : `${totalUserCheckins}/${HABITUE_THRESHOLD} check-ins pour devenir Habitué`
+                  }
+                </p>
+              </div>
+            </div>
+            {!isHabitue && (
+              <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gold rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((totalUserCheckins / HABITUE_THRESHOLD) * 100, 100)}%` }}
+                  transition={{ delay: 0.3, duration: 0.6 }}
+                />
+              </div>
+            )}
+          </motion.div>
+        )}
+
         <AnimatePresence>
           {showAuthPrompt && !user && (
             <motion.div
