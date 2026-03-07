@@ -113,6 +113,8 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
   // Partner invite links
   const [inviteLinks, setInviteLinks] = useState<Record<string, string>>({});
+  // Place selection for each request
+  const [requestPlaceIds, setRequestPlaceIds] = useState<Record<string, string>>({});
 
   const fetchChallenges = async () => {
     const { data } = await supabase.from("weekly_challenges" as any).select("*").order("created_at", { ascending: false }).limit(20);
@@ -180,13 +182,16 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
       if (error) throw error;
 
       if (newStatus === "approved") {
-        await supabase.from("places").update({ is_partner: true, has_active_offer: true } as any).ilike("name", req.business_name);
-
-        // Find matching place for the invite link
-        const { data: matchedPlaces } = await supabase.from("places").select("id").ilike("name", req.business_name).limit(1);
-        const placeId = matchedPlaces?.[0]?.id;
+        // Use the manually selected place, or fallback to name match
+        let placeId = requestPlaceIds[req.id];
+        if (!placeId) {
+          const { data: matchedPlaces } = await supabase.from("places").select("id").ilike("name", req.business_name).limit(1);
+          placeId = matchedPlaces?.[0]?.id;
+        }
 
         if (placeId) {
+          await supabase.from("places").update({ is_partner: true } as any).eq("id", placeId);
+
           // Generate partner invite
           const { data: invite, error: inviteErr } = await supabase.from("partner_invites" as any).insert({
             place_id: placeId,
@@ -202,7 +207,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
             toast.success(`${req.business_name} approuvé ✅ (lien non généré)`);
           }
         } else {
-          toast.info(`${req.business_name} approuvé, mais aucun lieu trouvé avec ce nom. Crée le spot d'abord.`);
+          toast.info(`${req.business_name} approuvé, mais aucun lieu sélectionné. Crée le spot d'abord.`);
         }
 
         // Also assign role if user_id exists
