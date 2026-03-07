@@ -115,7 +115,7 @@ const Index = () => {
         {activeTab === "feed" && (isGuest ? <AuthGate /> : <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />)}
         {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
         {activeTab === "discover" && (isGuest ? <AuthGate /> : <DiscoverTab onGoToMap={handleGoToMap} />)}
-        {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onOpenAdmin={() => setShowAdmin(true)} onClose={() => setActiveTab("feed")} />)}
+        {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onClose={() => setActiveTab("feed")} />)}
       </div>
 
       {/* Guest CTA on map */}
