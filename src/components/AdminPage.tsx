@@ -194,11 +194,14 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         if (placeId) {
           await supabase.from("places").update({ is_partner: true } as any).eq("id", placeId);
 
-          // Generate partner invite
+          // Generate partner invite with config
           const { data: invite, error: inviteErr } = await supabase.from("partner_invites" as any).insert({
             place_id: placeId,
             business_name: req.business_name,
             created_by: (await supabase.auth.getUser()).data.user?.id,
+            initial_credits: requestCredits[req.id] || 0,
+            initial_plan: requestPlan[req.id] || null,
+            initial_plan_days: requestPlanDays[req.id] || 30,
           } as any).select("token").single();
 
           if (!inviteErr && invite) {
