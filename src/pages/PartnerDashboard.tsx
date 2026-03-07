@@ -11,6 +11,7 @@ import PartnerOverview from "@/components/partner/PartnerOverview";
 import PartnerCommunity from "@/components/partner/PartnerCommunity";
 import PartnerAnalytics from "@/components/partner/PartnerAnalytics";
 import PartnerBilling from "@/components/partner/PartnerBilling";
+import PartnerReferral from "@/components/partner/PartnerReferral";
 import PartnerPromotions from "@/components/partner/PartnerPromotions";
 import { planAllows, type PlanType } from "@/lib/partnerPlans";
 import PartnerQRCode from "@/components/partner/PartnerQRCode";
