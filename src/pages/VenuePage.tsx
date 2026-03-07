@@ -333,6 +333,15 @@ export default function VenuePage() {
           </motion.div>
         )}
 
+        {/* Share CTA */}
+        {isPartner && vipOffers.length > 0 && (
+          <ShareOfferCTA
+            placeName={place.name}
+            slug={place.slug || null}
+            offerTitle={vipOffers[0]?.title}
+          />
+        )}
+
         {/* Partner offers */}
         {offers.length > 0 && (
           <div className="space-y-2">
