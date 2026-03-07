@@ -561,13 +561,11 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       });
       clearTimeout(globalTimeout);
 
-      // Show success animation
+      // Show success animation, then boost upsell
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        resetState();
-        onPosted?.();
-        onClose();
+        setShowBoostUpsell(true);
       }, 1200);
     } catch (err) {
       clearTimeout(globalTimeout);
