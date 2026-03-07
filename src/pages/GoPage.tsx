@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import heroImage from "@/assets/marrakech-hero.jpg";
-import { ttqTrack } from "@/lib/ttq";
+import { ttqTrack, ttqIdentify } from "@/lib/ttq";
 import { trackEvent } from "@/lib/analytics";
 import { useLanguage } from "@/i18n/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
