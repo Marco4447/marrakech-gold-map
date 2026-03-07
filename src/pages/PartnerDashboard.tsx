@@ -346,6 +346,9 @@ export default function PartnerDashboard() {
 
             {/* Community: Habitués & Followers */}
             <PartnerCommunity placeId={placeId} />
+
+            {/* Partner Referral */}
+            <PartnerReferral userId={user.id} businessName={location || "Mon établissement"} />
           </div>
         )}
 
