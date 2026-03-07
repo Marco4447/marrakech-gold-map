@@ -123,6 +123,21 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   }, [places, vibePins, trendingLocations, deepLinkPlaceId]);
 
+  // Auto-fit bounds when filter changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || places.length === 0) return;
+    // Skip on initial load (handled by hasAutoFitted)
+    if (!hasAutoFitted.current) return;
+
+    const filtered = getFilteredPlaces();
+    if (filtered.length === 0) return;
+
+    const points: L.LatLngExpression[] = filtered.map(p => [p.latitude, p.longitude]);
+    const bounds = L.latLngBounds(points);
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true, duration: 0.6 });
+  }, [activeFilter, tonightMode]);
+
   // Fly to coordinates
   useEffect(() => {
     if (flyToCoords && mapRef.current) {
