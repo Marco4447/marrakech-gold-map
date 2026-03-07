@@ -371,10 +371,13 @@ export default function VenueContextPage() {
                 <div className="text-center">
                   <LogIn className="w-8 h-8 text-gold mx-auto mb-2" />
                   <h3 className="font-display text-base font-bold text-foreground">
-                    Connecte-toi pour continuer
+                    {offers.length > 0
+                      ? `${PERK_EMOJIS[offers[0].perk_type] || "🎁"} ${offers[0].title} t'attend !`
+                      : `Profite de ${place.name}`
+                    }
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Crée ton compte en 2 secondes pour profiter de {place.name}
+                    Inscris-toi gratuitement en 2 sec pour en profiter
                   </p>
                 </div>
 
