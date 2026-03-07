@@ -14,6 +14,8 @@ import { getShareUrl } from "@/lib/shareUrl";
 import DealTunnel from "@/components/DealTunnel";
 import PremiumLock from "@/components/PremiumLock";
 import PartnerOfferCard from "@/components/PartnerOfferCard";
+import FomoCountdown from "@/components/FomoCountdown";
+import ShareOfferCTA from "@/components/ShareOfferCTA";
 
 interface PlaceData {
   id: string;
@@ -317,9 +319,7 @@ export default function VenuePage() {
                   </div>
                   <p className="text-xs text-foreground/80 leading-relaxed">{vip.description}</p>
                   {vip.end_time && (
-                    <p className="text-[10px] text-muted-foreground">
-                      Valable jusqu'à {new Date(vip.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                    </p>
+                    <FomoCountdown endTime={vip.end_time} className="mt-1" />
                   )}
                   {isVip && (
                     <Link to={`/go/${place.slug}`}
@@ -331,6 +331,15 @@ export default function VenuePage() {
               );
             })}
           </motion.div>
+        )}
+
+        {/* Share CTA */}
+        {isPartner && vipOffers.length > 0 && (
+          <ShareOfferCTA
+            placeName={place.name}
+            slug={place.slug || null}
+            offerTitle={vipOffers[0]?.title}
+          />
         )}
 
         {/* Partner offers */}
