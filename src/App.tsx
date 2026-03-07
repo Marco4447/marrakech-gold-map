@@ -36,6 +36,7 @@ const VipPassPage = lazy(() => import("./pages/VipPassPage"));
 const ScanPage = lazy(() => import("./pages/ScanPage"));
 const VenuePage = lazy(() => import("./pages/VenuePage"));
 const PartnerInvitePage = lazy(() => import("./pages/PartnerInvitePage"));
+const AdminRoute = lazy(() => import("./pages/AdminRoute"));
 
 const queryClient = new QueryClient();
 
