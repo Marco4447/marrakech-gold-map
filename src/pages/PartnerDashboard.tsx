@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
 import PartnerOffersManager from "@/components/PartnerOffersManager";
 import PartnerOverview from "@/components/partner/PartnerOverview";
+import PartnerCommunity from "@/components/partner/PartnerCommunity";
 import PartnerAnalytics from "@/components/partner/PartnerAnalytics";
 import PartnerBilling from "@/components/partner/PartnerBilling";
 import PartnerPromotions from "@/components/partner/PartnerPromotions";
@@ -328,6 +329,9 @@ export default function PartnerDashboard() {
 
             {/* Quick stats */}
             <PartnerOverview userId={user.id} placeId={placeId} planType={planType} credits={credits} />
+
+            {/* Community: Habitués & Followers */}
+            <PartnerCommunity placeId={placeId} />
           </div>
         )}
 
