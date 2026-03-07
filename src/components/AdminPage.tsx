@@ -113,6 +113,8 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
   // Partner invite links
   const [inviteLinks, setInviteLinks] = useState<Record<string, string>>({});
+  // Place selection for each request
+  const [requestPlaceIds, setRequestPlaceIds] = useState<Record<string, string>>({});
 
   const fetchChallenges = async () => {
     const { data } = await supabase.from("weekly_challenges" as any).select("*").order("created_at", { ascending: false }).limit(20);
@@ -180,13 +182,16 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
       if (error) throw error;
 
       if (newStatus === "approved") {
-        await supabase.from("places").update({ is_partner: true, has_active_offer: true } as any).ilike("name", req.business_name);
-
-        // Find matching place for the invite link
-        const { data: matchedPlaces } = await supabase.from("places").select("id").ilike("name", req.business_name).limit(1);
-        const placeId = matchedPlaces?.[0]?.id;
+        // Use the manually selected place, or fallback to name match
+        let placeId = requestPlaceIds[req.id];
+        if (!placeId) {
+          const { data: matchedPlaces } = await supabase.from("places").select("id").ilike("name", req.business_name).limit(1);
+          placeId = matchedPlaces?.[0]?.id;
+        }
 
         if (placeId) {
+          await supabase.from("places").update({ is_partner: true } as any).eq("id", placeId);
+
           // Generate partner invite
           const { data: invite, error: inviteErr } = await supabase.from("partner_invites" as any).insert({
             place_id: placeId,
@@ -202,7 +207,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
             toast.success(`${req.business_name} approuvé ✅ (lien non généré)`);
           }
         } else {
-          toast.info(`${req.business_name} approuvé, mais aucun lieu trouvé avec ce nom. Crée le spot d'abord.`);
+          toast.info(`${req.business_name} approuvé, mais aucun lieu sélectionné. Crée le spot d'abord.`);
         }
 
         // Also assign role if user_id exists
@@ -728,23 +733,38 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                         WhatsApp
                       </a>
                       {req.status === "pending" && (
-                        <div className="flex gap-2 pt-1">
-                          <button
-                            onClick={() => handleUpdateStatus(req, "approved")}
-                            disabled={updatingId === req.id}
-                            className="flex-1 flex items-center justify-center gap-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 font-medium py-2 rounded-xl text-xs transition-colors disabled:opacity-50"
+                        <div className="space-y-2 pt-1">
+                          {/* Place selector */}
+                          <select
+                            value={requestPlaceIds[req.id] || ""}
+                            onChange={(e) => setRequestPlaceIds((prev) => ({ ...prev, [req.id]: e.target.value }))}
+                            className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
                           >
-                            {updatingId === req.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                            Approuver
-                          </button>
-                          <button
-                            onClick={() => handleUpdateStatus(req, "rejected")}
-                            disabled={updatingId === req.id}
-                            className="flex-1 flex items-center justify-center gap-1.5 bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 font-medium py-2 rounded-xl text-xs transition-colors disabled:opacity-50"
-                          >
-                            <XCircle className="w-3.5 h-3.5" />
-                            Rejeter
-                          </button>
+                            <option value="">🏠 Lier à un lieu...</option>
+                            {allPlaces.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name} {p.category ? `(${p.category})` : ""} {p.neighborhood ? `— ${p.neighborhood}` : ""}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleUpdateStatus(req, "approved")}
+                              disabled={updatingId === req.id || !requestPlaceIds[req.id]}
+                              className="flex-1 flex items-center justify-center gap-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 font-medium py-2 rounded-xl text-xs transition-colors disabled:opacity-50"
+                            >
+                              {updatingId === req.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                              Approuver
+                            </button>
+                            <button
+                              onClick={() => handleUpdateStatus(req, "rejected")}
+                              disabled={updatingId === req.id}
+                              className="flex-1 flex items-center justify-center gap-1.5 bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 font-medium py-2 rounded-xl text-xs transition-colors disabled:opacity-50"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              Rejeter
+                            </button>
+                          </div>
                         </div>
                       )}
                       {/* Invite link after approval */}
