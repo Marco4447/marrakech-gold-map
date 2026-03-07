@@ -36,6 +36,7 @@ const VipPassPage = lazy(() => import("./pages/VipPassPage"));
 const ScanPage = lazy(() => import("./pages/ScanPage"));
 const VenuePage = lazy(() => import("./pages/VenuePage"));
 const PartnerInvitePage = lazy(() => import("./pages/PartnerInvitePage"));
+const AdminRoute = lazy(() => import("./pages/AdminRoute"));
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const AppShell = () => {
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/venue/:slug" element={<VenuePage />} />
               <Route path="/partner-invite/:token" element={<PartnerInvitePage />} />
+              <Route path="/admin" element={<AdminRoute />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
