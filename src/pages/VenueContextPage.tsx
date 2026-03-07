@@ -562,6 +562,8 @@ export default function VenueContextPage() {
             offerTitle={offers[0]?.title}
           />
         )}
+
+        {offers.length === 0 && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="bg-card/80 border border-border rounded-2xl p-6 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-muted mx-auto flex items-center justify-center">
