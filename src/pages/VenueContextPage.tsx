@@ -56,7 +56,11 @@ export default function VenueContextPage() {
   const [loading, setLoading] = useState(true);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [totalUserCheckins, setTotalUserCheckins] = useState(0);
   const pendingActionRef = useRef<PendingAction | null>(null);
+
+  const HABITUE_THRESHOLD = 3;
+  const isHabitue = totalUserCheckins >= HABITUE_THRESHOLD;
 
   // Persist pending action across auth redirects
   useEffect(() => {
