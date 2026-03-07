@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Save, Loader2, Camera, X, ChevronDown, Link2, UtensilsCrossed, Wine } from "lucide-react";
+import { Save, Loader2, Camera, X, ChevronDown, Link2, UtensilsCrossed, Wine, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -189,7 +189,7 @@ export default function VenueEditor({ userId, placeId }: Props) {
       </div>
 
       {/* ── PHOTO ── */}
-      <Section title="Photo principale" hint={`Recommandé : ${IMAGE_REC_WIDTH}×${IMAGE_REC_HEIGHT}px · Max ${IMAGE_MAX_MB} Mo · JPG/PNG`}>
+      <Section title="Photo principale">
         {form.image_url ? (
           <div className="relative aspect-video rounded-xl overflow-hidden bg-surface">
             <img src={form.image_url} alt="" className="w-full h-full object-cover" />
@@ -199,37 +199,48 @@ export default function VenueEditor({ userId, placeId }: Props) {
             </button>
           </div>
         ) : (
-          <label className="w-full aspect-video rounded-xl border-2 border-dashed border-gold/25 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-gold/50 transition-colors">
+          <label className="w-full aspect-video rounded-xl border-2 border-dashed border-gold/25 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-gold/50 transition-colors">
             {uploading ? <Loader2 className="w-5 h-5 text-gold animate-spin" /> : <Camera className="w-6 h-6 text-gold/60" />}
-            <span className="text-xs text-muted-foreground">{uploading ? "Upload..." : "Cliquer pour ajouter"}</span>
-            <span className="text-[10px] text-muted-foreground/60">{IMAGE_REC_WIDTH}×{IMAGE_REC_HEIGHT}px · max {IMAGE_MAX_MB} Mo</span>
+            <span className="text-xs text-muted-foreground font-medium">{uploading ? "Upload en cours..." : "Ajouter une photo de couverture"}</span>
             <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
           </label>
         )}
+        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-gold/5 border border-gold/10">
+          <Info className="w-3.5 h-3.5 text-gold shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <p className="text-[11px] text-foreground/80 font-medium">Format paysage recommandé</p>
+            <p className="text-[10px] text-muted-foreground">Taille idéale : 1200 × 675 px · Max {IMAGE_MAX_MB} Mo · JPG, PNG ou WebP</p>
+          </div>
+        </div>
       </Section>
 
       {/* ── DESCRIPTION ── */}
-      <Section title="Description" hint={`${form.description.length}/${DESC_MAX} caractères`}>
+      <Section title="Description">
         <textarea
           value={form.description}
           onChange={e => {
             if (e.target.value.length <= DESC_MAX) setForm(f => ({ ...f, description: e.target.value }));
           }}
-          placeholder="Décris l'ambiance, la spécialité, l'expérience..."
+          placeholder="Décris l'ambiance, la spécialité, l'expérience de ton lieu..."
           rows={4}
           className="w-full px-4 py-3 rounded-xl bg-surface border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold/50 resize-none"
         />
-        <div className="h-1 rounded-full bg-border overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{
-              width: `${(form.description.length / DESC_MAX) * 100}%`,
-              background: form.description.length > DESC_MAX * 0.9
-                ? "#ef4444"
-                : "linear-gradient(90deg, #BF953F, #FCF6BA)",
-            }}
-          />
+        <div className="flex items-center justify-between">
+          <div className="h-1 flex-1 rounded-full bg-border overflow-hidden mr-3">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${(form.description.length / DESC_MAX) * 100}%`,
+                background: form.description.length > DESC_MAX * 0.9
+                  ? "#ef4444"
+                  : "linear-gradient(90deg, #BF953F, #FCF6BA)",
+              }}
+            />
+          </div>
+          <span className={`text-[10px] font-medium tabular-nums shrink-0 ${form.description.length > DESC_MAX * 0.9 ? "text-red-400" : "text-muted-foreground"}`}>
+            {form.description.length}/{DESC_MAX}
+          </span>
         </div>
       </Section>
 
