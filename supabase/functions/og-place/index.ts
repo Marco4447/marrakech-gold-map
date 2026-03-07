@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_ANON_KEY")!
   );
 
-  const appUrl = "https://marrakech-gold-map.lovable.app";
+  const appUrl = "https://weshkech.com";
 
   // ─── VIBE OG ───
   if (vibeId) {

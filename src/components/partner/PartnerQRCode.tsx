@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Download, QrCode, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const BASE_URL = "https://marrakech-gold-map.lovable.app";
+const BASE_URL = "https://weshkech.com";
 
 interface Props {
   userId: string;
