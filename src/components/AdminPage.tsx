@@ -111,10 +111,12 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [chDays, setChDays] = useState("7");
   const [savingCh, setSavingCh] = useState(false);
 
-  // Partner invite links
+  // Partner invite config
   const [inviteLinks, setInviteLinks] = useState<Record<string, string>>({});
-  // Place selection for each request
   const [requestPlaceIds, setRequestPlaceIds] = useState<Record<string, string>>({});
+  const [requestCredits, setRequestCredits] = useState<Record<string, number>>({});
+  const [requestPlan, setRequestPlan] = useState<Record<string, string>>({});
+  const [requestPlanDays, setRequestPlanDays] = useState<Record<string, number>>({});
 
   const fetchChallenges = async () => {
     const { data } = await supabase.from("weekly_challenges" as any).select("*").order("created_at", { ascending: false }).limit(20);
