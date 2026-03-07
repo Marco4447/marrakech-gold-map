@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn, Star } from "lucide-react";
+import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn, Star, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface VenuePlace {
@@ -57,6 +57,8 @@ export default function VenueContextPage() {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [totalUserCheckins, setTotalUserCheckins] = useState(0);
+  const [confirmOffer, setConfirmOffer] = useState<VipOffer | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
   const pendingActionRef = useRef<PendingAction | null>(null);
 
   const HABITUE_THRESHOLD = 3;
@@ -83,6 +85,7 @@ export default function VenueContextPage() {
 
       if (!p) { navigate("/"); return; }
       setPlace(p as any);
+      setIsFollowing(!!localStorage.getItem(`wk_follow_${p.id}`));
 
       // Record QR scan
       await (supabase.from("qr_scans" as any) as any).insert({ place_id: p.id, user_id: user?.id || null });
@@ -231,7 +234,27 @@ export default function VenueContextPage() {
 
   const handleClaim = async (offer: VipOffer) => {
     if (requireAuth({ type: "claim", offerId: offer.id })) return;
-    await doClaim(offer);
+    setConfirmOffer(offer);
+  };
+
+  const confirmAndClaim = async () => {
+    if (!confirmOffer) return;
+    setConfirmOffer(null);
+    await doClaim(confirmOffer);
+  };
+
+  const handleFollow = () => {
+    if (!place) return;
+    const key = `wk_follow_${place.id}`;
+    if (isFollowing) {
+      localStorage.removeItem(key);
+      setIsFollowing(false);
+      toast("Notifications désactivées pour ce lieu");
+    } else {
+      localStorage.setItem(key, "1");
+      setIsFollowing(true);
+      toast.success("🔔 Tu seras notifié des prochaines offres !");
+    }
   };
 
   if (loading) {
@@ -369,10 +392,13 @@ export default function VenueContextPage() {
                 <div className="text-center">
                   <LogIn className="w-8 h-8 text-gold mx-auto mb-2" />
                   <h3 className="font-display text-base font-bold text-foreground">
-                    Connecte-toi pour continuer
+                    {offers.length > 0
+                      ? `${PERK_EMOJIS[offers[0].perk_type] || "🎁"} ${offers[0].title} t'attend !`
+                      : `Profite de ${place.name}`
+                    }
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Crée ton compte en 2 secondes pour profiter de {place.name}
+                    Inscris-toi gratuitement en 2 sec pour en profiter
                   </p>
                 </div>
 
@@ -509,12 +535,98 @@ export default function VenueContextPage() {
         )}
 
         {offers.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-sm text-muted-foreground">Pas d'offres VIP pour le moment</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Reviens ce soir !</p>
-          </div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="bg-card/80 border border-border rounded-2xl p-6 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-muted mx-auto flex items-center justify-center">
+              <Gift className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Pas d'offres VIP en ce moment</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Les offres sont souvent disponibles en soirée. Active les notifications pour ne rien rater !
+              </p>
+            </div>
+            <button
+              onClick={handleFollow}
+              className={`w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
+                isFollowing
+                  ? "bg-gold/15 border border-gold/30 text-gold"
+                  : "bg-gold/10 border border-gold/20 text-gold hover:bg-gold/20"
+              }`}
+            >
+              {isFollowing ? (
+                <><BellOff className="w-4 h-4" /> Notifications activées ✓</>
+              ) : (
+                <><Bell className="w-4 h-4" /> 🔔 Me notifier des prochaines offres</>
+              )}
+            </button>
+          </motion.div>
         )}
       </div>
+
+      {/* Confirmation recap modal */}
+      <AnimatePresence>
+        {confirmOffer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setConfirmOffer(null)}
+          >
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-card border-t border-gold/20 rounded-t-3xl p-6 space-y-4 pb-8"
+            >
+              <div className="w-10 h-1 bg-muted rounded-full mx-auto" />
+              <div className="text-center space-y-2">
+                <span className="text-4xl">{PERK_EMOJIS[confirmOffer.perk_type] || "🎁"}</span>
+                <h3 className="font-display text-lg font-black text-foreground">{confirmOffer.title}</h3>
+                <p className="text-sm text-muted-foreground">{confirmOffer.description}</p>
+              </div>
+              <div className="bg-muted/50 rounded-xl p-3 space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Lieu</span>
+                  <span className="text-foreground font-semibold">{place.name}</span>
+                </div>
+                {confirmOffer.end_time && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Valide jusqu'à</span>
+                    <span className="text-gold font-semibold">
+                      {new Date(confirmOffer.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Prix</span>
+                  <span className="text-green-400 font-bold">Gratuit</span>
+                </div>
+              </div>
+              <button
+                onClick={confirmAndClaim}
+                disabled={claiming === confirmOffer.id}
+                className="w-full py-4 rounded-2xl text-sm font-bold text-primary-foreground active:scale-[0.98] transition-all disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+              >
+                {claiming === confirmOffer.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                ) : (
+                  "✅ Confirmer et recevoir mon pass"
+                )}
+              </button>
+              <button
+                onClick={() => setConfirmOffer(null)}
+                className="w-full text-xs text-muted-foreground hover:text-foreground py-1 transition-colors"
+              >
+                Annuler
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
