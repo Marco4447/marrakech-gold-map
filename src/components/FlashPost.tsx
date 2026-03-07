@@ -922,6 +922,23 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
           </motion.div>
 
           <SuccessAnimation show={showSuccess} />
+
+          <BoostUpsell
+            show={showBoostUpsell}
+            onClose={() => {
+              setShowBoostUpsell(false);
+              resetState();
+              onPosted?.();
+              onClose();
+            }}
+            onBoost={(tier) => {
+              setShowBoostUpsell(false);
+              resetState();
+              onPosted?.();
+              onClose();
+              toast.success(`Boost "${tier}" bientôt disponible ! 🚀`);
+            }}
+          />
         </>
       )}
     </AnimatePresence>
