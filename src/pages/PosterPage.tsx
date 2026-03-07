@@ -4,7 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Camera, MapPin, Flame, ChevronDown, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const BASE_URL = "https://marrakech-gold-map.lovable.app/go";
+const BASE_URL = "https://weshkech.com/go";
 
 interface PlaceOption {
   id: string;

@@ -157,7 +157,7 @@ export default function VipPass() {
 
               <div className="bg-white rounded-2xl p-4 inline-block mb-4">
                  <QRCodeSVG
-                  value={`https://marrakech-gold-map.lovable.app/verify?user_id=${user?.id}`}
+                  value={`https://weshkech.com/verify?user_id=${user?.id}`}
                   size={180}
                   level="H"
                   fgColor="#1a1a1a"

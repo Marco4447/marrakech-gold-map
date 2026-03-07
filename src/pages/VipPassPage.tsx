@@ -22,7 +22,7 @@ interface PassData {
   };
 }
 
-const BASE_URL = "https://marrakech-gold-map.lovable.app";
+const BASE_URL = "https://weshkech.com";
 
 export default function VipPassPage() {
   const { id } = useParams<{ id: string }>();
