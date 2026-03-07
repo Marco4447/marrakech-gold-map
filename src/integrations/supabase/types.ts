@@ -231,6 +231,9 @@ export type Database = {
           created_by: string
           expires_at: string
           id: string
+          initial_credits: number
+          initial_plan: string | null
+          initial_plan_days: number
           place_id: string
           token: string
           used_at: string | null
@@ -242,6 +245,9 @@ export type Database = {
           created_by: string
           expires_at?: string
           id?: string
+          initial_credits?: number
+          initial_plan?: string | null
+          initial_plan_days?: number
           place_id: string
           token?: string
           used_at?: string | null
@@ -253,6 +259,9 @@ export type Database = {
           created_by?: string
           expires_at?: string
           id?: string
+          initial_credits?: number
+          initial_plan?: string | null
+          initial_plan_days?: number
           place_id?: string
           token?: string
           used_at?: string | null
