@@ -233,7 +233,27 @@ export default function VenueContextPage() {
 
   const handleClaim = async (offer: VipOffer) => {
     if (requireAuth({ type: "claim", offerId: offer.id })) return;
-    await doClaim(offer);
+    setConfirmOffer(offer);
+  };
+
+  const confirmAndClaim = async () => {
+    if (!confirmOffer) return;
+    setConfirmOffer(null);
+    await doClaim(confirmOffer);
+  };
+
+  const handleFollow = () => {
+    if (!place) return;
+    const key = `wk_follow_${place.id}`;
+    if (isFollowing) {
+      localStorage.removeItem(key);
+      setIsFollowing(false);
+      toast("Notifications désactivées pour ce lieu");
+    } else {
+      localStorage.setItem(key, "1");
+      setIsFollowing(true);
+      toast.success("🔔 Tu seras notifié des prochaines offres !");
+    }
   };
 
   if (loading) {
@@ -514,10 +534,32 @@ export default function VenueContextPage() {
         )}
 
         {offers.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-sm text-muted-foreground">Pas d'offres VIP pour le moment</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Reviens ce soir !</p>
-          </div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="bg-card/80 border border-border rounded-2xl p-6 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-muted mx-auto flex items-center justify-center">
+              <Gift className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Pas d'offres VIP en ce moment</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Les offres sont souvent disponibles en soirée. Active les notifications pour ne rien rater !
+              </p>
+            </div>
+            <button
+              onClick={handleFollow}
+              className={`w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
+                isFollowing
+                  ? "bg-gold/15 border border-gold/30 text-gold"
+                  : "bg-gold/10 border border-gold/20 text-gold hover:bg-gold/20"
+              }`}
+            >
+              {isFollowing ? (
+                <><BellOff className="w-4 h-4" /> Notifications activées ✓</>
+              ) : (
+                <><Bell className="w-4 h-4" /> 🔔 Me notifier des prochaines offres</>
+              )}
+            </button>
+          </motion.div>
         )}
       </div>
     </div>
