@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Eye, MapPin, Flame, QrCode } from "lucide-react";
+import { Eye, MapPin, Flame, QrCode, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -8,17 +8,19 @@ interface Props {
 }
 
 async function fetchWeeklyStats(placeId: string) {
-  const [viewsRes, checkinsRes, vibeViewsRes, redemptionsRes] = await Promise.all([
+  const [viewsRes, checkinsRes, vibeViewsRes, redemptionsRes, followersRes] = await Promise.all([
     supabase.rpc("weekly_place_views", { p_place_id: placeId }),
     supabase.rpc("weekly_checkins", { p_place_id: placeId }),
     supabase.rpc("weekly_vibe_views", { p_place_id: placeId }),
     supabase.rpc("weekly_qr_redemptions", { p_place_id: placeId }),
+    supabase.from("place_follows").select("id", { count: "exact", head: true }).eq("place_id", placeId),
   ]);
   return {
     views: Number(viewsRes.data) || 0,
     checkins: Number(checkinsRes.data) || 0,
     vibeViews: Number(vibeViewsRes.data) || 0,
     redemptions: Number(redemptionsRes.data) || 0,
+    followers: Number(followersRes.count) || 0,
   };
 }
 
@@ -27,6 +29,7 @@ const STATS = [
   { key: "checkins", icon: MapPin, label: "Check-ins", emoji: "📍" },
   { key: "vibeViews", icon: Flame, label: "Vues vibes", emoji: "🔥" },
   { key: "redemptions", icon: QrCode, label: "QR utilisés", emoji: "🎟" },
+  { key: "followers", icon: Users, label: "Followers", emoji: "🔔" },
 ] as const;
 
 export default function PartnerStatsBanner({ placeId }: Props) {
