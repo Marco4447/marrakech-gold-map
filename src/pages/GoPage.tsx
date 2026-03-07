@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Mail, Loader2, ExternalLink, Copy, Check } from "lucide-react";
+import { Star, Mail, Loader2, ExternalLink, Copy, Check, MapPin, Flame, Users, Clock } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -17,7 +17,25 @@ const TESTIMONIALS = [
   { name: "Sophia", text: { fr: "Meilleur rooftop trouvé en 2 min 🔥", en: "Found the best rooftop in 2 min 🔥" }, flag: "🇫🇷" },
   { name: "Youssef", text: { fr: "Les deals VIP sont incroyables", en: "The VIP deals are amazing" }, flag: "🇲🇦" },
   { name: "Emma", text: { fr: "Indispensable pour sortir à Kech", en: "Essential for going out in Kech" }, flag: "🇬🇧" },
+  { name: "Lucas", text: { fr: "J'ai eu un cocktail gratuit dès le 1er soir", en: "Got a free cocktail on the first night" }, flag: "🇫🇷" },
+  { name: "Amina", text: { fr: "La carte live c'est un game changer", en: "The live map is a game changer" }, flag: "🇲🇦" },
 ];
+
+function useCountUp(target: number, duration = 1500) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!target) return;
+    let start = 0;
+    const step = Math.ceil(target / (duration / 16));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) { setValue(target); clearInterval(timer); }
+      else setValue(start);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return value;
+}
 
 export default function GoPage() {
   const [searchParams] = useSearchParams();
@@ -71,13 +89,14 @@ export default function GoPage() {
     if (refCode) try { localStorage.setItem("weshkech_ref", refCode); } catch {}
   }, [refCode]);
 
-  // Track TikTok WebView visits — do NOT auto-redirect (kills conversion)
+  // Track TikTok WebView visits
   useEffect(() => {
     if (isTikTok) {
       trackEvent("tiktok_webview_detected", { source: utmSource });
     }
   }, [isTikTok]);
 
+  // --- Live data for social proof ---
   const { data: usersCount } = useQuery({
     queryKey: ["go-users-count"],
     queryFn: async () => {
@@ -86,6 +105,32 @@ export default function GoPage() {
     },
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: liveStats } = useQuery({
+    queryKey: ["go-live-stats"],
+    queryFn: async () => {
+      const now = new Date();
+      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+
+      const [checkinsRes, vibesRes, placesRes] = await Promise.all([
+        supabase.from("checkins").select("id", { count: "exact", head: true }).gte("created_at", threeHoursAgo),
+        supabase.from("vibes").select("id", { count: "exact", head: true }).gte("created_at", todayStart),
+        supabase.from("places").select("id", { count: "exact", head: true }),
+      ]);
+
+      return {
+        activeNow: Math.max(checkinsRes.count || 0, 3), // min 3 for social proof
+        vibesToday: vibesRes.count || 0,
+        totalPlaces: placesRes.count || 0,
+      };
+    },
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+
+  const animatedUsers = useCountUp(usersCount || 0);
+  const animatedPlaces = useCountUp(liveStats?.totalPlaces || 0);
 
   // Analytics
   useEffect(() => {
@@ -167,12 +212,32 @@ export default function GoPage() {
     setLoading(false);
   };
 
+  // Tonight's hour for urgency
+  const currentHour = new Date().getHours();
+  const isEvening = currentHour >= 17 || currentHour < 4;
+
   return (
     <div className="h-[100dvh] bg-background relative overflow-hidden flex flex-col">
       {/* Hero image — top portion */}
-      <div className="relative w-full aspect-[4/5] max-h-[50vh] flex-shrink-0">
+      <div className="relative w-full aspect-[4/5] max-h-[45vh] flex-shrink-0">
         <img src={heroImage} alt="Marrakech" className="w-full h-full object-cover" loading="eager" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+
+        {/* Live badge overlay */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-background/80 backdrop-blur-md border border-border rounded-full px-3 py-1.5"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+          </span>
+          <span className="text-[11px] font-semibold text-foreground">
+            {liveStats?.activeNow || "…"} {lang === "fr" ? "connectés" : "online"}
+          </span>
+        </motion.div>
       </div>
 
       {/* Language toggle */}
@@ -201,48 +266,68 @@ export default function GoPage() {
       )}
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-5 pb-6 -mt-8 max-w-md mx-auto w-full">
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-5 pb-6 -mt-12 max-w-md mx-auto w-full overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           className="flex flex-col">
 
-          {/* Title */}
-          <h1 className="font-body text-[20px] font-bold text-center leading-tight text-foreground mb-1">
-            {lang === "fr" ? (<>Les spots <span className="text-gold">tendance</span> à Marrakech</>) : (<><span className="text-gold">Trending</span> spots in Marrakech</>)}
+          {/* Headline — urgency driven */}
+          <h1 className="font-body text-[22px] font-black text-center leading-tight text-foreground mb-1">
+            {isEvening
+              ? (lang === "fr"
+                ? <>Où sortir <span className="text-gold">ce soir</span> à Marrakech ?</>
+                : <>Where to go <span className="text-gold">tonight</span> in Marrakech?</>)
+              : (lang === "fr"
+                ? <>Les spots <span className="text-gold">tendance</span> à Marrakech</>
+                : <><span className="text-gold">Trending</span> spots in Marrakech</>)
+            }
           </h1>
 
-          {/* Feature pills */}
-          <div className="flex justify-center gap-2 mb-3">
-            {(lang === "fr"
-              ? [["🗺️", "Carte live"], ["🔥", "Tendances"], ["🎁", "Deals"]]
-              : [["🗺️", "Live map"], ["🔥", "Trending"], ["🎁", "Deals"]]
-            ).map(([emoji, label]) => (
-              <span key={label} className="text-[11px] text-muted-foreground px-2.5 py-1 rounded-full bg-card border border-border">{emoji} {label}</span>
-            ))}
-          </div>
+          {/* Sub — value prop */}
+          <p className="text-[12px] text-muted-foreground text-center mb-3">
+            {lang === "fr"
+              ? "Carte live · Deals exclusifs · Gratuit"
+              : "Live map · Exclusive deals · Free"}
+          </p>
 
-          {/* Social proof */}
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
-            </span>
-            <span className="text-[11px] text-muted-foreground">
-              <span className="font-semibold text-foreground">{usersCount || "…"}</span> insiders
-            </span>
-            <span className="text-border">·</span>
+          {/* Live stats bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex justify-center gap-3 mb-4"
+          >
+            {[
+              { icon: Users, value: animatedUsers, label: "insiders" },
+              { icon: MapPin, value: animatedPlaces, label: lang === "fr" ? "spots" : "spots" },
+              { icon: Flame, value: liveStats?.vibesToday || 0, label: lang === "fr" ? "vibes today" : "vibes today" },
+            ].map(({ icon: Icon, value, label }) => (
+              <div key={label} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-card/60 border border-border">
+                <Icon className="w-3 h-3 text-gold" />
+                <span className="text-[12px] font-bold text-foreground tabular-nums">{value}</span>
+                <span className="text-[9px] text-muted-foreground">{label}</span>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* Rotating testimonial */}
+          <div className="flex items-center justify-center gap-2 mb-4 min-h-[20px]">
             <AnimatePresence mode="wait">
-              <motion.span key={testimonialIdx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="text-[11px] text-muted-foreground">
-                {TESTIMONIALS[testimonialIdx].flag} "{TESTIMONIALS[testimonialIdx].text[lang]}"
-              </motion.span>
+              <motion.div key={testimonialIdx} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                className="flex items-center gap-1.5">
+                <span className="text-sm">{TESTIMONIALS[testimonialIdx].flag}</span>
+                <span className="text-[11px] text-muted-foreground italic">
+                  "{TESTIMONIALS[testimonialIdx].text[lang]}"
+                </span>
+                <span className="text-[10px] text-muted-foreground/60">— {TESTIMONIALS[testimonialIdx].name}</span>
+              </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Google CTA */}
+          {/* Google CTA — primary */}
           {!isInApp && (
             <>
               <button onClick={handleGoogleSignup} disabled={loading}
-                className="w-full flex items-center justify-center gap-3 bg-foreground text-background font-semibold py-3.5 rounded-xl transition-all disabled:opacity-70 text-[14px] mb-3 active:scale-[0.98]">
+                className="w-full flex items-center justify-center gap-3 bg-foreground text-background font-bold py-4 rounded-2xl transition-all disabled:opacity-70 text-[15px] mb-2 active:scale-[0.98] shadow-lg">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -251,9 +336,12 @@ export default function GoPage() {
                     <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
                 )}
-                {lang === "fr" ? "Continuer avec Google" : "Continue with Google"}
+                {lang === "fr" ? "Accéder gratuitement 🔓" : "Get free access 🔓"}
               </button>
-              <div className="flex items-center gap-3 w-full mb-3">
+              <p className="text-[10px] text-muted-foreground text-center mb-2">
+                {lang === "fr" ? "⚡ 10 secondes — pas de mot de passe" : "⚡ 10 seconds — no password"}
+              </p>
+              <div className="flex items-center gap-3 w-full mb-2">
                 <div className="flex-1 h-px bg-border" />
                 <span className="text-[11px] text-muted-foreground">{lang === "fr" ? "ou par email" : "or with email"}</span>
                 <div className="flex-1 h-px bg-border" />
@@ -277,7 +365,7 @@ export default function GoPage() {
 
           {!success && (
             <button onClick={handleEmailSignup} disabled={loading}
-              className="w-full mt-2.5 flex items-center justify-center gap-2 bg-foreground text-background font-semibold py-3 rounded-xl transition-all disabled:opacity-70 text-[14px] active:scale-[0.98]">
+              className="w-full mt-2 flex items-center justify-center gap-2 bg-card border border-border text-foreground font-semibold py-3 rounded-xl transition-all disabled:opacity-70 text-[14px] active:scale-[0.98]">
               {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === "fr" ? "Envoi..." : "Sending..."}</> : (
                 <>{lang === "fr" ? "Recevoir mon accès" : "Get my access"}</>
               )}
@@ -287,7 +375,7 @@ export default function GoPage() {
           {/* Google fallback for in-app */}
           {isInApp && !success && (
             <>
-              <div className="flex items-center gap-3 w-full my-3">
+              <div className="flex items-center gap-3 w-full my-2">
                 <div className="flex-1 h-px bg-border" />
                 <span className="text-[11px] text-muted-foreground">{lang === "fr" ? "ou" : "or"}</span>
                 <div className="flex-1 h-px bg-border" />
@@ -305,8 +393,8 @@ export default function GoPage() {
             </>
           )}
 
-          <p className="text-[9px] text-muted-foreground/50 text-center mt-3">
-            {lang === "fr" ? "Gratuit · 10 sec" : "Free · 10 sec"} · {t("legalPrefix")}{" "}
+          <p className="text-[9px] text-muted-foreground/50 text-center mt-2.5">
+            {lang === "fr" ? "Gratuit · Sans engagement" : "Free · No commitment"} · {t("legalPrefix")}{" "}
             <Link to="/terms" className="underline">{t("terms")}</Link>{" "}{t("and")}{" "}
             <Link to="/privacy" className="underline">{t("privacy")}</Link>
           </p>
