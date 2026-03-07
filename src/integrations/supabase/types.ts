@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_events: {
+        Row: {
+          body: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          title?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           amount: number

@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import UsersTab from "./UsersTab";
 import AdminVipOffers from "./admin/AdminVipOffers";
 import AdminStoriesManager from "./admin/AdminStoriesManager";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film } from "lucide-react";
+import AdminActivityFeed from "./admin/AdminActivityFeed";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,7 @@ import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges" | "vip" | "stories";
+type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges" | "vip" | "stories" | "activity";
 type PassStat = { place_name: string; count: number };
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 type PartnerVibe = { id: string; image_url: string; caption: string | null; location: string | null; likes: number; super_vibes: number; created_at: string; is_official: boolean };
@@ -273,6 +274,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
         {/* Tabs */}
         <div className="flex gap-1.5 mt-3 overflow-x-auto no-scrollbar -mx-5 px-5">
+          <TabButton active={tab === "activity"} label="Activité" icon={Activity} onClick={() => setTab("activity")} />
           <TabButton active={tab === "overview"} label="Vue d'ensemble" icon={BarChart3} onClick={() => setTab("overview")} />
           <TabButton active={tab === "partners"} label="Partenaires" icon={Users} onClick={() => setTab("partners")} />
           <TabButton active={tab === "sales"} label="Ventes" icon={TrendingUp} onClick={() => setTab("sales")} />
@@ -999,6 +1001,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {/* === STORIES MANAGER === */}
           {tab === "stories" && <AdminStoriesManager />}
+
+          {/* === ACTIVITÉ === */}
+          {tab === "activity" && <AdminActivityFeed />}
         </div>
       )}
     </div>
