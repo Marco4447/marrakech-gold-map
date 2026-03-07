@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles } from "lucide-react";
+import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn } from "lucide-react";
 import { toast } from "sonner";
 
 interface VenuePlace {
@@ -41,16 +42,31 @@ const PERK_EMOJIS: Record<string, string> = {
   experience: "✨",
 };
 
+type PendingAction = { type: "checkin" } | { type: "claim"; offerId: string };
+
 export default function VenueContextPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [place, setPlace] = useState<VenuePlace | null>(null);
   const [offers, setOffers] = useState<VipOffer[]>([]);
   const [checkinCount, setCheckinCount] = useState(0);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [claiming, setClaiming] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const pendingActionRef = useRef<PendingAction | null>(null);
+
+  // Persist pending action across auth redirects
+  useEffect(() => {
+    const stored = sessionStorage.getItem("wk_venue_pending");
+    if (stored) {
+      try {
+        pendingActionRef.current = JSON.parse(stored);
+      } catch {}
+    }
+  }, []);
 
   useEffect(() => {
     if (!slug) { navigate("/"); return; }
@@ -108,9 +124,47 @@ export default function VenueContextPage() {
     load();
   }, [slug, user]);
 
-  const handleCheckin = async () => {
-    if (!user) { toast.error("Connecte-toi pour faire un check-in"); return; }
-    if (!place) return;
+  // Auto-complete pending action after user logs in
+  useEffect(() => {
+    if (!user || !place || authLoading) return;
+    const pending = pendingActionRef.current;
+    if (!pending) return;
+
+    pendingActionRef.current = null;
+    sessionStorage.removeItem("wk_venue_pending");
+    setShowAuthPrompt(false);
+
+    if (pending.type === "checkin") {
+      doCheckin();
+    } else if (pending.type === "claim") {
+      const offer = offers.find((o) => o.id === pending.offerId);
+      if (offer) doClaim(offer);
+    }
+  }, [user, place, authLoading, offers]);
+
+  const requireAuth = (action: PendingAction) => {
+    if (user) return false;
+    pendingActionRef.current = action;
+    sessionStorage.setItem("wk_venue_pending", JSON.stringify(action));
+    setShowAuthPrompt(true);
+    return true;
+  };
+
+  const handleOAuth = async (provider: "google" | "apple") => {
+    setOauthLoading(true);
+    const { error } = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri: window.location.href,
+    });
+    if (error) {
+      console.error("OAuth error:", error);
+      toast.error("Erreur de connexion");
+      setOauthLoading(false);
+    }
+    // If redirected, page will reload with auth
+  };
+
+  const doCheckin = async () => {
+    if (!user || !place) return;
     const { error } = await (supabase.from("checkins" as any) as any).insert({ user_id: user.id, place_id: place.id });
     if (error) { toast.error("Erreur"); console.error(error); return; }
     setIsCheckedIn(true);
@@ -118,12 +172,15 @@ export default function VenueContextPage() {
     toast.success("Check-in réussi ! 🎉");
   };
 
-  const handleClaim = async (offer: VipOffer) => {
-    if (!user) { toast.error("Connecte-toi pour réclamer cette offre"); return; }
-    if (!place) return;
+  const handleCheckin = async () => {
+    if (requireAuth({ type: "checkin" })) return;
+    await doCheckin();
+  };
+
+  const doClaim = async (offer: VipOffer) => {
+    if (!user || !place) return;
     setClaiming(offer.id);
 
-    // Check limit per user
     const { count: existingCount } = await (supabase
       .from("vip_passes" as any) as any)
       .select("id", { count: "exact", head: true })
@@ -136,7 +193,6 @@ export default function VenueContextPage() {
       return;
     }
 
-    // Generate pass
     const expiresAt = offer.end_time || new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
     const { data: pass, error } = await (supabase
       .from("vip_passes" as any) as any)
@@ -153,6 +209,11 @@ export default function VenueContextPage() {
 
     setClaiming(null);
     navigate(`/pass/${(pass as any).id}`);
+  };
+
+  const handleClaim = async (offer: VipOffer) => {
+    if (requireAuth({ type: "claim", offerId: offer.id })) return;
+    await doClaim(offer);
   };
 
   if (loading) {
@@ -230,6 +291,70 @@ export default function VenueContextPage() {
             <><MapPin className="w-4 h-4" /> Check-in ici</>
           )}
         </motion.button>
+
+        {/* Inline Auth Prompt */}
+        <AnimatePresence>
+          {showAuthPrompt && !user && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="bg-card/90 border border-gold/30 rounded-2xl p-5 space-y-4">
+                <div className="text-center">
+                  <LogIn className="w-8 h-8 text-gold mx-auto mb-2" />
+                  <h3 className="font-display text-base font-bold text-foreground">
+                    Connecte-toi pour continuer
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Crée ton compte en 2 secondes pour profiter de {place.name}
+                  </p>
+                </div>
+
+                {/* Google OAuth */}
+                <button
+                  onClick={() => handleOAuth("google")}
+                  disabled={oauthLoading}
+                  className="w-full flex items-center justify-center gap-3 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3.5 rounded-2xl transition-all shadow-[0_0_20px_hsl(43,76%,52%,0.2)] disabled:opacity-70 text-sm"
+                >
+                  {oauthLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                      </svg>
+                      Continuer avec Google
+                    </>
+                  )}
+                </button>
+
+                {/* Apple OAuth */}
+                <button
+                  onClick={() => handleOAuth("apple")}
+                  disabled={oauthLoading}
+                  className="w-full flex items-center justify-center gap-3 bg-foreground text-background font-semibold py-3.5 rounded-2xl transition-all disabled:opacity-70 text-sm"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                  </svg>
+                  Continuer avec Apple
+                </button>
+
+                <button
+                  onClick={() => setShowAuthPrompt(false)}
+                  className="w-full text-xs text-muted-foreground hover:text-foreground py-2 transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Description */}
         {place.description && (
