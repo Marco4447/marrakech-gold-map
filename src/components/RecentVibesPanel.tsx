@@ -48,7 +48,7 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
   }, []);
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-1 px-2 py-1 rounded-full bg-card/80 backdrop-blur-md border border-border text-left"
