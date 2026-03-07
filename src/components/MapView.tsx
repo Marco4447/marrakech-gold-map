@@ -491,74 +491,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Recent vibes panel */}
-      <AnimatePresence>
-        {!sheetOpen && !vibeSheetOpen && (
-          <motion.div
-            key="recent-vibes-panel"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-          >
-            <RecentVibesPanel
-              onVibeClick={(vibe) => {
-                if (navigator.vibrate) navigator.vibrate(30);
-                try {
-                  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                  const osc = ctx.createOscillator();
-                  const gain = ctx.createGain();
-                  osc.type = "sine";
-                  osc.frequency.setValueAtTime(880, ctx.currentTime);
-                  osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.06);
-                  gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-                  osc.connect(gain).connect(ctx.destination);
-                  osc.start(ctx.currentTime);
-                  osc.stop(ctx.currentTime + 0.12);
-                } catch {}
-
-                if (vibe.latitude && vibe.longitude && mapRef.current) {
-                  mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
-                  if ((mapRef.current as any)._pulseMarker) {
-                    (mapRef.current as any)._pulseMarker.remove();
-                  }
-                  const pulseIcon = L.divIcon({
-                    className: "",
-                    html: `<div style="width:48px;height:48px;position:relative;display:flex;align-items:center;justify-content:center">
-                      <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,hsla(43,80%,55%,0.5),transparent 70%);animation:vibe-pulse 1.5s ease-out infinite"></div>
-                      <div style="position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle,hsla(43,80%,55%,0.35),transparent 70%);animation:vibe-pulse 1.5s ease-out 0.3s infinite"></div>
-                      <div style="width:14px;height:14px;border-radius:50%;background:hsl(43,80%,55%);border:2px solid white;box-shadow:0 0 12px hsla(43,80%,55%,0.8);z-index:1"></div>
-                    </div>`,
-                    iconSize: [48, 48],
-                    iconAnchor: [24, 24],
-                  });
-                  const pulseMarker = L.marker([vibe.latitude, vibe.longitude], {
-                    icon: pulseIcon,
-                    zIndexOffset: 9000,
-                  }).addTo(mapRef.current);
-                  (mapRef.current as any)._pulseMarker = pulseMarker;
-                  setTimeout(() => {
-                    pulseMarker.remove();
-                    if ((mapRef.current as any)?._pulseMarker === pulseMarker) {
-                      (mapRef.current as any)._pulseMarker = null;
-                    }
-                  }, 5000);
-                }
-                setSelectedVibe(vibe as any);
-                setVibeSheetOpen(true);
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Top Live Places */}
+      {/* Top Live Places — positioned below header */}
       <AnimatePresence>
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
             key="top-live-places"
-            className="absolute top-[100px] left-0 right-0 z-[999] px-3"
+            className="absolute top-[120px] left-0 right-0 z-[999] px-3"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
