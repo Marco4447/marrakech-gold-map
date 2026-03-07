@@ -1,5 +1,6 @@
 import { Gift } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import FomoCountdown from "@/components/FomoCountdown";
 
 interface VipOffer {
   id: string;
@@ -34,9 +35,7 @@ export default function PlaceVipSection({ isPartner, hasOffer, vipOffers, placeN
               </div>
               <p className="text-xs text-foreground/80 leading-relaxed">{vip.description}</p>
               {vip.end_time && (
-                <p className="text-[10px] text-muted-foreground">
-                  Jusqu'à {new Date(vip.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                </p>
+                <FomoCountdown endTime={vip.end_time} />
               )}
             </div>
           );
