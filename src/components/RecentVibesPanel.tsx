@@ -48,18 +48,17 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
   }, []);
 
   return (
-    <div className="absolute top-[88px] right-3 z-[1001] w-[170px]">
+    <div className="w-full relative">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,20%)] shadow-lg text-left"
+        className="w-full flex items-center gap-1 px-2 py-1 rounded-full bg-card/80 backdrop-blur-md border border-border text-left"
       >
-        <Radio className={`w-3 h-3 ${hasNew ? "text-red-400 animate-pulse" : "text-gold"}`} />
-        <span className="text-[10px] font-semibold text-muted-foreground flex-1">
-          Vibes récentes {vibes.length > 0 && `(${vibes.length})`}
+        <Radio className={`w-2.5 h-2.5 ${hasNew ? "text-destructive animate-pulse" : "text-gold"}`} />
+        <span className="text-[9px] font-semibold text-muted-foreground flex-1 truncate">
+          Vibes {vibes.length > 0 && `(${vibes.length})`}
         </span>
-        {vibes.length === 0 && <span className="text-[9px] text-muted-foreground/60">aucune</span>}
         {hasNew && <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />}
-        {open ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
+        {open ? <ChevronUp className="w-2.5 h-2.5 text-muted-foreground" /> : <ChevronDown className="w-2.5 h-2.5 text-muted-foreground" />}
       </button>
 
       <AnimatePresence>
@@ -68,25 +67,25 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-1 bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,20%)] rounded-xl shadow-lg overflow-hidden max-h-[300px] overflow-y-auto no-scrollbar"
+            className="absolute right-0 top-full mt-1 w-[200px] bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-lg overflow-hidden max-h-[250px] overflow-y-auto no-scrollbar z-50"
           >
             {vibes.map((vibe, i) => (
               <button
                 key={vibe.id}
                 onClick={() => onVibeClick?.(vibe)}
-                className={`w-full flex items-center gap-2 px-2.5 py-2 text-left hover:bg-[hsl(0,0%,15%)] transition-colors ${
-                  i > 0 ? "border-t border-[hsl(0,0%,18%)]" : ""
+                className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-left hover:bg-muted transition-colors ${
+                  i > 0 ? "border-t border-border" : ""
                 }`}
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-[hsl(0,0%,25%)] shrink-0">
+                <div className="w-7 h-7 rounded-full overflow-hidden border border-border shrink-0">
                   <img src={vibe.image_url} alt="" className="w-full h-full object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-medium text-[hsl(30,20%,85%)] truncate flex items-center gap-1">
+                  <p className="text-[10px] font-medium text-foreground truncate flex items-center gap-1">
                     {vibe.is_official && <span className="text-[8px] bg-gold/20 text-gold px-1 py-px rounded font-bold uppercase tracking-wider leading-none">Officiel</span>}
                     {vibe.username || vibe.location || "Anonyme"}
                   </p>
-                  <p className="text-[9px] text-[hsl(30,10%,55%)]">
+                  <p className="text-[9px] text-muted-foreground">
                     {vibe.mood ? `${vibe.mood} · ` : ""}{timeAgoShort(vibe.created_at)}
                   </p>
                 </div>
