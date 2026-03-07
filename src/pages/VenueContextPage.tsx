@@ -85,6 +85,7 @@ export default function VenueContextPage() {
 
       if (!p) { navigate("/"); return; }
       setPlace(p as any);
+      setIsFollowing(!!localStorage.getItem(`wk_follow_${p.id}`));
 
       // Record QR scan
       await (supabase.from("qr_scans" as any) as any).insert({ place_id: p.id, user_id: user?.id || null });
