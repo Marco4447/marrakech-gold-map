@@ -181,7 +181,13 @@ export default function VenueContextPage() {
     if (error) { toast.error("Erreur"); console.error(error); return; }
     setIsCheckedIn(true);
     setCheckinCount((c) => c + 1);
-    toast.success("Check-in réussi ! 🎉");
+    const newTotal = totalUserCheckins + 1;
+    setTotalUserCheckins(newTotal);
+    if (newTotal >= HABITUE_THRESHOLD) {
+      toast.success(`⭐ Tu es maintenant Habitué de ${place.name} !`, { duration: 5000 });
+    } else {
+      toast.success(`Check-in réussi ! 🎉 (${newTotal}/${HABITUE_THRESHOLD} pour devenir Habitué)`);
+    }
   };
 
   const handleCheckin = async () => {
