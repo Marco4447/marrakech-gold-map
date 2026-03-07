@@ -563,6 +563,70 @@ export default function VenueContextPage() {
           </motion.div>
         )}
       </div>
+
+      {/* Confirmation recap modal */}
+      <AnimatePresence>
+        {confirmOffer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setConfirmOffer(null)}
+          >
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-card border-t border-gold/20 rounded-t-3xl p-6 space-y-4 pb-8"
+            >
+              <div className="w-10 h-1 bg-muted rounded-full mx-auto" />
+              <div className="text-center space-y-2">
+                <span className="text-4xl">{PERK_EMOJIS[confirmOffer.perk_type] || "🎁"}</span>
+                <h3 className="font-display text-lg font-black text-foreground">{confirmOffer.title}</h3>
+                <p className="text-sm text-muted-foreground">{confirmOffer.description}</p>
+              </div>
+              <div className="bg-muted/50 rounded-xl p-3 space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Lieu</span>
+                  <span className="text-foreground font-semibold">{place.name}</span>
+                </div>
+                {confirmOffer.end_time && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Valide jusqu'à</span>
+                    <span className="text-gold font-semibold">
+                      {new Date(confirmOffer.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Prix</span>
+                  <span className="text-green-400 font-bold">Gratuit</span>
+                </div>
+              </div>
+              <button
+                onClick={confirmAndClaim}
+                disabled={claiming === confirmOffer.id}
+                className="w-full py-4 rounded-2xl text-sm font-bold text-primary-foreground active:scale-[0.98] transition-all disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+              >
+                {claiming === confirmOffer.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                ) : (
+                  "✅ Confirmer et recevoir mon pass"
+                )}
+              </button>
+              <button
+                onClick={() => setConfirmOffer(null)}
+                className="w-full text-xs text-muted-foreground hover:text-foreground py-1 transition-colors"
+              >
+                Annuler
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
