@@ -121,6 +121,14 @@ export default function VenueContextPage() {
           .gte("expires_at", now)
           .limit(1);
         setIsCheckedIn((existing?.length ?? 0) > 0);
+
+        // Total check-ins for loyalty
+        const { count: totalCount } = await (supabase
+          .from("checkins" as any) as any)
+          .select("id", { count: "exact", head: true })
+          .eq("place_id", p.id)
+          .eq("user_id", user.id);
+        setTotalUserCheckins(totalCount ?? 0);
       }
 
       setLoading(false);
