@@ -477,18 +477,32 @@ export default function VenueContextPage() {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleClaim(offer)}
-                  disabled={claiming === offer.id}
-                  className="w-full py-3 rounded-xl text-sm font-bold text-primary-foreground active:scale-[0.98] transition-all disabled:opacity-50"
-                  style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
-                >
-                  {claiming === offer.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                  ) : (
-                    "🎟️ Réclamer mon pass VIP"
-                  )}
-                </button>
+                {isCheckedIn ? (
+                  <button
+                    onClick={() => handleClaim(offer)}
+                    disabled={claiming === offer.id}
+                    className="w-full py-3 rounded-xl text-sm font-bold text-primary-foreground active:scale-[0.98] transition-all disabled:opacity-50"
+                    style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+                  >
+                    {claiming === offer.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                    ) : (
+                      "🎟️ Réclamer mon pass VIP"
+                    )}
+                  </button>
+                ) : (
+                  <div className="space-y-1.5">
+                    <button
+                      disabled
+                      className="w-full py-3 rounded-xl text-sm font-bold text-muted-foreground bg-muted/50 border border-border cursor-not-allowed"
+                    >
+                      🔒 Réclamer mon pass VIP
+                    </button>
+                    <p className="text-[10px] text-muted-foreground text-center">
+                      Tape sur « 🙋 Je suis là ! » d'abord pour débloquer
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
           </motion.div>
