@@ -561,43 +561,46 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
             key="map-controls"
-            className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-2"
+            className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-1.5"
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 12 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
+            {/* Geolocate */}
             <button
               onClick={handleGeolocate}
-              className="w-10 h-10 rounded-full bg-gold/90 backdrop-blur-xl border border-gold-dark/40 flex items-center justify-center text-primary-foreground shadow-lg active:scale-95 transition-transform"
+              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md active:scale-95 transition-transform"
               title="Ma position"
             >
-              <Navigation className="w-4 h-4" />
+              <Navigation className="w-3.5 h-3.5 text-gold" />
+              <span className="text-[10px] font-semibold text-foreground">Position</span>
             </button>
+
+            {/* Toggle vibes */}
             <button
               onClick={() => setShowVibes(v => !v)}
-              className={`relative w-10 h-10 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-lg active:scale-95 transition-all ${
+              className={`flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full backdrop-blur-xl border shadow-md active:scale-95 transition-all ${
                 showVibes
-                  ? "bg-gold/90 border-gold-dark/40 text-primary-foreground"
-                  : "bg-[hsl(0,0%,10%,0.92)] border-border text-muted-foreground"
+                  ? "bg-gold/15 border-gold/30 text-gold"
+                  : "bg-card/90 border-border text-muted-foreground"
               }`}
               title={showVibes ? "Masquer les vibes" : "Voir les vibes"}
             >
-              <span className="text-sm">📸</span>
-              {vibePins.length > 0 && (
-                <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full text-[9px] font-bold flex items-center justify-center px-1 transition-all ${
-                  showVibes ? "bg-primary-foreground text-gold" : "bg-muted text-muted-foreground"
-                } ${vibePulse ? "animate-[pulse_0.5s_ease-in-out_3]" : ""}`}>
-                  {vibePins.length}
-                </span>
-              )}
+              <span className="text-xs">📸</span>
+              <span className="text-[10px] font-semibold">
+                Vibes{vibePins.length > 0 ? ` (${vibePins.length})` : ""}
+              </span>
             </button>
+
+            {/* Recenter */}
             <button
               onClick={handleRecenter}
-              className="w-10 h-10 rounded-full bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-gold/30 flex items-center justify-center text-gold shadow-lg active:scale-95 transition-transform"
-              title="Marrakech"
+              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md active:scale-95 transition-transform"
+              title="Recentrer"
             >
-              <LocateFixed className="w-4 h-4" />
+              <LocateFixed className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-[10px] font-semibold text-foreground">Recentrer</span>
             </button>
           </motion.div>
         )}
