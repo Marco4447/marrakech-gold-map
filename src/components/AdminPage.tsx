@@ -752,6 +752,37 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                               </option>
                             ))}
                           </select>
+
+                          {/* Plan & Credits config */}
+                          <div className="flex gap-2">
+                            <select
+                              value={requestPlan[req.id] || ""}
+                              onChange={(e) => setRequestPlan((prev) => ({ ...prev, [req.id]: e.target.value }))}
+                              className="flex-1 bg-surface border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
+                            >
+                              <option value="">Pas de plan</option>
+                              <option value="basic">Basic</option>
+                              <option value="premium">Premium</option>
+                              <option value="featured">Featured ⭐</option>
+                            </select>
+                            <input
+                              type="number"
+                              min={0}
+                              placeholder="Crédits"
+                              value={requestCredits[req.id] || ""}
+                              onChange={(e) => setRequestCredits((prev) => ({ ...prev, [req.id]: parseInt(e.target.value) || 0 }))}
+                              className="w-20 bg-surface border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
+                            />
+                            <input
+                              type="number"
+                              min={1}
+                              placeholder="Jours"
+                              value={requestPlanDays[req.id] || 30}
+                              onChange={(e) => setRequestPlanDays((prev) => ({ ...prev, [req.id]: parseInt(e.target.value) || 30 }))}
+                              className="w-16 bg-surface border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
+                            />
+                          </div>
+
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleUpdateStatus(req, "approved")}
