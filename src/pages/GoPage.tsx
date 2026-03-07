@@ -134,7 +134,12 @@ export default function GoPage() {
 
   // Analytics
   useEffect(() => {
-    ttqTrack("ViewContent", { content_name: "go_landing", description: `${utmSource}/${utmCampaign}` });
+    ttqTrack("ViewContent", {
+      content_name: "go_landing",
+      content_id: "go_page",
+      content_category: "acquisition",
+      description: `${utmSource}/${utmCampaign}`,
+    });
     trackEvent("go_page_view", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp, is_tiktok: isTikTok, referrer: document.referrer || "direct" });
   }, []);
 
@@ -169,7 +174,7 @@ export default function GoPage() {
     }
 
     trackEvent("go_google_signup_click", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
-    ttqTrack("InitiateCheckout", { content_name: "google_signup_attempt" });
+    ttqTrack("InitiateCheckout", { content_name: "google_signup_attempt", content_id: "google_oauth", content_category: "signup" });
 
     const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (error) {
@@ -193,7 +198,7 @@ export default function GoPage() {
     }
     setLoading(true);
     trackEvent("go_email_signup_submit", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
-    ttqTrack("InitiateCheckout", { content_name: "magic_link_attempt" });
+    ttqTrack("InitiateCheckout", { content_name: "magic_link_attempt", content_id: "email_otp", content_category: "signup" });
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -207,7 +212,8 @@ export default function GoPage() {
     } else {
       setSuccess(lang === "fr" ? "Lien envoyé ! Vérifie ta boîte mail 📩" : "Link sent! Check your inbox 📩");
       trackEvent("go_email_signup_success", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
-      ttqTrack("CompleteRegistration", { content_name: "magic_link" });
+      ttqIdentify(email);
+      ttqTrack("CompleteRegistration", { content_name: "magic_link", content_id: "email_signup", content_category: "signup" });
     }
     setLoading(false);
   };
