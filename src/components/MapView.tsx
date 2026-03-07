@@ -39,6 +39,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   vibePinsRef.current = vibePins;
   const userPositionRef = useRef(userPosition);
   userPositionRef.current = userPosition;
+  const hasAutoFitted = useRef(false);
 
   // Day/Night theme
   const { isNight } = useMapTheme(mapRef.current);
@@ -93,6 +94,34 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
     prevVibeCountRef.current = vibePins.length;
   }, [vibePins.length]);
+
+  // Auto-fit bounds on first load to center on places/vibes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || hasAutoFitted.current || deepLinkPlaceId) return;
+    if (places.length === 0 && vibePins.length === 0) return;
+
+    const points: L.LatLngExpression[] = [];
+    
+    // Add partner/boosted places first, then all places
+    const priorityPlaces = places.filter(p => p.is_partner || isBoosted(p.name) || trendingLocations.has(p.name.toLowerCase()));
+    const sourcePlaces = priorityPlaces.length > 0 ? priorityPlaces : places;
+    sourcePlaces.forEach(p => points.push([p.latitude, p.longitude]));
+
+    // Add recent vibes
+    vibePins.forEach(v => {
+      if (v.latitude != null && v.longitude != null) {
+        const age = Date.now() - new Date(v.created_at).getTime();
+        if (age < SIX_HOURS) points.push([v.latitude, v.longitude]);
+      }
+    });
+
+    if (points.length > 0) {
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15, animate: true, duration: 0.8 });
+      hasAutoFitted.current = true;
+    }
+  }, [places, vibePins, trendingLocations, deepLinkPlaceId]);
 
   // Fly to coordinates
   useEffect(() => {
