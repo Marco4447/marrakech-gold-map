@@ -41,7 +41,9 @@ export default function PosterPage() {
   }, []);
 
   const placeName = selected?.name || "This Spot";
-  const qrUrl = BASE_URL;
+  const qrUrl = selected
+    ? `https://weshkech.com/place/${selected.id}`
+    : BASE_URL;
   const categoryEmoji =
     selected?.category === "rooftop"
       ? "🌇"
