@@ -51,15 +51,14 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
     <div className="w-full">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[hsl(0,0%,10%,0.92)] backdrop-blur-xl border border-[hsl(0,0%,20%)] shadow-lg text-left"
+        className="w-full flex items-center gap-1 px-2 py-1 rounded-full bg-card/80 backdrop-blur-md border border-border text-left"
       >
-        <Radio className={`w-3 h-3 ${hasNew ? "text-red-400 animate-pulse" : "text-gold"}`} />
-        <span className="text-[10px] font-semibold text-muted-foreground flex-1">
-          Vibes récentes {vibes.length > 0 && `(${vibes.length})`}
+        <Radio className={`w-2.5 h-2.5 ${hasNew ? "text-destructive animate-pulse" : "text-gold"}`} />
+        <span className="text-[9px] font-semibold text-muted-foreground flex-1 truncate">
+          Vibes {vibes.length > 0 && `(${vibes.length})`}
         </span>
-        {vibes.length === 0 && <span className="text-[9px] text-muted-foreground/60">aucune</span>}
         {hasNew && <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />}
-        {open ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
+        {open ? <ChevronUp className="w-2.5 h-2.5 text-muted-foreground" /> : <ChevronDown className="w-2.5 h-2.5 text-muted-foreground" />}
       </button>
 
       <AnimatePresence>
