@@ -85,7 +85,16 @@ export default function VenueContextPage() {
 
       if (!p) { navigate("/"); return; }
       setPlace(p as any);
-      setIsFollowing(!!localStorage.getItem(`wk_follow_${p.id}`));
+      // Check follow status
+      if (user) {
+        const { data: followData } = await (supabase
+          .from("place_follows" as any) as any)
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("place_id", p.id)
+          .maybeSingle();
+        setIsFollowing(!!followData);
+      }
 
       // Record QR scan
       await (supabase.from("qr_scans" as any) as any).insert({ place_id: p.id, user_id: user?.id || null });
@@ -243,15 +252,27 @@ export default function VenueContextPage() {
     await doClaim(confirmOffer);
   };
 
-  const handleFollow = () => {
+  const handleFollow = async () => {
     if (!place) return;
-    const key = `wk_follow_${place.id}`;
+    if (!user) {
+      requireAuth({ type: "checkin" }); // reuse auth prompt
+      return;
+    }
     if (isFollowing) {
-      localStorage.removeItem(key);
+      await (supabase.from("place_follows" as any) as any)
+        .delete()
+        .eq("user_id", user.id)
+        .eq("place_id", place.id);
       setIsFollowing(false);
       toast("Notifications désactivées pour ce lieu");
     } else {
-      localStorage.setItem(key, "1");
+      const { error } = await (supabase.from("place_follows" as any) as any)
+        .insert({ user_id: user.id, place_id: place.id });
+      if (error) {
+        console.error(error);
+        toast.error("Erreur");
+        return;
+      }
       setIsFollowing(true);
       toast.success("🔔 Tu seras notifié des prochaines offres !");
     }
