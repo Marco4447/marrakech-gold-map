@@ -111,6 +111,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [chDays, setChDays] = useState("7");
   const [savingCh, setSavingCh] = useState(false);
 
+  // Partner invite links
+  const [inviteLinks, setInviteLinks] = useState<Record<string, string>>({});
+
   const fetchChallenges = async () => {
     const { data } = await supabase.from("weekly_challenges" as any).select("*").order("created_at", { ascending: false }).limit(20);
     if (data) setChallenges(data as any);
