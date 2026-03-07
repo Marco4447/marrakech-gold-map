@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import BoostUpsell from "@/components/BoostUpsell";
 import { Camera, X, Loader2, Send, MapPin, Video, Check, Trash2, Star, ShoppingCart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -134,6 +135,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
   const [geoLoading, setGeoLoading] = useState(false);
   const [nearbyPlace, setNearbyPlace] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showBoostUpsell, setShowBoostUpsell] = useState(false);
   const [isOfficial, setIsOfficial] = useState(false);
   const [isPartner, setIsPartner] = useState(false);
   const [partnerCredits, setPartnerCredits] = useState(0);
