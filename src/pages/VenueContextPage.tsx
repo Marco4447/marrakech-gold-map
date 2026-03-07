@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn, Star, Bell, BellOff } from "lucide-react";
+import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn, Star, Bell, BellOff, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import FomoCountdown from "@/components/FomoCountdown";
+import ShareOfferCTA from "@/components/ShareOfferCTA";
 
 interface VenuePlace {
   id: string;
@@ -517,10 +519,7 @@ export default function VenueContextPage() {
                     <p className="font-display text-sm font-bold text-foreground">{offer.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{offer.description}</p>
                     {offer.end_time && (
-                      <p className="text-[10px] text-gold mt-1 flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        Valide jusqu'à {new Date(offer.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                      </p>
+                      <FomoCountdown endTime={offer.end_time} className="mt-1" />
                     )}
                   </div>
                 </div>
