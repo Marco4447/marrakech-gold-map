@@ -747,6 +747,26 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                           </button>
                         </div>
                       )}
+                      {/* Invite link after approval */}
+                      {(req.status === "approved" && inviteLinks[req.id]) && (
+                        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-gold/5 border border-gold/20">
+                          <Link2 className="w-4 h-4 text-gold shrink-0" />
+                          <input
+                            readOnly
+                            value={inviteLinks[req.id]}
+                            className="flex-1 text-[11px] bg-transparent text-foreground truncate outline-none"
+                          />
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(inviteLinks[req.id]);
+                              toast.success("Lien copié ! Envoie-le au partenaire via WhatsApp 📲");
+                            }}
+                            className="shrink-0 p-1.5 rounded-lg bg-gold/15 text-gold hover:bg-gold/25 transition-colors"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
