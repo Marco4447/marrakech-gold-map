@@ -181,12 +181,34 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
       if (newStatus === "approved") {
         await supabase.from("places").update({ is_partner: true, has_active_offer: true } as any).ilike("name", req.business_name);
+
+        // Find matching place for the invite link
+        const { data: matchedPlaces } = await supabase.from("places").select("id").ilike("name", req.business_name).limit(1);
+        const placeId = matchedPlaces?.[0]?.id;
+
+        if (placeId) {
+          // Generate partner invite
+          const { data: invite, error: inviteErr } = await supabase.from("partner_invites" as any).insert({
+            place_id: placeId,
+            business_name: req.business_name,
+            created_by: (await supabase.auth.getUser()).data.user?.id,
+          } as any).select("token").single();
+
+          if (!inviteErr && invite) {
+            const link = `${window.location.origin}/partner-invite/${(invite as any).token}`;
+            setInviteLinks((prev) => ({ ...prev, [req.id]: link }));
+            toast.success(`${req.business_name} approuvé ! Lien d'invitation généré ✅`);
+          } else {
+            toast.success(`${req.business_name} approuvé ✅ (lien non généré)`);
+          }
+        } else {
+          toast.info(`${req.business_name} approuvé, mais aucun lieu trouvé avec ce nom. Crée le spot d'abord.`);
+        }
+
+        // Also assign role if user_id exists
         if (req.user_id) {
           await supabase.from("user_roles" as any).upsert({ user_id: req.user_id, role: "partner" } as any, { onConflict: "user_id,role" });
           await supabase.from("partner_credits" as any).upsert({ user_id: req.user_id, credits: 0 } as any, { onConflict: "user_id" });
-          toast.success(`${req.business_name} approuvé + rôle partner ✅`);
-        } else {
-          toast.success(`${req.business_name} approuvé ✅`);
         }
       } else {
         toast.success(`${req.business_name} rejeté`);
