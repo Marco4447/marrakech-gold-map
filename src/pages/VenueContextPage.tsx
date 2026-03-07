@@ -307,12 +307,12 @@ export default function VenueContextPage() {
             {isCheckedIn ? (
               <><CheckCircle2 className="w-4 h-4" /> Tu es ici · {checkinCount} {checkinCount > 1 ? "personnes" : "personne"} présente{checkinCount > 1 ? "s" : ""}</>
             ) : (
-              <><MapPin className="w-4 h-4" /> Check-in ici</>
+              <><MapPin className="w-4 h-4" /> 🙋 Je suis là !</>
             )}
           </button>
           {!isCheckedIn && (
             <p className="text-[11px] text-muted-foreground text-center">
-              🔓 Check-in pour débloquer les offres VIP de ce lieu
+              Confirme ta présence pour accéder aux offres VIP
             </p>
           )}
         </motion.div>
