@@ -39,6 +39,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   vibePinsRef.current = vibePins;
   const userPositionRef = useRef(userPosition);
   userPositionRef.current = userPosition;
+  const hasAutoFitted = useRef(false);
 
   // Day/Night theme
   const { isNight } = useMapTheme(mapRef.current);
