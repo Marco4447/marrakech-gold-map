@@ -224,6 +224,50 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_invites: {
+        Row: {
+          business_name: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          place_id: string
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          business_name: string
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          place_id: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          business_name?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          place_id?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_invites_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_offers: {
         Row: {
           created_at: string
