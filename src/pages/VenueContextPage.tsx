@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn, Star } from "lucide-react";
+import { MapPin, Users, Clock, Gift, CheckCircle2, Loader2, ArrowLeft, Sparkles, LogIn, Star, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface VenuePlace {
@@ -57,6 +57,8 @@ export default function VenueContextPage() {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [totalUserCheckins, setTotalUserCheckins] = useState(0);
+  const [confirmOffer, setConfirmOffer] = useState<VipOffer | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
   const pendingActionRef = useRef<PendingAction | null>(null);
 
   const HABITUE_THRESHOLD = 3;
