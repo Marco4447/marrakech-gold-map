@@ -449,14 +449,42 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                 </div>
               </div>
 
-              {/* Enhanced filter bar */}
-              <div className="mt-1.5 pointer-events-auto">
-                <MapFiltersBar
-                  activeFilter={activeFilter}
-                  onFilterChange={setActiveFilter}
-                  tonightMode={tonightMode}
-                  onTonightToggle={() => setTonightMode(t => !t)}
-                />
+              {/* Filter bar + recent vibes in one row */}
+              <div className="mt-1.5 pointer-events-auto flex items-center gap-1.5">
+                <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
+                  <MapFiltersBar
+                    activeFilter={activeFilter}
+                    onFilterChange={setActiveFilter}
+                    tonightMode={tonightMode}
+                    onTonightToggle={() => setTonightMode(t => !t)}
+                  />
+                </div>
+                <div className="shrink-0 w-[140px]">
+                  <RecentVibesPanel
+                    onVibeClick={(vibe) => {
+                      if (navigator.vibrate) navigator.vibrate(30);
+                      try {
+                        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = "sine";
+                        osc.frequency.setValueAtTime(880, ctx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.06);
+                        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                        osc.connect(gain).connect(ctx.destination);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.12);
+                      } catch {}
+
+                      if (vibe.latitude && vibe.longitude && mapRef.current) {
+                        mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
+                      }
+                      setSelectedVibe(vibe as any);
+                      setVibeSheetOpen(true);
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </motion.div>
