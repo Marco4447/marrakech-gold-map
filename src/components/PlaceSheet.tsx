@@ -13,6 +13,7 @@ import PartnerOfferCard from "./PartnerOfferCard";
 import PlacePhotoGallery from "./place/PlacePhotoGallery";
 import PlaceInfoCards from "./place/PlaceInfoCards";
 import PlaceVipSection from "./place/PlaceVipSection";
+import PlaceVibesSection from "./place/PlaceVibesSection";
 
 interface Place {
   id: string;
@@ -163,10 +164,13 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     <PremiumLock placeName={place.name} />
                   ) : (
                     <>
-                      {/* Description */}
-                      {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
+                       {/* Description */}
+                       {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
 
-                      {/* Info Cards (horaires, prix, musique, dress code) */}
+                       {/* Recent Vibes from this place */}
+                       <PlaceVibesSection placeName={place.name} />
+
+                       {/* Info Cards (horaires, prix, musique, dress code) */}
                       <PlaceInfoCards details={placeDetails} />
 
                       {/* Menu / Carte link */}
