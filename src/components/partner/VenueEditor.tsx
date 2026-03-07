@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Save, Loader2, Camera, X, ChevronDown, Link2, UtensilsCrossed, Wine } from "lucide-react";
+import { Save, Loader2, Camera, X, ChevronDown, Link2, UtensilsCrossed, Wine, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -189,7 +189,7 @@ export default function VenueEditor({ userId, placeId }: Props) {
       </div>
 
       {/* ── PHOTO ── */}
-      <Section title="Photo principale" hint={`Recommandé : ${IMAGE_REC_WIDTH}×${IMAGE_REC_HEIGHT}px · Max ${IMAGE_MAX_MB} Mo · JPG/PNG`}>
+      <Section title="Photo principale">
         {form.image_url ? (
           <div className="relative aspect-video rounded-xl overflow-hidden bg-surface">
             <img src={form.image_url} alt="" className="w-full h-full object-cover" />
@@ -199,14 +199,20 @@ export default function VenueEditor({ userId, placeId }: Props) {
             </button>
           </div>
         ) : (
-          <label className="w-full aspect-video rounded-xl border-2 border-dashed border-gold/25 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-gold/50 transition-colors">
+          <label className="w-full aspect-video rounded-xl border-2 border-dashed border-gold/25 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-gold/50 transition-colors">
             {uploading ? <Loader2 className="w-5 h-5 text-gold animate-spin" /> : <Camera className="w-6 h-6 text-gold/60" />}
-            <span className="text-xs text-muted-foreground">{uploading ? "Upload..." : "Cliquer pour ajouter"}</span>
-            <span className="text-[10px] text-muted-foreground/60">{IMAGE_REC_WIDTH}×{IMAGE_REC_HEIGHT}px · max {IMAGE_MAX_MB} Mo</span>
+            <span className="text-xs text-muted-foreground font-medium">{uploading ? "Upload en cours..." : "Ajouter une photo de couverture"}</span>
             <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
           </label>
         )}
+        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-gold/5 border border-gold/10">
+          <Info className="w-3.5 h-3.5 text-gold shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <p className="text-[11px] text-foreground/80 font-medium">Format paysage recommandé</p>
+            <p className="text-[10px] text-muted-foreground">Taille idéale : 1200 × 675 px · Max {IMAGE_MAX_MB} Mo · JPG, PNG ou WebP</p>
+          </div>
+        </div>
       </Section>
 
       {/* ── DESCRIPTION ── */}
