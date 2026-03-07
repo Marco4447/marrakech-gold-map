@@ -317,7 +317,46 @@ export default function VenueContextPage() {
           )}
         </motion.div>
 
-        {/* Inline Auth Prompt */}
+        {/* Loyalty progress */}
+        {user && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+            className={`rounded-2xl p-4 border ${isHabitue ? "bg-gold/10 border-gold/30" : "bg-card/80 border-border"}`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isHabitue ? "bg-gold/20" : "bg-muted"}`}>
+                <Star className={`w-5 h-5 ${isHabitue ? "text-gold fill-gold" : "text-muted-foreground"}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-foreground">
+                    {isHabitue ? "⭐ Habitué" : "Fidélité"}
+                  </p>
+                  {isHabitue && (
+                    <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded-full font-semibold">
+                      Statut débloqué
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {isHabitue
+                    ? `${totalUserCheckins} visites · Le staff te reconnaît 🤝`
+                    : `${totalUserCheckins}/${HABITUE_THRESHOLD} check-ins pour devenir Habitué`
+                  }
+                </p>
+              </div>
+            </div>
+            {!isHabitue && (
+              <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gold rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((totalUserCheckins / HABITUE_THRESHOLD) * 100, 100)}%` }}
+                  transition={{ delay: 0.3, duration: 0.6 }}
+                />
+              </div>
+            )}
+          </motion.div>
+        )}
+
         <AnimatePresence>
           {showAuthPrompt && !user && (
             <motion.div
