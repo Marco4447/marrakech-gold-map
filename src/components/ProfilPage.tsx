@@ -826,21 +826,6 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         )}
       </AnimatePresence>
 
-      {/* Admin button - only visible for admins */}
-      {isAdmin && (
-        <button
-          onClick={onOpenAdmin}
-          className="fixed bottom-24 right-5 w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-muted-foreground hover:text-gold hover:border-gold/30 transition-colors z-[1500]"
-          title="Admin"
-        >
-          <Settings className="w-4 h-4" />
-          {pendingRequests > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">
-              {pendingRequests > 9 ? "9+" : pendingRequests}
-            </span>
-          )}
-        </button>
-      )}
     </div>
   );
 }
