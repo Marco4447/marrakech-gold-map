@@ -59,7 +59,8 @@ export default function GoPage() {
           if (!sessionStorage.getItem(trackedKey)) {
             trackEvent("go_google_signup_success", { source, campaign });
             trackEvent("sign_up", { method: "google", source, campaign });
-            ttqTrack("CompleteRegistration", { content_name: "google_signup", source, campaign });
+            ttqIdentify(user.email);
+            ttqTrack("CompleteRegistration", { content_name: "google_signup", content_id: "google_oauth", content_category: "signup", source, campaign });
             sessionStorage.setItem(trackedKey, "1");
           }
 
