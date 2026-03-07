@@ -3,7 +3,7 @@ import UsersTab from "./UsersTab";
 import AdminVipOffers from "./admin/AdminVipOffers";
 import AdminStoriesManager from "./admin/AdminStoriesManager";
 import AdminActivityFeed from "./admin/AdminActivityFeed";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity } from "lucide-react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity, Link2, Copy } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,6 +111,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [chDays, setChDays] = useState("7");
   const [savingCh, setSavingCh] = useState(false);
 
+  // Partner invite links
+  const [inviteLinks, setInviteLinks] = useState<Record<string, string>>({});
+
   const fetchChallenges = async () => {
     const { data } = await supabase.from("weekly_challenges" as any).select("*").order("created_at", { ascending: false }).limit(20);
     if (data) setChallenges(data as any);
@@ -178,12 +181,34 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
       if (newStatus === "approved") {
         await supabase.from("places").update({ is_partner: true, has_active_offer: true } as any).ilike("name", req.business_name);
+
+        // Find matching place for the invite link
+        const { data: matchedPlaces } = await supabase.from("places").select("id").ilike("name", req.business_name).limit(1);
+        const placeId = matchedPlaces?.[0]?.id;
+
+        if (placeId) {
+          // Generate partner invite
+          const { data: invite, error: inviteErr } = await supabase.from("partner_invites" as any).insert({
+            place_id: placeId,
+            business_name: req.business_name,
+            created_by: (await supabase.auth.getUser()).data.user?.id,
+          } as any).select("token").single();
+
+          if (!inviteErr && invite) {
+            const link = `${window.location.origin}/partner-invite/${(invite as any).token}`;
+            setInviteLinks((prev) => ({ ...prev, [req.id]: link }));
+            toast.success(`${req.business_name} approuvé ! Lien d'invitation généré ✅`);
+          } else {
+            toast.success(`${req.business_name} approuvé ✅ (lien non généré)`);
+          }
+        } else {
+          toast.info(`${req.business_name} approuvé, mais aucun lieu trouvé avec ce nom. Crée le spot d'abord.`);
+        }
+
+        // Also assign role if user_id exists
         if (req.user_id) {
           await supabase.from("user_roles" as any).upsert({ user_id: req.user_id, role: "partner" } as any, { onConflict: "user_id,role" });
           await supabase.from("partner_credits" as any).upsert({ user_id: req.user_id, credits: 0 } as any, { onConflict: "user_id" });
-          toast.success(`${req.business_name} approuvé + rôle partner ✅`);
-        } else {
-          toast.success(`${req.business_name} approuvé ✅`);
         }
       } else {
         toast.success(`${req.business_name} rejeté`);
@@ -719,6 +744,26 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                           >
                             <XCircle className="w-3.5 h-3.5" />
                             Rejeter
+                          </button>
+                        </div>
+                      )}
+                      {/* Invite link after approval */}
+                      {(req.status === "approved" && inviteLinks[req.id]) && (
+                        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-gold/5 border border-gold/20">
+                          <Link2 className="w-4 h-4 text-gold shrink-0" />
+                          <input
+                            readOnly
+                            value={inviteLinks[req.id]}
+                            className="flex-1 text-[11px] bg-transparent text-foreground truncate outline-none"
+                          />
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(inviteLinks[req.id]);
+                              toast.success("Lien copié ! Envoie-le au partenaire via WhatsApp 📲");
+                            }}
+                            className="shrink-0 p-1.5 rounded-lg bg-gold/15 text-gold hover:bg-gold/25 transition-colors"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       )}
