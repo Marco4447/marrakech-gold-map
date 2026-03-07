@@ -111,10 +111,12 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   const [chDays, setChDays] = useState("7");
   const [savingCh, setSavingCh] = useState(false);
 
-  // Partner invite links
+  // Partner invite config
   const [inviteLinks, setInviteLinks] = useState<Record<string, string>>({});
-  // Place selection for each request
   const [requestPlaceIds, setRequestPlaceIds] = useState<Record<string, string>>({});
+  const [requestCredits, setRequestCredits] = useState<Record<string, number>>({});
+  const [requestPlan, setRequestPlan] = useState<Record<string, string>>({});
+  const [requestPlanDays, setRequestPlanDays] = useState<Record<string, number>>({});
 
   const fetchChallenges = async () => {
     const { data } = await supabase.from("weekly_challenges" as any).select("*").order("created_at", { ascending: false }).limit(20);
@@ -192,11 +194,14 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         if (placeId) {
           await supabase.from("places").update({ is_partner: true } as any).eq("id", placeId);
 
-          // Generate partner invite
+          // Generate partner invite with config
           const { data: invite, error: inviteErr } = await supabase.from("partner_invites" as any).insert({
             place_id: placeId,
             business_name: req.business_name,
             created_by: (await supabase.auth.getUser()).data.user?.id,
+            initial_credits: requestCredits[req.id] || 0,
+            initial_plan: requestPlan[req.id] || null,
+            initial_plan_days: requestPlanDays[req.id] || 30,
           } as any).select("token").single();
 
           if (!inviteErr && invite) {
@@ -747,6 +752,37 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                               </option>
                             ))}
                           </select>
+
+                          {/* Plan & Credits config */}
+                          <div className="flex gap-2">
+                            <select
+                              value={requestPlan[req.id] || ""}
+                              onChange={(e) => setRequestPlan((prev) => ({ ...prev, [req.id]: e.target.value }))}
+                              className="flex-1 bg-surface border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
+                            >
+                              <option value="">Pas de plan</option>
+                              <option value="basic">Basic</option>
+                              <option value="premium">Premium</option>
+                              <option value="featured">Featured ⭐</option>
+                            </select>
+                            <input
+                              type="number"
+                              min={0}
+                              placeholder="Crédits"
+                              value={requestCredits[req.id] || ""}
+                              onChange={(e) => setRequestCredits((prev) => ({ ...prev, [req.id]: parseInt(e.target.value) || 0 }))}
+                              className="w-20 bg-surface border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
+                            />
+                            <input
+                              type="number"
+                              min={1}
+                              placeholder="Jours"
+                              value={requestPlanDays[req.id] || 30}
+                              onChange={(e) => setRequestPlanDays((prev) => ({ ...prev, [req.id]: parseInt(e.target.value) || 30 }))}
+                              className="w-16 bg-surface border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
+                            />
+                          </div>
+
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleUpdateStatus(req, "approved")}
