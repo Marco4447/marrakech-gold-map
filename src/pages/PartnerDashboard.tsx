@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Zap, Camera, Video, Upload, Clock, Loader2, Image as ImageIcon, X, Check, Sparkles, Gift, Save, LayoutDashboard, Megaphone, BarChart3, Receipt, Pencil } from "lucide-react";
+import { ArrowLeft, Zap, Camera, Video, Upload, Clock, Loader2, Image as ImageIcon, X, Check, Sparkles, Gift, Save, LayoutDashboard, Megaphone, BarChart3, Receipt, Pencil, QrCode, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,79 +19,11 @@ import VenueEditor from "@/components/partner/VenueEditor";
 import PartnerStatsBanner from "@/components/partner/PartnerStatsBanner";
 import InstantVibeButton from "@/components/partner/InstantVibeButton";
 import CompetitorMapWidget from "@/components/partner/CompetitorMapWidget";
+import VenueHeader from "@/components/partner/VenueHeader";
+import VisibilityScore from "@/components/partner/VisibilityScore";
+import EstimatedCustomers from "@/components/partner/EstimatedCustomers";
 
-// --- Sub-components (kept from original) ---
-
-function PartnerOffersSection({ userId }: { userId: string }) {
-  const [placeId, setPlaceId] = useState<string | null>(null);
-  useEffect(() => {
-    const load = async () => {
-      const { data: vibes } = await supabase.from("vibes").select("location").eq("user_id", userId).eq("is_official", true).not("location", "is", null).limit(1);
-      if (vibes?.[0]?.location) {
-        const { data: place } = await supabase.from("places").select("id").ilike("name", `%${vibes[0].location}%`).limit(1);
-        if (place?.[0]) setPlaceId(place[0].id);
-      }
-    };
-    load();
-  }, [userId]);
-  if (!placeId) return null;
-  return <PartnerOffersManager placeId={placeId} />;
-}
-
-function VipOfferSettings({ userId }: { userId: string }) {
-  const [perk, setPerk] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [placeName, setPlaceName] = useState<string | null>(null);
-
-  useEffect(() => {
-    const load = async () => {
-      const { data: vibes } = await supabase.from("vibes").select("location").eq("user_id", userId).eq("is_official", true).not("location", "is", null).limit(1);
-      if (vibes && vibes.length > 0 && vibes[0].location) {
-        const loc = vibes[0].location;
-        setPlaceName(loc);
-        const { data: place } = await supabase.from("places").select("vip_perk_description").ilike("name", `%${loc}%`).limit(1);
-        if (place && place.length > 0) setPerk((place[0] as any).vip_perk_description || "");
-      }
-      setLoaded(true);
-    };
-    load();
-  }, [userId]);
-
-  const handleSave = async () => {
-    if (!placeName || !perk.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.from("places").update({ vip_perk_description: perk.trim() } as any).ilike("name", `%${placeName}%`);
-    if (error) toast.error("Erreur de sauvegarde");
-    else toast.success("Offre VIP mise à jour !");
-    setSaving(false);
-  };
-
-  if (!loaded) return null;
-
-  return (
-    <div className="rounded-2xl border border-gold/20 bg-card/80 backdrop-blur-xl p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <Gift className="w-4 h-4 text-gold" />
-        <h3 className="text-sm font-display font-semibold text-foreground">Mon Offre VIP</h3>
-      </div>
-      <p className="text-[11px] text-muted-foreground">
-        Décris l'avantage exclusif pour les membres Insider Pass.
-      </p>
-      <input
-        type="text" value={perk} onChange={(e) => setPerk(e.target.value.slice(0, 120))}
-        placeholder="Ex: Free welcome drink & Skip the line" maxLength={120}
-        className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
-      />
-      <button onClick={handleSave} disabled={saving || !perk.trim()}
-        className="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-gold/15 border border-gold/30 text-gold hover:bg-gold/25 transition-all active:scale-[0.98] disabled:opacity-50"
-      >
-        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-        Sauvegarder
-      </button>
-    </div>
-  );
-}
+// --- Sub-components ---
 
 function MoodPicker({ value, onChange }: { value: string | null; onChange: (v: string) => void }) {
   const MOODS = [
@@ -195,6 +127,7 @@ export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const [planType, setPlanType] = useState<PlanType | null>(null);
   const [placeId, setPlaceId] = useState<string | null>(null);
+  const [weeklyStats, setWeeklyStats] = useState({ checkins: 0, redemptions: 0 });
 
   // Post form state
   const [showForm, setShowForm] = useState(false);
@@ -231,12 +164,25 @@ export default function PartnerDashboard() {
       }
 
       // Fallback: find place from vibes
-      if (!subData?.place_id) {
+      let resolvedPlaceId = subData?.place_id ?? null;
+      if (!resolvedPlaceId) {
         const { data: vb } = await supabase.from("vibes").select("location").eq("user_id", user.id).eq("is_official", true).not("location", "is", null).limit(1);
         if (vb?.[0]?.location) {
           const { data: place } = await supabase.from("places").select("id").ilike("name", `%${vb[0].location}%`).limit(1);
-          if (place?.[0]) setPlaceId(place[0].id);
+          if (place?.[0]) { setPlaceId(place[0].id); resolvedPlaceId = place[0].id; }
         }
+      }
+
+      // Fetch weekly stats for estimated customers
+      if (resolvedPlaceId) {
+        const [checkinsRes, redemptionsRes] = await Promise.all([
+          supabase.rpc("weekly_checkins", { p_place_id: resolvedPlaceId }),
+          supabase.rpc("weekly_qr_redemptions", { p_place_id: resolvedPlaceId }),
+        ]);
+        setWeeklyStats({
+          checkins: Number(checkinsRes.data) || 0,
+          redemptions: Number(redemptionsRes.data) || 0,
+        });
       }
 
       setLoading(false);
@@ -276,6 +222,14 @@ export default function PartnerDashboard() {
     } finally { setPosting(false); }
   };
 
+  const refreshVibes = () => {
+    if (!user) return;
+    setCredits(c => c - 1);
+    supabase.from("vibes").select("id, image_url, location, caption, created_at, media_type")
+      .eq("user_id", user.id).eq("is_official", true).order("created_at", { ascending: false }).limit(20)
+      .then(({ data }) => setVibes((data as HistoryVibe[]) || []));
+  };
+
   // --- Render guards ---
   if (authLoading || loading) {
     return <div className="min-h-[100dvh] bg-background flex items-center justify-center"><Loader2 className="w-6 h-6 text-gold animate-spin" /></div>;
@@ -296,7 +250,7 @@ export default function PartnerDashboard() {
         <p className="text-sm text-muted-foreground max-w-xs">Achète un pack de crédits ou souscris un plan partenaire pour débloquer le Partner Studio.</p>
         <button onClick={() => navigate("/shop")}
           className="px-6 py-2.5 rounded-xl font-semibold text-sm text-primary-foreground active:scale-95 transition-transform"
-          style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+          style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)), hsl(var(--gold-dark)))" }}
         >Acheter des Crédits</button>
         <button onClick={() => navigate("/")} className="text-muted-foreground text-xs underline mt-2">Retour</button>
       </div>
@@ -348,15 +302,32 @@ export default function PartnerDashboard() {
         {/* Overview Tab */}
         {activeTab === "overview" && (
           <div className="space-y-5">
+            {/* Venue Header with identity + actions */}
+            <VenueHeader
+              placeId={placeId}
+              planType={planType}
+              credits={credits}
+              onEditVenue={() => setActiveTab("venue")}
+              onPostVibe={() => credits > 0 ? setActiveTab("vibes") : toast.error("Achète des crédits d'abord !")}
+            />
+
+            {/* Visibility Score */}
+            <VisibilityScore placeId={placeId} />
+
+            {/* Weekly KPIs */}
             <PartnerStatsBanner placeId={placeId} />
-            <InstantVibeButton userId={user.id} credits={credits} onPublished={() => {
-              setCredits(c => c - 1);
-              supabase.from("vibes").select("id, image_url, location, caption, created_at, media_type")
-                .eq("user_id", user.id).eq("is_official", true).order("created_at", { ascending: false }).limit(20)
-                .then(({ data }) => setVibes((data as HistoryVibe[]) || []));
-            }} />
-            <PartnerOverview userId={user.id} placeId={placeId} planType={planType} credits={credits} />
+
+            {/* Estimated Customers */}
+            <EstimatedCustomers checkins={weeklyStats.checkins} redemptions={weeklyStats.redemptions} />
+
+            {/* Instant Marketing */}
+            <InstantVibeButton userId={user.id} credits={credits} onPublished={refreshVibes} />
+
+            {/* Competitor Map */}
             <CompetitorMapWidget placeId={placeId} />
+
+            {/* Quick stats */}
+            <PartnerOverview userId={user.id} placeId={placeId} planType={planType} credits={credits} />
           </div>
         )}
 
@@ -368,9 +339,6 @@ export default function PartnerDashboard() {
         {/* Vibes Tab */}
         {activeTab === "vibes" && (
           <div className="space-y-5">
-            <VipOfferSettings userId={user.id} />
-            <PartnerOffersSection userId={user.id} />
-
             {/* Credits card */}
             <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-card/80 backdrop-blur-xl p-5">
               <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gold/10 blur-2xl" />
@@ -384,7 +352,7 @@ export default function PartnerDashboard() {
                 </div>
                 <button onClick={() => navigate("/shop")}
                   className="px-5 py-2.5 rounded-xl text-xs font-bold text-primary-foreground transition-transform active:scale-95"
-                  style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+                  style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)), hsl(var(--gold-dark)))" }}
                 >Recharger</button>
               </div>
             </div>
@@ -465,7 +433,7 @@ export default function PartnerDashboard() {
                   )}
                   <button onClick={handlePost} disabled={!file || posting}
                     className="w-full py-3.5 rounded-xl text-sm font-bold text-primary-foreground disabled:opacity-50 transition-all active:scale-[0.98]"
-                    style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+                    style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)), hsl(var(--gold-dark)))" }}
                   >
                     {posting ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Publication…</span> : `Publier (−1 crédit)`}
                   </button>
