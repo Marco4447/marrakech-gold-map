@@ -1001,6 +1001,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {/* === STORIES MANAGER === */}
           {tab === "stories" && <AdminStoriesManager />}
+
+          {/* === ACTIVITÉ === */}
+          {tab === "activity" && <AdminActivityFeed />}
         </div>
       )}
     </div>
