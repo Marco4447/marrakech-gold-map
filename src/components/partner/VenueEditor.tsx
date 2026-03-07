@@ -216,26 +216,31 @@ export default function VenueEditor({ userId, placeId }: Props) {
       </Section>
 
       {/* ── DESCRIPTION ── */}
-      <Section title="Description" hint={`${form.description.length}/${DESC_MAX} caractères`}>
+      <Section title="Description">
         <textarea
           value={form.description}
           onChange={e => {
             if (e.target.value.length <= DESC_MAX) setForm(f => ({ ...f, description: e.target.value }));
           }}
-          placeholder="Décris l'ambiance, la spécialité, l'expérience..."
+          placeholder="Décris l'ambiance, la spécialité, l'expérience de ton lieu..."
           rows={4}
           className="w-full px-4 py-3 rounded-xl bg-surface border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold/50 resize-none"
         />
-        <div className="h-1 rounded-full bg-border overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{
-              width: `${(form.description.length / DESC_MAX) * 100}%`,
-              background: form.description.length > DESC_MAX * 0.9
-                ? "#ef4444"
-                : "linear-gradient(90deg, #BF953F, #FCF6BA)",
-            }}
-          />
+        <div className="flex items-center justify-between">
+          <div className="h-1 flex-1 rounded-full bg-border overflow-hidden mr-3">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${(form.description.length / DESC_MAX) * 100}%`,
+                background: form.description.length > DESC_MAX * 0.9
+                  ? "#ef4444"
+                  : "linear-gradient(90deg, #BF953F, #FCF6BA)",
+              }}
+            />
+          </div>
+          <span className={`text-[10px] font-medium tabular-nums shrink-0 ${form.description.length > DESC_MAX * 0.9 ? "text-red-400" : "text-muted-foreground"}`}>
+            {form.description.length}/{DESC_MAX}
+          </span>
         </div>
       </Section>
 
