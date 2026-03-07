@@ -13,6 +13,7 @@ import PartnerOfferCard from "./PartnerOfferCard";
 import PlacePhotoGallery from "./place/PlacePhotoGallery";
 import PlaceInfoCards from "./place/PlaceInfoCards";
 import PlaceVipSection from "./place/PlaceVipSection";
+import PlaceVibesSection from "./place/PlaceVibesSection";
 
 interface Place {
   id: string;
