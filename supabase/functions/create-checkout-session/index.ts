@@ -68,7 +68,7 @@ serve(async (req) => {
     if (customers.data.length > 0) customerId = customers.data[0].id;
     logStep("Customer lookup", { customerId: customerId || "new" });
 
-    const origin = req.headers.get("origin") || "https://marrakech-gold-map.lovable.app";
+    const origin = req.headers.get("origin") || "https://weshkech.com";
 
     const isVip = productType === "b2c_vip" || priceId === VIP_PRICE_ID;
     const isBoost = productType === "vibe_boost" || !!BOOST_PRICES[priceId];
