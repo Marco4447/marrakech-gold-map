@@ -438,7 +438,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-5 pt-12 pb-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-5 pt-12 md:pt-4 pb-3 flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground font-display">Profil</h1>
         {onClose && (
           <button
@@ -679,9 +679,9 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="aspect-square bg-surface animate-pulse rounded-xl" />
+          <div className="grid grid-cols-3 gap-0.5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-surface animate-pulse" />
             ))}
           </div>
         ) : favorites.length === 0 ? (
@@ -697,14 +697,14 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-0.5 md:gap-1">
             {favorites.map((vibe, i) => (
               <motion.div
                 key={vibe.id}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.05 }}
-                className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border"
+                className="relative aspect-square overflow-hidden bg-card"
               >
                 <img
                   src={vibe.image_url}
@@ -712,25 +712,11 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-
-                <div className="absolute bottom-0 inset-x-0 p-2.5">
-                  <p className="text-[11px] font-semibold text-foreground truncate">
-                    {vibe.username || "Anonyme"}
-                  </p>
-                  {vibe.location && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-2.5 h-2.5 text-gold" />
-                      <span className="text-[10px] text-foreground/70 truncate">{vibe.location}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between mt-1">
-                    <div className="flex items-center gap-1">
-                      <Heart className="w-3 h-3 fill-gold text-gold" />
-                      <span className="text-[10px] font-bold text-gold">{vibe.likes}</span>
-                    </div>
-                    <span className="text-[9px] text-muted-foreground">{timeAgo(vibe.created_at)}</span>
-                  </div>
+                {/* Hover overlay with likes */}
+                <div className="absolute inset-0 bg-background/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                  <span className="flex items-center gap-1 text-foreground font-semibold text-sm">
+                    <Heart className="w-5 h-5 fill-foreground" />{vibe.likes}
+                  </span>
                 </div>
               </motion.div>
             ))}

@@ -382,9 +382,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 pb-0">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 md:pt-4 pb-0">
         <div className="flex items-center justify-between pb-2.5">
-          <h1 className="text-xl font-bold text-foreground tracking-tight font-display">Weshkech</h1>
+          <h1 className="text-xl font-bold text-foreground tracking-tight font-display md:hidden">Weshkech</h1>
+          <h1 className="hidden md:block text-lg font-semibold text-foreground tracking-tight font-display">Feed</h1>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowReels(true)}
