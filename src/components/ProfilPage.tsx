@@ -679,9 +679,9 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="aspect-square bg-surface animate-pulse rounded-xl" />
+          <div className="grid grid-cols-3 gap-0.5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-surface animate-pulse" />
             ))}
           </div>
         ) : favorites.length === 0 ? (
