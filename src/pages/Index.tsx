@@ -3,6 +3,7 @@ import { analytics } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav, { type Tab } from "@/components/BottomNav";
+import AppSidebar from "@/components/AppSidebar";
 import FeedPage from "@/components/FeedPage";
 import DiscoverTab from "@/components/DiscoverTab";
 import ProfilPage from "@/components/ProfilPage";
@@ -110,48 +111,92 @@ const Index = () => {
   }
 
   return (
-    <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
-      <div className="flex-1 relative min-h-0 overflow-hidden">
-        {activeTab === "feed" && (isGuest ? <AuthGate /> : <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />)}
-        {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
-        {activeTab === "discover" && (isGuest ? <AuthGate /> : <DiscoverTab onGoToMap={handleGoToMap} />)}
-        {activeTab === "profil" && (isGuest ? <AuthGate /> : <ProfilPage onClose={() => setActiveTab("feed")} />)}
-      </div>
-
-      {/* Guest CTA on map */}
-      {isGuest && activeTab === "map" && (
-        <>
-          <div className="fixed inset-x-0 bottom-0 h-[55vh] z-[1998] pointer-events-none" style={{
-            background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.85) 25%, hsl(var(--background) / 0.4) 60%, transparent 100%)",
-            backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)",
-            maskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)",
-          }} />
-          <div className="fixed bottom-20 left-4 right-4 z-[1999]">
-            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.5, duration: 0.5, type: "spring" }}
-              className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl p-5 shadow-2xl shadow-gold/10 text-center">
-              <p className="text-base font-bold text-foreground mb-1">{t("guest_unlockMap")}</p>
-              <p className="text-xs text-muted-foreground mb-3">{t("guest_signupDesc")}</p>
-              <button onClick={() => setActiveTab("profil")} className="w-full py-3 rounded-xl font-bold text-sm text-primary-foreground shadow-lg active:scale-[0.97] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
-                {t("guest_continueGoogle")}
-              </button>
-              <p className="text-[10px] text-muted-foreground mt-2">{t("guest_freeNoSpam")}</p>
-            </motion.div>
-          </div>
-        </>
+    <div className="h-[100dvh] w-full bg-background flex overflow-hidden">
+      {/* Desktop/Tablet sidebar */}
+      {!isGuest && (
+        <AppSidebar
+          active={activeTab}
+          onChange={(tab) => {
+            analytics.tabChange(tab);
+            setActiveTab(tab);
+          }}
+          onCreatePress={() => setShowFlashPost(true)}
+          onNotificationsPress={() => { markAllRead(); setShowNotifications(true); }}
+        />
       )}
 
-      <BottomNav
-        active={activeTab}
-        onChange={(tab) => {
-          if (tab === "create") return;
-          analytics.tabChange(tab);
-          setActiveTab(tab);
-        }}
-        onCreatePress={() => {
-          if (isGuest) { setActiveTab("profil"); return; }
-          setShowFlashPost(true);
-        }}
-      />
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 relative min-h-0 overflow-hidden">
+          {/* Feed: constrained width on desktop */}
+          {activeTab === "feed" && (
+            isGuest ? <AuthGate /> : (
+              <div className="h-full flex justify-center">
+                <div className="w-full max-w-[630px] h-full">
+                  <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
+                </div>
+              </div>
+            )
+          )}
+          {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
+          {activeTab === "discover" && (
+            isGuest ? <AuthGate /> : (
+              <div className="h-full flex justify-center">
+                <div className="w-full max-w-[630px] h-full">
+                  <DiscoverTab onGoToMap={handleGoToMap} />
+                </div>
+              </div>
+            )
+          )}
+          {activeTab === "profil" && (
+            isGuest ? <AuthGate /> : (
+              <div className="h-full flex justify-center">
+                <div className="w-full max-w-[630px] h-full">
+                  <ProfilPage onClose={() => setActiveTab("feed")} />
+                </div>
+              </div>
+            )
+          )}
+        </div>
+
+        {/* Guest CTA on map */}
+        {isGuest && activeTab === "map" && (
+          <>
+            <div className="fixed inset-x-0 bottom-0 h-[55vh] z-[1998] pointer-events-none" style={{
+              background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.85) 25%, hsl(var(--background) / 0.4) 60%, transparent 100%)",
+              backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)",
+              maskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)",
+            }} />
+            <div className="fixed bottom-20 left-4 right-4 z-[1999]">
+              <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.5, duration: 0.5, type: "spring" }}
+                className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl p-5 shadow-2xl shadow-gold/10 text-center">
+                <p className="text-base font-bold text-foreground mb-1">{t("guest_unlockMap")}</p>
+                <p className="text-xs text-muted-foreground mb-3">{t("guest_signupDesc")}</p>
+                <button onClick={() => setActiveTab("profil")} className="w-full py-3 rounded-xl font-bold text-sm text-primary-foreground shadow-lg active:scale-[0.97] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
+                  {t("guest_continueGoogle")}
+                </button>
+                <p className="text-[10px] text-muted-foreground mt-2">{t("guest_freeNoSpam")}</p>
+              </motion.div>
+            </div>
+          </>
+        )}
+
+        {/* Mobile bottom nav only */}
+        <div className="md:hidden">
+          <BottomNav
+            active={activeTab}
+            onChange={(tab) => {
+              if (tab === "create") return;
+              analytics.tabChange(tab);
+              setActiveTab(tab);
+            }}
+            onCreatePress={() => {
+              if (isGuest) { setActiveTab("profil"); return; }
+              setShowFlashPost(true);
+            }}
+          />
+        </div>
+      </div>
 
       {!isGuest && (
         <FlashPost
@@ -181,10 +226,9 @@ const Index = () => {
         />
       )}
 
-      {/* Header: Language toggle + notifications bell + info */}
+      {/* Header: Language toggle + notifications bell + info (mobile only) */}
       {!isGuest && (
-        <div className="fixed top-4 right-4 z-[1999] flex items-center gap-2">
-          {/* Notifications bell */}
+        <div className="fixed top-4 right-4 z-[1999] flex items-center gap-2 md:hidden">
           <button
             onClick={() => { markAllRead(); setShowNotifications(true); }}
             className="relative w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95"
