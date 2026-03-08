@@ -438,7 +438,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-5 pt-12 pb-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-5 pt-12 md:pt-4 pb-3 flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground font-display">Profil</h1>
         {onClose && (
           <button
