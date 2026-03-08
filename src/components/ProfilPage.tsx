@@ -697,14 +697,14 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-0.5 md:gap-1">
             {favorites.map((vibe, i) => (
               <motion.div
                 key={vibe.id}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.05 }}
-                className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border"
+                className="relative aspect-square overflow-hidden bg-card"
               >
                 <img
                   src={vibe.image_url}
