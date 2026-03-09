@@ -68,6 +68,7 @@ const AppShell = () => {
               <Route path="/payment-canceled" element={<PaymentCanceled />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/go" element={<GoPage />} />
+              <Route path="/GO" element={<Navigate to="/go" replace />} />
               <Route path="/discover" element={<DiscoverPage />} />
               <Route path="/place/:id" element={<PlacePage />} />
               <Route path="/vibe/:id" element={<VibePage />} />
