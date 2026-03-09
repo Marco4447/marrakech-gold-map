@@ -344,13 +344,7 @@ export default function VenuePage() {
           </div>
         )}
 
-        {/* Use pass button */}
-        {isPartner && hasOffer && (
-          <button onClick={() => setDealOpen(true)}
-            className="w-full flex items-center justify-center gap-2 font-semibold py-3.5 rounded-2xl transition-colors border bg-gold hover:bg-gold-light text-primary-foreground border-gold/30 shadow-lg shadow-gold/20">
-            <Zap className="w-4 h-4" /> Utiliser mon pass
-          </button>
-        )}
+        {/* B2C free: pass button disabled */}
 
         {/* Info section */}
         {(place.opening_hours || place.price_range || place.music_style || place.dress_code) && (
