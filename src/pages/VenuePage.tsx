@@ -321,12 +321,7 @@ export default function VenuePage() {
                   {vip.end_time && (
                     <FomoCountdown endTime={vip.end_time} className="mt-1" />
                   )}
-                  {isVip && (
-                    <Link to={`/go/${place.slug}`}
-                      className="inline-flex items-center gap-2 bg-gold text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold mt-1">
-                      <QrCode className="w-3.5 h-3.5" /> Obtenir mon pass
-                    </Link>
-                  )}
+                  {/* B2C free: pass CTA disabled */}
                 </div>
               );
             })}
