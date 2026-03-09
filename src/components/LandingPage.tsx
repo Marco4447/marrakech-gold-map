@@ -1,240 +1,269 @@
 import { forwardRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Camera, Gift, Star, Utensils, Moon, Sparkles, Users } from "lucide-react";
+import { Lock, Loader2, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import heroImage from "@/assets/marrakech-hero.jpg";
-import ExplainerSheet from "@/components/ExplainerSheet";
-import LanguageToggle from "@/components/LanguageToggle";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useLanguage } from "@/i18n/LanguageContext";
-
-interface RecentVibePreview {
-  id: string;
-  image_url: string;
-  location: string | null;
-  mood: string | null;
-}
+import { lovable } from "@/integrations/lovable/index";
+import { trackEvent } from "@/lib/analytics";
+import { Link } from "react-router-dom";
 
 interface LandingPageProps {
   onEnter: () => void;
 }
 
-const previewSlideKeys = [
-  { emoji: "🗺️", titleKey: "landing_mapTitle" as const, descKey: "landing_mapDesc" as const },
-  { emoji: "📸", titleKey: "landing_vibesTitle" as const, descKey: "landing_vibesDesc" as const },
-  { emoji: "🎁", titleKey: "landing_passTitle" as const, descKey: "landing_passDesc" as const },
-];
-
-const heroImages = [
-  heroImage,
-  "/images/landing-hero-1.jpg",
-  "/images/landing-hero-2.jpg",
-];
-
 const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, ref) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [insiderCount, setInsiderCount] = useState<number | null>(null);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [heroIndex, setHeroIndex] = useState(0);
-  const [recentVibes, setRecentVibes] = useState<RecentVibePreview[]>([]);
-  const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
-  const { t } = useLanguage();
 
   useEffect(() => {
     supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
       setInsiderCount(count ?? 0);
     });
-    supabase.from("vibes").select("id, image_url, location, mood").order("created_at", { ascending: false }).limit(5).then(({ data }) => {
-      if (data) setRecentVibes(data as RecentVibePreview[]);
+  }, []);
+
+  // Listen for auth state change to auto-enter
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        setTimeout(onEnter, 1200);
+      }
     });
-  }, []);
+    return () => subscription.unsubscribe();
+  }, [onEnter]);
 
-  useEffect(() => {
-    const heroInterval = setInterval(() => setHeroIndex((prev) => (prev + 1) % heroImages.length), 5000);
-    return () => clearInterval(heroInterval);
-  }, []);
+  const handleGoogleSignup = async () => {
+    setLoading(true);
+    trackEvent("landing_google_signup_click");
+    await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    setLoading(false);
+  };
 
-  useEffect(() => {
-    const interval = setInterval(() => setActiveSlide((prev) => (prev + 1) % previewSlideKeys.length), 4000);
-    return () => clearInterval(interval);
-  }, []);
+  const handleEmailSignup = async () => {
+    setError(null);
+    if (!email || !email.includes("@")) { setError("Entre ton email."); return; }
+    if (!password || password.length < 6) { setError("Mot de passe : 6 caractères min."); return; }
+    setLoading(true);
+    trackEvent("landing_email_signup_submit");
 
-  const pillars = [
-    { icon: MapPin, label: t("landing_explore"), desc: t("landing_exploreDesc") },
-    { icon: Camera, label: t("landing_vibe"), desc: t("landing_vibeDesc") },
-    { icon: Gift, label: t("landing_enjoy"), desc: t("landing_enjoyDesc") },
-  ];
+    const { data: signupData, error: signupError } = await supabase.auth.signUp({
+      email, password,
+      options: { data: { full_name: email.split("@")[0] }, emailRedirectTo: window.location.origin },
+    });
 
-  const seoSections = [
-    { icon: Star, titleKey: "seo_rooftopsTitle" as const, descKey: "seo_rooftopsDesc" as const },
-    { icon: Utensils, titleKey: "seo_restaurantsTitle" as const, descKey: "seo_restaurantsDesc" as const },
-    { icon: Moon, titleKey: "seo_nightlifeTitle" as const, descKey: "seo_nightlifeDesc" as const },
-    { icon: Sparkles, titleKey: "seo_hiddenTitle" as const, descKey: "seo_hiddenDesc" as const },
-    { icon: Users, titleKey: "seo_localTitle" as const, descKey: "seo_localDesc" as const },
-  ];
-
-  const faqItems = [
-    { qKey: "seo_faq1Q" as const, aKey: "seo_faq1A" as const },
-    { qKey: "seo_faq2Q" as const, aKey: "seo_faq2A" as const },
-    { qKey: "seo_faq3Q" as const, aKey: "seo_faq3A" as const },
-    { qKey: "seo_faq4Q" as const, aKey: "seo_faq4A" as const },
-  ];
+    if (signupError) {
+      if (signupError.message?.includes("already registered") || signupError.message?.includes("already been registered")) {
+        const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+        if (loginError) {
+          setError("Email déjà utilisé ou mot de passe incorrect.");
+        } else {
+          setSuccess(true);
+          trackEvent("landing_email_login_success");
+        }
+      } else {
+        setError(signupError.message);
+      }
+    } else {
+      setSuccess(true);
+      trackEvent("landing_email_signup_success");
+      if (signupData.session) {
+        // Auto-confirmed, will trigger onAuthStateChange
+      }
+    }
+    setLoading(false);
+  };
 
   return (
-    <motion.div ref={ref} className="fixed inset-0 z-[3000] flex flex-col bg-background overflow-y-auto" exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.5, ease: "easeInOut" }}>
-      {/* Language toggle */}
-      <div className="absolute top-4 right-4 z-20">
-        <LanguageToggle />
+    <motion.div
+      ref={ref}
+      className="fixed inset-0 z-[3000] flex flex-col items-center justify-center bg-black overflow-hidden"
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Full-screen blurred background */}
+      <div className="absolute inset-0">
+        <img
+          src="/images/landing-bg-dark.jpg"
+          alt=""
+          className="w-full h-full object-cover scale-110 blur-sm brightness-[0.35]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
       </div>
 
-      {/* Hero media — photo slideshow */}
-      <div className="relative w-full aspect-[4/5] max-h-[55vh] flex-shrink-0 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={heroIndex}
-            src={heroImages[heroIndex]}
-            alt="Rooftop view of Marrakech — best spots and nightlife"
-            className="w-full h-full object-cover"
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-          />
-        </AnimatePresence>
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-        {/* Dots */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-          {heroImages.map((_, i) => (
-            <button key={i} onClick={() => setHeroIndex(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === heroIndex ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30"}`} />
-          ))}
-        </div>
-      </div>
+      {/* Floating particles / ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[hsl(220,90%,50%)] opacity-[0.06] blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-0 w-[300px] h-[300px] rounded-full bg-[hsl(25,95%,55%)] opacity-[0.05] blur-[100px] pointer-events-none" />
 
-      {/* Content below hero */}
-      <div className="relative z-10 flex-1 px-5 -mt-10 pb-8 space-y-5 max-w-md mx-auto w-full">
-        {/* H1 + social proof */}
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} className="space-y-2">
-          <h1 className="font-body text-[22px] font-bold text-foreground leading-tight tracking-tight">{t("seo_h1")}</h1>
-          <p className="text-[13px] text-muted-foreground leading-relaxed">{t("landing_subtitle")}</p>
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+      {/* Glass Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 w-[calc(100%-2rem)] max-w-[400px] mx-auto"
+      >
+        <div className="rounded-3xl border border-white/[0.08] bg-white/[0.06] backdrop-blur-2xl shadow-[0_8px_60px_-12px_rgba(0,0,0,0.7)] p-6 sm:p-8 space-y-6">
+          
+          {/* Eyebrow */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="flex justify-center"
+          >
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/[0.1] text-[11px] font-medium tracking-[0.15em] uppercase text-white/70">
+              <Lock className="w-3 h-3" />
+              Accès privé
             </span>
-            <span className="text-[12px] text-muted-foreground">
-              <span className="font-semibold text-foreground">{insiderCount !== null ? insiderCount : "…"}</span> {t("landing_insidersConnected")}
-            </span>
-          </div>
-        </motion.div>
-
-        {/* Live vibes strip */}
-        {recentVibes.length > 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }} className="space-y-2">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{t("landing_nowInKech")}</span>
-            <div className="flex gap-3 overflow-x-auto no-scrollbar">
-              {recentVibes.map((vibe) => (
-                <div key={vibe.id} className="flex flex-col items-center gap-1 flex-shrink-0">
-                  <div className="w-[62px] h-[62px] rounded-full p-[2.5px] bg-gradient-to-tr from-primary via-destructive to-gold">
-                    <div className="w-full h-full rounded-full overflow-hidden border-2 border-background">
-                      <img src={vibe.image_url} alt={`Live vibe from ${vibe.location || "Marrakech"}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    </div>
-                  </div>
-                  {vibe.location && (
-                    <span className="text-[9px] text-muted-foreground font-medium max-w-[60px] truncate">{vibe.location}</span>
-                  )}
-                </div>
-              ))}
-            </div>
           </motion.div>
-        )}
 
-        {/* Feature pills */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.4 }}>
-          <div className="flex gap-2">
-            {pillars.map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-card border border-border">
-                <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-[11px] font-medium text-foreground">{label}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+          {/* Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.6 }}
+            className="text-center space-y-3"
+          >
+            <h1 className="text-[22px] sm:text-[26px] font-bold text-white leading-[1.2] tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Le Marrakech que les touristes ne verront jamais.
+            </h1>
+            <p className="text-[13px] sm:text-[14px] text-white/50 leading-relaxed">
+              3 rooftops secrets à Guéliz. 2 speakeasys cachés dans la Médina. Débloque la carte.
+            </p>
+          </motion.div>
 
-        {/* Preview carousel */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.4 }}>
+          {/* Form or Success */}
           <AnimatePresence mode="wait">
-            <motion.div key={activeSlide} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}
-              className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border">
-              <span className="text-xl flex-shrink-0">{previewSlideKeys[activeSlide].emoji}</span>
-              <div className="min-w-0">
-                <p className="text-[13px] font-semibold text-foreground">{t(previewSlideKeys[activeSlide].titleKey)}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{t(previewSlideKeys[activeSlide].descKey)}</p>
-              </div>
-            </motion.div>
+            {!success ? (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="space-y-3"
+              >
+                {/* Google CTA */}
+                <button
+                  onClick={handleGoogleSignup}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-white text-black font-semibold text-[14px] transition-all active:scale-[0.98] disabled:opacity-60 hover:bg-white/90"
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <svg className="w-4 h-4" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
+                  )}
+                  Débloquer l'accès
+                </button>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-white/[0.08]" />
+                  <span className="text-[11px] text-white/30">ou par email</span>
+                  <div className="flex-1 h-px bg-white/[0.08]" />
+                </div>
+
+                {/* Email input */}
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                  <input
+                    type="email"
+                    placeholder="Entrez votre email..."
+                    autoComplete="email"
+                    inputMode="email"
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white text-[14px] placeholder:text-white/25 focus:outline-none focus:border-white/20 transition-colors"
+                  />
+                </div>
+
+                {/* Password */}
+                <input
+                  type="password"
+                  placeholder="Mot de passe (6+ car.)"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                  onKeyDown={(e) => e.key === "Enter" && handleEmailSignup()}
+                  className="w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white text-[14px] placeholder:text-white/25 focus:outline-none focus:border-white/20 transition-colors"
+                />
+
+                {/* Email submit */}
+                <button
+                  onClick={handleEmailSignup}
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl bg-white/[0.08] border border-white/[0.1] text-white/70 font-medium text-[13px] transition-all active:scale-[0.98] disabled:opacity-60 hover:bg-white/[0.12] hover:text-white"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "S'inscrire par email"}
+                </button>
+
+                {error && (
+                  <p className="text-[12px] text-red-400 text-center">{error}</p>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="text-center space-y-3 py-2"
+              >
+                <div className="text-3xl">🎉</div>
+                <p className="text-[15px] font-semibold text-white">Vous êtes sur la liste.</p>
+                <p className="text-[12px] text-white/40">Redirection en cours...</p>
+              </motion.div>
+            )}
           </AnimatePresence>
-          <div className="flex items-center justify-center gap-1.5 mt-2.5">
-            {previewSlideKeys.map((_, i) => (
-              <button key={i} onClick={() => setActiveSlide(i)} className={`h-1 rounded-full transition-all duration-300 ${i === activeSlide ? "w-4 bg-foreground" : "w-1 bg-foreground/20"}`} />
-            ))}
-          </div>
-        </motion.div>
 
-        {/* CTA */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7, duration: 0.5 }} className="space-y-2.5 pt-1">
-          <button onClick={onEnter} className="w-full bg-foreground text-background font-semibold py-3.5 rounded-xl transition-all active:scale-[0.98] text-[14px]">
-            {t("landing_becomeInsider")}
-          </button>
-          <div className="flex gap-2">
-            <button onClick={() => setExplainerTab("insider")} className="flex-1 py-2.5 rounded-xl border border-border text-foreground text-[12px] font-medium transition-all active:scale-[0.97]">
-              {t("landing_whatsThis")}
-            </button>
-            <button onClick={() => setExplainerTab("partner")} className="flex-1 py-2.5 rounded-xl border border-border text-muted-foreground text-[12px] font-medium transition-all active:scale-[0.97]">
-              {t("landing_partnerSpace")}
-            </button>
-          </div>
-        </motion.div>
-
-        <ExplainerSheet open={explainerTab !== null} onClose={() => setExplainerTab(null)} initialTab={explainerTab ?? "insider"} showAuthCta onEnter={onEnter} />
-
-        {/* SEO Content Sections */}
-        <section className="space-y-4 pt-4">
-          {seoSections.map(({ icon: Icon, titleKey, descKey }) => (
-            <article key={titleKey} className="p-4 bg-card rounded-xl border border-border space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <h2 className="text-[14px] font-semibold text-foreground">{t(titleKey)}</h2>
-              </div>
-              <p className="text-[12px] text-muted-foreground leading-relaxed">{t(descKey)}</p>
-            </article>
-          ))}
-        </section>
-
-        {/* FAQ Section */}
-        <section className="pt-2 pb-4">
-          <h2 className="text-[14px] font-semibold text-foreground mb-3">{t("seo_faqTitle")}</h2>
-          <Accordion type="single" collapsible className="space-y-1">
-            {faqItems.map(({ qKey, aKey }, i) => (
-              <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-xl px-3 bg-card">
-                <AccordionTrigger className="text-[13px] font-medium text-foreground py-3 hover:no-underline">
-                  {t(qKey)}
-                </AccordionTrigger>
-                <AccordionContent className="text-[12px] text-muted-foreground leading-relaxed">
-                  {t(aKey)}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </section>
-
-        {/* Hidden SEO content */}
-        <div className="sr-only">
-          <h1>WeshKech – Discover the Best Spots in Marrakech</h1>
-          <h2>Marrakech Nightlife Guide — Bars, Clubs & Night Spots</h2>
-          <h2>Best Rooftops in Marrakech — Sunset Views & Cocktails</h2>
-          <h2>Best Restaurants in Marrakech — Local Cuisine & Fine Dining</h2>
-          <h2>Hidden Gems in Marrakech — Off the Beaten Path</h2>
-          <h2>Local Spots Only Locals Know — Marrakech Insider Guide</h2>
-          <p>Discover where to go in Marrakech tonight. WeshKech is the local guide that shows you the best bars, rooftops, restaurants and clubs in Marrakech in real time. Find hidden gems, share your favorite spots and enjoy exclusive deals. Your Marrakech night guide.</p>
+          {/* Social proof */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="flex items-center justify-center gap-2"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+            </span>
+            <span className="text-[11px] text-white/40">
+              Rejoignez <span className="text-white/60 font-medium">+{insiderCount !== null ? insiderCount : "…"}</span> Insiders déjà présents
+            </span>
+          </motion.div>
         </div>
+      </motion.div>
+
+      {/* Footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        className="absolute bottom-6 left-0 right-0 text-center space-y-1.5 z-10"
+      >
+        <p className="text-[10px] text-white/20">
+          Weshkech © 2026 — Invitation Only.
+        </p>
+        <p className="text-[9px] text-white/15">
+          <Link to="/terms" className="underline hover:text-white/30">Conditions</Link>
+          {" · "}
+          <Link to="/privacy" className="underline hover:text-white/30">Confidentialité</Link>
+        </p>
+      </motion.div>
+
+      {/* Hidden SEO */}
+      <div className="sr-only">
+        <h1>WeshKech – Discover the Best Spots in Marrakech</h1>
+        <h2>Marrakech Nightlife Guide — Bars, Clubs & Night Spots</h2>
+        <h2>Best Rooftops in Marrakech — Sunset Views & Cocktails</h2>
+        <p>Discover where to go in Marrakech tonight. WeshKech is the local guide that shows you the best bars, rooftops, restaurants and clubs in Marrakech in real time.</p>
       </div>
     </motion.div>
   );
