@@ -24,9 +24,9 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadMessa
           <Home className={iconClass(active === "feed")} strokeWidth={active === "feed" ? 2.5 : 1.5} />
         </button>
 
-        {/* Discover */}
-        <button onClick={() => onChange("discover")} className="flex flex-col items-center justify-center w-12 h-12">
-          <Compass className={iconClass(active === "discover")} strokeWidth={active === "discover" ? 2.5 : 1.5} />
+        {/* Map */}
+        <button onClick={() => onChange("map")} className="flex flex-col items-center justify-center w-12 h-12">
+          <Map className={iconClass(active === "map")} strokeWidth={active === "map" ? 2.5 : 1.5} />
         </button>
 
         {/* Create (center, gold) */}
@@ -38,14 +38,9 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadMessa
           <Plus className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
         </button>
 
-        {/* Messages */}
-        <button onClick={onMessagesPress} className="relative flex flex-col items-center justify-center w-12 h-12">
-          <MessageCircle className={`w-6 h-6 transition-colors duration-150 text-muted-foreground`} strokeWidth={1.5} />
-          {unreadMessages > 0 && (
-            <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-              {unreadMessages > 9 ? "9+" : unreadMessages}
-            </span>
-          )}
+        {/* Discover */}
+        <button onClick={() => onChange("discover")} className="flex flex-col items-center justify-center w-12 h-12">
+          <Compass className={iconClass(active === "discover")} strokeWidth={active === "discover" ? 2.5 : 1.5} />
         </button>
 
         {/* Profile */}
@@ -53,6 +48,8 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadMessa
           <User className={iconClass(active === "profil")} strokeWidth={active === "profil" ? 2.5 : 1.5} />
         </button>
       </div>
+
+      {/* Messages button moved to header on mobile, keeping safe area */}
       <div className="h-[env(safe-area-inset-bottom)]" />
     </nav>
   );
