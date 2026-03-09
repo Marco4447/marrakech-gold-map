@@ -40,6 +40,7 @@ const Index = () => {
   const { t } = useLanguage();
   const { unreadCount, markAllRead } = useNotifications();
   const { nearbyPlace, dismiss: dismissAutoVibe, markPosted: markAutoVibePosted } = useProximityDetection(user?.id);
+  const { totalUnread: unreadMessages } = useConversations();
 
   const [showLanding, setShowLanding] = useState(() => !localStorage.getItem("wk_landed"));
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("wk_welcome_seen"));
