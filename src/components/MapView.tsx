@@ -242,7 +242,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     sortedPlaces.forEach((place, index) => {
       const isTrending = trendingLocations.has(place.name.toLowerCase());
-      const shouldBlur = isGuest && !place.is_partner && !isTrending && index % 5 < 2;
+      const shouldBlur = false; // All pins visible — no guest blur
       const energy = getEnergy(energyMap, place.name);
       const icon = createCategoryIcon(place.category, {
         trending: isTrending,

@@ -178,26 +178,24 @@ const Index = () => {
           )}
         </div>
 
-        {/* Guest CTA on map */}
-        {isGuest && activeTab === "map" && (
-          <>
-            <div className="fixed inset-x-0 bottom-0 h-[55vh] z-[1998] pointer-events-none" style={{
-              background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.85) 25%, hsl(var(--background) / 0.4) 60%, transparent 100%)",
-              backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)",
-              maskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)",
-            }} />
-            <div className="fixed bottom-20 left-4 right-4 z-[1999]">
-              <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.5, duration: 0.5, type: "spring" }}
-                className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl p-5 shadow-2xl shadow-gold/10 text-center">
-                <p className="text-base font-bold text-foreground mb-1">{t("guest_unlockMap")}</p>
-                <p className="text-xs text-muted-foreground mb-3">{t("guest_signupDesc")}</p>
-                <button onClick={() => setActiveTab("profil")} className="w-full py-3 rounded-xl font-bold text-sm text-primary-foreground shadow-lg active:scale-[0.97] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
-                  {t("guest_continueGoogle")}
-                </button>
-                <p className="text-[10px] text-muted-foreground mt-2">{t("guest_freeNoSpam")}</p>
-              </motion.div>
+        {/* Guest signup banner — compact, non-blocking */}
+        {isGuest && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 3, duration: 0.5 }}
+            className="fixed bottom-20 left-3 right-3 z-[1999] md:left-auto md:right-4 md:bottom-4 md:max-w-sm"
+          >
+            <div className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-4 py-3 shadow-2xl shadow-gold/10 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">Crée ton compte gratuit</p>
+                <p className="text-[11px] text-muted-foreground">Poste, like, et débloque les avantages VIP</p>
+              </div>
+              <button onClick={() => setActiveTab("profil")} className="shrink-0 px-4 py-2 rounded-xl font-bold text-xs text-primary-foreground active:scale-[0.97] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
+                S'inscrire
+              </button>
             </div>
-          </>
+          </motion.div>
         )}
 
         {/* Mobile bottom nav only */}
