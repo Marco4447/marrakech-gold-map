@@ -271,7 +271,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           }
           // Show preview card instead of directly opening sheet
           setPreviewPlace(place);
-          map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 15), { duration: 0.6 });
+          map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 16), { duration: 0.6 });
         });
 
       // Staggered discovery animation (robuste même si le DOM du marker n'est pas prêt immédiatement)
