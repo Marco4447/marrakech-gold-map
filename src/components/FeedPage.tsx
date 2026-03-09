@@ -287,8 +287,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   };
 
   const handleSuperVibe = async (vibeId: string) => {
+    if (!userId) { toast("Crée ton compte pour super-vibe 🚀", { action: { label: "S'inscrire", onClick: () => window.dispatchEvent(new CustomEvent("wk:goto-auth")) } }); return; }
     if (!canSuperVibe || superVibeIds.has(vibeId)) return;
-    analytics.superVibe(vibeId);
     setSuperVibeAnimId(vibeId);
     setTimeout(() => setSuperVibeAnimId(null), 700);
     setSuperVibeIds((prev) => new Set(prev).add(vibeId));
