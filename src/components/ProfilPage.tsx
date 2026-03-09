@@ -291,7 +291,10 @@ function VipStatsSection({ user, deviceId }: { user: any; deviceId: string }) {
 
 export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [favorites, setFavorites] = useState<Vibe[]>([]);
+  const [myVibes, setMyVibes] = useState<Vibe[]>([]);
+  const [savedVibes, setSavedVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileTab, setProfileTab] = useState<"vibes" | "likes" | "saved">("vibes");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
