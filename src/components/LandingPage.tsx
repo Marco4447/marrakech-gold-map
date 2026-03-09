@@ -87,11 +87,27 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         <LanguageToggle />
       </div>
 
-      {/* Hero media — top half */}
-      <div className="relative w-full aspect-[4/5] max-h-[55vh] flex-shrink-0">
-        <img src={heroImage} alt="Rooftop view of Marrakech at sunset — best spots and nightlife" className={`w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-0" : "opacity-100"}`} />
-        <video src={ambientVideo} autoPlay loop muted playsInline onCanPlayThrough={() => setVideoLoaded(true)} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`} />
+      {/* Hero media — photo slideshow */}
+      <div className="relative w-full aspect-[4/5] max-h-[55vh] flex-shrink-0 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={heroIndex}
+            src={heroImages[heroIndex]}
+            alt="Rooftop view of Marrakech — best spots and nightlife"
+            className="w-full h-full object-cover"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+          />
+        </AnimatePresence>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+        {/* Dots */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+          {heroImages.map((_, i) => (
+            <button key={i} onClick={() => setHeroIndex(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === heroIndex ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30"}`} />
+          ))}
+        </div>
       </div>
 
       {/* Content below hero */}
