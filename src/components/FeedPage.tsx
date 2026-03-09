@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket } from "lucide-react";
+import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import WeeklyChallenge from "./WeeklyChallenge";
 import { useFollows } from "@/hooks/useFollows";
 import TikTokFeed from "./TikTokFeed";
+import { useBookmarks } from "@/hooks/useBookmarks";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
@@ -161,6 +162,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [showReels, setShowReels] = useState(false);
   const [boostVibeId, setBoostVibeId] = useState<string | null>(null);
   const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
+  const { isBookmarked, toggleBookmark } = useBookmarks();
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -653,12 +655,17 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         </button>
                       )}
                     </div>
-                    <button onClick={() => handleSuperVibe(vibe.id)} disabled={!canSuperVibe || superVibeIds.has(vibe.id)} className="group relative">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => toggleBookmark(vibe.id)} className="group">
+                        <Bookmark className={`w-5 h-5 transition-colors duration-200 ${isBookmarked(vibe.id) ? "fill-foreground text-foreground" : "text-foreground group-hover:text-foreground/70"}`} />
+                      </button>
+                      <button onClick={() => handleSuperVibe(vibe.id)} disabled={!canSuperVibe || superVibeIds.has(vibe.id)} className="group relative">
                       <motion.div animate={superVibeAnimId === vibe.id ? { scale: [1, 1.6, 0.8, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}} transition={{ duration: 0.5, ease: "easeOut" }}>
                         <Zap className={`w-6 h-6 transition-colors duration-200 ${superVibeIds.has(vibe.id) ? "fill-gold text-gold" : !canSuperVibe ? "text-foreground/30" : "text-foreground group-hover:text-foreground/70"}`} />
                       </motion.div>
                       <SuperVibeParticles active={superVibeAnimId === vibe.id} />
-                    </button>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Likes + Caption */}

@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Place } from "@/types/models";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { Link } from "react-router-dom";
+import UnifiedSearch from "./UnifiedSearch";
 
 interface TrendingVibe {
   id: string;
@@ -34,7 +35,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   Chill: "🍸", "Cocktail Bar": "🍹", Café: "☕", Food: "🍽️", Night: "🎶", Hôtel: "🏨", Secret: "✨",
 };
 
-export default function DiscoverTab({ onGoToMap }: { onGoToMap?: (lat: number, lng: number) => void }) {
+export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (lat: number, lng: number) => void; onStartChat?: (userId: string) => void }) {
   const { user } = useAuth();
   const [places, setPlaces] = useState<Place[]>([]);
   const [trendingVibes, setTrendingVibes] = useState<TrendingVibe[]>([]);
@@ -153,8 +154,15 @@ export default function DiscoverTab({ onGoToMap }: { onGoToMap?: (lat: number, l
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 pb-3">
-        <h1 className="text-xl font-bold text-foreground font-display mb-3">Discover</h1>
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 pb-3 space-y-3">
+        <h1 className="text-xl font-bold text-foreground font-display">Discover</h1>
+        
+        {/* Unified Search */}
+        <UnifiedSearch 
+          onSelectPlace={(lat, lng) => onGoToMap?.(lat, lng)}
+          onSelectUser={(userId) => onStartChat?.(userId)}
+        />
+        
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setSelectedCategory(null)}

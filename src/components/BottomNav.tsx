@@ -1,4 +1,4 @@
-import { Home, Map, Compass, Plus, User, Bell } from "lucide-react";
+import { Home, Map, Compass, Plus, User, MessageCircle } from "lucide-react";
 
 export type Tab = "feed" | "map" | "create" | "discover" | "profil";
 
@@ -8,9 +8,11 @@ interface BottomNavProps {
   onCreatePress?: () => void;
   unreadNotifications?: number;
   onNotificationsPress?: () => void;
+  unreadMessages?: number;
+  onMessagesPress?: () => void;
 }
 
-export default function BottomNav({ active, onChange, onCreatePress, unreadNotifications = 0, onNotificationsPress }: BottomNavProps) {
+export default function BottomNav({ active, onChange, onCreatePress, unreadMessages = 0, onMessagesPress }: BottomNavProps) {
   const iconClass = (isActive: boolean) =>
     `w-6 h-6 transition-colors duration-150 ${isActive ? "text-foreground" : "text-muted-foreground"}`;
 
@@ -22,9 +24,9 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadNotif
           <Home className={iconClass(active === "feed")} strokeWidth={active === "feed" ? 2.5 : 1.5} />
         </button>
 
-        {/* Map */}
-        <button onClick={() => onChange("map")} className="flex flex-col items-center justify-center w-12 h-12">
-          <Map className={iconClass(active === "map")} strokeWidth={active === "map" ? 2.5 : 1.5} />
+        {/* Discover */}
+        <button onClick={() => onChange("discover")} className="flex flex-col items-center justify-center w-12 h-12">
+          <Compass className={iconClass(active === "discover")} strokeWidth={active === "discover" ? 2.5 : 1.5} />
         </button>
 
         {/* Create (center, gold) */}
@@ -36,9 +38,14 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadNotif
           <Plus className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
         </button>
 
-        {/* Discover */}
-        <button onClick={() => onChange("discover")} className="flex flex-col items-center justify-center w-12 h-12">
-          <Compass className={iconClass(active === "discover")} strokeWidth={active === "discover" ? 2.5 : 1.5} />
+        {/* Messages */}
+        <button onClick={onMessagesPress} className="relative flex flex-col items-center justify-center w-12 h-12">
+          <MessageCircle className={`w-6 h-6 transition-colors duration-150 text-muted-foreground`} strokeWidth={1.5} />
+          {unreadMessages > 0 && (
+            <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+              {unreadMessages > 9 ? "9+" : unreadMessages}
+            </span>
+          )}
         </button>
 
         {/* Profile */}

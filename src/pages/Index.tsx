@@ -17,10 +17,12 @@ import LanguageToggle from "@/components/LanguageToggle";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
 import NotificationsPage from "@/components/NotificationsPage";
 import AutoVibeCard from "@/components/AutoVibeCard";
+import MessagesPage from "@/components/MessagesPage";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useProximityDetection } from "@/hooks/useProximityDetection";
+import { useConversations } from "@/hooks/useConversations";
 import { Bell } from "lucide-react";
 
 const Index = () => {
@@ -32,11 +34,13 @@ const Index = () => {
   const [authStuck, setAuthStuck] = useState(false);
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
   const [autoVibePlace, setAutoVibePlace] = useState<string | null>(null);
   const { user, loading } = useAuth();
   const { t } = useLanguage();
   const { unreadCount, markAllRead } = useNotifications();
   const { nearbyPlace, dismiss: dismissAutoVibe, markPosted: markAutoVibePosted } = useProximityDetection(user?.id);
+  const { totalUnread: unreadMessages } = useConversations();
 
   const [showLanding, setShowLanding] = useState(() => !localStorage.getItem("wk_landed"));
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("wk_welcome_seen"));
@@ -110,6 +114,17 @@ const Index = () => {
     );
   }
 
+  // Messages overlay
+  if (showMessages && user) {
+    return (
+      <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-hidden">
+          <MessagesPage onBack={() => setShowMessages(false)} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[100dvh] w-full bg-background flex overflow-hidden">
       {/* Desktop/Tablet sidebar */}
@@ -122,6 +137,8 @@ const Index = () => {
           }}
           onCreatePress={() => setShowFlashPost(true)}
           onNotificationsPress={() => { markAllRead(); setShowNotifications(true); }}
+          onMessagesPress={() => setShowMessages(true)}
+          unreadMessages={unreadMessages}
         />
       )}
 
@@ -143,7 +160,7 @@ const Index = () => {
             isGuest ? <AuthGate /> : (
               <div className="h-full flex justify-center">
                 <div className="w-full max-w-[630px] h-full">
-                  <DiscoverTab onGoToMap={handleGoToMap} />
+                  <DiscoverTab onGoToMap={handleGoToMap} onStartChat={(userId) => setShowMessages(true)} />
                 </div>
               </div>
             )
@@ -194,6 +211,11 @@ const Index = () => {
               if (isGuest) { setActiveTab("profil"); return; }
               setShowFlashPost(true);
             }}
+            onMessagesPress={() => {
+              if (isGuest) { setActiveTab("profil"); return; }
+              setShowMessages(true);
+            }}
+            unreadMessages={unreadMessages}
           />
         </div>
       </div>

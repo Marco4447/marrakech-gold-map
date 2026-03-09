@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,7 @@ import { timeAgo } from "@/lib/timeAgo";
 import { getDeviceId } from "@/lib/deviceId";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useFollows } from "@/hooks/useFollows";
+import { useBookmarks } from "@/hooks/useBookmarks";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
@@ -290,7 +291,10 @@ function VipStatsSection({ user, deviceId }: { user: any; deviceId: string }) {
 
 export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [favorites, setFavorites] = useState<Vibe[]>([]);
+  const [myVibes, setMyVibes] = useState<Vibe[]>([]);
+  const [savedVibes, setSavedVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileTab, setProfileTab] = useState<"vibes" | "likes" | "saved">("vibes");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -304,6 +308,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifList, setNotifList] = useState<any[]>([]);
   const { followerCount, followingCount } = useFollows();
+  const { bookmarkedIds } = useBookmarks();
   const { user, profile, signOut, refreshProfile } = useAuth();
   const displayName =
     profile?.full_name ||
@@ -355,6 +360,17 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   };
 
   const fetchFavorites = useCallback(async () => {
+    if (!user) { setLoading(false); return; }
+
+    // Fetch user's own vibes
+    const { data: userVibes } = await supabase
+      .from("vibes")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (userVibes) setMyVibes(userVibes);
+
+    // Fetch liked vibes
     const { data: likes } = await supabase
       .from("vibe_likes")
       .select("vibe_id")
@@ -369,8 +385,26 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         .order("created_at", { ascending: false });
       if (vibes) setFavorites(vibes);
     }
+
+    // Fetch saved/bookmarked vibes
+    const { data: bookmarks } = await supabase
+      .from("bookmarks")
+      .select("vibe_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (bookmarks && bookmarks.length > 0) {
+      const bIds = bookmarks.map((b: any) => b.vibe_id);
+      const { data: savedData } = await supabase
+        .from("vibes")
+        .select("*")
+        .in("id", bIds)
+        .order("created_at", { ascending: false });
+      if (savedData) setSavedVibes(savedData);
+    }
+
     setLoading(false);
-  }, [deviceId]);
+  }, [deviceId, user]);
 
   // Fetch partner data
   useEffect(() => {
@@ -669,58 +703,81 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         <VipStatsSection user={user} deviceId={deviceId} />
       )}
 
-      {/* Mes Favoris */}
+      {/* Profile Tabs: Vibes / Likes / Saved */}
       <div className="px-5 pt-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Heart className="w-4 h-4 text-gold fill-gold" />
-          <h3 className="font-display text-sm font-semibold text-foreground">Mes Favoris</h3>
-          <span className="text-xs text-muted-foreground">({favorites.length})</span>
-          <div className="flex-1 h-px bg-border" />
+        <div className="flex border-b border-border">
+          {([
+            { key: "vibes" as const, icon: Grid3X3, label: "Vibes", count: myVibes.length },
+            { key: "likes" as const, icon: Heart, label: "Likes", count: favorites.length },
+            { key: "saved" as const, icon: Bookmark, label: "Saved", count: savedVibes.length },
+          ]).map(({ key, icon: Icon, count }) => (
+            <button
+              key={key}
+              onClick={() => setProfileTab(key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold border-b-2 transition-colors ${
+                profileTab === key ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {count}
+            </button>
+          ))}
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-3 gap-0.5">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-3 gap-0.5 pt-0.5">
+            {Array.from({ length: 9 }).map((_, i) => (
               <div key={i} className="aspect-square bg-surface animate-pulse" />
             ))}
           </div>
-        ) : favorites.length === 0 ? (
-          <div className="text-center py-10">
-            <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3">
-              <Heart className="w-6 h-6 text-gold/50" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Aucun favori pour le moment.
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Like des stories dans l'onglet Live pour les retrouver ici !
-            </p>
-          </div>
         ) : (
-          <div className="grid grid-cols-3 gap-0.5 md:gap-1">
-            {favorites.map((vibe, i) => (
-              <motion.div
-                key={vibe.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                className="relative aspect-square overflow-hidden bg-card"
-              >
-                <img
-                  src={vibe.image_url}
-                  alt={vibe.caption || "Favori"}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                {/* Hover overlay with likes */}
-                <div className="absolute inset-0 bg-background/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                  <span className="flex items-center gap-1 text-foreground font-semibold text-sm">
-                    <Heart className="w-5 h-5 fill-foreground" />{vibe.likes}
-                  </span>
+          (() => {
+            const items = profileTab === "vibes" ? myVibes : profileTab === "likes" ? favorites : savedVibes;
+            const emptyMsg = profileTab === "vibes"
+              ? "Partage ta première vibe !"
+              : profileTab === "likes"
+              ? "Like des vibes pour les retrouver ici !"
+              : "Sauvegarde des vibes avec le bouton 🔖";
+
+            if (items.length === 0) {
+              return (
+                <div className="text-center py-10">
+                  <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3">
+                    {profileTab === "vibes" ? <Grid3X3 className="w-6 h-6 text-gold/50" /> :
+                     profileTab === "likes" ? <Heart className="w-6 h-6 text-gold/50" /> :
+                     <Bookmark className="w-6 h-6 text-gold/50" />}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{emptyMsg}</p>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              );
+            }
+
+            return (
+              <div className="grid grid-cols-3 gap-0.5 md:gap-1 pt-0.5">
+                {items.map((vibe, i) => (
+                  <motion.div
+                    key={vibe.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="relative aspect-square overflow-hidden bg-card group"
+                  >
+                    <img
+                      src={vibe.image_url}
+                      alt={vibe.caption || "Vibe"}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                      <span className="flex items-center gap-1 text-foreground font-semibold text-sm">
+                        <Heart className="w-5 h-5 fill-foreground" />{vibe.likes}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            );
+          })()
         )}
       </div>
 
