@@ -409,25 +409,37 @@ export default function GoPage() {
             </>
           )}
 
-          {/* Email form */}
+          {/* Email + Password form */}
           {!success && (
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input type="email" placeholder="Email" autoComplete="email" inputMode="email"
-                value={email} onChange={(e) => { setEmail(e.target.value); setError(null); }}
-                onKeyDown={(e) => e.key === "Enter" && handleEmailSignup()}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-border text-foreground text-[14px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground/30 transition-colors" />
+            <div className="flex flex-col gap-2">
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input type="email" placeholder="Email" autoComplete="email" inputMode="email"
+                  value={email} onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-border text-foreground text-[14px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground/30 transition-colors" />
+              </div>
+              <div className="relative">
+                <input type="password" placeholder={lang === "fr" ? "Mot de passe (6+ car.)" : "Password (6+ chars)"}
+                  autoComplete="new-password"
+                  value={password} onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                  onKeyDown={(e) => e.key === "Enter" && handleEmailSignup()}
+                  className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground text-[14px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground/30 transition-colors" />
+              </div>
             </div>
           )}
 
           {error && <p className="text-[12px] text-destructive mt-2 text-center">{error}</p>}
-          {success && <p className="text-[13px] text-green-400 mt-3 text-center font-medium">{success}</p>}
+          {success && <p className="text-[13px] text-accent mt-3 text-center font-medium">{success}</p>}
 
           {!success && (
             <button onClick={handleEmailSignup} disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 bg-card border border-border text-foreground font-semibold py-3 rounded-xl transition-all disabled:opacity-70 text-[14px] active:scale-[0.98]">
+              className={`w-full mt-2 flex items-center justify-center gap-2 font-semibold py-3 rounded-xl transition-all disabled:opacity-70 text-[14px] active:scale-[0.98] ${
+                isInApp
+                  ? "bg-foreground text-background shadow-lg"
+                  : "bg-card border border-border text-foreground"
+              }`}>
               {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === "fr" ? "Envoi..." : "Sending..."}</> : (
-                <>{lang === "fr" ? "Recevoir mon accès" : "Get my access"}</>
+                <>{lang === "fr" ? (isInApp ? "Créer mon compte 🔓" : "S'inscrire par email") : (isInApp ? "Create my account 🔓" : "Sign up with email")}</>
               )}
             </button>
           )}
