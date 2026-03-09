@@ -308,6 +308,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifList, setNotifList] = useState<any[]>([]);
   const { followerCount, followingCount } = useFollows();
+  const { bookmarkedIds } = useBookmarks();
   const { user, profile, signOut, refreshProfile } = useAuth();
   const displayName =
     profile?.full_name ||
