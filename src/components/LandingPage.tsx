@@ -130,14 +130,16 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         {recentVibes.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }} className="space-y-2">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{t("landing_nowInKech")}</span>
-            <div className="flex gap-2.5 overflow-x-auto no-scrollbar">
-              {recentVibes.map((vibe, i) => (
-                <div key={vibe.id} className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-border bg-muted" style={{ filter: i > 1 ? "blur(4px)" : "none" }}>
-                  <img src={vibe.image_url} alt={`Live vibe from ${vibe.location || "Marrakech"}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                  {i > 1 && (
-                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                      <span className="text-xs">🔒</span>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar">
+              {recentVibes.map((vibe) => (
+                <div key={vibe.id} className="flex flex-col items-center gap-1 flex-shrink-0">
+                  <div className="w-[62px] h-[62px] rounded-full p-[2.5px] bg-gradient-to-tr from-primary via-destructive to-gold">
+                    <div className="w-full h-full rounded-full overflow-hidden border-2 border-background">
+                      <img src={vibe.image_url} alt={`Live vibe from ${vibe.location || "Marrakech"}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     </div>
+                  </div>
+                  {vibe.location && (
+                    <span className="text-[9px] text-muted-foreground font-medium max-w-[60px] truncate">{vibe.location}</span>
                   )}
                 </div>
               ))}
