@@ -92,7 +92,12 @@ const Index = () => {
     );
   }
 
-  if (showLanding && !user) return <LandingPage onEnter={handleEnter} />;
+  // Landing page removed — guests see the app directly to maximize engagement
+  if (showLanding && !user) {
+    // Auto-skip landing, go straight to the app
+    localStorage.setItem("wk_landed", "1");
+    setShowLanding(false);
+  }
 
   if (!user && showAdmin) setShowAdmin(false);
 
