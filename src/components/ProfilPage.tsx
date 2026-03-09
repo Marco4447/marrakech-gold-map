@@ -360,6 +360,17 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   };
 
   const fetchFavorites = useCallback(async () => {
+    if (!user) { setLoading(false); return; }
+
+    // Fetch user's own vibes
+    const { data: userVibes } = await supabase
+      .from("vibes")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (userVibes) setMyVibes(userVibes);
+
+    // Fetch liked vibes
     const { data: likes } = await supabase
       .from("vibe_likes")
       .select("vibe_id")
@@ -374,8 +385,26 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         .order("created_at", { ascending: false });
       if (vibes) setFavorites(vibes);
     }
+
+    // Fetch saved/bookmarked vibes
+    const { data: bookmarks } = await supabase
+      .from("bookmarks")
+      .select("vibe_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (bookmarks && bookmarks.length > 0) {
+      const bIds = bookmarks.map((b: any) => b.vibe_id);
+      const { data: savedData } = await supabase
+        .from("vibes")
+        .select("*")
+        .in("id", bIds)
+        .order("created_at", { ascending: false });
+      if (savedData) setSavedVibes(savedData);
+    }
+
     setLoading(false);
-  }, [deviceId]);
+  }, [deviceId, user]);
 
   // Fetch partner data
   useEffect(() => {
