@@ -303,6 +303,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     if (!map || activeFilter === "offers" || !showVibes) return;
 
     const markers: L.Marker[] = [];
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
     const heatPoints: [number, number, number][] = [];
 
     vibePins.forEach((vibe) => {
@@ -338,6 +339,15 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       heatCanvas.style.opacity = "0";
       requestAnimationFrame(() => { heatCanvas.style.opacity = "1"; });
     }
+
+    const tryApplyVibeRevealAnimation = (marker: L.Marker) => {
+      const el = marker.getElement();
+      if (!el) return false;
+      el.style.transition = "opacity 0.35s ease-out, transform 0.35s ease-out";
+      el.style.transform = "scale(0.7)";
+      requestAnimationFrame(() => { el.style.transform = "scale(1)"; });
+      return true;
+    };
 
     vibePins.forEach((vibe, idx) => {
       if (vibe.latitude == null || vibe.longitude == null) return;
@@ -375,20 +385,25 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           setSelectedVibe(vibe);
           setVibeSheetOpen(true);
         });
+
       const delay = Math.min(idx * 40, 800);
-      setTimeout(() => {
-        const el = marker.getElement();
-        if (el) {
-          el.style.transition = "opacity 0.35s ease-out, transform 0.35s ease-out";
-          el.style.transform = "scale(0.7)";
-          marker.setOpacity(1);
-          requestAnimationFrame(() => { el.style.transform = "scale(1)"; });
+      const t = setTimeout(() => {
+        if (!map.hasLayer(marker)) return;
+        marker.setOpacity(1);
+        if (!tryApplyVibeRevealAnimation(marker)) {
+          requestAnimationFrame(() => {
+            if (!map.hasLayer(marker)) return;
+            tryApplyVibeRevealAnimation(marker);
+          });
         }
       }, delay);
+      timers.push(t);
+
       markers.push(marker);
     });
 
     return () => {
+      timers.forEach(clearTimeout);
       if (heatCanvas) {
         heatCanvas.style.opacity = "0";
       }
@@ -400,10 +415,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           el.style.transform = "scale(0.6)";
         }
       });
-      setTimeout(() => {
+      const cleanupTimer = setTimeout(() => {
         markers.forEach((m) => m.remove());
         map.removeLayer(heatLayer);
       }, 280);
+      timers.push(cleanupTimer);
     };
   }, [vibePins, activeFilter, showVibes, isNight]);
 
