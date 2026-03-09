@@ -462,15 +462,16 @@ export default function VenuePage() {
 
         {/* CTA for non-partners */}
         {!isPartner && (
-          <Link to="/business" className="flex items-center gap-2.5 bg-card border border-border hover:border-gold/30 rounded-xl px-4 py-3 transition-colors group">
-            <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
-              <Building2 className="w-4 h-4 text-gold" />
+          <Link to="/business" className="flex items-center gap-3 rounded-2xl px-5 py-4 transition-all group border-2 border-gold/30 hover:border-gold/60 shadow-lg shadow-gold/10 hover:shadow-gold/20"
+            style={{ background: "linear-gradient(135deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.18))" }}>
+            <div className="w-11 h-11 rounded-xl bg-gold/20 border border-gold/30 flex items-center justify-center shrink-0">
+              <Building2 className="w-5 h-5 text-gold" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">Tu gères cet établissement ?</p>
-              <p className="text-[10px] text-muted-foreground">Rejoins Weshkech Partners</p>
+              <p className="text-sm font-bold text-gold">Tu gères cet établissement ?</p>
+              <p className="text-[11px] text-foreground/70">Rejoins Weshkech Partners · Boostez votre visibilité</p>
             </div>
-            <ChevronR className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+            <ChevronR className="w-5 h-5 text-gold" />
           </Link>
         )}
       </div>
