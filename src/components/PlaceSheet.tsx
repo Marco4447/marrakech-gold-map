@@ -232,20 +232,19 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                         <button onClick={handleShare} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors"><Share2 className="w-4 h-4 text-foreground" /></button>
                       </div>
 
-                      {isPartner && hasOffer && (
-                        <button onClick={() => setDealOpen(true)} className="w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-2xl transition-colors border bg-gold hover:bg-gold-light text-primary-foreground border-gold/30 shadow-lg shadow-gold/20">
-                          <Zap className="w-4 h-4" /> {t("place_usePass")}
-                        </button>
-                      )}
+                      {/* B2C free: pass button disabled */}
 
                       {!isPartner && (
-                        <Link to="/business" className="flex items-center gap-2.5 bg-card border border-border hover:border-gold/30 rounded-xl px-4 py-3 transition-colors group">
-                          <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0"><Building2 className="w-4 h-4 text-gold" /></div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">{t("place_areYouManager")}</p>
-                            <p className="text-[10px] text-muted-foreground">{t("place_joinWeshkech")}</p>
+                        <Link to="/business" className="flex items-center gap-3 rounded-xl px-4 py-4 transition-all group border-2 border-gold/30 hover:border-gold/60 shadow-md shadow-gold/10 hover:shadow-gold/20"
+                          style={{ background: "linear-gradient(135deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.15))" }}>
+                          <div className="w-10 h-10 rounded-xl bg-gold/20 border border-gold/30 flex items-center justify-center shrink-0">
+                            <Building2 className="w-5 h-5 text-gold" />
                           </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gold">{t("place_areYouManager")}</p>
+                            <p className="text-[11px] text-foreground/70">{t("place_joinWeshkech")}</p>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-gold" />
                         </Link>
                       )}
                     </>
