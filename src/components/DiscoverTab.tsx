@@ -35,7 +35,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   Chill: "🍸", "Cocktail Bar": "🍹", Café: "☕", Food: "🍽️", Night: "🎶", Hôtel: "🏨", Secret: "✨",
 };
 
-export default function DiscoverTab({ onGoToMap }: { onGoToMap?: (lat: number, lng: number) => void }) {
+export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (lat: number, lng: number) => void; onStartChat?: (userId: string) => void }) {
   const { user } = useAuth();
   const [places, setPlaces] = useState<Place[]>([]);
   const [trendingVibes, setTrendingVibes] = useState<TrendingVibe[]>([]);
