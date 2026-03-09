@@ -12,6 +12,7 @@ import { timeAgo } from "@/lib/timeAgo";
 import { getDeviceId } from "@/lib/deviceId";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useFollows } from "@/hooks/useFollows";
+import { useBookmarks } from "@/hooks/useBookmarks";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
