@@ -146,62 +146,66 @@ export default function PartnerDashboard() {
   useEffect(() => {
     if (authLoading || !user) return;
     const load = async () => {
-      const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "partner").single();
-      if (!roleData) { setIsPartner(false); setLoading(false); return; }
-      setIsPartner(true);
+      try {
+        const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "partner").single();
+        if (!roleData) { setIsPartner(false); setLoading(false); return; }
+        setIsPartner(true);
 
-      const { data: creditData } = await supabase.from("partner_credits").select("credits").eq("user_id", user.id).single();
-      setCredits(creditData?.credits ?? 0);
+        const { data: creditData } = await supabase.from("partner_credits").select("credits").eq("user_id", user.id).single();
+        setCredits(creditData?.credits ?? 0);
 
-      const { data: vibeData } = await supabase.from("vibes").select("id, image_url, location, caption, created_at, media_type")
-        .eq("user_id", user.id).eq("is_official", true).order("created_at", { ascending: false }).limit(20);
-      setVibes((vibeData as HistoryVibe[]) || []);
+        const { data: vibeData } = await supabase.from("vibes").select("id, image_url, location, caption, created_at, media_type")
+          .eq("user_id", user.id).eq("is_official", true).order("created_at", { ascending: false }).limit(20);
+        setVibes((vibeData as HistoryVibe[]) || []);
 
-      // Load subscription
-      const { data: subData } = await supabase.from("partner_subscriptions").select("plan_type, place_id, status")
-        .eq("partner_id", user.id).eq("status", "active").order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (subData) {
-        setPlanType(subData.plan_type as PlanType);
-        if (subData.place_id) setPlaceId(subData.place_id);
-      }
-
-      // Resolve place_id: subscription > partner_accounts > vibes fallback
-      let resolvedPlaceId = subData?.place_id ?? null;
-
-      if (!resolvedPlaceId) {
-        const { data: accountData } = await supabase.from("partner_accounts")
-          .select("place_id")
-          .eq("user_id", user.id)
-          .eq("approved", true)
-          .limit(1)
-          .maybeSingle();
-        if (accountData?.place_id) {
-          resolvedPlaceId = accountData.place_id;
-          setPlaceId(resolvedPlaceId);
+        // Load subscription
+        const { data: subData } = await supabase.from("partner_subscriptions").select("plan_type, place_id, status")
+          .eq("partner_id", user.id).eq("status", "active").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        if (subData) {
+          setPlanType(subData.plan_type as PlanType);
+          if (subData.place_id) setPlaceId(subData.place_id);
         }
-      }
 
-      if (!resolvedPlaceId) {
-        const { data: vb } = await supabase.from("vibes").select("location").eq("user_id", user.id).eq("is_official", true).not("location", "is", null).limit(1);
-        if (vb?.[0]?.location) {
-          const { data: place } = await supabase.from("places").select("id").ilike("name", `%${vb[0].location}%`).limit(1);
-          if (place?.[0]) { setPlaceId(place[0].id); resolvedPlaceId = place[0].id; }
+        // Resolve place_id: subscription > partner_accounts > vibes fallback
+        let resolvedPlaceId = subData?.place_id ?? null;
+
+        if (!resolvedPlaceId) {
+          const { data: accountData } = await supabase.from("partner_accounts")
+            .select("place_id")
+            .eq("user_id", user.id)
+            .eq("approved", true)
+            .limit(1)
+            .maybeSingle();
+          if (accountData?.place_id) {
+            resolvedPlaceId = accountData.place_id;
+            setPlaceId(resolvedPlaceId);
+          }
         }
-      }
 
-      // Fetch weekly stats for estimated customers
-      if (resolvedPlaceId) {
-        const [checkinsRes, redemptionsRes] = await Promise.all([
-          supabase.rpc("weekly_checkins", { p_place_id: resolvedPlaceId }),
-          supabase.rpc("weekly_qr_redemptions", { p_place_id: resolvedPlaceId }),
-        ]);
-        setWeeklyStats({
-          checkins: Number(checkinsRes.data) || 0,
-          redemptions: Number(redemptionsRes.data) || 0,
-        });
-      }
+        if (!resolvedPlaceId) {
+          const { data: vb } = await supabase.from("vibes").select("location").eq("user_id", user.id).eq("is_official", true).not("location", "is", null).limit(1);
+          if (vb?.[0]?.location) {
+            const { data: place } = await supabase.from("places").select("id").ilike("name", `%${vb[0].location}%`).limit(1);
+            if (place?.[0]) { setPlaceId(place[0].id); resolvedPlaceId = place[0].id; }
+          }
+        }
 
-      setLoading(false);
+        // Fetch weekly stats for estimated customers
+        if (resolvedPlaceId) {
+          const [checkinsRes, redemptionsRes] = await Promise.all([
+            supabase.rpc("weekly_checkins", { p_place_id: resolvedPlaceId }),
+            supabase.rpc("weekly_qr_redemptions", { p_place_id: resolvedPlaceId }),
+          ]);
+          setWeeklyStats({
+            checkins: Number(checkinsRes.data) || 0,
+            redemptions: Number(redemptionsRes.data) || 0,
+          });
+        }
+      } catch (err) {
+        console.error("Partner dashboard load error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [user, authLoading]);
