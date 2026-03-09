@@ -276,8 +276,8 @@ const Index = () => {
           </button>
         </div>
       )}
-      {isGuest && activeTab === "map" && (
-        <div className="fixed top-4 right-4 z-[1999]">
+      {isGuest && (
+        <div className="fixed top-4 right-4 z-[1999] md:hidden">
           <LanguageToggle variant="icon" />
         </div>
       )}
