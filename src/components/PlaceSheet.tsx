@@ -232,11 +232,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                         <button onClick={handleShare} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors"><Share2 className="w-4 h-4 text-foreground" /></button>
                       </div>
 
-                      {isPartner && hasOffer && (
-                        <button onClick={() => setDealOpen(true)} className="w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-2xl transition-colors border bg-gold hover:bg-gold-light text-primary-foreground border-gold/30 shadow-lg shadow-gold/20">
-                          <Zap className="w-4 h-4" /> {t("place_usePass")}
-                        </button>
-                      )}
+                      {/* B2C free: pass button disabled */}
 
                       {!isPartner && (
                         <Link to="/business" className="flex items-center gap-2.5 bg-card border border-border hover:border-gold/30 rounded-xl px-4 py-3 transition-colors group">
