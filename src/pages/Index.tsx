@@ -160,7 +160,7 @@ const Index = () => {
             isGuest ? <AuthGate /> : (
               <div className="h-full flex justify-center">
                 <div className="w-full max-w-[630px] h-full">
-                  <DiscoverTab onGoToMap={handleGoToMap} />
+                  <DiscoverTab onGoToMap={handleGoToMap} onStartChat={(userId) => setShowMessages(true)} />
                 </div>
               </div>
             )
