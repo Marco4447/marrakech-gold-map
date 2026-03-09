@@ -485,7 +485,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                       const fullPlace = places.find((p) => p.id === searchPlace.id);
                       if (fullPlace) {
                         handleOpenSheet(fullPlace);
-                        mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
                       }
                     }}
                   />
