@@ -17,10 +17,12 @@ import LanguageToggle from "@/components/LanguageToggle";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
 import NotificationsPage from "@/components/NotificationsPage";
 import AutoVibeCard from "@/components/AutoVibeCard";
+import MessagesPage from "@/components/MessagesPage";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useProximityDetection } from "@/hooks/useProximityDetection";
+import { useConversations } from "@/hooks/useConversations";
 import { Bell } from "lucide-react";
 
 const Index = () => {
