@@ -34,6 +34,7 @@ const Index = () => {
   const [authStuck, setAuthStuck] = useState(false);
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
   const [autoVibePlace, setAutoVibePlace] = useState<string | null>(null);
   const { user, loading } = useAuth();
   const { t } = useLanguage();
