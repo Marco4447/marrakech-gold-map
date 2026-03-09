@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Place } from "@/types/models";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { Link } from "react-router-dom";
+import UnifiedSearch from "./UnifiedSearch";
 
 interface TrendingVibe {
   id: string;
