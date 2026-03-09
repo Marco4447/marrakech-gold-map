@@ -1107,6 +1107,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {/* === ACTIVITÉ === */}
           {tab === "activity" && <AdminActivityFeed />}
+
+          {/* === ACQUISITION === */}
+          {tab === "acquisition" && <AdminAcquisition />}
         </div>
       )}
     </div>
