@@ -321,6 +321,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           <TabButton active={tab === "challenges"} label="Challenges" icon={Trophy} onClick={() => setTab("challenges")} />
           <TabButton active={tab === "vip"} label="Offres VIP" icon={Gift} onClick={() => setTab("vip")} />
           <TabButton active={tab === "stories"} label="Stories" icon={Film} onClick={() => setTab("stories")} />
+          <TabButton active={tab === "acquisition"} label="Acquisition" icon={TrendingUp} onClick={() => setTab("acquisition")} />
         </div>
       </div>
 
