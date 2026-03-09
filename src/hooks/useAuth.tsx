@@ -92,23 +92,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let initialSessionHandled = false;
 
+    // 1. Set up listener FIRST — catches INITIAL_SESSION, SIGNED_IN, TOKEN_REFRESHED
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         if (!mounted) return;
         const currentUser = session?.user ?? null;
+
+        // Mark initial session handled to avoid double-processing
+        if (event === "INITIAL_SESSION") {
+          initialSessionHandled = true;
+        }
+
         setUser(currentUser);
         setLoading(false);
 
         if (currentUser) {
-          if (_event === "SIGNED_IN") {
+          if (event === "SIGNED_IN") {
             ttqTrack("CompleteRegistration", { content_name: "google_oauth" });
             // Process referral code if present
             try {
               const refCode = localStorage.getItem("weshkech_ref");
               if (refCode) {
                 localStorage.removeItem("weshkech_ref");
-                // Look up the referral code
                 const { data: codeData } = await supabase
                   .from("referral_codes" as any)
                   .select("user_id, code")
@@ -126,42 +133,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               console.warn("Referral processing failed:", e);
             }
           }
-          fetchProfile(currentUser).catch((e) => {
-            console.error("Failed to fetch profile:", e);
-          });
+
+          // TOKEN_REFRESHED means the session was restored — still fetch profile
+          if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+            fetchProfile(currentUser).catch((e) => {
+              console.error("Failed to fetch profile:", e);
+            });
+          }
         } else {
           setProfile(null);
         }
       }
     );
 
-    Promise.race([
-      supabase.auth.getSession(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("GET_SESSION_TIMEOUT")), 4500)
-      ),
-    ])
-      .then((sessionResult: any) => {
-        if (!mounted) return;
-        const currentUser = sessionResult?.data?.session?.user ?? null;
+    // 2. Fallback: if INITIAL_SESSION hasn't fired after 5s, try getSession manually
+    const fallbackTimer = setTimeout(async () => {
+      if (!mounted || initialSessionHandled) return;
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!mounted || initialSessionHandled) return;
+        const currentUser = data?.session?.user ?? null;
         setUser(currentUser);
         setLoading(false);
-
         if (currentUser) {
-          fetchProfile(currentUser).catch((e) => {
-            console.error("Failed to fetch profile:", e);
-          });
-        } else {
-          setProfile(null);
+          fetchProfile(currentUser).catch(console.error);
         }
-      })
-      .catch((err) => {
-        console.error("Failed to get session:", err);
+      } catch (err) {
+        console.error("Fallback getSession failed:", err);
         if (mounted) setLoading(false);
-      });
+      }
+    }, 5000);
 
     return () => {
       mounted = false;
+      clearTimeout(fallbackTimer);
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
