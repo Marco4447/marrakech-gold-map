@@ -260,7 +260,6 @@ export default function PricingPage() {
               transition={{ duration: 0.3 }}
               className="space-y-6"
             >
-              {/* Pricing card */}
               <div className="relative overflow-hidden rounded-2xl border-2 border-gold/40 bg-card/80 backdrop-blur-xl">
                 <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gold/10 blur-3xl" />
                 <div className="relative p-6 space-y-4">
@@ -273,14 +272,12 @@ export default function PricingPage() {
                     </div>
                     <div>
                       <p className="font-display text-lg font-bold text-foreground">Insider Pass</p>
-                      <p className="text-xs text-muted-foreground">Votre sésame pour Marrakech</p>
+                      <p className="text-xs text-muted-foreground">100% gratuit · Rejoins la communauté</p>
                     </div>
                   </div>
 
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-display font-black text-gold">14,90</span>
-                    <span className="text-lg text-gold">€</span>
-                    <span className="text-sm text-muted-foreground ml-1">/ mois</span>
+                    <span className="text-4xl font-display font-black text-gold">Gratuit</span>
                   </div>
 
                   <div className="h-px bg-border" />
@@ -297,18 +294,18 @@ export default function PricingPage() {
                   </div>
 
                   <button
-                    onClick={() => navigate("/vip-pass")}
+                    onClick={() => navigate("/")}
                     className="cta-shimmer relative w-full overflow-hidden py-3.5 rounded-xl text-sm font-bold text-primary-foreground flex items-center justify-center gap-2 active:scale-[0.98] transition-transform mt-2"
                     style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
                   >
-                    Devenir Insider
+                    Commencer gratuitement
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
               <p className="text-xs text-center text-muted-foreground">
-                Sans engagement · Résiliation en 1 clic via le portail client
+                Inscris-toi et commence à partager tes vibes
               </p>
             </motion.div>
           )}

@@ -160,7 +160,7 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                     )}
                   </div>
 
-                  {(place as any).is_premium && !isVip ? (
+                  {false /* B2C free: PremiumLock disabled */ ? (
                     <PremiumLock placeName={place.name} />
                   ) : (
                     <>
