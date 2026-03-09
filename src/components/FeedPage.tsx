@@ -267,8 +267,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   }, [fetchVibes, fetchMyLikes, fetchMySuperVibes, refreshSignal]);
 
   const handleLike = async (vibeId: string) => {
+    if (!userId) { toast("Crée ton compte pour liker 💛", { action: { label: "S'inscrire", onClick: () => window.dispatchEvent(new CustomEvent("wk:goto-auth")) } }); return; }
     const alreadyLiked = likedIds.has(vibeId);
-    analytics.likeVibe(vibeId);
     setAnimatingId(vibeId);
     setTimeout(() => setAnimatingId(null), 400);
 
