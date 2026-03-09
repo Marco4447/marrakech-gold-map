@@ -26,10 +26,16 @@ const previewSlideKeys = [
   { emoji: "🎁", titleKey: "landing_passTitle" as const, descKey: "landing_passDesc" as const },
 ];
 
+const heroImages = [
+  heroImage,
+  "/images/landing-hero-1.jpg",
+  "/images/landing-hero-2.jpg",
+];
+
 const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, ref) => {
-  const [videoLoaded, setVideoLoaded] = useState(false);
   const [insiderCount, setInsiderCount] = useState<number | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [heroIndex, setHeroIndex] = useState(0);
   const [recentVibes, setRecentVibes] = useState<RecentVibePreview[]>([]);
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const { t } = useLanguage();
