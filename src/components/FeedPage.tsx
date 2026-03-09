@@ -664,7 +664,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <Zap className={`w-6 h-6 transition-colors duration-200 ${superVibeIds.has(vibe.id) ? "fill-gold text-gold" : !canSuperVibe ? "text-foreground/30" : "text-foreground group-hover:text-foreground/70"}`} />
                       </motion.div>
                       <SuperVibeParticles active={superVibeAnimId === vibe.id} />
-                    </button>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Likes + Caption */}
