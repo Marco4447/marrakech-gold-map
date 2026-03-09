@@ -1,11 +1,12 @@
 import { forwardRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Camera, Gift } from "lucide-react";
+import { MapPin, Camera, Gift, Star, Utensils, Moon, Sparkles, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/marrakech-hero.jpg";
 import ambientVideo from "@/assets/marrakech-ambiance.mp4";
 import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 interface RecentVibePreview {
@@ -53,6 +54,21 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
     { icon: Gift, label: t("landing_enjoy"), desc: t("landing_enjoyDesc") },
   ];
 
+  const seoSections = [
+    { icon: Star, titleKey: "seo_rooftopsTitle" as const, descKey: "seo_rooftopsDesc" as const },
+    { icon: Utensils, titleKey: "seo_restaurantsTitle" as const, descKey: "seo_restaurantsDesc" as const },
+    { icon: Moon, titleKey: "seo_nightlifeTitle" as const, descKey: "seo_nightlifeDesc" as const },
+    { icon: Sparkles, titleKey: "seo_hiddenTitle" as const, descKey: "seo_hiddenDesc" as const },
+    { icon: Users, titleKey: "seo_localTitle" as const, descKey: "seo_localDesc" as const },
+  ];
+
+  const faqItems = [
+    { qKey: "seo_faq1Q" as const, aKey: "seo_faq1A" as const },
+    { qKey: "seo_faq2Q" as const, aKey: "seo_faq2A" as const },
+    { qKey: "seo_faq3Q" as const, aKey: "seo_faq3A" as const },
+    { qKey: "seo_faq4Q" as const, aKey: "seo_faq4A" as const },
+  ];
+
   return (
     <motion.div ref={ref} className="fixed inset-0 z-[3000] flex flex-col bg-background overflow-y-auto" exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.5, ease: "easeInOut" }}>
       {/* Language toggle */}
@@ -62,16 +78,16 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
 
       {/* Hero media — top half */}
       <div className="relative w-full aspect-[4/5] max-h-[55vh] flex-shrink-0">
-        <img src={heroImage} alt="Vue aérienne de Marrakech au coucher du soleil" className={`w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-0" : "opacity-100"}`} />
+        <img src={heroImage} alt="Rooftop view of Marrakech at sunset — best spots and nightlife" className={`w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-0" : "opacity-100"}`} />
         <video src={ambientVideo} autoPlay loop muted playsInline onCanPlayThrough={() => setVideoLoaded(true)} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`} />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
       </div>
 
-      {/* Content below hero — Instagram-style */}
+      {/* Content below hero */}
       <div className="relative z-10 flex-1 px-5 -mt-10 pb-8 space-y-5 max-w-md mx-auto w-full">
-        {/* Title + social proof */}
+        {/* H1 + social proof */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} className="space-y-2">
-          <h1 className="font-body text-[22px] font-bold text-foreground leading-tight tracking-tight">{t("landing_title")}</h1>
+          <h1 className="font-body text-[22px] font-bold text-foreground leading-tight tracking-tight">{t("seo_h1")}</h1>
           <p className="text-[13px] text-muted-foreground leading-relaxed">{t("landing_subtitle")}</p>
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
@@ -84,14 +100,14 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           </div>
         </motion.div>
 
-        {/* Live vibes strip — Instagram stories style */}
+        {/* Live vibes strip */}
         {recentVibes.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }} className="space-y-2">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{t("landing_nowInKech")}</span>
             <div className="flex gap-2.5 overflow-x-auto no-scrollbar">
               {recentVibes.map((vibe, i) => (
-              <div key={vibe.id} className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-border bg-muted" style={{ filter: i > 1 ? "blur(4px)" : "none" }}>
-                  <img src={vibe.image_url} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <div key={vibe.id} className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-border bg-muted" style={{ filter: i > 1 ? "blur(4px)" : "none" }}>
+                  <img src={vibe.image_url} alt={`Live vibe from ${vibe.location || "Marrakech"}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   {i > 1 && (
                     <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
                       <span className="text-xs">🔒</span>
@@ -103,7 +119,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           </motion.div>
         )}
 
-        {/* Feature pills — minimal */}
+        {/* Feature pills */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.4 }}>
           <div className="flex gap-2">
             {pillars.map(({ icon: Icon, label }) => (
@@ -115,7 +131,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           </div>
         </motion.div>
 
-        {/* Preview carousel — compact */}
+        {/* Preview carousel */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.4 }}>
           <AnimatePresence mode="wait">
             <motion.div key={activeSlide} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}
@@ -151,11 +167,45 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
 
         <ExplainerSheet open={explainerTab !== null} onClose={() => setExplainerTab(null)} initialTab={explainerTab ?? "insider"} showAuthCta onEnter={onEnter} />
 
-        {/* SEO */}
+        {/* SEO Content Sections */}
+        <section className="space-y-4 pt-4">
+          {seoSections.map(({ icon: Icon, titleKey, descKey }) => (
+            <article key={titleKey} className="p-4 bg-card rounded-xl border border-border space-y-1.5">
+              <div className="flex items-center gap-2">
+                <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <h2 className="text-[14px] font-semibold text-foreground">{t(titleKey)}</h2>
+              </div>
+              <p className="text-[12px] text-muted-foreground leading-relaxed">{t(descKey)}</p>
+            </article>
+          ))}
+        </section>
+
+        {/* FAQ Section */}
+        <section className="pt-2 pb-4">
+          <h2 className="text-[14px] font-semibold text-foreground mb-3">{t("seo_faqTitle")}</h2>
+          <Accordion type="single" collapsible className="space-y-1">
+            {faqItems.map(({ qKey, aKey }, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-xl px-3 bg-card">
+                <AccordionTrigger className="text-[13px] font-medium text-foreground py-3 hover:no-underline">
+                  {t(qKey)}
+                </AccordionTrigger>
+                <AccordionContent className="text-[12px] text-muted-foreground leading-relaxed">
+                  {t(aKey)}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
+
+        {/* Hidden SEO content */}
         <div className="sr-only">
-          <h1>Weshkech – Les meilleurs spots de Marrakech en temps réel</h1>
-          <h2>Guide interactif des bars, rooftops, restaurants et clubs à Marrakech</h2>
-          <p>Découvrez où sortir à Marrakech ce soir. Weshkech est le guide local qui vous montre les meilleurs bars, rooftops, restaurants et clubs de Marrakech en temps réel.</p>
+          <h1>WeshKech – Discover the Best Spots in Marrakech</h1>
+          <h2>Marrakech Nightlife Guide — Bars, Clubs & Night Spots</h2>
+          <h2>Best Rooftops in Marrakech — Sunset Views & Cocktails</h2>
+          <h2>Best Restaurants in Marrakech — Local Cuisine & Fine Dining</h2>
+          <h2>Hidden Gems in Marrakech — Off the Beaten Path</h2>
+          <h2>Local Spots Only Locals Know — Marrakech Insider Guide</h2>
+          <p>Discover where to go in Marrakech tonight. WeshKech is the local guide that shows you the best bars, rooftops, restaurants and clubs in Marrakech in real time. Find hidden gems, share your favorite spots and enjoy exclusive deals. Your Marrakech night guide.</p>
         </div>
       </div>
     </motion.div>
