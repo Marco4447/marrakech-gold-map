@@ -48,6 +48,13 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
     setLoading(true);
     trackEvent("landing_email_signup_submit");
 
+    // Submit to Formspree (fire-and-forget)
+    fetch("https://formspree.io/f/xdawajaq", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ email }),
+    }).catch(() => {});
+
     const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email, password,
       options: { data: { full_name: email.split("@")[0] }, emailRedirectTo: window.location.origin },
@@ -175,6 +182,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                   <input
                     type="email"
+                    name="email"
                     placeholder="Entrez votre email..."
                     autoComplete="email"
                     inputMode="email"
