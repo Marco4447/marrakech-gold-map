@@ -215,6 +215,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     const energyMap = computeEnergyScores(vibesForEnergy);
 
     const markers: L.Marker[] = [];
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
     const filteredPlaces = getFilteredPlaces();
     const filteredIds = new Set(filteredPlaces.map(p => p.id));
 
@@ -226,6 +227,18 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       if (!aB && bB) return -1;
       return 0;
     });
+
+    const tryApplyRevealAnimation = (marker: L.Marker) => {
+      const el = marker.getElement();
+      if (!el) return false;
+      el.style.transition = "opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+      el.style.transform = "scale(0)";
+      requestAnimationFrame(() => {
+        if (!marker.getElement()) return;
+        el.style.transform = "scale(1)";
+      });
+      return true;
+    };
 
     sortedPlaces.forEach((place, index) => {
       const isTrending = trendingLocations.has(place.name.toLowerCase());
@@ -261,23 +274,27 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 15), { duration: 0.6 });
         });
 
-      // Staggered discovery animation
+      // Staggered discovery animation (robuste même si le DOM du marker n'est pas prêt immédiatement)
       const delay = Math.min(index * 60, 2500);
-      setTimeout(() => {
-        if (marker.getElement()) {
-          marker.setOpacity(1);
-          const el = marker.getElement()!;
-          el.style.transition = "opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
-          el.style.transform = "scale(0)";
+      const t = setTimeout(() => {
+        if (!map.hasLayer(marker)) return;
+        marker.setOpacity(1);
+        if (!tryApplyRevealAnimation(marker)) {
           requestAnimationFrame(() => {
-            el.style.transform = "scale(1)";
+            if (!map.hasLayer(marker)) return;
+            tryApplyRevealAnimation(marker);
           });
         }
       }, delay);
+      timers.push(t);
+
       markers.push(marker);
     });
 
-    return () => { markers.forEach((m) => m.remove()); };
+    return () => {
+      timers.forEach(clearTimeout);
+      markers.forEach((m) => m.remove());
+    };
   }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds, tonightMode]);
 
   // Add vibe pins + heatmap
