@@ -56,15 +56,7 @@ function VipPerkBox({ location }: { location: string | null }) {
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase tracking-wider font-bold text-gold">VIP Perk</p>
           <p className="text-xs text-foreground font-medium mt-0.5">{perk}</p>
-          {!isVip && (
-            <button
-              onClick={() => navigate("/vip-pass")}
-              className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-gold hover:text-gold/80 transition-colors"
-            >
-              <Lock className="w-3 h-3" />
-              Débloquer avec le Pass VIP
-            </button>
-          )}
+          {/* VIP upsell CTA hidden — B2C is free */}
         </div>
       </div>
     </div>

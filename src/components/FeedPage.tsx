@@ -637,7 +637,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       >
                         <Share2 className="w-5 h-5 text-foreground group-hover:text-foreground/70 transition-colors" />
                       </button>
-                      {vibe.user_id === userId && (
+                      {/* Boost button hidden — B2C is free */}
+                      {false && vibe.user_id === userId && (
                         <button onClick={() => setBoostVibeId(vibe.id)} className="group">
                           <Rocket className="w-5 h-5 text-foreground group-hover:text-gold transition-colors" />
                         </button>

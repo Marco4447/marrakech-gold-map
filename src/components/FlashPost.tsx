@@ -563,11 +563,13 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       });
       clearTimeout(globalTimeout);
 
-      // Show success animation, then boost upsell
+      // Show success animation then close (B2C boost upsell disabled)
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        setShowBoostUpsell(true);
+        resetState();
+        onPosted?.();
+        onClose();
       }, 1200);
     } catch (err) {
       clearTimeout(globalTimeout);

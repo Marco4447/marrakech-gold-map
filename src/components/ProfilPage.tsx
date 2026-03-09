@@ -509,31 +509,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         </div>
       </div>
 
-      {/* VIP CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="px-5 pt-4"
-      >
-        {isVip ? (
-          <Link
-            to="/vip-pass"
-            className="flex items-center justify-center gap-2 w-full bg-gold/10 border border-gold/30 text-gold font-semibold text-sm py-3 rounded-xl transition-colors"
-          >
-            <BadgeCheck className="w-4 h-4" />
-            VIP actif — Voir mon pass
-          </Link>
-        ) : (
-          <Link
-            to="/vip-pass"
-            className="flex items-center justify-center gap-2 w-full font-bold text-sm py-3 rounded-xl text-primary-foreground transition-transform active:scale-[0.98]"
-            style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
-          >
-            <Crown className="w-4 h-4" />
-            Devenir VIP Insider 👑
-          </Link>
-        )}
-      </motion.div>
+      {/* VIP CTA — hidden: B2C is free for now */}
 
       {/* Referral CTA */}
       <motion.div
