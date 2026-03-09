@@ -62,6 +62,13 @@ const Index = () => {
 
   const handleEnter = () => { localStorage.setItem("wk_landed", "1"); setShowLanding(false); };
 
+  // Listen for guest auth redirect events from child components
+  useEffect(() => {
+    const handler = () => setActiveTab("profil");
+    window.addEventListener("wk:goto-auth", handler);
+    return () => window.removeEventListener("wk:goto-auth", handler);
+  }, []);
+
   const [deepLinkPlaceId, setDeepLinkPlaceId] = useState<string | null>(null);
   useEffect(() => {
     const stored = sessionStorage.getItem("wk_flyto");
@@ -92,7 +99,12 @@ const Index = () => {
     );
   }
 
-  if (showLanding && !user) return <LandingPage onEnter={handleEnter} />;
+  // Landing page removed — guests see the app directly to maximize engagement
+  if (showLanding && !user) {
+    // Auto-skip landing, go straight to the app
+    localStorage.setItem("wk_landed", "1");
+    setShowLanding(false);
+  }
 
   if (!user && showAdmin) setShowAdmin(false);
 
@@ -145,25 +157,22 @@ const Index = () => {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="flex-1 relative min-h-0 overflow-hidden">
-          {/* Feed: constrained width on desktop */}
+          {/* Feed: open to guests (read-only) */}
           {activeTab === "feed" && (
-            isGuest ? <AuthGate /> : (
-              <div className="h-full flex justify-center">
-                <div className="w-full max-w-[630px] h-full">
-                  <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
-                </div>
+            <div className="h-full flex justify-center">
+              <div className="w-full max-w-[630px] h-full">
+                <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
               </div>
-            )
+            </div>
           )}
           {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
+          {/* Discover: open to guests (read-only) */}
           {activeTab === "discover" && (
-            isGuest ? <AuthGate /> : (
-              <div className="h-full flex justify-center">
-                <div className="w-full max-w-[630px] h-full">
-                  <DiscoverTab onGoToMap={handleGoToMap} onStartChat={(userId) => setShowMessages(true)} />
-                </div>
+            <div className="h-full flex justify-center">
+              <div className="w-full max-w-[630px] h-full">
+                <DiscoverTab onGoToMap={handleGoToMap} onStartChat={(userId) => setShowMessages(true)} />
               </div>
-            )
+            </div>
           )}
           {activeTab === "profil" && (
             isGuest ? <AuthGate /> : (
@@ -176,26 +185,24 @@ const Index = () => {
           )}
         </div>
 
-        {/* Guest CTA on map */}
-        {isGuest && activeTab === "map" && (
-          <>
-            <div className="fixed inset-x-0 bottom-0 h-[55vh] z-[1998] pointer-events-none" style={{
-              background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.85) 25%, hsl(var(--background) / 0.4) 60%, transparent 100%)",
-              backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)",
-              maskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 0%, black 40%, transparent 100%)",
-            }} />
-            <div className="fixed bottom-20 left-4 right-4 z-[1999]">
-              <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.5, duration: 0.5, type: "spring" }}
-                className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl p-5 shadow-2xl shadow-gold/10 text-center">
-                <p className="text-base font-bold text-foreground mb-1">{t("guest_unlockMap")}</p>
-                <p className="text-xs text-muted-foreground mb-3">{t("guest_signupDesc")}</p>
-                <button onClick={() => setActiveTab("profil")} className="w-full py-3 rounded-xl font-bold text-sm text-primary-foreground shadow-lg active:scale-[0.97] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
-                  {t("guest_continueGoogle")}
-                </button>
-                <p className="text-[10px] text-muted-foreground mt-2">{t("guest_freeNoSpam")}</p>
-              </motion.div>
+        {/* Guest signup banner — compact, non-blocking */}
+        {isGuest && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 3, duration: 0.5 }}
+            className="fixed bottom-20 left-3 right-3 z-[1999] md:left-auto md:right-4 md:bottom-4 md:max-w-sm"
+          >
+            <div className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-4 py-3 shadow-2xl shadow-gold/10 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">Crée ton compte gratuit</p>
+                <p className="text-[11px] text-muted-foreground">Poste, like, et débloque les avantages VIP</p>
+              </div>
+              <button onClick={() => setActiveTab("profil")} className="shrink-0 px-4 py-2 rounded-xl font-bold text-xs text-primary-foreground active:scale-[0.97] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
+                S'inscrire
+              </button>
             </div>
-          </>
+          </motion.div>
         )}
 
         {/* Mobile bottom nav only */}
@@ -269,8 +276,8 @@ const Index = () => {
           </button>
         </div>
       )}
-      {isGuest && activeTab === "map" && (
-        <div className="fixed top-4 right-4 z-[1999]">
+      {isGuest && (
+        <div className="fixed top-4 right-4 z-[1999] md:hidden">
           <LanguageToggle variant="icon" />
         </div>
       )}
