@@ -150,25 +150,22 @@ const Index = () => {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="flex-1 relative min-h-0 overflow-hidden">
-          {/* Feed: constrained width on desktop */}
+          {/* Feed: open to guests (read-only) */}
           {activeTab === "feed" && (
-            isGuest ? <AuthGate /> : (
-              <div className="h-full flex justify-center">
-                <div className="w-full max-w-[630px] h-full">
-                  <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
-                </div>
+            <div className="h-full flex justify-center">
+              <div className="w-full max-w-[630px] h-full">
+                <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
               </div>
-            )
+            </div>
           )}
           {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
+          {/* Discover: open to guests (read-only) */}
           {activeTab === "discover" && (
-            isGuest ? <AuthGate /> : (
-              <div className="h-full flex justify-center">
-                <div className="w-full max-w-[630px] h-full">
-                  <DiscoverTab onGoToMap={handleGoToMap} onStartChat={(userId) => setShowMessages(true)} />
-                </div>
+            <div className="h-full flex justify-center">
+              <div className="w-full max-w-[630px] h-full">
+                <DiscoverTab onGoToMap={handleGoToMap} onStartChat={(userId) => setShowMessages(true)} />
               </div>
-            )
+            </div>
           )}
           {activeTab === "profil" && (
             isGuest ? <AuthGate /> : (
