@@ -1,5 +1,4 @@
-import { Home, Search, PlusSquare, User, Map, Film, Bell, Settings, Menu } from "lucide-react";
-import { motion } from "framer-motion";
+import { Home, Search, PlusSquare, User, Map, MessageCircle, Bell, Menu } from "lucide-react";
 import type { Tab } from "./BottomNav";
 import { useNotifications } from "@/hooks/useNotifications";
 
@@ -8,18 +7,21 @@ interface AppSidebarProps {
   onChange: (tab: Tab) => void;
   onCreatePress: () => void;
   onNotificationsPress?: () => void;
+  onMessagesPress?: () => void;
+  unreadMessages?: number;
 }
 
-const NAV_ITEMS: { tab: Tab | "create" | "notifications"; icon: typeof Home; label: string }[] = [
+const NAV_ITEMS: { tab: Tab | "create" | "notifications" | "messages"; icon: typeof Home; label: string }[] = [
   { tab: "feed", icon: Home, label: "Accueil" },
   { tab: "discover", icon: Search, label: "Explorer" },
   { tab: "map", icon: Map, label: "Carte" },
+  { tab: "messages" as any, icon: MessageCircle, label: "Messages" },
   { tab: "notifications" as any, icon: Bell, label: "Notifications" },
   { tab: "create", icon: PlusSquare, label: "Créer" },
   { tab: "profil", icon: User, label: "Profil" },
 ];
 
-export default function AppSidebar({ active, onChange, onCreatePress, onNotificationsPress }: AppSidebarProps) {
+export default function AppSidebar({ active, onChange, onCreatePress, onNotificationsPress, onMessagesPress, unreadMessages = 0 }: AppSidebarProps) {
   const { unreadCount } = useNotifications();
 
   return (
@@ -40,6 +42,7 @@ export default function AppSidebar({ active, onChange, onCreatePress, onNotifica
           const isActive = tab === active;
           const isCreate = tab === "create";
           const isNotif = tab === "notifications";
+          const isMsg = tab === "messages";
 
           return (
             <button
@@ -47,6 +50,7 @@ export default function AppSidebar({ active, onChange, onCreatePress, onNotifica
               onClick={() => {
                 if (isCreate) { onCreatePress(); return; }
                 if (isNotif) { onNotificationsPress?.(); return; }
+                if (isMsg) { onMessagesPress?.(); return; }
                 onChange(tab as Tab);
               }}
               className={`relative flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-150 group hover:bg-card active:scale-[0.97]
@@ -61,6 +65,11 @@ export default function AppSidebar({ active, onChange, onCreatePress, onNotifica
                 {isNotif && unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
                     {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+                {isMsg && unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                    {unreadMessages > 9 ? "9+" : unreadMessages}
                   </span>
                 )}
               </div>
