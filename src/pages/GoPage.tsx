@@ -61,6 +61,14 @@ export default function GoPage() {
             trackEvent("sign_up", { method: "google", source, campaign });
             ttqIdentify(user.email);
             ttqTrack("CompleteRegistration", { content_name: "google_signup", content_id: "google_oauth", content_category: "signup", source, campaign });
+            supabase.from("acquisition_events").insert({
+              event_type: "signup_google",
+              source,
+              campaign,
+              user_id: user.id,
+              is_inapp: isInAppBrowser(),
+              is_tiktok: isTikTokInAppBrowser(),
+            }).then(() => {});
             sessionStorage.setItem(trackedKey, "1");
           }
 
@@ -133,7 +141,7 @@ export default function GoPage() {
   const animatedUsers = useCountUp(usersCount || 0);
   const animatedPlaces = useCountUp(liveStats?.totalPlaces || 0);
 
-  // Analytics
+  // Analytics + acquisition logging
   useEffect(() => {
     ttqTrack("ViewContent", {
       content_name: "go_landing",
@@ -142,6 +150,16 @@ export default function GoPage() {
       description: `${utmSource}/${utmCampaign}`,
     });
     trackEvent("go_page_view", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp, is_tiktok: isTikTok, referrer: document.referrer || "direct" });
+
+    // Log to acquisition_events table
+    supabase.from("acquisition_events").insert({
+      event_type: "page_view",
+      source: utmSource,
+      campaign: utmCampaign,
+      referrer: document.referrer || null,
+      is_inapp: isInApp,
+      is_tiktok: isTikTok,
+    }).then(() => {});
   }, []);
 
   useEffect(() => {
@@ -215,6 +233,13 @@ export default function GoPage() {
       trackEvent("go_email_signup_success", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
       ttqIdentify(email);
       ttqTrack("CompleteRegistration", { content_name: "magic_link", content_id: "email_signup", content_category: "signup" });
+      supabase.from("acquisition_events").insert({
+        event_type: "signup_email",
+        source: utmSource,
+        campaign: utmCampaign,
+        is_inapp: isInApp,
+        is_tiktok: isTikTok,
+      }).then(() => {});
     }
     setLoading(false);
   };

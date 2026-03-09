@@ -3,6 +3,7 @@ import UsersTab from "./UsersTab";
 import AdminVipOffers from "./admin/AdminVipOffers";
 import AdminStoriesManager from "./admin/AdminStoriesManager";
 import AdminActivityFeed from "./admin/AdminActivityFeed";
+import AdminAcquisition from "./admin/AdminAcquisition";
 import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity, Link2, Copy } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +12,7 @@ import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges" | "vip" | "stories" | "activity";
+type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges" | "vip" | "stories" | "activity" | "acquisition";
 type PassStat = { place_name: string; count: number };
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 type PartnerVibe = { id: string; image_url: string; caption: string | null; location: string | null; likes: number; super_vibes: number; created_at: string; is_official: boolean };
@@ -320,6 +321,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           <TabButton active={tab === "challenges"} label="Challenges" icon={Trophy} onClick={() => setTab("challenges")} />
           <TabButton active={tab === "vip"} label="Offres VIP" icon={Gift} onClick={() => setTab("vip")} />
           <TabButton active={tab === "stories"} label="Stories" icon={Film} onClick={() => setTab("stories")} />
+          <TabButton active={tab === "acquisition"} label="Acquisition" icon={TrendingUp} onClick={() => setTab("acquisition")} />
         </div>
       </div>
 
@@ -1105,6 +1107,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {/* === ACTIVITÉ === */}
           {tab === "activity" && <AdminActivityFeed />}
+
+          {/* === ACQUISITION === */}
+          {tab === "acquisition" && <AdminAcquisition />}
         </div>
       )}
     </div>
