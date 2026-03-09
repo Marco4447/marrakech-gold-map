@@ -225,6 +225,13 @@ export default function GoPage() {
       trackEvent("go_email_signup_success", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
       ttqIdentify(email);
       ttqTrack("CompleteRegistration", { content_name: "magic_link", content_id: "email_signup", content_category: "signup" });
+      supabase.from("acquisition_events").insert({
+        event_type: "signup_email",
+        source: utmSource,
+        campaign: utmCampaign,
+        is_inapp: isInApp,
+        is_tiktok: isTikTok,
+      }).then(() => {});
     }
     setLoading(false);
   };
