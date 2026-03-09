@@ -146,23 +146,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // 2. Fallback: if INITIAL_SESSION hasn't fired after 5s, try getSession manually
-    const fallbackTimer = setTimeout(async () => {
+    // 2. Also call getSession immediately as a safety net
+    // (some Supabase versions don't emit INITIAL_SESSION reliably on mobile)
+    supabase.auth.getSession().then(({ data }) => {
       if (!mounted || initialSessionHandled) return;
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (!mounted || initialSessionHandled) return;
-        const currentUser = data?.session?.user ?? null;
-        setUser(currentUser);
-        setLoading(false);
-        if (currentUser) {
-          fetchProfile(currentUser).catch(console.error);
-        }
-      } catch (err) {
-        console.error("Fallback getSession failed:", err);
-        if (mounted) setLoading(false);
+      initialSessionHandled = true;
+      const currentUser = data?.session?.user ?? null;
+      setUser(currentUser);
+      setLoading(false);
+      if (currentUser) {
+        fetchProfile(currentUser).catch(console.error);
       }
-    }, 5000);
+    }).catch((err) => {
+      console.error("getSession failed:", err);
+      if (mounted && !initialSessionHandled) setLoading(false);
+    });
 
     return () => {
       mounted = false;
