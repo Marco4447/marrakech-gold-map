@@ -61,6 +61,14 @@ export default function GoPage() {
             trackEvent("sign_up", { method: "google", source, campaign });
             ttqIdentify(user.email);
             ttqTrack("CompleteRegistration", { content_name: "google_signup", content_id: "google_oauth", content_category: "signup", source, campaign });
+            supabase.from("acquisition_events").insert({
+              event_type: "signup_google",
+              source,
+              campaign,
+              user_id: user.id,
+              is_inapp: isInAppBrowser(),
+              is_tiktok: isTikTokInAppBrowser(),
+            }).then(() => {});
             sessionStorage.setItem(trackedKey, "1");
           }
 
