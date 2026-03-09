@@ -211,6 +211,11 @@ const Index = () => {
               if (isGuest) { setActiveTab("profil"); return; }
               setShowFlashPost(true);
             }}
+            onMessagesPress={() => {
+              if (isGuest) { setActiveTab("profil"); return; }
+              setShowMessages(true);
+            }}
+            unreadMessages={unreadMessages}
           />
         </div>
       </div>
