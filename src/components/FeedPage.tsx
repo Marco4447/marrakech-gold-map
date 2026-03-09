@@ -655,7 +655,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         </button>
                       )}
                     </div>
-                    <button onClick={() => handleSuperVibe(vibe.id)} disabled={!canSuperVibe || superVibeIds.has(vibe.id)} className="group relative">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => toggleBookmark(vibe.id)} className="group">
+                        <Bookmark className={`w-5 h-5 transition-colors duration-200 ${isBookmarked(vibe.id) ? "fill-foreground text-foreground" : "text-foreground group-hover:text-foreground/70"}`} />
+                      </button>
+                      <button onClick={() => handleSuperVibe(vibe.id)} disabled={!canSuperVibe || superVibeIds.has(vibe.id)} className="group relative">
                       <motion.div animate={superVibeAnimId === vibe.id ? { scale: [1, 1.6, 0.8, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}} transition={{ duration: 0.5, ease: "easeOut" }}>
                         <Zap className={`w-6 h-6 transition-colors duration-200 ${superVibeIds.has(vibe.id) ? "fill-gold text-gold" : !canSuperVibe ? "text-foreground/30" : "text-foreground group-hover:text-foreground/70"}`} />
                       </motion.div>
