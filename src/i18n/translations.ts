@@ -224,6 +224,28 @@ const translations = {
 
   // ===== REFERRAL =====
   referral_title: { fr: "Parrainage", en: "Referral" },
+
+  // ===== SEO SECTIONS =====
+  seo_h1: { fr: "Découvrez les meilleurs spots à Marrakech", en: "Discover the Best Spots in Marrakech" },
+  seo_rooftopsTitle: { fr: "Meilleurs Rooftops à Marrakech", en: "Best Rooftops in Marrakech" },
+  seo_rooftopsDesc: { fr: "Explorez les rooftops les plus prisés de Marrakech avec des vibes en direct, des photos d'ambiance et des offres exclusives. Du coucher de soleil aux soirées sous les étoiles.", en: "Explore the most popular rooftops in Marrakech with live vibes, atmosphere photos and exclusive deals. From sunset cocktails to starlit evenings." },
+  seo_restaurantsTitle: { fr: "Meilleurs Restaurants à Marrakech", en: "Best Restaurants in Marrakech" },
+  seo_restaurantsDesc: { fr: "Cuisine marocaine traditionnelle, fusion moderne ou gastronomie internationale — découvrez les restaurants que les locaux adorent à Marrakech.", en: "Traditional Moroccan cuisine, modern fusion or international gastronomy — discover the restaurants locals love in Marrakech." },
+  seo_nightlifeTitle: { fr: "Guide de la Vie Nocturne à Marrakech", en: "Marrakech Nightlife Guide" },
+  seo_nightlifeDesc: { fr: "Bars, clubs et soirées tendance à Marrakech. Voyez ce qui se passe en temps réel avec WeshKech, votre guide nocturne local.", en: "Trending bars, clubs and parties in Marrakech. See what's happening in real time with WeshKech, your local night guide." },
+  seo_hiddenTitle: { fr: "Pépites Cachées à Marrakech", en: "Hidden Gems in Marrakech" },
+  seo_hiddenDesc: { fr: "Sortez des sentiers battus. WeshKech est construit par des locaux qui connaissent les meilleurs secrets de Marrakech — des spots que les touristes ne trouvent jamais.", en: "Go off the beaten path. WeshKech is built by locals who know Marrakech's best-kept secrets — spots tourists never find." },
+  seo_localTitle: { fr: "Spots Locaux que Seuls les Marrakchis Connaissent", en: "Local Spots Only Locals Know" },
+  seo_localDesc: { fr: "Les vrais bons plans partagés par la communauté. Marrakech comme vous ne l'avez jamais vue — en direct, sans filtre.", en: "Real recommendations shared by the community. Marrakech like you've never seen it — live, no filter." },
+  seo_faqTitle: { fr: "Questions fréquentes", en: "Frequently Asked Questions" },
+  seo_faq1Q: { fr: "Quels sont les meilleurs rooftops à Marrakech ?", en: "What are the best rooftops in Marrakech?" },
+  seo_faq1A: { fr: "WeshKech référence les meilleurs rooftops de Marrakech avec des photos live et des avis d'insiders. Les spots populaires incluent MK Rooftop, Kabana et bien d'autres pépites.", en: "WeshKech curates the top rooftops in Marrakech with live photos and insider reviews. Popular spots include MK Rooftop, Kabana, and many more hidden gems." },
+  seo_faq2Q: { fr: "Où sortir à Marrakech ?", en: "Where to go out in Marrakech?" },
+  seo_faq2A: { fr: "WeshKech vous montre ce qui se passe à Marrakech en temps réel. Parcourez la carte live pour découvrir les bars, clubs, restaurants et rooftops tendance ce soir.", en: "WeshKech shows you what's happening in Marrakech in real time. Browse the live map to discover the best bars, clubs, restaurants and rooftops trending tonight." },
+  seo_faq3Q: { fr: "Quels sont les meilleurs restaurants à Marrakech ?", en: "What are the best restaurants in Marrakech?" },
+  seo_faq3A: { fr: "De la cuisine marocaine traditionnelle à la fusion moderne, WeshKech liste les meilleurs restaurants de Marrakech avec des vibes en direct et des avis d'insiders.", en: "From traditional Moroccan cuisine to modern fusion, WeshKech lists the best restaurants in Marrakech with live vibes and insider reviews." },
+  seo_faq4Q: { fr: "Quelles sont les pépites cachées de Marrakech ?", en: "What are hidden gems in Marrakech?" },
+  seo_faq4A: { fr: "WeshKech est construit par des locaux qui connaissent les meilleurs secrets de Marrakech. Découvrez des spots hors des sentiers battus et des favoris locaux que les touristes trouvent rarement.", en: "WeshKech is built by locals who know Marrakech's best-kept secrets. Discover off-the-beaten-path spots and local favorites tourists rarely find." },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
