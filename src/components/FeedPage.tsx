@@ -21,6 +21,7 @@ import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import WeeklyChallenge from "./WeeklyChallenge";
 import { useFollows } from "@/hooks/useFollows";
 import TikTokFeed from "./TikTokFeed";
+import { useBookmarks } from "@/hooks/useBookmarks";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
