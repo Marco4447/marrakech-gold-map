@@ -2,7 +2,7 @@
  * Places to boost to the top of all lists (first partner, etc.)
  * Add place names here (case-insensitive matching).
  */
-export const BOOSTED_PLACES = ["coco", "kabana"];
+export const BOOSTED_PLACES: string[] = [];
 
 export function isBoosted(name: string | null | undefined): boolean {
   if (!name) return false;
