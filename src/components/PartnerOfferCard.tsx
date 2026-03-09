@@ -16,7 +16,7 @@ interface PartnerOfferCardProps {
 
 export default function PartnerOfferCard({ offer, isVip }: PartnerOfferCardProps) {
   const navigate = useNavigate();
-  const locked = offer.vip_only && !isVip;
+  const locked = false; // B2C free: no VIP lock on offers
 
   return (
     <div className={`relative rounded-xl border p-3 ${locked ? "border-gold/20 bg-gold/5" : "border-border bg-surface"}`}>
