@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      acquisition_events: {
+        Row: {
+          campaign: string | null
+          created_at: string
+          device_fingerprint: string | null
+          event_type: string
+          id: string
+          is_inapp: boolean | null
+          is_tiktok: boolean | null
+          referrer: string | null
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          campaign?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          event_type: string
+          id?: string
+          is_inapp?: boolean | null
+          is_tiktok?: boolean | null
+          referrer?: string | null
+          source?: string
+          user_id?: string | null
+        }
+        Update: {
+          campaign?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          event_type?: string
+          id?: string
+          is_inapp?: boolean | null
+          is_tiktok?: boolean | null
+          referrer?: string | null
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_events: {
         Row: {
           body: string | null
