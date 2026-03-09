@@ -50,6 +50,11 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   }, []);
 
   useEffect(() => {
+    const heroInterval = setInterval(() => setHeroIndex((prev) => (prev + 1) % heroImages.length), 5000);
+    return () => clearInterval(heroInterval);
+  }, []);
+
+  useEffect(() => {
     const interval = setInterval(() => setActiveSlide((prev) => (prev + 1) % previewSlideKeys.length), 4000);
     return () => clearInterval(interval);
   }, []);
