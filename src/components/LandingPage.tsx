@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Camera, Gift, Star, Utensils, Moon, Sparkles, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/marrakech-hero.jpg";
-import ambientVideo from "@/assets/marrakech-ambiance.mp4";
 import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
