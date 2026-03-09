@@ -321,10 +321,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     commentCounts,
   }), [vibes, userLocation, followingIds, boostedVibeIds, commentCounts]);
 
-  const sortedFeed = useMemo(() => {
+  const sortedFeed = useMemo((): Vibe[] => {
     if (activeTab === "foryou") {
       // Use the ranking algorithm for For You tab
-      const ranked = rankFeedVibes(vibes as FeedVibe[], scoringContext);
+      const ranked = rankFeedVibes(vibes as (Vibe & FeedVibe)[], scoringContext) as Vibe[];
       // Apply boost priority for sponsored places (on top)
       return ranked.sort((a, b) => {
         const aP = boostPriority(a.location);
