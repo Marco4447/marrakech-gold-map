@@ -114,6 +114,17 @@ const Index = () => {
     );
   }
 
+  // Messages overlay
+  if (showMessages && user) {
+    return (
+      <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-hidden">
+          <MessagesPage onBack={() => setShowMessages(false)} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[100dvh] w-full bg-background flex overflow-hidden">
       {/* Desktop/Tablet sidebar */}
