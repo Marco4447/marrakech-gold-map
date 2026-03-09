@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Camera, Gift, Star, Utensils, Moon, Sparkles, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/marrakech-hero.jpg";
-import ambientVideo from "@/assets/marrakech-ambiance.mp4";
 import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -26,10 +25,16 @@ const previewSlideKeys = [
   { emoji: "🎁", titleKey: "landing_passTitle" as const, descKey: "landing_passDesc" as const },
 ];
 
+const heroImages = [
+  heroImage,
+  "/images/landing-hero-1.jpg",
+  "/images/landing-hero-2.jpg",
+];
+
 const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, ref) => {
-  const [videoLoaded, setVideoLoaded] = useState(false);
   const [insiderCount, setInsiderCount] = useState<number | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [heroIndex, setHeroIndex] = useState(0);
   const [recentVibes, setRecentVibes] = useState<RecentVibePreview[]>([]);
   const [explainerTab, setExplainerTab] = useState<"insider" | "partner" | null>(null);
   const { t } = useLanguage();
@@ -41,6 +46,11 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
     supabase.from("vibes").select("id, image_url, location, mood").order("created_at", { ascending: false }).limit(5).then(({ data }) => {
       if (data) setRecentVibes(data as RecentVibePreview[]);
     });
+  }, []);
+
+  useEffect(() => {
+    const heroInterval = setInterval(() => setHeroIndex((prev) => (prev + 1) % heroImages.length), 5000);
+    return () => clearInterval(heroInterval);
   }, []);
 
   useEffect(() => {
@@ -76,11 +86,27 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         <LanguageToggle />
       </div>
 
-      {/* Hero media — top half */}
-      <div className="relative w-full aspect-[4/5] max-h-[55vh] flex-shrink-0">
-        <img src={heroImage} alt="Rooftop view of Marrakech at sunset — best spots and nightlife" className={`w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-0" : "opacity-100"}`} />
-        <video src={ambientVideo} autoPlay loop muted playsInline onCanPlayThrough={() => setVideoLoaded(true)} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`} />
+      {/* Hero media — photo slideshow */}
+      <div className="relative w-full aspect-[4/5] max-h-[55vh] flex-shrink-0 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={heroIndex}
+            src={heroImages[heroIndex]}
+            alt="Rooftop view of Marrakech — best spots and nightlife"
+            className="w-full h-full object-cover"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+          />
+        </AnimatePresence>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+        {/* Dots */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+          {heroImages.map((_, i) => (
+            <button key={i} onClick={() => setHeroIndex(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === heroIndex ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30"}`} />
+          ))}
+        </div>
       </div>
 
       {/* Content below hero */}
