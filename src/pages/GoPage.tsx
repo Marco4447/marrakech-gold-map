@@ -216,24 +216,51 @@ export default function GoPage() {
       trackEvent("go_signup_validation_error", { reason: "invalid_email", source: utmSource });
       return;
     }
+    if (!password || password.length < 6) {
+      setError(lang === "fr" ? "Mot de passe : 6 caractères min." : "Password: 6 characters min.");
+      trackEvent("go_signup_validation_error", { reason: "short_password", source: utmSource });
+      return;
+    }
     setLoading(true);
     trackEvent("go_email_signup_submit", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
-    ttqTrack("InitiateCheckout", { content_name: "magic_link_attempt", content_id: "email_otp", content_category: "signup" });
-    const { error } = await supabase.auth.signInWithOtp({
+    ttqTrack("InitiateCheckout", { content_name: "email_password_attempt", content_id: "email_password", content_category: "signup" });
+
+    // Try signup first
+    const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email,
+      password,
       options: {
         data: { full_name: email.split("@")[0] },
         emailRedirectTo: window.location.origin,
       },
     });
-    if (error) {
-      setError(error.message);
-      trackEvent("go_email_signup_error", { error: error.message, source: utmSource, campaign: utmCampaign });
+
+    if (signupError) {
+      // If user already exists, try login
+      if (signupError.message?.includes("already registered") || signupError.message?.includes("already been registered")) {
+        const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+        if (loginError) {
+          setError(lang === "fr" ? "Email déjà utilisé ou mot de passe incorrect." : "Email already used or wrong password.");
+          trackEvent("go_email_login_error", { error: loginError.message, source: utmSource });
+        } else {
+          trackEvent("go_email_login_success", { source: utmSource, campaign: utmCampaign });
+          ttqIdentify(email);
+          ttqTrack("CompleteRegistration", { content_name: "email_login", content_id: "email_password", content_category: "signup" });
+        }
+      } else {
+        setError(signupError.message);
+        trackEvent("go_email_signup_error", { error: signupError.message, source: utmSource, campaign: utmCampaign });
+      }
     } else {
-      setSuccess(lang === "fr" ? "Lien envoyé ! Vérifie ta boîte mail 📩" : "Link sent! Check your inbox 📩");
+      // Check if email confirmation is needed
+      if (signupData.user && !signupData.session) {
+        setSuccess(lang === "fr" ? "Vérifie ta boîte mail pour confirmer 📩" : "Check your inbox to confirm 📩");
+      } else {
+        setSuccess(lang === "fr" ? "Compte créé ! Redirection..." : "Account created! Redirecting...");
+      }
       trackEvent("go_email_signup_success", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
       ttqIdentify(email);
-      ttqTrack("CompleteRegistration", { content_name: "magic_link", content_id: "email_signup", content_category: "signup" });
+      ttqTrack("CompleteRegistration", { content_name: "email_password", content_id: "email_signup", content_category: "signup", value: 1, currency: "MAD" });
       supabase.from("acquisition_events").insert({
         event_type: "signup_email",
         source: utmSource,
