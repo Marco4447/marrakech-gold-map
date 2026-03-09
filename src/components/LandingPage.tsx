@@ -90,8 +90,8 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{t("landing_nowInKech")}</span>
             <div className="flex gap-2.5 overflow-x-auto no-scrollbar">
               {recentVibes.map((vibe, i) => (
-                <div key={vibe.id} className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-border" style={{ filter: i > 1 ? "blur(4px)" : "none" }}>
-                  <img src={vibe.image_url} alt="" className="w-full h-full object-cover" />
+              <div key={vibe.id} className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-border bg-muted" style={{ filter: i > 1 ? "blur(4px)" : "none" }}>
+                  <img src={vibe.image_url} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   {i > 1 && (
                     <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
                       <span className="text-xs">🔒</span>
