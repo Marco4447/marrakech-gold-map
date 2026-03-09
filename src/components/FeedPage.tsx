@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,7 @@ import WeeklyChallenge from "./WeeklyChallenge";
 import { useFollows } from "@/hooks/useFollows";
 import TikTokFeed from "./TikTokFeed";
 import { useBookmarks } from "@/hooks/useBookmarks";
+import { rankFeedVibes, createScoringContext, type FeedVibe } from "@/lib/feedAlgorithm";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
@@ -308,13 +309,24 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     finally { setDeletingId(null); }
   };
 
-  // Feed ranking
-  const officialVibes = vibes.filter((v) => v.is_official);
-  const regularVibes = vibes.filter((v) => !v.is_official);
-  const top3Vibes = [...regularVibes].filter(v => getScore(v) > 0).sort((a, b) => getScore(b) - getScore(a)).slice(0, 3);
+  // Feed ranking using the new algorithm
+  const top3Vibes = [...vibes].filter(v => !v.is_official && getScore(v) > 0).sort((a, b) => getScore(b) - getScore(a)).slice(0, 3);
 
-  const sortedFeed = activeTab === "foryou"
-    ? [...officialVibes, ...regularVibes].sort((a, b) => {
+  // Create scoring context for the algorithm
+  const scoringContext = useMemo(() => createScoringContext({
+    vibes: vibes as FeedVibe[],
+    userLocation,
+    followingIds,
+    boostedVibeIds,
+    commentCounts,
+  }), [vibes, userLocation, followingIds, boostedVibeIds, commentCounts]);
+
+  const sortedFeed = useMemo((): Vibe[] => {
+    if (activeTab === "foryou") {
+      // Use the ranking algorithm for For You tab
+      const ranked = rankFeedVibes(vibes as (Vibe & FeedVibe)[], scoringContext) as Vibe[];
+      // Apply boost priority for sponsored places (on top)
+      return ranked.sort((a, b) => {
         const aP = boostPriority(a.location);
         const bP = boostPriority(b.location);
         const aB = aP >= 0;
@@ -322,42 +334,16 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         if (aB && !bB) return -1;
         if (!aB && bB) return 1;
         if (aB && bB) return aP - bP;
-        if (a.is_official && !b.is_official) return -1;
-        if (!a.is_official && b.is_official) return 1;
-
-        // Time decay (newer = higher, 0.4 weight)
-        const now = Date.now();
-        const SIX_H = 6 * 3600000;
-        const aTimeFresh = Math.max(0, 1 - (now - new Date(a.created_at).getTime()) / SIX_H);
-        const bTimeFresh = Math.max(0, 1 - (now - new Date(b.created_at).getTime()) / SIX_H);
-
-        // Distance score (closer = higher, 0.2 weight)
-        const aDistScore = userLocation && a.latitude != null ? Math.max(0, 1 - getDistanceMeters(userLocation.lat, userLocation.lng, a.latitude!, a.longitude!) / 10000) : 0.5;
-        const bDistScore = userLocation && b.latitude != null ? Math.max(0, 1 - getDistanceMeters(userLocation.lat, userLocation.lng, b.latitude!, b.longitude!) / 10000) : 0.5;
-
-        // Engagement (0.3 weight)
-        const aEng = getScore(a) / Math.max(1, ...regularVibes.map(v => getScore(v)));
-        const bEng = getScore(b) / Math.max(1, ...regularVibes.map(v => getScore(v)));
-
-        // Partner boost (0.1 weight)
-        const aPartner = a.is_official ? 1 : 0;
-        const bPartner = b.is_official ? 1 : 0;
-
-        // Vibe boost (paid boost)
-        const aBoost = boostedVibeIds.has(a.id) ? 0.15 : 0;
-        const bBoost = boostedVibeIds.has(b.id) ? 0.15 : 0;
-
-        // VIP bonus (+10% visibility)
-        const aVip = (a as any).profile?.is_vip ? 0.1 : 0;
-        const bVip = (b as any).profile?.is_vip ? 0.1 : 0;
-
-        const aTotal = aTimeFresh * 0.35 + aDistScore * 0.15 + aEng * 0.25 + aPartner * 0.1 + aBoost + aVip;
-        const bTotal = bTimeFresh * 0.35 + bDistScore * 0.15 + bEng * 0.25 + bPartner * 0.1 + bBoost + bVip;
-        return bTotal - aTotal;
-      })
-    : activeTab === "following"
-    ? [...vibes].filter(v => v.user_id && followingIds.has(v.user_id)).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    : [...officialVibes, ...regularVibes].sort((a, b) => {
+        return 0; // Keep algorithm order otherwise
+      });
+    } else if (activeTab === "following") {
+      // Following tab: chronological, only followed accounts
+      return [...vibes]
+        .filter(v => v.user_id && followingIds.has(v.user_id))
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else {
+      // Recents tab: chronological with boost priority
+      return [...vibes].sort((a, b) => {
         const aB = isBoosted(a.location);
         const bB = isBoosted(b.location);
         if (aB && !bB) return -1;
@@ -366,6 +352,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         if (!a.is_official && b.is_official) return 1;
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
+    }
+  }, [vibes, activeTab, scoringContext, followingIds]);
 
   const rankMedals = ["🥇", "🥈", "🥉"];
 
