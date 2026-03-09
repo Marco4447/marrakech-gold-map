@@ -271,7 +271,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           }
           // Show preview card instead of directly opening sheet
           setPreviewPlace(place);
-          map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 15), { duration: 0.6 });
+          map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 16), { duration: 0.6 });
         });
 
       // Staggered discovery animation (robuste même si le DOM du marker n'est pas prêt immédiatement)
@@ -423,12 +423,22 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     };
   }, [vibePins, activeFilter, showVibes, isNight]);
 
-  // Close preview when opening sheet
-  const handleOpenSheet = (place: Place) => {
+  // Close preview when opening sheet — fly to place with vertical offset so pin stays visible above the sheet
+  const handleOpenSheet = useCallback((place: Place) => {
     setPreviewPlace(null);
     setSelectedPlace(place);
     setSheetOpen(true);
-  };
+    const map = mapRef.current;
+    if (map) {
+      // Offset the center upward by ~30% of container height so pin sits above the bottom sheet
+      const targetZoom = Math.max(map.getZoom(), 16);
+      const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
+      const containerHeight = map.getSize().y;
+      const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.15);
+      const offsetLatLng = map.unproject(offsetPoint, targetZoom);
+      map.flyTo(offsetLatLng, targetZoom, { duration: 0.7 });
+    }
+  }, []);
 
   const categories = Object.entries(CATEGORY_CONFIG);
 
@@ -475,7 +485,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                       const fullPlace = places.find((p) => p.id === searchPlace.id);
                       if (fullPlace) {
                         handleOpenSheet(fullPlace);
-                        mapRef.current?.flyTo([fullPlace.latitude, fullPlace.longitude], 17, { duration: 1 });
                       }
                     }}
                   />
@@ -555,7 +564,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                 const place = places.find(p => p.name === name);
                 if (place) {
                   handleOpenSheet(place);
-                  mapRef.current?.flyTo([place.latitude, place.longitude], 16, { duration: 0.8 });
                 }
               }}
             />
