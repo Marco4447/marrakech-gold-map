@@ -62,6 +62,13 @@ const Index = () => {
 
   const handleEnter = () => { localStorage.setItem("wk_landed", "1"); setShowLanding(false); };
 
+  // Listen for guest auth redirect events from child components
+  useEffect(() => {
+    const handler = () => setActiveTab("profil");
+    window.addEventListener("wk:goto-auth", handler);
+    return () => window.removeEventListener("wk:goto-auth", handler);
+  }, []);
+
   const [deepLinkPlaceId, setDeepLinkPlaceId] = useState<string | null>(null);
   useEffect(() => {
     const stored = sessionStorage.getItem("wk_flyto");
