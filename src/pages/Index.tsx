@@ -137,6 +137,8 @@ const Index = () => {
           }}
           onCreatePress={() => setShowFlashPost(true)}
           onNotificationsPress={() => { markAllRead(); setShowNotifications(true); }}
+          onMessagesPress={() => setShowMessages(true)}
+          unreadMessages={unreadMessages}
         />
       )}
 
