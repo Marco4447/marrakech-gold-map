@@ -38,6 +38,7 @@ interface Vibe {
   id: string;
   image_url: string;
   caption: string | null;
+  insider_tip: string | null;
   location: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -735,6 +736,14 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   <div className="relative aspect-[4/5] bg-background" onClick={() => handleDoubleTap(vibe.id)}>
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <DoubleTapHeart show={doubleTapId === vibe.id} />
+                    {/* Category badge overlay */}
+                    {vibe.mood && (
+                      <div className="absolute top-3 left-3 bg-background/70 backdrop-blur-md px-2.5 py-1 rounded-full">
+                        <span className="text-[10px] font-semibold text-foreground">
+                          {vibe.mood} {vibe.location || ''}
+                        </span>
+                      </div>
+                    )}
                     {activeTab === "tendances" && getScore(vibe) > 0 && (
                       <div className="absolute top-3 right-3 bg-background/70 backdrop-blur-md px-2 py-1 rounded-full">
                         <span className="text-[10px] font-bold text-gold flex items-center gap-0.5">
@@ -844,6 +853,14 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <span className="font-semibold mr-1.5">{getDisplayName(vibe)}</span>
                         {vibe.caption}
                       </p>
+                    )}
+                    {vibe.insider_tip && (
+                      <div className="flex items-start gap-1.5 mt-1 px-2.5 py-2 rounded-lg bg-gold/[0.08] border border-gold/[0.15]">
+                        <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0 mt-0.5" />
+                        <p className="text-[12px] text-gold leading-relaxed">
+                          <span className="font-semibold">Insider tip :</span> {vibe.insider_tip}
+                        </p>
+                      </div>
                     )}
                     {(commentCounts[vibe.id] || 0) > 0 && (
                       <button onClick={() => setCommentVibeId(vibe.id)} className="text-[13px] text-muted-foreground">

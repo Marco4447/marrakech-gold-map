@@ -1,0 +1,1 @@
+ALTER TABLE public.vibes ADD COLUMN IF NOT EXISTS insider_tip text;

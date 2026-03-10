@@ -1213,6 +1213,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string
+          insider_tip: string | null
           is_official: boolean
           latitude: number | null
           likes: number
@@ -1229,6 +1230,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url: string
+          insider_tip?: string | null
           is_official?: boolean
           latitude?: number | null
           likes?: number
@@ -1245,6 +1247,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string
+          insider_tip?: string | null
           is_official?: boolean
           latitude?: number | null
           likes?: number
