@@ -658,7 +658,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     </div>
                   </div>
 
-                  {/* Likes + Caption */}
+                  {/* Likes + Caption + Insider Tip */}
                   <div className="px-3 pb-3 space-y-1">
                     <div className="flex items-center gap-3 text-[13px]">
                       <span className="font-semibold text-foreground">{vibe.likes} J'aime{vibe.likes !== 1 ? "s" : ""}</span>
@@ -670,6 +670,14 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       <p className="text-[13px] text-foreground">
                         <span className="font-semibold mr-1.5">{getDisplayName(vibe)}</span>{vibe.caption}
                       </p>
+                    )}
+                    {vibe.insider_tip && (
+                      <div className="flex items-start gap-1.5 mt-1 px-2.5 py-2 rounded-lg bg-gold/[0.08] border border-gold/[0.15]">
+                        <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0 mt-0.5" />
+                        <p className="text-[12px] text-gold leading-relaxed">
+                          <span className="font-semibold">Insider tip :</span> {vibe.insider_tip}
+                        </p>
+                      </div>
                     )}
                     {(commentCounts[vibe.id] || 0) > 0 && (
                       <button onClick={() => setCommentVibeId(vibe.id)} className="text-[13px] text-muted-foreground">
