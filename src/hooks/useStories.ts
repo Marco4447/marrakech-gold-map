@@ -67,6 +67,12 @@ export function useStories(userId?: string | null) {
         .limit(20);
 
       if (vibes && vibes.length > 0) {
+        const moodBadge: Record<string, string> = {
+          hot: "HOT TONIGHT",
+          chill: "RESTAURANT",
+          secret: "INSIDER",
+          foodie: "RESTAURANT",
+        };
         storiesData = vibes.map((v: any) => ({
           id: v.id,
           source_type: v.is_official ? "partner" : "user",
@@ -74,7 +80,7 @@ export function useStories(userId?: string | null) {
           place_id: null,
           media_url: v.image_url,
           media_type: v.media_type || "photo",
-          badge: v.is_official ? "ROOFTOP" : "INSIDER",
+          badge: moodBadge[v.mood] || (v.is_official ? "ROOFTOP" : "INSIDER"),
           caption: v.caption,
           is_featured: v.is_official,
           latitude: v.latitude,
@@ -83,6 +89,7 @@ export function useStories(userId?: string | null) {
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           _vibe_location: v.location,
           _vibe_username: v.username,
+          _vibe_image_url: v.image_url,
         }));
       }
     }
