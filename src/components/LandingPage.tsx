@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { trackEvent } from "@/lib/analytics";
 import { Link } from "react-router-dom";
+import MockVibesPreview from "@/components/landing/MockVibesPreview";
 
 interface LandingPageProps {
   onEnter: () => void;
