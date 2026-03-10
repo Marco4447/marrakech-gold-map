@@ -38,6 +38,7 @@ interface Vibe {
   id: string;
   image_url: string;
   caption: string | null;
+  insider_tip: string | null;
   location: string | null;
   latitude: number | null;
   longitude: number | null;
