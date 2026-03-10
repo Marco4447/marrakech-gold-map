@@ -250,6 +250,9 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         </div>
       </motion.div>
 
+      {/* Mock vibes preview */}
+      <MockVibesPreview />
+
       {/* Footer */}
       <motion.div
         initial={{ opacity: 0 }}
