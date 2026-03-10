@@ -138,12 +138,46 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true, duration: 0.6 });
   }, [activeFilter, tonightMode]);
 
-  // Fly to coordinates
+  // Fly to coordinates — retry until map is ready
+  const flyToPending = useRef<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
-    if (flyToCoords && mapRef.current) {
-      mapRef.current.flyTo([flyToCoords.lat, flyToCoords.lng], 17, { duration: 1.2 });
+    if (!flyToCoords) return;
+    flyToPending.current = flyToCoords;
+
+    const tryFly = () => {
+      if (mapRef.current && flyToPending.current) {
+        mapRef.current.flyTo([flyToPending.current.lat, flyToPending.current.lng], 17, { duration: 1.2 });
+        // Auto-find and open matching place
+        const target = flyToPending.current;
+        flyToPending.current = null;
+        if (places.length > 0) {
+          const match = places.find(p =>
+            Math.abs(p.latitude - target.lat) < 0.0005 &&
+            Math.abs(p.longitude - target.lng) < 0.0005
+          );
+          if (match) {
+            setTimeout(() => {
+              setPreviewPlace(match);
+              setSelectedPlace(match);
+              setSheetOpen(true);
+            }, 800);
+          }
+        }
+        return true;
+      }
+      return false;
+    };
+
+    if (!tryFly()) {
+      // Map not ready yet, poll until it is
+      const interval = setInterval(() => {
+        if (tryFly()) clearInterval(interval);
+      }, 100);
+      // Give up after 5s
+      setTimeout(() => clearInterval(interval), 5000);
+      return () => clearInterval(interval);
     }
-  }, [flyToCoords]);
+  }, [flyToCoords, places]);
 
   // Auto-open place sheet from deep link
   useEffect(() => {
