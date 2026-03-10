@@ -84,7 +84,7 @@ export default function TopLivePlaces({ onPlaceClick }: { onPlaceClick?: (name: 
   if (loading || hotPlaces.length === 0) return null;
 
   return (
-    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+    <div className="flex gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth" style={{ WebkitOverflowScrolling: 'touch' }}>
       {hotPlaces.map((place, i) => (
         <motion.button
           key={place.name}
