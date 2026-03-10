@@ -846,6 +846,14 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         {vibe.caption}
                       </p>
                     )}
+                    {vibe.insider_tip && (
+                      <div className="flex items-start gap-1.5 mt-1 px-2.5 py-2 rounded-lg bg-gold/[0.08] border border-gold/[0.15]">
+                        <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0 mt-0.5" />
+                        <p className="text-[12px] text-gold leading-relaxed">
+                          <span className="font-semibold">Insider tip :</span> {vibe.insider_tip}
+                        </p>
+                      </div>
+                    )}
                     {(commentCounts[vibe.id] || 0) > 0 && (
                       <button onClick={() => setCommentVibeId(vibe.id)} className="text-[13px] text-muted-foreground">
                         Voir les {commentCounts[vibe.id]} commentaire{(commentCounts[vibe.id] || 0) !== 1 ? "s" : ""}
