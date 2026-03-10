@@ -800,7 +800,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         </div>
       )}
 
-      <PlaceSheet place={selectedPlace} open={sheetOpen} onOpenChange={(open) => { setSheetOpen(open); if (!open) setPreviewPlace(null); }} />
+      <PlaceSheet place={selectedPlace} open={sheetOpen} onOpenChange={(open) => {
+        setSheetOpen(open);
+        if (!open) {
+          setPreviewPlace(null);
+          // Re-center map on the place after closing the sheet
+          if (selectedPlace && mapRef.current) {
+            mapRef.current.flyTo([selectedPlace.latitude, selectedPlace.longitude], Math.max(mapRef.current.getZoom(), 16), { duration: 0.6 });
+          }
+        }
+      }} />
       <VibeSheet vibe={selectedVibe} open={vibeSheetOpen} onOpenChange={setVibeSheetOpen} />
     </div>
   );
