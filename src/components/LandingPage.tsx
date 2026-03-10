@@ -109,7 +109,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-[calc(100%-2rem)] max-w-[400px] mx-auto"
+        className="relative z-10 w-[calc(100%-2rem)] max-w-[400px] mx-auto mt-[15vh]"
       >
         <div className="rounded-3xl border border-white/[0.08] bg-white/[0.06] backdrop-blur-2xl shadow-[0_8px_60px_-12px_rgba(0,0,0,0.7)] p-6 sm:p-8 space-y-6">
           
