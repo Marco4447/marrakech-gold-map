@@ -736,6 +736,14 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   <div className="relative aspect-[4/5] bg-background" onClick={() => handleDoubleTap(vibe.id)}>
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <DoubleTapHeart show={doubleTapId === vibe.id} />
+                    {/* Category badge overlay */}
+                    {vibe.mood && (
+                      <div className="absolute top-3 left-3 bg-background/70 backdrop-blur-md px-2.5 py-1 rounded-full">
+                        <span className="text-[10px] font-semibold text-foreground">
+                          {vibe.mood} {vibe.location || ''}
+                        </span>
+                      </div>
+                    )}
                     {activeTab === "tendances" && getScore(vibe) > 0 && (
                       <div className="absolute top-3 right-3 bg-background/70 backdrop-blur-md px-2 py-1 rounded-full">
                         <span className="text-[10px] font-bold text-gold flex items-center gap-0.5">
