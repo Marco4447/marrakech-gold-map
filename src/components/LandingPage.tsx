@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { trackEvent } from "@/lib/analytics";
 import { Link } from "react-router-dom";
+import MockVibesPreview from "@/components/landing/MockVibesPreview";
 
 interface LandingPageProps {
   onEnter: () => void;
@@ -85,7 +86,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   return (
     <motion.div
       ref={ref}
-      className="fixed inset-0 z-[3000] flex flex-col items-center justify-center bg-black overflow-hidden"
+      className="fixed inset-0 z-[3000] flex flex-col items-center bg-black overflow-y-auto overflow-x-hidden"
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
@@ -108,7 +109,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-[calc(100%-2rem)] max-w-[400px] mx-auto"
+        className="relative z-10 w-[calc(100%-2rem)] max-w-[400px] mx-auto mt-[15vh]"
       >
         <div className="rounded-3xl border border-white/[0.08] bg-white/[0.06] backdrop-blur-2xl shadow-[0_8px_60px_-12px_rgba(0,0,0,0.7)] p-6 sm:p-8 space-y-6">
           
@@ -249,12 +250,15 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         </div>
       </motion.div>
 
+      {/* Mock vibes preview */}
+      <MockVibesPreview />
+
       {/* Footer */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
-        className="absolute bottom-6 left-0 right-0 text-center space-y-1.5 z-10"
+        className="relative mt-8 mb-8 left-0 right-0 text-center space-y-1.5 z-10"
       >
         <p className="text-[10px] text-white/20">
           Weshkech © 2026 — Invitation Only.
