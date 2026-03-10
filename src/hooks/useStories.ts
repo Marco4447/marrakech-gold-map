@@ -146,7 +146,7 @@ export function useStories(userId?: string | null) {
         place_rating: place?.rating || null,
         place_address: place?.address || null,
         place_slug: place?.slug || null,
-        avatar_url: place?.image_url || profile?.avatar_url || null,
+        avatar_url: place?.image_url || profile?.avatar_url || s._vibe_image_url || null,
         author_name: s.source_type === "admin" ? "Weshkech" : (place?.name || s._vibe_location || profile?.full_name || s._vibe_username || "Anon"),
         viewed: viewed.has(s.id),
       };
