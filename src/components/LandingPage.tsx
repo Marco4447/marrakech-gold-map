@@ -86,7 +86,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   return (
     <motion.div
       ref={ref}
-      className="fixed inset-0 z-[3000] flex flex-col items-center justify-center bg-black overflow-hidden"
+      className="fixed inset-0 z-[3000] flex flex-col items-center bg-black overflow-y-auto overflow-x-hidden"
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
