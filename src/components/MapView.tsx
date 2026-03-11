@@ -69,22 +69,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   };
 
-  // Delayed bubble appearance
-  useEffect(() => {
-    if (bubbleDismissed || onboardingStep >= 0) return;
-    const timer = setTimeout(() => setShowBubble(true), 2500);
-    return () => clearTimeout(timer);
-  }, [bubbleDismissed, onboardingStep, placesLoading]);
-
-  // Pulse when new vibes arrive
-  useEffect(() => {
-    if (vibePins.length > prevVibeCountRef.current) {
-      setVibePulse(true);
-      const t = setTimeout(() => setVibePulse(false), 1500);
-      return () => clearTimeout(t);
-    }
-    prevVibeCountRef.current = vibePins.length;
-  }, [vibePins.length]);
+  // (bubble + vibe pulse removed — visual noise)
 
   // Auto-fit bounds on first load to center on places/vibes
   useEffect(() => {
