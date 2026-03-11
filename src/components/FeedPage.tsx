@@ -397,7 +397,12 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             >
               <Film className="w-[26px] h-[26px] text-foreground" />
             </button>
-            <Heart className="w-[26px] h-[26px] text-foreground" />
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("wk:open-notifications"))}
+              className="active:scale-90 transition-transform relative"
+            >
+              <Heart className="w-[26px] h-[26px] text-foreground" />
+            </button>
           </div>
         </div>
       </div>
