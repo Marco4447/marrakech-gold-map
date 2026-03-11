@@ -58,11 +58,13 @@ export function useStories(userId?: string | null) {
     if (hasRealStories) {
       storiesData = rawStories as any[];
     } else {
+      // Use 7-day window for official vibes, 6h for user vibes
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
       const { data: vibes } = await supabase
         .from("vibes")
         .select("*")
-        .gt("created_at", sixHoursAgo)
+        .or(`created_at.gt.${sixHoursAgo},and(is_official.eq.true,created_at.gt.${sevenDaysAgo})`)
         .order("created_at", { ascending: false })
         .limit(20);
 
