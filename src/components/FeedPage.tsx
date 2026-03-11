@@ -489,7 +489,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           )}
 
           {/* Main Feed */}
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border/30">
             {visibleFeed.map((vibe, i) => {
               const liked = likedIds.has(vibe.id);
               const isAnimating = animatingId === vibe.id;
