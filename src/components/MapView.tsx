@@ -420,8 +420,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         style={{ filter: sheetOpen || vibeSheetOpen ? "blur(6px) brightness(0.7)" : "none" }}
       />
 
-      {/* Distance rings */}
-      <DistanceRings map={mapRef.current} userPosition={userPosition} isNight={isNight} />
+      {/* Distance rings removed — cleaner map */}
 
       {/* ===== UNIFIED HEADER ===== */}
       <AnimatePresence>
