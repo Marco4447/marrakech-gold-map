@@ -510,43 +510,38 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   <div className="flex items-center justify-between px-3 py-2.5">
                     <div className="flex items-center gap-3 min-w-0">
                       {getAvatarUrl(vibe) ? (
-                        <img src={getAvatarUrl(vibe)!} alt="" className="w-8 h-8 rounded-full border border-border/50 object-cover flex-shrink-0" />
+                        <img src={getAvatarUrl(vibe)!} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-semibold text-foreground">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
+                        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-semibold text-foreground">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
                         </div>
                       )}
                       <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-[13px] font-semibold text-foreground truncate">
-                            {getDisplayName(vibe)}
-                          </p>
-                          {vibe.is_official && <span className="text-[9px] bg-gold/15 text-gold px-1.5 py-0.5 rounded font-bold">OFFICIEL</span>}
-                          {!vibe.is_official && vibe.profile?.is_vip && <Crown className="w-3 h-3 text-gold" />}
-                        </div>
+                        <p className="text-[13px] font-semibold text-foreground truncate leading-tight">
+                          {getDisplayName(vibe)}
+                        </p>
                         {vibe.location && (
-                          <p className="text-[11px] text-muted-foreground truncate">{vibe.location}</p>
+                          <p className="text-[11px] text-muted-foreground truncate leading-tight">{vibe.location}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && (
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && !isFollowing(vibe.user_id) && (
                         <button
                           onClick={(e) => { e.stopPropagation(); toggleFollow(vibe.user_id!); }}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95 ${
-                            isFollowing(vibe.user_id)
-                              ? "bg-card border border-border text-muted-foreground"
-                              : "bg-foreground text-background"
-                          }`}
+                          className="text-[13px] font-bold text-primary active:opacity-60 transition-opacity"
                         >
-                          {isFollowing(vibe.user_id) ? "Suivi" : "Suivre"}
+                          Suivre
                         </button>
                       )}
-                      {user && vibe.user_id === user.id && (
-                        <button onClick={() => handleDeleteVibe(vibe.id)} disabled={deletingId === vibe.id} className="text-muted-foreground hover:text-destructive transition-colors p-1">
-                          {deletingId === vibe.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                        </button>
-                      )}
+                      <button className="p-1" onClick={(e) => {
+                        e.stopPropagation();
+                        if (user && vibe.user_id === user.id) handleDeleteVibe(vibe.id);
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-foreground">
+                          <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                        </svg>
+                      </button>
                     </div>
                   </div>
 
