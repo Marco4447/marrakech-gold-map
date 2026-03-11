@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet.heat";
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Place, VibePin } from "@/types/models";
 import { MARRAKECH_CENTER } from "./mapConstants";
