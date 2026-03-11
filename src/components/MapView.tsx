@@ -1,23 +1,20 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet.heat";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
 import TopLivePlaces from "./TopLivePlaces";
 import RecentVibesPanel from "./RecentVibesPanel";
 import MapSearchBar from "./MapSearchBar";
-import { LocateFixed, Navigation } from "lucide-react";
+import { Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Place, VibePin } from "@/types/models";
 import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_COLORS, MOOD_EMOJIS, CATEGORY_CONFIG, createCategoryIcon } from "./map/mapConstants";
 import { useMapData, useMapInstance } from "./map/useMapData";
-import { FloatingBubble, CollapsibleLegend } from "./map/MapOverlays";
 import { useMapTheme } from "./map/MapThemeManager";
 import MapFiltersBar from "./map/MapFiltersBar";
 import VenuePreviewCard from "./map/VenuePreviewCard";
-import DistanceRings from "./map/DistanceRings";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy";
 
@@ -49,12 +46,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [selectedVibe, setSelectedVibe] = useState<VibePin | null>(null);
   const [vibeSheetOpen, setVibeSheetOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [showVibes, setShowVibes] = useState(true);
-  const [vibePulse, setVibePulse] = useState(false);
-  const prevVibeCountRef = useRef(vibePins.length);
-  const [bubbleIndex, setBubbleIndex] = useState(0);
-  const [showBubble, setShowBubble] = useState(false);
-  const [bubbleDismissed, setBubbleDismissed] = useState(() => !!localStorage.getItem("wk_bubble_dismissed"));
   const [tonightMode, setTonightMode] = useState(false);
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
 
@@ -78,22 +69,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   };
 
-  // Delayed bubble appearance
-  useEffect(() => {
-    if (bubbleDismissed || onboardingStep >= 0) return;
-    const timer = setTimeout(() => setShowBubble(true), 2500);
-    return () => clearTimeout(timer);
-  }, [bubbleDismissed, onboardingStep, placesLoading]);
-
-  // Pulse when new vibes arrive
-  useEffect(() => {
-    if (vibePins.length > prevVibeCountRef.current) {
-      setVibePulse(true);
-      const t = setTimeout(() => setVibePulse(false), 1500);
-      return () => clearTimeout(t);
-    }
-    prevVibeCountRef.current = vibePins.length;
-  }, [vibePins.length]);
+  // (bubble + vibe pulse removed — visual noise)
 
   // Auto-fit bounds on first load to center on places/vibes
   useEffect(() => {
@@ -331,48 +307,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     };
   }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds, tonightMode]);
 
-  // Add vibe pins + heatmap
+  // Add vibe pins (no heatmap — cleaner)
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || activeFilter === "offers" || !showVibes) return;
+    if (!map || activeFilter === "offers") return;
 
     const markers: L.Marker[] = [];
     const timers: Array<ReturnType<typeof setTimeout>> = [];
-    const heatPoints: [number, number, number][] = [];
-
-    vibePins.forEach((vibe) => {
-      if (vibe.latitude == null || vibe.longitude == null) return;
-      const age = Date.now() - new Date(vibe.created_at).getTime();
-      if (age > THREE_HOURS && !vibe.is_official) return;
-      const freshness = Math.max(0.2, 1 - age / SIX_HOURS);
-      heatPoints.push([vibe.latitude, vibe.longitude, freshness]);
-    });
-
-    const heatLayer = (L as any).heatLayer(heatPoints, {
-      radius: 35, blur: 25, maxZoom: 17, minOpacity: 0.25, max: 1.0,
-      gradient: isNight ? {
-        0.0: "rgba(0,0,0,0)",
-        0.2: "hsla(30, 100%, 50%, 0.3)",
-        0.4: "hsla(25, 100%, 50%, 0.5)",
-        0.6: "hsla(15, 100%, 50%, 0.65)",
-        0.8: "hsla(5, 90%, 50%, 0.8)",
-        1.0: "hsla(0, 100%, 55%, 0.9)",
-      } : {
-        0.0: "rgba(0,0,0,0)",
-        0.2: "hsla(45, 100%, 60%, 0.25)",
-        0.4: "hsla(35, 100%, 55%, 0.4)",
-        0.6: "hsla(25, 100%, 50%, 0.55)",
-        0.8: "hsla(15, 90%, 50%, 0.7)",
-        1.0: "hsla(5, 100%, 50%, 0.85)",
-      },
-    }).addTo(map);
-
-    const heatCanvas = (heatLayer as any)._canvas as HTMLCanvasElement | undefined;
-    if (heatCanvas) {
-      heatCanvas.style.transition = "opacity 0.4s ease-out";
-      heatCanvas.style.opacity = "0";
-      requestAnimationFrame(() => { heatCanvas.style.opacity = "1"; });
-    }
 
     const tryApplyVibeRevealAnimation = (marker: L.Marker) => {
       const el = marker.getElement();
@@ -387,24 +328,23 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       if (vibe.latitude == null || vibe.longitude == null) return;
       const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
+      if (age > THREE_HOURS && !isOfficial) return; // Only show fresh vibes
       const remaining = isOfficial ? 1 : Math.max(0, 1 - age / SIX_HOURS);
-      const isHot = age < 2 * 60 * 60 * 1000;
-      const size = isOfficial ? 44 : Math.round(26 + remaining * 14);
+      const size = isOfficial ? 38 : Math.round(24 + remaining * 10);
       const borderColor = isOfficial ? "hsl(43,76%,52%)" : (MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)");
       const moodEmoji = MOOD_EMOJIS[vibe.mood || ""] || "";
-      const pinClass = isOfficial ? "gold-marker" : isHot ? "vibe-pin-hot" : "vibe-pin-fading";
+      const pinClass = isOfficial ? "gold-marker" : "";
 
       const officialBadge = isOfficial
-        ? `<div style="position:absolute;top:-5px;right:-5px;font-size:10px;background:hsl(43,76%,52%);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px hsl(43,76%,52%,0.4)">⭐</div>`
+        ? `<div style="position:absolute;top:-4px;right:-4px;font-size:9px;background:hsl(43,76%,52%);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px hsl(43,76%,52%,0.4)">⭐</div>`
         : "";
 
       const icon = L.divIcon({
         className: pinClass,
         html: `
-          <div style="width:${size}px;height:${size}px;border-radius:50%;border:${isOfficial ? "3px" : "2.5px"} solid ${borderColor};overflow:hidden;position:relative;background:hsl(0,0%,8%);">
+          <div style="width:${size}px;height:${size}px;border-radius:50%;border:2px solid ${borderColor};overflow:hidden;position:relative;background:hsl(0,0%,8%);">
             <img src="${vibe.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy" />
-            ${moodEmoji ? `<div style="position:absolute;bottom:-3px;right:-3px;font-size:10px;background:hsl(0,0%,5%,0.8);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
-            ${vibe.media_type === "video" ? `<div style="position:absolute;top:-3px;left:-3px;font-size:9px;background:hsl(0,70%,50%,0.85);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">🎥</div>` : ""}
+            ${moodEmoji ? `<div style="position:absolute;bottom:-2px;right:-2px;font-size:9px;background:hsl(0,0%,5%,0.8);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
             ${officialBadge}
           </div>
         `,
@@ -438,9 +378,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     return () => {
       timers.forEach(clearTimeout);
-      if (heatCanvas) {
-        heatCanvas.style.opacity = "0";
-      }
       markers.forEach((m) => {
         const el = m.getElement();
         if (el) {
@@ -451,11 +388,10 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       });
       const cleanupTimer = setTimeout(() => {
         markers.forEach((m) => m.remove());
-        map.removeLayer(heatLayer);
       }, 280);
       timers.push(cleanupTimer);
     };
-  }, [vibePins, activeFilter, showVibes, isNight]);
+  }, [vibePins, activeFilter, isNight]);
 
   // Close preview when opening sheet — fly to place with vertical offset so pin stays visible above the sheet
   const handleOpenSheet = useCallback((place: Place) => {
@@ -474,7 +410,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   }, []);
 
-  const categories = Object.entries(CATEGORY_CONFIG);
+  
 
   return (
     <div className="relative h-full w-full">
@@ -484,8 +420,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         style={{ filter: sheetOpen || vibeSheetOpen ? "blur(6px) brightness(0.7)" : "none" }}
       />
 
-      {/* Distance rings */}
-      <DistanceRings map={mapRef.current} userPosition={userPosition} isNight={isNight} />
+      {/* Distance rings removed — cleaner map */}
 
       {/* ===== UNIFIED HEADER ===== */}
       <AnimatePresence>
@@ -553,20 +488,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                 <div className="shrink-0 w-[140px]">
                   <RecentVibesPanel
                     onVibeClick={(vibe) => {
-                      if (navigator.vibrate) navigator.vibrate(30);
-                      try {
-                        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = "sine";
-                        osc.frequency.setValueAtTime(880, ctx.currentTime);
-                        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.06);
-                        gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-                        osc.connect(gain).connect(ctx.destination);
-                        osc.start(ctx.currentTime);
-                        osc.stop(ctx.currentTime + 0.12);
-                      } catch {}
 
                       if (vibe.latitude && vibe.longitude && mapRef.current) {
                         mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
@@ -622,31 +543,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Floating bubble — hide when preview is showing */}
-      <AnimatePresence>
-        {showBubble && !bubbleDismissed && !sheetOpen && !vibeSheetOpen && !previewPlace && (
-          <motion.div
-            key="floating-bubble"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-          >
-            <FloatingBubble
-              places={places}
-              bubbleIndex={bubbleIndex}
-              setBubbleIndex={setBubbleIndex}
-              onPlaceClick={(place) => { handleOpenSheet(place); }}
-              onDismiss={() => {
-                setBubbleDismissed(true);
-                localStorage.setItem("wk_bubble_dismissed", "1");
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Controls */}
+      {/* Controls — simplified */}
       <AnimatePresence>
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
@@ -657,66 +554,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             exit={{ opacity: 0, x: 12 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
-            {/* Geolocate */}
             <button
               onClick={handleGeolocate}
-              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md active:scale-95 transition-transform"
+              className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md flex items-center justify-center active:scale-95 transition-transform"
               title="Ma position"
             >
-              <Navigation className="w-3.5 h-3.5 text-gold" />
-              <span className="text-[10px] font-semibold text-foreground">Position</span>
-            </button>
-
-            {/* Toggle vibes */}
-            <button
-              onClick={() => setShowVibes(v => !v)}
-              className={`flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full backdrop-blur-xl border shadow-md active:scale-95 transition-all ${
-                showVibes
-                  ? "bg-gold/15 border-gold/30 text-gold"
-                  : "bg-card/90 border-border text-muted-foreground"
-              }`}
-              title={showVibes ? "Masquer les vibes" : "Voir les vibes"}
-            >
-              <span className="text-xs">📸</span>
-              <span className="text-[10px] font-semibold">
-                Vibes{vibePins.length > 0 ? ` (${vibePins.length})` : ""}
-              </span>
-            </button>
-
-            {/* Recenter */}
-            <button
-              onClick={handleRecenter}
-              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md active:scale-95 transition-transform"
-              title="Recentrer"
-            >
-              <LocateFixed className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-[10px] font-semibold text-foreground">Recentrer</span>
+              <Navigation className="w-4 h-4 text-gold" />
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Legend */}
-      {bubbleDismissed && !previewPlace && (
-        <CollapsibleLegend
-          categories={categories}
-          activeCategory={activeFilter}
-          onCategoryClick={(cat) => {
-            if (!cat) {
-              setActiveFilter(null);
-            } else {
-              // Map category name to filter key if possible, otherwise filter by exact category
-              const filterMap: Record<string, string> = {
-                Nightlife: "party", Night: "party", "Dinner Show": "party",
-                Restaurant: "food", Food: "food",
-                Rooftop: "rooftop",
-                Chill: "chill", "Cocktail Bar": "chill", Café: "chill", Hôtel: "chill",
-              };
-              setActiveFilter(filterMap[cat] || cat);
-            }
-          }}
-        />
-      )}
 
       {/* Tonight mode active indicator */}
       <AnimatePresence>
