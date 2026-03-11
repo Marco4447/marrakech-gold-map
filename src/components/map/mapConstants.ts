@@ -52,8 +52,8 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji, listingTier, hasActiveVipOffer = false } = options;
   const boosted = isBoosted(placeName);
 
-  // Check if place has a local logo
-  const hasLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
+  // Check if place has a local logo (handle URL-encoded paths too)
+  const hasLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places") || imageUrl.includes("vibes_media%2Fplaces"));
 
   // Tier-based sizing: Featured > Premium > Basic/standard
   const isFeatured = listingTier === "featured";
