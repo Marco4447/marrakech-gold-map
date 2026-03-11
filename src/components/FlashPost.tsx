@@ -444,14 +444,25 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     }
 
     setUploading(true);
-    setUploadProgress(12);
+    setUploadProgress(5);
 
-    const globalTimeout = setTimeout(() => {
-      console.error("Upload global timeout reached");
-      toast.error("Envoi trop long", { description: "Réessaie avec une meilleure connexion." });
-      setUploading(false);
-      setUploadProgress(0);
-    }, GLOBAL_TIMEOUT_MS);
+    try {
+      // Process image (resize/compress to Instagram specs) or validate video duration
+      const processed = await processMediaForUpload(file, "feed");
+      const uploadFile = processed.file;
+      const finalMediaType = processed.mediaType;
+      if (processed.wasProcessed) {
+        console.log("Image processed: resized & compressed to IG specs");
+      }
+
+      setUploadProgress(15);
+
+      const globalTimeout = setTimeout(() => {
+        console.error("Upload global timeout reached");
+        toast.error("Envoi trop long", { description: "Réessaie avec une meilleure connexion." });
+        setUploading(false);
+        setUploadProgress(0);
+      }, GLOBAL_TIMEOUT_MS);
 
     try {
       let token = SUPABASE_PUBLISHABLE_KEY;
