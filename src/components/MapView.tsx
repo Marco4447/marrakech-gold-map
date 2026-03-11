@@ -1,23 +1,20 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet.heat";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
 import TopLivePlaces from "./TopLivePlaces";
 import RecentVibesPanel from "./RecentVibesPanel";
 import MapSearchBar from "./MapSearchBar";
-import { LocateFixed, Navigation } from "lucide-react";
+import { Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Place, VibePin } from "@/types/models";
 import { MARRAKECH_CENTER, SIX_HOURS, THREE_HOURS, MOOD_COLORS, MOOD_EMOJIS, CATEGORY_CONFIG, createCategoryIcon } from "./map/mapConstants";
 import { useMapData, useMapInstance } from "./map/useMapData";
-import { FloatingBubble, CollapsibleLegend } from "./map/MapOverlays";
 import { useMapTheme } from "./map/MapThemeManager";
 import MapFiltersBar from "./map/MapFiltersBar";
 import VenuePreviewCard from "./map/VenuePreviewCard";
-import DistanceRings from "./map/DistanceRings";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy";
 
