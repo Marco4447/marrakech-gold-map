@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { validateMediaFile, processMediaForUpload, IG_MAX_VIDEO_BYTES, ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES } from "@/lib/mediaProcessor";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -13,19 +14,8 @@ const SIX_HOURS = 6 * 60 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
 const GLOBAL_TIMEOUT_MS = 30000;
 const MAX_VIDEO_DURATION = 5; // seconds
-const MAX_PHOTO_SIZE_BYTES = 10 * 1024 * 1024; // 10MB (was 20MB)
-const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50MB (was 80MB)
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
-const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
-
-function validateFile(file: File): string | null {
-  const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
-  const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
-  if (!isImage && !isVideo) return "Format non supporté. Utilisez JPG, PNG, WebP ou MP4.";
-  if (isImage && file.size > MAX_PHOTO_SIZE_BYTES) return "Photo trop lourde (max 10 Mo).";
-  if (isVideo && file.size > MAX_VIDEO_SIZE_BYTES) return "Vidéo trop lourde (max 50 Mo).";
-  return null;
-}
+const MAX_PHOTO_SIZE_BYTES = 8 * 1024 * 1024; // 8MB (Instagram-like)
+const MAX_VIDEO_SIZE_BYTES = IG_MAX_VIDEO_BYTES; // 50MB
 
 interface FlashPostProps {
   open: boolean;
