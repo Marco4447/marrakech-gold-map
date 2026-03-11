@@ -373,37 +373,40 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
       {/* Header — Instagram style */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 md:pt-4 pb-0">
-        <div className="flex items-center justify-between pb-2">
-          <h1 className="text-[22px] font-bold text-foreground tracking-tight font-display md:hidden">Weshkech</h1>
-          <h1 className="hidden md:block text-lg font-semibold text-foreground tracking-tight font-display">Feed</h1>
-          <div className="flex items-center gap-1">
+      <div className="sticky top-0 z-10 bg-background border-b border-border/30 px-4 pt-12 md:pt-4 pb-2">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => {
+              const tabs: FeedTab[] = ["foryou", "following", "recents"];
+              const idx = tabs.indexOf(activeTab);
+              setActiveTab(tabs[(idx + 1) % tabs.length]);
+            }}
+            className="flex items-center gap-1 active:opacity-70 transition-opacity"
+          >
+            <h1 className="text-[26px] font-bold text-foreground tracking-tight font-display">
+              {activeTab === "foryou" ? "Pour toi" : activeTab === "following" ? "Suivis" : "Récents"}
+            </h1>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-foreground mt-1">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setShowReels(true)}
-              className="p-2 rounded-full hover:bg-card active:scale-95 transition-all"
+              className="active:scale-90 transition-transform"
             >
-              <Film className="w-[22px] h-[22px] text-foreground" />
+              <Film className="w-[26px] h-[26px] text-foreground" />
             </button>
+            <Heart className="w-[26px] h-[26px] text-foreground" />
           </div>
-        </div>
-        <div className="flex">
-          {(["foryou", "following", "recents"] as FeedTab[]).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b transition-colors ${activeTab === tab ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
-            >
-              {tab === "foryou" ? "Pour toi" : tab === "following" ? "Suivis" : "Récents"}
-            </button>
-          ))}
         </div>
       </div>
 
+      {/* Stories — directly under header */}
+      <StoriesModule userId={user?.id} />
+
       {/* Weekly Challenge */}
       <WeeklyChallenge />
-
-      {/* Stories */}
-      <StoriesModule userId={user?.id} />
 
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">

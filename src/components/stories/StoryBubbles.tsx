@@ -35,7 +35,7 @@ export default function StoryBubbles({ stories, onStoryPress }: StoryBubblesProp
   return (
     <div
       ref={scrollRef}
-      className="flex gap-3 overflow-x-auto no-scrollbar px-4 py-3"
+      className="flex gap-4 overflow-x-auto no-scrollbar px-4 py-2.5 border-b border-border/30"
     >
       {groups.map(({ story, index }, gi) => {
         const name = story.author_name || "Anon";
@@ -49,17 +49,17 @@ export default function StoryBubbles({ stories, onStoryPress }: StoryBubblesProp
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: gi * 0.05, duration: 0.25 }}
             onClick={() => onStoryPress(index)}
-            className="flex flex-col items-center gap-1.5 flex-shrink-0"
+            className="flex flex-col items-center gap-1 flex-shrink-0"
           >
-            {/* Ring */}
+            {/* Ring — Instagram size */}
             <div
-              className={`w-[68px] h-[68px] rounded-full p-[2.5px] ${
+              className={`w-[76px] h-[76px] rounded-full p-[3px] ${
                 isViewed
                   ? "bg-muted-foreground/30"
                   : "bg-gradient-to-tr from-[hsl(330,80%,55%)] via-[hsl(25,95%,55%)] to-[hsl(280,70%,55%)]"
               }`}
             >
-              <div className="w-full h-full rounded-full overflow-hidden border-[2.5px] border-background">
+              <div className="w-full h-full rounded-full overflow-hidden border-[3px] border-background">
                 {hasImage ? (
                   <img
                     src={story.avatar_url!}
@@ -78,7 +78,7 @@ export default function StoryBubbles({ stories, onStoryPress }: StoryBubblesProp
             </div>
 
             {/* Name */}
-            <span className="text-[11px] font-medium text-foreground/70 truncate w-[68px] text-center leading-tight">
+            <span className="text-[11px] font-normal text-foreground/70 truncate w-[76px] text-center leading-tight">
               {name.length > 12 ? name.slice(0, 11) + "…" : name}
             </span>
           </motion.button>
