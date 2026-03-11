@@ -434,10 +434,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <div className="px-3 pt-10 pb-1 bg-gradient-to-b from-background via-background/90 to-transparent">
+            <div className="px-3 pt-10 pb-1 bg-gradient-to-b from-background via-background/85 to-transparent">
+              {/* Row 1: Logo + Search + Live count */}
               <div className="flex items-center gap-2 pointer-events-auto">
                 <motion.div
-                  className="flex items-center gap-1.5 shrink-0"
+                  className="flex items-center gap-1 shrink-0"
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
@@ -459,25 +460,17 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                     }}
                   />
                 </div>
-                <div className="flex items-center gap-1.5">
-                  {/* Night mode indicator */}
-                  {isNight && (
-                    <div className="flex items-center gap-1 bg-[hsl(280,50%,20%,0.6)] backdrop-blur-md border border-[hsl(280,60%,50%,0.3)] rounded-full px-2 py-0.5 shrink-0">
-                      <span className="text-[9px]">🌙</span>
-                      <span className="text-[hsl(280,60%,70%)] text-[9px] font-medium">Night</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-foreground text-[9px] font-medium">
-                      {placesLoading ? "…" : `${places.length}`}
-                    </span>
-                  </div>
+                <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
+                  {isNight && <span className="text-[9px]">🌙</span>}
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-foreground text-[9px] font-medium">
+                    {placesLoading ? "…" : `${places.length}`}
+                  </span>
                 </div>
               </div>
 
-              {/* Filter bar + recent vibes in one row */}
-              <div className="mt-1.5 pointer-events-auto flex items-center gap-1.5">
+              {/* Row 2: Filters + Recent Vibes */}
+              <div className="mt-1 pointer-events-auto flex items-center gap-1.5">
                 <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
                   <MapFiltersBar
                     activeFilter={activeFilter}
@@ -486,10 +479,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                     onTonightToggle={() => setTonightMode(t => !t)}
                   />
                 </div>
-                <div className="shrink-0 w-[140px]">
+                <div className="shrink-0 w-[130px]">
                   <RecentVibesPanel
                     onVibeClick={(vibe) => {
-
                       if (vibe.latitude && vibe.longitude && mapRef.current) {
                         mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
                       }
