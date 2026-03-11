@@ -27,8 +27,18 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
         .from("vibes")
         .select("id, image_url, location, likes, super_vibes, mood, media_type, is_official, created_at")
         .order("likes", { ascending: false })
-        .limit(50);
-      if (data) setVibes(data as ExploreVibe[]);
+        .limit(120);
+      if (data) {
+        // Deduplicate: keep only the top vibe per location to avoid repetition
+        const seen = new Set<string>();
+        const unique = (data as ExploreVibe[]).filter((v) => {
+          const key = v.location?.trim().toLowerCase();
+          if (key && seen.has(key)) return false;
+          if (key) seen.add(key);
+          return true;
+        });
+        setVibes(unique.slice(0, 50));
+      }
       setLoading(false);
     };
     fetchVibes();
