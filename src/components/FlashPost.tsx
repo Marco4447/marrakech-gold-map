@@ -489,7 +489,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
         await doFetch(`${SUPABASE_URL}/storage/v1/object/vibes/${name}`, {
           method: "POST",
           headers: { "content-type": contentType, "x-upsert": "false" },
-          body: file,
+          body: uploadFile,
         }, token);
       };
 
