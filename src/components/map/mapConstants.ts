@@ -32,6 +32,8 @@ export const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> =
   Night: { emoji: "🎶", color: "hsl(280,60%,60%)" },
   Hôtel: { emoji: "🏨", color: "hsl(200,70%,55%)" },
   Secret: { emoji: "✨", color: "hsl(340,65%,55%)" },
+  Attraction: { emoji: "📸", color: "hsl(350,65%,55%)" },
+  Activity: { emoji: "🎯", color: "hsl(350,65%,55%)" },
 };
 
 export const MOOD_FILTERS: { key: string; emoji: string; label: string; categories: string[] }[] = [

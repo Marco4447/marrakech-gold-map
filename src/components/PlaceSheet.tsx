@@ -133,9 +133,13 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
           <motion.div className="absolute bottom-0 left-0 right-0 z-[1002] px-4 pb-20 max-h-[85vh] flex flex-col" initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} transition={{ type: "spring", damping: 28, stiffness: 300 }}
             drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={0.3} onDragEnd={(_, info) => { if (info.offset.y > 100 || info.velocity.y > 300) onOpenChange(false); }}>
             <div className={`bg-card rounded-2xl overflow-hidden border shadow-2xl flex flex-col max-h-full ${isPartner ? "border-gold/40 shadow-gold/10" : "border-border shadow-gold/5"}`}>
-              {/* Drag handle */}
-              <div className="flex items-center justify-center pt-3 pb-1 flex-shrink-0">
+              {/* Drag handle + close button */}
+              <div className="flex items-center justify-between px-4 pt-3 pb-1 flex-shrink-0">
+                <div className="w-8" />
                 <button onClick={() => onOpenChange(false)} className="w-10 h-1.5 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
+                <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors">
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
               </div>
 
               <div className="overflow-y-auto no-scrollbar flex-1">
