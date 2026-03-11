@@ -410,7 +410,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   }, []);
 
-  const categories = Object.entries(CATEGORY_CONFIG);
+  
 
   return (
     <div className="relative h-full w-full">
