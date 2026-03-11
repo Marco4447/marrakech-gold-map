@@ -4,8 +4,6 @@ import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
-import TopLivePlaces from "./TopLivePlaces";
-import RecentVibesPanel from "./RecentVibesPanel";
 import MapSearchBar from "./MapSearchBar";
 import { Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
