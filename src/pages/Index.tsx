@@ -74,7 +74,14 @@ const Index = () => {
     const stored = sessionStorage.getItem("wk_flyto");
     if (stored) {
       sessionStorage.removeItem("wk_flyto");
-      try { const { lat, lng, placeId } = JSON.parse(stored); if (lat && lng) setFlyToCoords({ lat, lng }); if (placeId) setDeepLinkPlaceId(placeId); } catch {}
+      try {
+        const { lat, lng, placeId } = JSON.parse(stored);
+        if (lat && lng) {
+          setFlyToCoords({ lat, lng });
+          setActiveTab("map");
+        }
+        if (placeId) setDeepLinkPlaceId(placeId);
+      } catch {}
     }
   }, []);
 
