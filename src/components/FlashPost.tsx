@@ -464,7 +464,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
         setUploadProgress(0);
       }, GLOBAL_TIMEOUT_MS);
 
-    try {
+    
       let token = SUPABASE_PUBLISHABLE_KEY;
       try {
         const sessionPromise = supabase.auth.getSession();
