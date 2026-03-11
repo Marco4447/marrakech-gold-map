@@ -372,20 +372,18 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
-      {/* Header */}
+      {/* Header — Instagram style */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 md:pt-4 pb-0">
-        <div className="flex items-center justify-between pb-2.5">
-          <h1 className="text-xl font-bold text-foreground tracking-tight font-display md:hidden">Weshkech</h1>
+        <div className="flex items-center justify-between pb-2">
+          <h1 className="text-[22px] font-bold text-foreground tracking-tight font-display md:hidden">Weshkech</h1>
           <h1 className="hidden md:block text-lg font-semibold text-foreground tracking-tight font-display">Feed</h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setShowReels(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border hover:border-gold/40 active:scale-95 transition-all"
+              className="p-2 rounded-full hover:bg-card active:scale-95 transition-all"
             >
-              <Film className="w-4 h-4 text-gold" />
-              <span className="text-xs font-semibold text-foreground">Reels</span>
+              <Film className="w-[22px] h-[22px] text-foreground" />
             </button>
-            <span className="text-xs text-muted-foreground">{vibes.length} vibes</span>
           </div>
         </div>
         <div className="flex">
@@ -393,7 +391,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${activeTab === tab ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
+              className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b transition-colors ${activeTab === tab ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
             >
               {tab === "foryou" ? "Pour toi" : tab === "following" ? "Suivis" : "Récents"}
             </button>
