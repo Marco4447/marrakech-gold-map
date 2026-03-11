@@ -131,7 +131,7 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
         <input
           ref={fileRef}
           type="file"
-          accept="image/*,video/*"
+          accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
           className="hidden"
           onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
         />
