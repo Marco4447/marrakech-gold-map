@@ -153,12 +153,22 @@ function GridCell({ vibe, span }: { vibe: ExploreVibe; span: number }) {
       to={`/vibe/${vibe.id}`}
       className="relative aspect-square overflow-hidden bg-card block"
     >
-      <img
-        src={isVideo ? vibe.image_url : vibe.image_url}
-        alt={vibe.location || ""}
-        className="w-full h-full object-cover"
-        loading="lazy"
-      />
+      {isVideo ? (
+        <video
+          src={vibe.image_url}
+          className="w-full h-full object-cover"
+          muted
+          playsInline
+          preload="metadata"
+        />
+      ) : (
+        <img
+          src={vibe.image_url}
+          alt={vibe.location || ""}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      )}
       {/* Video indicator */}
       {isVideo && (
         <div className="absolute top-2 right-2">
