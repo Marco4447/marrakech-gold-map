@@ -446,6 +446,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     setUploading(true);
     setUploadProgress(5);
 
+    let globalTimeout: ReturnType<typeof setTimeout> | null = null;
     try {
       // Process image (resize/compress to Instagram specs) or validate video duration
       const processed = await processMediaForUpload(file, "feed");
