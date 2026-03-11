@@ -1,0 +1,1 @@
+ALTER TABLE public.story_reactions ADD CONSTRAINT story_reactions_story_device_emoji_unique UNIQUE (story_id, device_id, emoji);
