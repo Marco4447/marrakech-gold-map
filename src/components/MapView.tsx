@@ -24,6 +24,7 @@ const FILTER_CATEGORIES: Record<string, string[]> = {
   party: ["Nightlife", "Night", "Dinner Show"],
   food: ["Restaurant", "Food"],
   chill: ["Chill", "Cocktail Bar", "Café"],
+  attraction: ["Attraction", "Activity"],
 };
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
