@@ -110,7 +110,7 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   const markerClass = boosted ? "boosted-marker gold-marker" : isFeatured ? "featured-marker gold-marker" : isHotEnergy ? "energy-hot-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
 
   // Determine inner content: show logo for local images (/images/) or Supabase storage, emoji for generic Unsplash
-  const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
+  const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places") || imageUrl.includes("vibes_media%2Fplaces"));
   const hasLogo = (isPartner || boosted || isLocalLogo) && imageUrl;
   const innerContent = boosted && imageUrl
     ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
