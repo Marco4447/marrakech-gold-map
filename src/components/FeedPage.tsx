@@ -498,109 +498,63 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
               return (
                 <motion.div
                   key={vibe.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ delay: Math.min(i * 0.03, 0.3) }}
-                  className="bg-card"
+                  className="bg-background"
                 >
-                  {/* Header */}
+                  {/* Header — Instagram style */}
                   <div className="flex items-center justify-between px-3 py-2.5">
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
                       {getAvatarUrl(vibe) ? (
-                        <img src={getAvatarUrl(vibe)!} alt="" className="w-8 h-8 rounded-full border border-border object-cover flex-shrink-0" />
+                        <img src={getAvatarUrl(vibe)!} alt="" className="w-8 h-8 rounded-full border border-border/50 object-cover flex-shrink-0" />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-foreground">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="text-[13px] font-semibold text-foreground truncate flex items-center gap-1.5">
-                          {getDisplayName(vibe)}
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-[13px] font-semibold text-foreground truncate">
+                            {getDisplayName(vibe)}
+                          </p>
                           {vibe.is_official && <span className="text-[9px] bg-gold/15 text-gold px-1.5 py-0.5 rounded font-bold">OFFICIEL</span>}
                           {!vibe.is_official && vibe.profile?.is_vip && <Crown className="w-3 h-3 text-gold" />}
-                          {!vibe.is_official && vibe.user_id && getUserTier(userVibeCounts[vibe.user_id] || 0) && (
-                            <span className="text-[10px] text-muted-foreground">{getUserTier(userVibeCounts[vibe.user_id] || 0)!.emoji}</span>
-                          )}
-                        </p>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {vibe.location && (
-                            <span className="text-[11px] text-muted-foreground truncate flex items-center gap-0.5">
-                              <MapPin className="w-2.5 h-2.5" />{vibe.location}
-                              {partnerPlaceNames.has(vibe.location.toLowerCase()) && (
-                                <span className="ml-1 text-[8px] font-bold tracking-wider uppercase px-1.5 py-px rounded-sm bg-gold/15 text-gold border border-gold/20">
-                                  ✨ Partner
-                                </span>
-                              )}
-                            </span>
-                          )}
-                          {vibe.location && vibe.latitude != null && onGoToMap && (
-                            <button onClick={(e) => { e.stopPropagation(); onGoToMap(vibe.latitude!, vibe.longitude!); }} className="text-[10px] text-gold font-medium">
-                              Voir
-                            </button>
-                          )}
-                          {(() => {
-                            const energy = getEnergy(energyMap, vibe.location);
-                            if (energy) return (
-                              <span className={`text-[10px] font-bold ${energy.color}`}>{energy.emoji} {energy.label}</span>
-                            );
-                            return null;
-                          })()}
-                          {userLocation && vibe.latitude != null && vibe.longitude != null && (
-                            <span className="text-[10px] text-muted-foreground">
-                              · {formatDistance(getDistanceMeters(userLocation.lat, userLocation.lng, vibe.latitude, vibe.longitude))}
-                            </span>
-                          )}
                         </div>
+                        {vibe.location && (
+                          <p className="text-[11px] text-muted-foreground truncate">{vibe.location}</p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Follow button */}
                       {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && (
                         <button
                           onClick={(e) => { e.stopPropagation(); toggleFollow(vibe.user_id!); }}
-                          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all active:scale-95 ${
+                          className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95 ${
                             isFollowing(vibe.user_id)
                               ? "bg-card border border-border text-muted-foreground"
                               : "bg-foreground text-background"
                           }`}
                         >
-                          {isFollowing(vibe.user_id) ? <UserCheck className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
                           {isFollowing(vibe.user_id) ? "Suivi" : "Suivre"}
                         </button>
                       )}
-                      {countdown && (
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                          <Clock className="w-2.5 h-2.5" />{countdown}
-                        </span>
-                      )}
-                      {!vibe.is_official && isNew(vibe.created_at) && (
-                        <div className="flex items-center gap-1 bg-destructive/15 px-1.5 py-0.5 rounded-full">
-                          <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-                          <span className="text-[9px] font-bold text-destructive uppercase">Live</span>
-                        </div>
-                      )}
-                      <span className="text-[11px] text-muted-foreground">{timeAgo(vibe.created_at)}</span>
                       {user && vibe.user_id === user.id && (
-                        <button onClick={() => handleDeleteVibe(vibe.id)} disabled={deletingId === vibe.id} className="text-muted-foreground hover:text-destructive transition-colors p-0.5">
-                          {deletingId === vibe.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        <button onClick={() => handleDeleteVibe(vibe.id)} disabled={deletingId === vibe.id} className="text-muted-foreground hover:text-destructive transition-colors p-1">
+                          {deletingId === vibe.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                         </button>
                       )}
                     </div>
                   </div>
 
-                  {/* Media */}
-                  <div className="relative aspect-[4/5] bg-background" onClick={() => handleDoubleTap(vibe.id)}>
+                  {/* Media — full bleed */}
+                  <div className="relative aspect-[4/5] bg-black" onClick={() => handleDoubleTap(vibe.id)}>
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <DoubleTapHeart show={doubleTapId === vibe.id} />
-                    {activeTab === "foryou" && getScore(vibe) > 0 && (
-                      <div className="absolute top-3 right-3 bg-background/70 backdrop-blur-md px-2 py-1 rounded-full">
-                        <span className="text-[10px] font-bold text-gold flex items-center gap-0.5"><Zap className="w-2.5 h-2.5" /> {getScore(vibe)}</span>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Action bar */}
-                  <div className="flex items-center justify-between px-3 pt-2.5 pb-1">
+                  {/* Action bar — Instagram style */}
+                  <div className="flex items-center justify-between px-3 pt-3 pb-1">
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <VibeReactions show={reactionsVibeId === vibe.id} onReact={(emoji) => handleReaction(vibe.id, emoji)} onClose={() => setReactionsVibeId(null)} />
@@ -609,16 +563,15 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                           onContextMenu={(e) => { e.preventDefault(); setReactionsVibeId(vibe.id); }}
                           onTouchStart={() => { const timer = setTimeout(() => setReactionsVibeId(vibe.id), 500); (window as any).__reactionTimer = timer; }}
                           onTouchEnd={() => clearTimeout((window as any).__reactionTimer)}
-                          className="group"
                         >
                           <motion.div animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}} transition={{ duration: 0.4, ease: "easeOut" }}>
-                            <Heart className={`w-6 h-6 transition-colors duration-200 ${liked ? "fill-gold text-gold" : "text-foreground group-hover:text-foreground/70"}`} />
+                            <Heart className={`w-[26px] h-[26px] transition-colors duration-200 ${liked ? "fill-destructive text-destructive" : "text-foreground"}`} />
                           </motion.div>
                         </button>
                         <FloatingReaction emoji={floatingReaction?.id === vibe.id ? floatingReaction.emoji : null} show={floatingReaction?.id === vibe.id} />
                       </div>
-                      <button onClick={() => setCommentVibeId(vibe.id)} className="group">
-                        <MessageCircle className="w-6 h-6 text-foreground group-hover:text-foreground/70 transition-colors" />
+                      <button onClick={() => setCommentVibeId(vibe.id)}>
+                        <MessageCircle className="w-[26px] h-[26px] text-foreground" />
                       </button>
                       <button
                         onClick={async (e) => {
@@ -632,41 +585,23 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                             toast.success("Lien copié !");
                           }
                         }}
-                        className="group"
                       >
-                        <Share2 className="w-5 h-5 text-foreground group-hover:text-foreground/70 transition-colors" />
-                      </button>
-                      {/* Boost button hidden — B2C is free */}
-                      {false && vibe.user_id === userId && (
-                        <button onClick={() => setBoostVibeId(vibe.id)} className="group">
-                          <Rocket className="w-5 h-5 text-foreground group-hover:text-gold transition-colors" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => toggleBookmark(vibe.id)} className="group">
-                        <Bookmark className={`w-5 h-5 transition-colors duration-200 ${isBookmarked(vibe.id) ? "fill-foreground text-foreground" : "text-foreground group-hover:text-foreground/70"}`} />
-                      </button>
-                      <button onClick={() => handleSuperVibe(vibe.id)} disabled={!canSuperVibe || superVibeIds.has(vibe.id)} className="group relative">
-                      <motion.div animate={superVibeAnimId === vibe.id ? { scale: [1, 1.6, 0.8, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}} transition={{ duration: 0.5, ease: "easeOut" }}>
-                        <Zap className={`w-6 h-6 transition-colors duration-200 ${superVibeIds.has(vibe.id) ? "fill-gold text-gold" : !canSuperVibe ? "text-foreground/30" : "text-foreground group-hover:text-foreground/70"}`} />
-                      </motion.div>
-                      <SuperVibeParticles active={superVibeAnimId === vibe.id} />
+                        <Share2 className="w-[24px] h-[24px] text-foreground" />
                       </button>
                     </div>
+                    <button onClick={() => toggleBookmark(vibe.id)}>
+                      <Bookmark className={`w-[24px] h-[24px] transition-colors duration-200 ${isBookmarked(vibe.id) ? "fill-foreground text-foreground" : "text-foreground"}`} />
+                    </button>
                   </div>
 
-                  {/* Likes + Caption + Insider Tip */}
-                  <div className="px-3 pb-3 space-y-1">
-                    <div className="flex items-center gap-3 text-[13px]">
-                      <span className="font-semibold text-foreground">{vibe.likes} J'aime{vibe.likes !== 1 ? "s" : ""}</span>
-                      {(vibe.super_vibes || 0) > 0 && (
-                        <span className="text-gold font-semibold flex items-center gap-0.5"><Zap className="w-3 h-3" /> {vibe.super_vibes} boost{(vibe.super_vibes || 0) !== 1 ? "s" : ""}</span>
-                      )}
-                    </div>
+                  {/* Likes + Caption — Instagram style */}
+                  <div className="px-3 pb-3.5 space-y-1">
+                    <p className="text-[13px] font-semibold text-foreground">
+                      {vibe.likes} J'aime{vibe.likes !== 1 ? "s" : ""}
+                    </p>
                     {vibe.caption && (
-                      <p className="text-[13px] text-foreground">
-                        <span className="font-semibold mr-1.5">{getDisplayName(vibe)}</span>{vibe.caption}
+                      <p className="text-[13px] text-foreground leading-[18px]">
+                        <span className="font-semibold mr-1">{getDisplayName(vibe)}</span>{vibe.caption}
                       </p>
                     )}
                     {vibe.insider_tip && (
@@ -682,6 +617,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         Voir les {commentCounts[vibe.id]} commentaire{(commentCounts[vibe.id] || 0) !== 1 ? "s" : ""}
                       </button>
                     )}
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{timeAgo(vibe.created_at)}</p>
                   </div>
                 </motion.div>
               );
