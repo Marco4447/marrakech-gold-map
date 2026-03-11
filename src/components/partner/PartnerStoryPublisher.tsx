@@ -3,6 +3,7 @@ import { Camera, Video, Loader2, X, Image, Instagram, Sparkles } from "lucide-re
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { processMediaForUpload, validateMediaFile } from "@/lib/mediaProcessor";
 
 const BADGES = [
   { value: "ROOFTOP", emoji: "🌅", label: "Rooftop" },
@@ -26,8 +27,11 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
   const instaRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (f: File | null) => {
+    if (!f) { setFile(null); setPreview(null); return; }
+    const check = validateMediaFile(f, "story");
+    if (!check.valid) { toast.error(check.error!); return; }
     setFile(f);
-    if (f && (f.type.startsWith("image") || f.type.startsWith("video"))) {
+    if (f.type.startsWith("image") || f.type.startsWith("video")) {
       const url = URL.createObjectURL(f);
       setPreview(url);
     } else {
@@ -45,13 +49,17 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
     if (!file || !placeId) { toast.error("Fichier et lieu requis"); return; }
     setPublishing(true);
     try {
-      const ext = file.name.split(".").pop();
+      // Process with Instagram-like constraints (story context = 15s max video)
+      const processed = await processMediaForUpload(file, "story");
+      const uploadFile = processed.file;
+
+      const ext = uploadFile.name.split(".").pop();
       const path = `stories/${Date.now()}-${userId.slice(0, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, file, { contentType: file.type });
+      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, uploadFile, { contentType: uploadFile.type });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("vibes_media").getPublicUrl(path);
 
-      const mediaType = file.type.startsWith("video") ? "video" : "photo";
+      const mediaType = processed.mediaType === "video" ? "video" : "photo";
 
       await supabase.from("stories" as any).insert({
         source_type: "partner",
@@ -95,7 +103,7 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
         <input
           ref={instaRef}
           type="file"
-          accept="image/*,video/*"
+          accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
           className="hidden"
           onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
         />
@@ -123,7 +131,7 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
         <input
           ref={fileRef}
           type="file"
-          accept="image/*,video/*"
+          accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
           className="hidden"
           onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
         />

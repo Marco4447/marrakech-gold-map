@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { validateMediaFile, processMediaForUpload, IG_MAX_VIDEO_BYTES, ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES } from "@/lib/mediaProcessor";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -13,19 +14,8 @@ const SIX_HOURS = 6 * 60 * 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 3;
 const GLOBAL_TIMEOUT_MS = 30000;
 const MAX_VIDEO_DURATION = 5; // seconds
-const MAX_PHOTO_SIZE_BYTES = 10 * 1024 * 1024; // 10MB (was 20MB)
-const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50MB (was 80MB)
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
-const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
-
-function validateFile(file: File): string | null {
-  const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
-  const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
-  if (!isImage && !isVideo) return "Format non supporté. Utilisez JPG, PNG, WebP ou MP4.";
-  if (isImage && file.size > MAX_PHOTO_SIZE_BYTES) return "Photo trop lourde (max 10 Mo).";
-  if (isVideo && file.size > MAX_VIDEO_SIZE_BYTES) return "Vidéo trop lourde (max 50 Mo).";
-  return null;
-}
+const MAX_PHOTO_SIZE_BYTES = 8 * 1024 * 1024; // 8MB (Instagram-like)
+const MAX_VIDEO_SIZE_BYTES = IG_MAX_VIDEO_BYTES; // 50MB
 
 interface FlashPostProps {
   open: boolean;
@@ -265,13 +255,10 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       return;
     }
 
-    if (mediaKind === "photo" && f.size > MAX_PHOTO_SIZE_BYTES) {
-      toast.error("Image trop lourde", { description: "Maximum 20MB par photo." });
-      return;
-    }
-
-    if (mediaKind === "video" && f.size > MAX_VIDEO_SIZE_BYTES) {
-      toast.error("Vidéo trop lourde", { description: "Maximum 80MB par vidéo." });
+    // Validate with Instagram-like constraints
+    const check = validateMediaFile(f, "feed");
+    if (!check.valid) {
+      toast.error("Fichier non valide", { description: check.error });
       return;
     }
 
@@ -457,16 +444,28 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     }
 
     setUploading(true);
-    setUploadProgress(12);
+    setUploadProgress(5);
 
-    const globalTimeout = setTimeout(() => {
-      console.error("Upload global timeout reached");
-      toast.error("Envoi trop long", { description: "Réessaie avec une meilleure connexion." });
-      setUploading(false);
-      setUploadProgress(0);
-    }, GLOBAL_TIMEOUT_MS);
-
+    let globalTimeout: ReturnType<typeof setTimeout> | null = null;
     try {
+      // Process image (resize/compress to Instagram specs) or validate video duration
+      const processed = await processMediaForUpload(file, "feed");
+      const uploadFile = processed.file;
+      const finalMediaType = processed.mediaType;
+      if (processed.wasProcessed) {
+        console.log("Image processed: resized & compressed to IG specs");
+      }
+
+      setUploadProgress(15);
+
+      const globalTimeout = setTimeout(() => {
+        console.error("Upload global timeout reached");
+        toast.error("Envoi trop long", { description: "Réessaie avec une meilleure connexion." });
+        setUploading(false);
+        setUploadProgress(0);
+      }, GLOBAL_TIMEOUT_MS);
+
+    
       let token = SUPABASE_PUBLISHABLE_KEY;
       try {
         const sessionPromise = supabase.auth.getSession();
@@ -481,17 +480,17 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
         console.warn("Session fetch failed, using anon key");
       }
 
-      const ext = file.name.split(".").pop() || (mediaType === "video" ? "mp4" : "jpg");
+      const ext = uploadFile.name.split(".").pop() || (finalMediaType === "video" ? "mp4" : "jpg");
       let fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       setUploadProgress(30);
 
-      const contentType = file.type || (mediaType === "video" ? "video/mp4" : "image/jpeg");
+      const contentType = uploadFile.type || (finalMediaType === "video" ? "video/mp4" : "image/jpeg");
 
       const uploadMedia = async (name: string) => {
         await doFetch(`${SUPABASE_URL}/storage/v1/object/vibes/${name}`, {
           method: "POST",
           headers: { "content-type": contentType, "x-upsert": "false" },
-          body: file,
+          body: uploadFile,
         }, token);
       };
 
@@ -521,7 +520,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
           caption: null,
           likes: 0,
           mood: selectedMood,
-          media_type: mediaType,
+          media_type: finalMediaType,
           is_official: isOfficial,
           latitude: resolvedCoords?.lat || null,
           longitude: resolvedCoords?.lng || null,
@@ -544,7 +543,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
             source_type: isOfficial ? "partner" : "user",
             user_id: user.id,
             media_url: publicUrl,
-            media_type: mediaType,
+            media_type: finalMediaType,
             badge: isOfficial ? null : "INSIDER",
             caption: null,
             latitude: resolvedCoords?.lat || null,

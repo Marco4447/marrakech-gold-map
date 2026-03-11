@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Camera, X, Loader2, Check, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { processMediaForUpload, validateMediaFile } from "@/lib/mediaProcessor";
 
 interface Props {
   userId: string;
@@ -28,12 +29,16 @@ export default function InstantVibeButton({ userId, credits, onPublished }: Prop
     if (!file || credits <= 0) { toast.error("Pas assez de crédits"); return; }
     setPosting(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      // Process with Instagram-like constraints
+      const processed = await processMediaForUpload(file, "feed");
+      const uploadFile = processed.file;
+      const mediaType = processed.mediaType;
+
+      const ext = uploadFile.name.split(".").pop() || "jpg";
       const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, file, { contentType: file.type });
+      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, uploadFile, { contentType: uploadFile.type });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("vibes_media").getPublicUrl(path);
-      const mediaType = file.type.startsWith("video/") ? "video" : "photo";
       const { error: rpcErr } = await supabase.rpc("publish_vibe_use_credit", {
         p_image_url: urlData.publicUrl,
         p_caption: caption.trim() || null,
@@ -100,8 +105,8 @@ export default function InstantVibeButton({ userId, credits, onPublished }: Prop
                     </button>
                   </div>
 
-                  <input type="file" ref={fileRef} accept="image/*,video/mp4,video/quicktime" className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) { setFile(f); setPreview(URL.createObjectURL(f)); } }} />
+                  <input type="file" ref={fileRef} accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime" className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) { const v = validateMediaFile(f, "feed"); if (!v.valid) { toast.error(v.error!); return; } setFile(f); setPreview(URL.createObjectURL(f)); } }} />
 
                   {preview ? (
                     <div className="relative aspect-video rounded-xl overflow-hidden bg-surface">
