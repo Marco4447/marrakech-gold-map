@@ -479,11 +479,11 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
         console.warn("Session fetch failed, using anon key");
       }
 
-      const ext = file.name.split(".").pop() || (mediaType === "video" ? "mp4" : "jpg");
+      const ext = uploadFile.name.split(".").pop() || (finalMediaType === "video" ? "mp4" : "jpg");
       let fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       setUploadProgress(30);
 
-      const contentType = file.type || (mediaType === "video" ? "video/mp4" : "image/jpeg");
+      const contentType = uploadFile.type || (finalMediaType === "video" ? "video/mp4" : "image/jpeg");
 
       const uploadMedia = async (name: string) => {
         await doFetch(`${SUPABASE_URL}/storage/v1/object/vibes/${name}`, {
