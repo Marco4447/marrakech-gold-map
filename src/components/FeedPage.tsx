@@ -373,37 +373,40 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
       {/* Header — Instagram style */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pt-12 md:pt-4 pb-0">
-        <div className="flex items-center justify-between pb-2">
-          <h1 className="text-[22px] font-bold text-foreground tracking-tight font-display md:hidden">Weshkech</h1>
-          <h1 className="hidden md:block text-lg font-semibold text-foreground tracking-tight font-display">Feed</h1>
-          <div className="flex items-center gap-1">
+      <div className="sticky top-0 z-10 bg-background border-b border-border/30 px-4 pt-12 md:pt-4 pb-2">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => {
+              const tabs: FeedTab[] = ["foryou", "following", "recents"];
+              const idx = tabs.indexOf(activeTab);
+              setActiveTab(tabs[(idx + 1) % tabs.length]);
+            }}
+            className="flex items-center gap-1 active:opacity-70 transition-opacity"
+          >
+            <h1 className="text-[26px] font-bold text-foreground tracking-tight font-display">
+              {activeTab === "foryou" ? "Pour toi" : activeTab === "following" ? "Suivis" : "Récents"}
+            </h1>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-foreground mt-1">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setShowReels(true)}
-              className="p-2 rounded-full hover:bg-card active:scale-95 transition-all"
+              className="active:scale-90 transition-transform"
             >
-              <Film className="w-[22px] h-[22px] text-foreground" />
+              <Film className="w-[26px] h-[26px] text-foreground" />
             </button>
+            <Heart className="w-[26px] h-[26px] text-foreground" />
           </div>
-        </div>
-        <div className="flex">
-          {(["foryou", "following", "recents"] as FeedTab[]).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b transition-colors ${activeTab === tab ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"}`}
-            >
-              {tab === "foryou" ? "Pour toi" : tab === "following" ? "Suivis" : "Récents"}
-            </button>
-          ))}
         </div>
       </div>
 
+      {/* Stories — directly under header */}
+      <StoriesModule userId={user?.id} />
+
       {/* Weekly Challenge */}
       <WeeklyChallenge />
-
-      {/* Stories */}
-      <StoriesModule userId={user?.id} />
 
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
@@ -507,43 +510,38 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   <div className="flex items-center justify-between px-3 py-2.5">
                     <div className="flex items-center gap-3 min-w-0">
                       {getAvatarUrl(vibe) ? (
-                        <img src={getAvatarUrl(vibe)!} alt="" className="w-8 h-8 rounded-full border border-border/50 object-cover flex-shrink-0" />
+                        <img src={getAvatarUrl(vibe)!} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-semibold text-foreground">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
+                        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-semibold text-foreground">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
                         </div>
                       )}
                       <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-[13px] font-semibold text-foreground truncate">
-                            {getDisplayName(vibe)}
-                          </p>
-                          {vibe.is_official && <span className="text-[9px] bg-gold/15 text-gold px-1.5 py-0.5 rounded font-bold">OFFICIEL</span>}
-                          {!vibe.is_official && vibe.profile?.is_vip && <Crown className="w-3 h-3 text-gold" />}
-                        </div>
+                        <p className="text-[13px] font-semibold text-foreground truncate leading-tight">
+                          {getDisplayName(vibe)}
+                        </p>
                         {vibe.location && (
-                          <p className="text-[11px] text-muted-foreground truncate">{vibe.location}</p>
+                          <p className="text-[11px] text-muted-foreground truncate leading-tight">{vibe.location}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && (
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && !isFollowing(vibe.user_id) && (
                         <button
                           onClick={(e) => { e.stopPropagation(); toggleFollow(vibe.user_id!); }}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95 ${
-                            isFollowing(vibe.user_id)
-                              ? "bg-card border border-border text-muted-foreground"
-                              : "bg-foreground text-background"
-                          }`}
+                          className="text-[13px] font-bold text-primary active:opacity-60 transition-opacity"
                         >
-                          {isFollowing(vibe.user_id) ? "Suivi" : "Suivre"}
+                          Suivre
                         </button>
                       )}
-                      {user && vibe.user_id === user.id && (
-                        <button onClick={() => handleDeleteVibe(vibe.id)} disabled={deletingId === vibe.id} className="text-muted-foreground hover:text-destructive transition-colors p-1">
-                          {deletingId === vibe.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                        </button>
-                      )}
+                      <button className="p-1" onClick={(e) => {
+                        e.stopPropagation();
+                        if (user && vibe.user_id === user.id) handleDeleteVibe(vibe.id);
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-foreground">
+                          <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                        </svg>
+                      </button>
                     </div>
                   </div>
 
