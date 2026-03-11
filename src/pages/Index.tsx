@@ -66,8 +66,13 @@ const Index = () => {
   useEffect(() => {
     const handler = () => setActiveTab("profil");
     window.addEventListener("wk:goto-auth", handler);
-    return () => window.removeEventListener("wk:goto-auth", handler);
-  }, []);
+    const notifHandler = () => { markAllRead(); setShowNotifications(true); };
+    window.addEventListener("wk:open-notifications", notifHandler);
+    return () => {
+      window.removeEventListener("wk:goto-auth", handler);
+      window.removeEventListener("wk:open-notifications", notifHandler);
+    };
+  }, [markAllRead]);
 
   const [deepLinkPlaceId, setDeepLinkPlaceId] = useState<string | null>(null);
   useEffect(() => {
