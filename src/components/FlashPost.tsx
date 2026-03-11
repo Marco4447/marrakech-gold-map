@@ -519,7 +519,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
           caption: null,
           likes: 0,
           mood: selectedMood,
-          media_type: mediaType,
+          media_type: finalMediaType,
           is_official: isOfficial,
           latitude: resolvedCoords?.lat || null,
           longitude: resolvedCoords?.lng || null,
