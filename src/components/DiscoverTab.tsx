@@ -147,18 +147,39 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
 
 function GridCell({ vibe, span }: { vibe: ExploreVibe; span: number }) {
   const isVideo = vibe.media_type === "video";
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleEnter = () => {
+    if (isVideo && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  const handleLeave = () => {
+    if (isVideo && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  };
 
   return (
     <Link
       to={`/vibe/${vibe.id}`}
-      className="relative aspect-square overflow-hidden bg-card block"
+      className="relative aspect-square overflow-hidden bg-card block group"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+      onTouchStart={handleEnter}
+      onTouchEnd={handleLeave}
     >
       {isVideo ? (
         <video
+          ref={videoRef}
           src={vibe.image_url}
           className="w-full h-full object-cover"
           muted
           playsInline
+          loop
           preload="metadata"
         />
       ) : (
@@ -171,19 +192,16 @@ function GridCell({ vibe, span }: { vibe: ExploreVibe; span: number }) {
       )}
       {/* Video indicator */}
       {isVideo && (
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 transition-opacity group-hover:opacity-0">
           <Play className="w-4 h-4 text-white drop-shadow-lg" fill="white" />
         </div>
       )}
-      {/* Multi-image indicator (carousel) — show for some */}
-      {!isVideo && vibe.likes > 10 && (
-        <div className="absolute top-2 right-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="white" className="drop-shadow-lg">
-            <rect x="3" y="3" width="15" height="15" rx="2" fill="none" stroke="white" strokeWidth="2"/>
-            <rect x="6" y="6" width="15" height="15" rx="2" fill="none" stroke="white" strokeWidth="2"/>
-          </svg>
-        </div>
-      )}
+      {/* Hover overlay with stats */}
+      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+        <span className="flex items-center gap-1 text-white text-sm font-bold">
+          <Heart className="w-4 h-4 fill-white" /> {vibe.likes}
+        </span>
+      </div>
     </Link>
   );
 }
