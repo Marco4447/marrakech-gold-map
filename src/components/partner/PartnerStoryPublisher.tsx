@@ -49,13 +49,17 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
     if (!file || !placeId) { toast.error("Fichier et lieu requis"); return; }
     setPublishing(true);
     try {
-      const ext = file.name.split(".").pop();
+      // Process with Instagram-like constraints (story context = 15s max video)
+      const processed = await processMediaForUpload(file, "story");
+      const uploadFile = processed.file;
+
+      const ext = uploadFile.name.split(".").pop();
       const path = `stories/${Date.now()}-${userId.slice(0, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, file, { contentType: file.type });
+      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, uploadFile, { contentType: uploadFile.type });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("vibes_media").getPublicUrl(path);
 
-      const mediaType = file.type.startsWith("video") ? "video" : "photo";
+      const mediaType = processed.mediaType === "video" ? "video" : "photo";
 
       await supabase.from("stories" as any).insert({
         source_type: "partner",
