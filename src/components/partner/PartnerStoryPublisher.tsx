@@ -3,6 +3,7 @@ import { Camera, Video, Loader2, X, Image, Instagram, Sparkles } from "lucide-re
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { processMediaForUpload, validateMediaFile } from "@/lib/mediaProcessor";
 
 const BADGES = [
   { value: "ROOFTOP", emoji: "🌅", label: "Rooftop" },
