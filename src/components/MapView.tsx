@@ -488,20 +488,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                 <div className="shrink-0 w-[140px]">
                   <RecentVibesPanel
                     onVibeClick={(vibe) => {
-                      if (navigator.vibrate) navigator.vibrate(30);
-                      try {
-                        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = "sine";
-                        osc.frequency.setValueAtTime(880, ctx.currentTime);
-                        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.06);
-                        gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-                        osc.connect(gain).connect(ctx.destination);
-                        osc.start(ctx.currentTime);
-                        osc.stop(ctx.currentTime + 0.12);
-                      } catch {}
 
                       if (vibe.latitude && vibe.longitude && mapRef.current) {
                         mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
