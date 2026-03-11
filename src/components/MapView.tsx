@@ -307,48 +307,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     };
   }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds, tonightMode]);
 
-  // Add vibe pins + heatmap
+  // Add vibe pins (no heatmap — cleaner)
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || activeFilter === "offers" || !showVibes) return;
+    if (!map || activeFilter === "offers") return;
 
     const markers: L.Marker[] = [];
     const timers: Array<ReturnType<typeof setTimeout>> = [];
-    const heatPoints: [number, number, number][] = [];
-
-    vibePins.forEach((vibe) => {
-      if (vibe.latitude == null || vibe.longitude == null) return;
-      const age = Date.now() - new Date(vibe.created_at).getTime();
-      if (age > THREE_HOURS && !vibe.is_official) return;
-      const freshness = Math.max(0.2, 1 - age / SIX_HOURS);
-      heatPoints.push([vibe.latitude, vibe.longitude, freshness]);
-    });
-
-    const heatLayer = (L as any).heatLayer(heatPoints, {
-      radius: 35, blur: 25, maxZoom: 17, minOpacity: 0.25, max: 1.0,
-      gradient: isNight ? {
-        0.0: "rgba(0,0,0,0)",
-        0.2: "hsla(30, 100%, 50%, 0.3)",
-        0.4: "hsla(25, 100%, 50%, 0.5)",
-        0.6: "hsla(15, 100%, 50%, 0.65)",
-        0.8: "hsla(5, 90%, 50%, 0.8)",
-        1.0: "hsla(0, 100%, 55%, 0.9)",
-      } : {
-        0.0: "rgba(0,0,0,0)",
-        0.2: "hsla(45, 100%, 60%, 0.25)",
-        0.4: "hsla(35, 100%, 55%, 0.4)",
-        0.6: "hsla(25, 100%, 50%, 0.55)",
-        0.8: "hsla(15, 90%, 50%, 0.7)",
-        1.0: "hsla(5, 100%, 50%, 0.85)",
-      },
-    }).addTo(map);
-
-    const heatCanvas = (heatLayer as any)._canvas as HTMLCanvasElement | undefined;
-    if (heatCanvas) {
-      heatCanvas.style.transition = "opacity 0.4s ease-out";
-      heatCanvas.style.opacity = "0";
-      requestAnimationFrame(() => { heatCanvas.style.opacity = "1"; });
-    }
 
     const tryApplyVibeRevealAnimation = (marker: L.Marker) => {
       const el = marker.getElement();
@@ -363,24 +328,23 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       if (vibe.latitude == null || vibe.longitude == null) return;
       const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
+      if (age > THREE_HOURS && !isOfficial) return; // Only show fresh vibes
       const remaining = isOfficial ? 1 : Math.max(0, 1 - age / SIX_HOURS);
-      const isHot = age < 2 * 60 * 60 * 1000;
-      const size = isOfficial ? 44 : Math.round(26 + remaining * 14);
+      const size = isOfficial ? 38 : Math.round(24 + remaining * 10);
       const borderColor = isOfficial ? "hsl(43,76%,52%)" : (MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)");
       const moodEmoji = MOOD_EMOJIS[vibe.mood || ""] || "";
-      const pinClass = isOfficial ? "gold-marker" : isHot ? "vibe-pin-hot" : "vibe-pin-fading";
+      const pinClass = isOfficial ? "gold-marker" : "";
 
       const officialBadge = isOfficial
-        ? `<div style="position:absolute;top:-5px;right:-5px;font-size:10px;background:hsl(43,76%,52%);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px hsl(43,76%,52%,0.4)">⭐</div>`
+        ? `<div style="position:absolute;top:-4px;right:-4px;font-size:9px;background:hsl(43,76%,52%);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px hsl(43,76%,52%,0.4)">⭐</div>`
         : "";
 
       const icon = L.divIcon({
         className: pinClass,
         html: `
-          <div style="width:${size}px;height:${size}px;border-radius:50%;border:${isOfficial ? "3px" : "2.5px"} solid ${borderColor};overflow:hidden;position:relative;background:hsl(0,0%,8%);">
+          <div style="width:${size}px;height:${size}px;border-radius:50%;border:2px solid ${borderColor};overflow:hidden;position:relative;background:hsl(0,0%,8%);">
             <img src="${vibe.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy" />
-            ${moodEmoji ? `<div style="position:absolute;bottom:-3px;right:-3px;font-size:10px;background:hsl(0,0%,5%,0.8);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
-            ${vibe.media_type === "video" ? `<div style="position:absolute;top:-3px;left:-3px;font-size:9px;background:hsl(0,70%,50%,0.85);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">🎥</div>` : ""}
+            ${moodEmoji ? `<div style="position:absolute;bottom:-2px;right:-2px;font-size:9px;background:hsl(0,0%,5%,0.8);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">${moodEmoji}</div>` : ""}
             ${officialBadge}
           </div>
         `,
@@ -414,9 +378,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     return () => {
       timers.forEach(clearTimeout);
-      if (heatCanvas) {
-        heatCanvas.style.opacity = "0";
-      }
       markers.forEach((m) => {
         const el = m.getElement();
         if (el) {
@@ -427,11 +388,10 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       });
       const cleanupTimer = setTimeout(() => {
         markers.forEach((m) => m.remove());
-        map.removeLayer(heatLayer);
       }, 280);
       timers.push(cleanupTimer);
     };
-  }, [vibePins, activeFilter, showVibes, isNight]);
+  }, [vibePins, activeFilter, isNight]);
 
   // Close preview when opening sheet — fly to place with vertical offset so pin stays visible above the sheet
   const handleOpenSheet = useCallback((place: Place) => {
