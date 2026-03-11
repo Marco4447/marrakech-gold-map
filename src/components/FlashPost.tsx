@@ -255,13 +255,10 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       return;
     }
 
-    if (mediaKind === "photo" && f.size > MAX_PHOTO_SIZE_BYTES) {
-      toast.error("Image trop lourde", { description: "Maximum 20MB par photo." });
-      return;
-    }
-
-    if (mediaKind === "video" && f.size > MAX_VIDEO_SIZE_BYTES) {
-      toast.error("Vidéo trop lourde", { description: "Maximum 80MB par vidéo." });
+    // Validate with Instagram-like constraints
+    const check = validateMediaFile(f, "feed");
+    if (!check.valid) {
+      toast.error("Fichier non valide", { description: check.error });
       return;
     }
 
