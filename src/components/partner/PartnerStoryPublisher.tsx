@@ -27,8 +27,11 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
   const instaRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (f: File | null) => {
+    if (!f) { setFile(null); setPreview(null); return; }
+    const check = validateMediaFile(f, "story");
+    if (!check.valid) { toast.error(check.error!); return; }
     setFile(f);
-    if (f && (f.type.startsWith("image") || f.type.startsWith("video"))) {
+    if (f.type.startsWith("image") || f.type.startsWith("video")) {
       const url = URL.createObjectURL(f);
       setPreview(url);
     } else {
