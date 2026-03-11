@@ -38,9 +38,9 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadMessa
           <Plus className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
         </button>
 
-        {/* Discover */}
+        {/* Discover (Search) */}
         <button onClick={() => onChange("discover")} className="flex flex-col items-center justify-center w-12 h-12">
-          <Compass className={iconClass(active === "discover")} strokeWidth={active === "discover" ? 2.5 : 1.5} />
+          <Search className={iconClass(active === "discover")} strokeWidth={active === "discover" ? 2.5 : 1.5} />
         </button>
 
         {/* Profile */}
