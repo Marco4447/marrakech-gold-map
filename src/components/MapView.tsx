@@ -4,8 +4,6 @@ import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
-import TopLivePlaces from "./TopLivePlaces";
-import RecentVibesPanel from "./RecentVibesPanel";
 import MapSearchBar from "./MapSearchBar";
 import { Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -434,8 +432,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <div className="px-3 pt-10 pb-1 bg-gradient-to-b from-background via-background/85 to-transparent">
-              {/* Row 1: Logo + Search + Live count */}
+            <div className="px-3 pt-10 pb-1 bg-gradient-to-b from-background via-background/80 to-transparent">
+              {/* Row 1: Logo + Search */}
               <div className="flex items-center gap-2 pointer-events-auto">
                 <motion.div
                   className="flex items-center gap-1 shrink-0"
@@ -460,61 +458,24 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
                     }}
                   />
                 </div>
-                <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
-                  {isNight && <span className="text-[9px]">🌙</span>}
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-foreground text-[9px] font-medium">
-                    {placesLoading ? "…" : `${places.length}`}
-                  </span>
-                </div>
+                {isNight && (
+                  <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
+                    <span className="text-[9px]">🌙</span>
+                    <span className="text-foreground text-[9px] font-medium">Night</span>
+                  </div>
+                )}
               </div>
 
-              {/* Row 2: Filters + Recent Vibes */}
-              <div className="mt-1 pointer-events-auto flex items-center gap-1.5">
-                <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
-                  <MapFiltersBar
-                    activeFilter={activeFilter}
-                    onFilterChange={setActiveFilter}
-                    tonightMode={tonightMode}
-                    onTonightToggle={() => setTonightMode(t => !t)}
-                  />
-                </div>
-                <div className="shrink-0 w-[130px]">
-                  <RecentVibesPanel
-                    onVibeClick={(vibe) => {
-                      if (vibe.latitude && vibe.longitude && mapRef.current) {
-                        mapRef.current.flyTo([vibe.latitude, vibe.longitude], 17, { duration: 1 });
-                      }
-                      setSelectedVibe(vibe as any);
-                      setVibeSheetOpen(true);
-                    }}
-                  />
-                </div>
+              {/* Row 2: Category filters only — clean horizontal scroll */}
+              <div className="mt-1.5 pointer-events-auto">
+                <MapFiltersBar
+                  activeFilter={activeFilter}
+                  onFilterChange={setActiveFilter}
+                  tonightMode={tonightMode}
+                  onTonightToggle={() => setTonightMode(t => !t)}
+                />
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Top Live Places — positioned below header */}
-      <AnimatePresence>
-        {!sheetOpen && !vibeSheetOpen && (
-          <motion.div
-            key="top-live-places"
-            className="absolute top-[120px] left-0 right-0 z-[999] px-3"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-          >
-            <TopLivePlaces
-              onPlaceClick={(name) => {
-                const place = places.find(p => p.name === name);
-                if (place) {
-                  handleOpenSheet(place);
-                }
-              }}
-            />
           </motion.div>
         )}
       </AnimatePresence>

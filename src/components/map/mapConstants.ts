@@ -32,6 +32,8 @@ export const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> =
   Night: { emoji: "🎶", color: "hsl(280,60%,60%)" },
   Hôtel: { emoji: "🏨", color: "hsl(200,70%,55%)" },
   Secret: { emoji: "✨", color: "hsl(340,65%,55%)" },
+  Attraction: { emoji: "📸", color: "hsl(350,65%,55%)" },
+  Activity: { emoji: "🎯", color: "hsl(350,65%,55%)" },
 };
 
 export const MOOD_FILTERS: { key: string; emoji: string; label: string; categories: string[] }[] = [
@@ -50,8 +52,8 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji, listingTier, hasActiveVipOffer = false } = options;
   const boosted = isBoosted(placeName);
 
-  // Check if place has a local logo
-  const hasLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
+  // Check if place has a local logo (handle URL-encoded paths too)
+  const hasLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places") || imageUrl.includes("vibes_media%2Fplaces"));
 
   // Tier-based sizing: Featured > Premium > Basic/standard
   const isFeatured = listingTier === "featured";
@@ -108,7 +110,7 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   const markerClass = boosted ? "boosted-marker gold-marker" : isFeatured ? "featured-marker gold-marker" : isHotEnergy ? "energy-hot-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
 
   // Determine inner content: show logo for local images (/images/) or Supabase storage, emoji for generic Unsplash
-  const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places/"));
+  const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places") || imageUrl.includes("vibes_media%2Fplaces"));
   const hasLogo = (isPartner || boosted || isLocalLogo) && imageUrl;
   const innerContent = boosted && imageUrl
     ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
