@@ -1,4 +1,4 @@
-import { Home, Map, Compass, Plus, User, MessageCircle } from "lucide-react";
+import { Home, Map, Search, Plus, User, MessageCircle } from "lucide-react";
 
 export type Tab = "feed" | "map" | "create" | "discover" | "profil";
 
