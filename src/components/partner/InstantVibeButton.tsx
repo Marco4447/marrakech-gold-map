@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Camera, X, Loader2, Check, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { processMediaForUpload, validateMediaFile } from "@/lib/mediaProcessor";
 
 interface Props {
   userId: string;
