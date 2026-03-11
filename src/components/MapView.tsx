@@ -557,31 +557,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Floating bubble — hide when preview is showing */}
-      <AnimatePresence>
-        {showBubble && !bubbleDismissed && !sheetOpen && !vibeSheetOpen && !previewPlace && (
-          <motion.div
-            key="floating-bubble"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-          >
-            <FloatingBubble
-              places={places}
-              bubbleIndex={bubbleIndex}
-              setBubbleIndex={setBubbleIndex}
-              onPlaceClick={(place) => { handleOpenSheet(place); }}
-              onDismiss={() => {
-                setBubbleDismissed(true);
-                localStorage.setItem("wk_bubble_dismissed", "1");
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Controls */}
+      {/* Controls — simplified */}
       <AnimatePresence>
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
@@ -592,66 +568,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             exit={{ opacity: 0, x: 12 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
-            {/* Geolocate */}
             <button
               onClick={handleGeolocate}
-              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md active:scale-95 transition-transform"
+              className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md flex items-center justify-center active:scale-95 transition-transform"
               title="Ma position"
             >
-              <Navigation className="w-3.5 h-3.5 text-gold" />
-              <span className="text-[10px] font-semibold text-foreground">Position</span>
-            </button>
-
-            {/* Toggle vibes */}
-            <button
-              onClick={() => setShowVibes(v => !v)}
-              className={`flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full backdrop-blur-xl border shadow-md active:scale-95 transition-all ${
-                showVibes
-                  ? "bg-gold/15 border-gold/30 text-gold"
-                  : "bg-card/90 border-border text-muted-foreground"
-              }`}
-              title={showVibes ? "Masquer les vibes" : "Voir les vibes"}
-            >
-              <span className="text-xs">📸</span>
-              <span className="text-[10px] font-semibold">
-                Vibes{vibePins.length > 0 ? ` (${vibePins.length})` : ""}
-              </span>
-            </button>
-
-            {/* Recenter */}
-            <button
-              onClick={handleRecenter}
-              className="flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md active:scale-95 transition-transform"
-              title="Recentrer"
-            >
-              <LocateFixed className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-[10px] font-semibold text-foreground">Recentrer</span>
+              <Navigation className="w-4 h-4 text-gold" />
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Legend */}
-      {bubbleDismissed && !previewPlace && (
-        <CollapsibleLegend
-          categories={categories}
-          activeCategory={activeFilter}
-          onCategoryClick={(cat) => {
-            if (!cat) {
-              setActiveFilter(null);
-            } else {
-              // Map category name to filter key if possible, otherwise filter by exact category
-              const filterMap: Record<string, string> = {
-                Nightlife: "party", Night: "party", "Dinner Show": "party",
-                Restaurant: "food", Food: "food",
-                Rooftop: "rooftop",
-                Chill: "chill", "Cocktail Bar": "chill", Café: "chill", Hôtel: "chill",
-              };
-              setActiveFilter(filterMap[cat] || cat);
-            }
-          }}
-        />
-      )}
 
       {/* Tonight mode active indicator */}
       <AnimatePresence>
