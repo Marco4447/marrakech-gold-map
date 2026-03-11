@@ -542,7 +542,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
             source_type: isOfficial ? "partner" : "user",
             user_id: user.id,
             media_url: publicUrl,
-            media_type: mediaType,
+            media_type: finalMediaType,
             badge: isOfficial ? null : "INSIDER",
             caption: null,
             latitude: resolvedCoords?.lat || null,
