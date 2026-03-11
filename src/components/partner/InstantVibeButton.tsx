@@ -29,12 +29,16 @@ export default function InstantVibeButton({ userId, credits, onPublished }: Prop
     if (!file || credits <= 0) { toast.error("Pas assez de crédits"); return; }
     setPosting(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      // Process with Instagram-like constraints
+      const processed = await processMediaForUpload(file, "feed");
+      const uploadFile = processed.file;
+      const mediaType = processed.mediaType;
+
+      const ext = uploadFile.name.split(".").pop() || "jpg";
       const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, file, { contentType: file.type });
+      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, uploadFile, { contentType: uploadFile.type });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("vibes_media").getPublicUrl(path);
-      const mediaType = file.type.startsWith("video/") ? "video" : "photo";
       const { error: rpcErr } = await supabase.rpc("publish_vibe_use_credit", {
         p_image_url: urlData.publicUrl,
         p_caption: caption.trim() || null,
