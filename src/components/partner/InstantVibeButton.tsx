@@ -105,8 +105,8 @@ export default function InstantVibeButton({ userId, credits, onPublished }: Prop
                     </button>
                   </div>
 
-                  <input type="file" ref={fileRef} accept="image/*,video/mp4,video/quicktime" className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) { setFile(f); setPreview(URL.createObjectURL(f)); } }} />
+                  <input type="file" ref={fileRef} accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime" className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) { const v = validateMediaFile(f, "feed"); if (!v.valid) { toast.error(v.error!); return; } setFile(f); setPreview(URL.createObjectURL(f)); } }} />
 
                   {preview ? (
                     <div className="relative aspect-video rounded-xl overflow-hidden bg-surface">
