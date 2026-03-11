@@ -98,19 +98,29 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   }, [places, vibePins, trendingLocations, deepLinkPlaceId]);
 
-  // Auto-fit bounds when filter changes
+  // Auto-fit bounds when filter changes — prioritize paid partners
   useEffect(() => {
     const map = mapRef.current;
     if (!map || places.length === 0) return;
-    // Skip on initial load (handled by hasAutoFitted)
     if (!hasAutoFitted.current) return;
 
     const filtered = getFilteredPlaces();
     if (filtered.length === 0) return;
 
-    const points: L.LatLngExpression[] = filtered.map(p => [p.latitude, p.longitude]);
-    const bounds = L.latLngBounds(points);
-    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true, duration: 0.6 });
+    // Prioritize: boosted > featured > premium > partner > rest
+    const paidPartners = filtered.filter(p =>
+      isBoosted(p.name) || p.listing_tier === "featured" || p.listing_tier === "premium" || p.is_partner
+    );
+    const centerOn = paidPartners.length > 0 ? paidPartners : filtered;
+
+    if (centerOn.length === 1) {
+      // Single result: fly directly to it
+      map.flyTo([centerOn[0].latitude, centerOn[0].longitude], 16, { duration: 0.6 });
+    } else {
+      const points: L.LatLngExpression[] = centerOn.map(p => [p.latitude, p.longitude]);
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true, duration: 0.6 });
+    }
   }, [activeFilter, tonightMode]);
 
   // Fly to coordinates — retry until map is ready
