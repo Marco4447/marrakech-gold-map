@@ -405,9 +405,6 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       {/* Stories — directly under header */}
       <StoriesModule userId={user?.id} />
 
-      {/* Weekly Challenge */}
-      <WeeklyChallenge />
-
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
           <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-3">
