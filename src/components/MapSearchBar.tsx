@@ -73,7 +73,7 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
             {results.map((place) => (
               <button
                 key={place.id}
-                onMouseDown={() => handleSelect(place)}
+                onMouseDown={(e) => { e.preventDefault(); handleSelect(place); }}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-secondary transition-colors border-b border-border last:border-0"
               >
                 <div className="w-7 h-7 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
