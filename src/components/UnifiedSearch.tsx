@@ -80,7 +80,7 @@ export default function UnifiedSearch({ onSelectPlace, onSelectUser }: UnifiedSe
     setFocused(false);
     inputRef.current?.blur();
     if (result.type === "place" && result.latitude && result.longitude) {
-      onSelectPlace?.(result.latitude, result.longitude);
+      onSelectPlace?.(result.latitude, result.longitude, result.id);
     } else if (result.type === "user") {
       onSelectUser?.(result.id);
     }
