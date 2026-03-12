@@ -317,8 +317,17 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       return true;
     };
 
-    vibePins.forEach((vibe, idx) => {
-      if (vibe.latitude == null || vibe.longitude == null) return;
+    // Deduplicate vibe pins by location name — keep only the most recent per spot
+    const seenLocations = new Set<string>();
+    const deduped = vibePins.filter(v => {
+      if (v.latitude == null || v.longitude == null) return false;
+      const key = v.location?.trim().toLowerCase();
+      if (key && seenLocations.has(key)) return false;
+      if (key) seenLocations.add(key);
+      return true;
+    });
+
+    deduped.forEach((vibe, idx) => {
       const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
       if (age > THREE_HOURS && !isOfficial) return; // Only show fresh vibes
