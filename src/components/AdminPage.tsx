@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges" | "vip" | "stories" | "activity" | "acquisition";
+type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges" | "vip" | "stories" | "activity" | "acquisition" | "crm";
 type PassStat = { place_name: string; count: number };
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 type PartnerVibe = { id: string; image_url: string; caption: string | null; location: string | null; likes: number; super_vibes: number; created_at: string; is_official: boolean };
