@@ -165,17 +165,18 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   }, [flyToCoords, places]);
 
   // Auto-open place sheet from deep link
+  const deepLinkHandled = useRef<string | null>(null);
   useEffect(() => {
-    if (deepLinkPlaceId && places.length > 0) {
+    if (deepLinkPlaceId && places.length > 0 && deepLinkHandled.current !== deepLinkPlaceId) {
       const place = places.find(p => p.id === deepLinkPlaceId);
       if (place) {
+        deepLinkHandled.current = deepLinkPlaceId;
         setTimeout(() => {
-          setSelectedPlace(place);
-          setSheetOpen(true);
-        }, 1400);
+          handleOpenSheet(place);
+        }, 600);
       }
     }
-  }, [deepLinkPlaceId, places]);
+  }, [deepLinkPlaceId, places, handleOpenSheet]);
 
   // Filter places based on active filter + tonight mode
   const getFilteredPlaces = useCallback(() => {
