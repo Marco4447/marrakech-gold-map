@@ -17,7 +17,7 @@ interface SearchResult {
 }
 
 interface UnifiedSearchProps {
-  onSelectPlace?: (lat: number, lng: number) => void;
+  onSelectPlace?: (lat: number, lng: number, placeId?: string) => void;
   onSelectUser?: (userId: string) => void;
 }
 
