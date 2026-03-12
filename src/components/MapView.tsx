@@ -398,7 +398,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       }, 280);
       timers.push(cleanupTimer);
     };
-  }, [vibePins, activeFilter, isNight]);
+  }, [vibePins, activeFilter, isNight, places]);
 
   // Close preview when opening sheet — fly to place with vertical offset so pin stays visible above the sheet
   const handleOpenSheet = useCallback((place: Place) => {
