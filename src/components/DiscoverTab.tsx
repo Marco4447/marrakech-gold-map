@@ -80,16 +80,23 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
 
   const handleVibeClick = useCallback((vibe: ExploreVibe) => {
     if (vibe.place_id) {
-      const match = placesMap.get(vibe.location?.trim().toLowerCase() || "");
-      if (match) {
-        onGoToMap?.(match.latitude, match.longitude, match.id);
+      const matchById = placesById.get(vibe.place_id);
+      if (matchById) {
+        onGoToMap?.(matchById.latitude, matchById.longitude, matchById.id);
+        return;
+      }
+
+      const fallbackByName = placesByName.get(vibe.location?.trim().toLowerCase() || "");
+      if (fallbackByName) {
+        onGoToMap?.(fallbackByName.latitude, fallbackByName.longitude, fallbackByName.id);
         return;
       }
     }
+
     if (vibe.latitude != null && vibe.longitude != null) {
       onGoToMap?.(vibe.latitude, vibe.longitude);
     }
-  }, [onGoToMap, placesMap]);
+  }, [onGoToMap, placesById, placesByName]);
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
