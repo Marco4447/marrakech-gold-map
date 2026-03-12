@@ -1122,6 +1122,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {/* === ACQUISITION === */}
           {tab === "acquisition" && <AdminAcquisition />}
+
+          {/* === CRM === */}
+          {tab === "crm" && <AdminCRM />}
         </div>
       )}
     </div>
