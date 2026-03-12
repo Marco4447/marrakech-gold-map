@@ -5,7 +5,7 @@ import AdminVipOffers from "./admin/AdminVipOffers";
 import AdminStoriesManager from "./admin/AdminStoriesManager";
 import AdminActivityFeed from "./admin/AdminActivityFeed";
 import AdminAcquisition from "./admin/AdminAcquisition";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity, Link2, Copy } from "lucide-react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity, Link2, Copy, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
