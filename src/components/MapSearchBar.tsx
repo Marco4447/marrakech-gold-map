@@ -51,7 +51,7 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 200)}
+          onBlur={() => setTimeout(() => setFocused(false), 350)}
           placeholder="Rechercher…"
           className="w-full pl-7 pr-7 py-1.5 rounded-lg bg-card/90 backdrop-blur-xl border border-border text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold/40 transition-colors"
         />
@@ -73,7 +73,7 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
             {results.map((place) => (
               <button
                 key={place.id}
-                onMouseDown={() => handleSelect(place)}
+                onMouseDown={(e) => { e.preventDefault(); handleSelect(place); }}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-secondary transition-colors border-b border-border last:border-0"
               >
                 <div className="w-7 h-7 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
