@@ -16,7 +16,7 @@ interface ExploreVibe {
   created_at: string;
 }
 
-export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (lat: number, lng: number) => void; onStartChat?: (userId: string) => void }) {
+export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (lat: number, lng: number, placeId?: string) => void; onStartChat?: (userId: string) => void }) {
   const [vibes, setVibes] = useState<ExploreVibe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -100,7 +100,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <UnifiedSearch
-                onSelectPlace={(lat, lng) => { onGoToMap?.(lat, lng); setSearchFocused(false); }}
+                onSelectPlace={(lat, lng, placeId) => { onGoToMap?.(lat, lng, placeId); setSearchFocused(false); }}
                 onSelectUser={(userId) => { onStartChat?.(userId); setSearchFocused(false); }}
               />
             </div>

@@ -132,20 +132,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     const tryFly = () => {
       if (mapRef.current && flyToPending.current) {
         mapRef.current.flyTo([flyToPending.current.lat, flyToPending.current.lng], 17, { duration: 1.2 });
-        // Auto-find and open matching place
         const target = flyToPending.current;
         flyToPending.current = null;
-        if (places.length > 0) {
+        // If deepLinkPlaceId is set, let that effect handle sheet opening
+        if (!deepLinkPlaceId && places.length > 0) {
           const match = places.find(p =>
             Math.abs(p.latitude - target.lat) < 0.0005 &&
             Math.abs(p.longitude - target.lng) < 0.0005
           );
           if (match) {
-            setTimeout(() => {
-              setPreviewPlace(match);
-              setSelectedPlace(match);
-              setSheetOpen(true);
-            }, 800);
+            setTimeout(() => handleOpenSheet(match), 800);
           }
         }
         return true;
@@ -154,28 +150,16 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     };
 
     if (!tryFly()) {
-      // Map not ready yet, poll until it is
       const interval = setInterval(() => {
         if (tryFly()) clearInterval(interval);
       }, 100);
-      // Give up after 5s
       setTimeout(() => clearInterval(interval), 5000);
       return () => clearInterval(interval);
     }
-  }, [flyToCoords, places]);
+  }, [flyToCoords, places, deepLinkPlaceId]);
 
-  // Auto-open place sheet from deep link
-  useEffect(() => {
-    if (deepLinkPlaceId && places.length > 0) {
-      const place = places.find(p => p.id === deepLinkPlaceId);
-      if (place) {
-        setTimeout(() => {
-          setSelectedPlace(place);
-          setSheetOpen(true);
-        }, 1400);
-      }
-    }
-  }, [deepLinkPlaceId, places]);
+  // Auto-open place sheet from deep link (moved after handleOpenSheet definition)
+  const deepLinkHandled = useRef<string | null>(null);
 
   // Filter places based on active filter + tonight mode
   const getFilteredPlaces = useCallback(() => {
@@ -419,7 +403,19 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   }, []);
 
-  
+  // Auto-open place sheet from deep link
+  useEffect(() => {
+    if (deepLinkPlaceId && places.length > 0 && deepLinkHandled.current !== deepLinkPlaceId) {
+      const place = places.find(p => p.id === deepLinkPlaceId);
+      if (place) {
+        deepLinkHandled.current = deepLinkPlaceId;
+        setTimeout(() => {
+          handleOpenSheet(place);
+        }, 600);
+      }
+    }
+  }, [deepLinkPlaceId, places, handleOpenSheet]);
+
 
   return (
     <div className="relative h-full w-full">
