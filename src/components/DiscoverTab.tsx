@@ -29,7 +29,8 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
   const [vibes, setVibes] = useState<ExploreVibe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [placesMap, setPlacesMap] = useState<Map<string, PlaceMatch>>(new Map());
+  const [placesByName, setPlacesByName] = useState<Map<string, PlaceMatch>>(new Map());
+  const [placesById, setPlacesById] = useState<Map<string, PlaceMatch>>(new Map());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,14 +45,17 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
           .select("id, name, latitude, longitude")
       ]);
 
-      // Build name→place lookup
-      const pMap = new Map<string, PlaceMatch>();
+      // Build place lookups (by name + by id)
+      const pMapByName = new Map<string, PlaceMatch>();
+      const pMapById = new Map<string, PlaceMatch>();
       if (placesRes.data) {
         for (const p of placesRes.data) {
-          pMap.set(p.name.trim().toLowerCase(), p);
+          pMapByName.set(p.name.trim().toLowerCase(), p);
+          pMapById.set(p.id, p);
         }
       }
-      setPlacesMap(pMap);
+      setPlacesByName(pMapByName);
+      setPlacesById(pMapById);
 
       if (vibesRes.data) {
         const seen = new Set<string>();
@@ -64,7 +68,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
         // Enrich with place_id
         const enriched = unique.map(v => {
           const key = v.location?.trim().toLowerCase();
-          const match = key ? pMap.get(key) : undefined;
+          const match = key ? pMapByName.get(key) : undefined;
           return { ...v, place_id: match?.id };
         });
         setVibes(enriched.slice(0, 50));
@@ -76,16 +80,23 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
 
   const handleVibeClick = useCallback((vibe: ExploreVibe) => {
     if (vibe.place_id) {
-      const match = placesMap.get(vibe.location?.trim().toLowerCase() || "");
-      if (match) {
-        onGoToMap?.(match.latitude, match.longitude, match.id);
+      const matchById = placesById.get(vibe.place_id);
+      if (matchById) {
+        onGoToMap?.(matchById.latitude, matchById.longitude, matchById.id);
+        return;
+      }
+
+      const fallbackByName = placesByName.get(vibe.location?.trim().toLowerCase() || "");
+      if (fallbackByName) {
+        onGoToMap?.(fallbackByName.latitude, fallbackByName.longitude, fallbackByName.id);
         return;
       }
     }
+
     if (vibe.latitude != null && vibe.longitude != null) {
       onGoToMap?.(vibe.latitude, vibe.longitude);
     }
-  }, [onGoToMap, placesMap]);
+  }, [onGoToMap, placesById, placesByName]);
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
