@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { downloadPartnerCsvTemplate } from "@/lib/downloadPartnerCsvTemplate";
 import UsersTab from "./UsersTab";
 import AdminVipOffers from "./admin/AdminVipOffers";
 import AdminStoriesManager from "./admin/AdminStoriesManager";
 import AdminActivityFeed from "./admin/AdminActivityFeed";
 import AdminAcquisition from "./admin/AdminAcquisition";
-import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity, Link2, Copy } from "lucide-react";
+import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity, Link2, Copy, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -434,7 +435,16 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {tab === "partners" && stats && !selectedPartner && (
             <>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Partenaires actifs ({stats.partners.length})</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Partenaires actifs ({stats.partners.length})</h3>
+                <button
+                  onClick={downloadPartnerCsvTemplate}
+                  className="flex items-center gap-1.5 text-xs text-gold hover:text-gold-light transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  CSV Notion
+                </button>
+              </div>
               {stats.partners.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Aucun partenaire actif.</p>
               ) : (
