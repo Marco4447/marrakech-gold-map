@@ -68,7 +68,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
         // Enrich with place_id
         const enriched = unique.map(v => {
           const key = v.location?.trim().toLowerCase();
-          const match = key ? pMap.get(key) : undefined;
+          const match = key ? pMapByName.get(key) : undefined;
           return { ...v, place_id: match?.id };
         });
         setVibes(enriched.slice(0, 50));
