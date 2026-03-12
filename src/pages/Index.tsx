@@ -98,7 +98,7 @@ const Index = () => {
     }
   };
 
-  const handleGoToMap = useCallback((lat: number, lng: number) => { setFlyToCoords({ lat, lng }); setActiveTab("map"); }, []);
+  const handleGoToMap = useCallback((lat: number, lng: number, placeId?: string) => { setFlyToCoords({ lat, lng }); if (placeId) setDeepLinkPlaceId(placeId); setActiveTab("map"); }, []);
 
   const isGuest = !user;
 
