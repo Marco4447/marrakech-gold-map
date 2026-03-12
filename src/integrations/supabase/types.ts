@@ -454,6 +454,69 @@ export type Database = {
           },
         ]
       }
+      partner_prospects: {
+        Row: {
+          app_link: string | null
+          category: string | null
+          contact_name: string | null
+          created_at: string
+          created_by: string
+          credits_offered: number
+          first_contact_date: string | null
+          follow_up_date: string | null
+          id: string
+          instagram: string | null
+          invite_link: string | null
+          name: string
+          neighborhood: string | null
+          notes: string | null
+          priority: string
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          app_link?: string | null
+          category?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by: string
+          credits_offered?: number
+          first_contact_date?: string | null
+          follow_up_date?: string | null
+          id?: string
+          instagram?: string | null
+          invite_link?: string | null
+          name: string
+          neighborhood?: string | null
+          notes?: string | null
+          priority?: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          app_link?: string | null
+          category?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string
+          credits_offered?: number
+          first_contact_date?: string | null
+          follow_up_date?: string | null
+          id?: string
+          instagram?: string | null
+          invite_link?: string | null
+          name?: string
+          neighborhood?: string | null
+          notes?: string | null
+          priority?: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       partner_requests: {
         Row: {
           business_name: string
