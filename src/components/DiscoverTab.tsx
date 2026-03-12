@@ -45,14 +45,17 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
           .select("id, name, latitude, longitude")
       ]);
 
-      // Build name→place lookup
-      const pMap = new Map<string, PlaceMatch>();
+      // Build place lookups (by name + by id)
+      const pMapByName = new Map<string, PlaceMatch>();
+      const pMapById = new Map<string, PlaceMatch>();
       if (placesRes.data) {
         for (const p of placesRes.data) {
-          pMap.set(p.name.trim().toLowerCase(), p);
+          pMapByName.set(p.name.trim().toLowerCase(), p);
+          pMapById.set(p.id, p);
         }
       }
-      setPlacesMap(pMap);
+      setPlacesByName(pMapByName);
+      setPlacesById(pMapById);
 
       if (vibesRes.data) {
         const seen = new Set<string>();
