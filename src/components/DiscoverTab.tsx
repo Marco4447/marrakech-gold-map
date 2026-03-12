@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Search, Play, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
 import UnifiedSearch from "./UnifiedSearch";
 
 interface ExploreVibe {
@@ -14,83 +13,79 @@ interface ExploreVibe {
   media_type: string;
   is_official: boolean;
   created_at: string;
+  latitude: number | null;
+  longitude: number | null;
+  place_id?: string;
+}
+
+interface PlaceMatch {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
 }
 
 export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (lat: number, lng: number, placeId?: string) => void; onStartChat?: (userId: string) => void }) {
   const [vibes, setVibes] = useState<ExploreVibe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [placesMap, setPlacesMap] = useState<Map<string, PlaceMatch>>(new Map());
 
   useEffect(() => {
-    const fetchVibes = async () => {
-      const { data } = await supabase
-        .from("vibes")
-        .select("id, image_url, location, likes, super_vibes, mood, media_type, is_official, created_at")
-        .order("likes", { ascending: false })
-        .limit(120);
-      if (data) {
-        // Deduplicate: keep only the top vibe per location to avoid repetition
+    const fetchData = async () => {
+      const [vibesRes, placesRes] = await Promise.all([
+        supabase
+          .from("vibes")
+          .select("id, image_url, location, likes, super_vibes, mood, media_type, is_official, created_at, latitude, longitude")
+          .order("likes", { ascending: false })
+          .limit(120),
+        supabase
+          .from("places")
+          .select("id, name, latitude, longitude")
+      ]);
+
+      // Build name→place lookup
+      const pMap = new Map<string, PlaceMatch>();
+      if (placesRes.data) {
+        for (const p of placesRes.data) {
+          pMap.set(p.name.trim().toLowerCase(), p);
+        }
+      }
+      setPlacesMap(pMap);
+
+      if (vibesRes.data) {
         const seen = new Set<string>();
-        const unique = (data as ExploreVibe[]).filter((v) => {
+        const unique = (vibesRes.data as ExploreVibe[]).filter((v) => {
           const key = v.location?.trim().toLowerCase();
           if (key && seen.has(key)) return false;
           if (key) seen.add(key);
           return true;
         });
-        setVibes(unique.slice(0, 50));
+        // Enrich with place_id
+        const enriched = unique.map(v => {
+          const key = v.location?.trim().toLowerCase();
+          const match = key ? pMap.get(key) : undefined;
+          return { ...v, place_id: match?.id };
+        });
+        setVibes(enriched.slice(0, 50));
       }
       setLoading(false);
     };
-    fetchVibes();
+    fetchData();
   }, []);
 
-  // Instagram Explore grid pattern: rows of 3, every 3rd row has a large item
-  const renderGrid = () => {
-    const cells: React.ReactNode[] = [];
-    let idx = 0;
-    let rowGroup = 0;
-
-    while (idx < vibes.length) {
-      const pattern = rowGroup % 2; // alternating pattern
-
-      if (pattern === 0) {
-        // 2 rows of 3 small squares
-        for (let row = 0; row < 2 && idx < vibes.length; row++) {
-          for (let col = 0; col < 3 && idx < vibes.length; col++) {
-            const vibe = vibes[idx];
-            cells.push(
-              <GridCell key={vibe.id} vibe={vibe} span={1} />
-            );
-            idx++;
-          }
-        }
-      } else {
-        // 1 row: 2 small + 1 large (or 1 large + 2 small)
-        const isLeftLarge = rowGroup % 4 === 1;
-        if (isLeftLarge) {
-          // 2 small stacked on left, 1 large on right
-          const small1 = vibes[idx];
-          const small2 = vibes[idx + 1];
-          const large = vibes[idx + 2];
-          if (small1) { cells.push(<GridCell key={small1.id} vibe={small1} span={1} />); idx++; }
-          if (small2) { cells.push(<GridCell key={small2.id} vibe={small2} span={1} />); idx++; }
-          // placeholder for grid positioning
-          if (large) { cells.push(<GridCell key={large.id} vibe={large} span={1} />); idx++; }
-          if (vibes[idx]) { cells.push(<GridCell key={vibes[idx].id} vibe={vibes[idx]} span={1} />); idx++; }
-          if (vibes[idx]) { cells.push(<GridCell key={vibes[idx].id} vibe={vibes[idx]} span={1} />); idx++; }
-          if (vibes[idx]) { cells.push(<GridCell key={vibes[idx].id} vibe={vibes[idx]} span={1} />); idx++; }
-        } else {
-          for (let i = 0; i < 6 && idx < vibes.length; i++) {
-            cells.push(<GridCell key={vibes[idx].id} vibe={vibes[idx]} span={1} />);
-            idx++;
-          }
-        }
+  const handleVibeClick = useCallback((vibe: ExploreVibe) => {
+    if (vibe.place_id) {
+      const match = placesMap.get(vibe.location?.trim().toLowerCase() || "");
+      if (match) {
+        onGoToMap?.(match.latitude, match.longitude, match.id);
+        return;
       }
-      rowGroup++;
     }
-
-    return cells;
-  };
+    if (vibe.latitude != null && vibe.longitude != null) {
+      onGoToMap?.(vibe.latitude, vibe.longitude);
+    }
+  }, [onGoToMap, placesMap]);
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
@@ -137,7 +132,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
       ) : (
         <div className="grid grid-cols-3 gap-[2px]">
           {vibes.map((vibe) => (
-            <GridCell key={vibe.id} vibe={vibe} span={1} />
+            <GridCell key={vibe.id} vibe={vibe} onVibeClick={handleVibeClick} />
           ))}
         </div>
       )}
@@ -145,7 +140,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
   );
 }
 
-function GridCell({ vibe, span }: { vibe: ExploreVibe; span: number }) {
+function GridCell({ vibe, onVibeClick }: { vibe: ExploreVibe; span?: number; onVibeClick: (vibe: ExploreVibe) => void }) {
   const isVideo = vibe.media_type === "video";
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -164,9 +159,9 @@ function GridCell({ vibe, span }: { vibe: ExploreVibe; span: number }) {
   };
 
   return (
-    <Link
-      to={`/vibe/${vibe.id}`}
-      className="relative aspect-square overflow-hidden bg-card block group"
+    <button
+      onClick={() => onVibeClick(vibe)}
+      className="relative aspect-square overflow-hidden bg-card block group w-full"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       onTouchStart={handleEnter}
@@ -190,18 +185,16 @@ function GridCell({ vibe, span }: { vibe: ExploreVibe; span: number }) {
           loading="lazy"
         />
       )}
-      {/* Video indicator */}
       {isVideo && (
         <div className="absolute top-2 right-2 transition-opacity group-hover:opacity-0">
           <Play className="w-4 h-4 text-white drop-shadow-lg" fill="white" />
         </div>
       )}
-      {/* Hover overlay with stats */}
       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
         <span className="flex items-center gap-1 text-white text-sm font-bold">
           <Heart className="w-4 h-4 fill-white" /> {vibe.likes}
         </span>
       </div>
-    </Link>
+    </button>
   );
 }
