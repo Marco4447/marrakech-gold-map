@@ -29,7 +29,8 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
   const [vibes, setVibes] = useState<ExploreVibe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [placesMap, setPlacesMap] = useState<Map<string, PlaceMatch>>(new Map());
+  const [placesByName, setPlacesByName] = useState<Map<string, PlaceMatch>>(new Map());
+  const [placesById, setPlacesById] = useState<Map<string, PlaceMatch>>(new Map());
 
   useEffect(() => {
     const fetchData = async () => {
