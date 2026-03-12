@@ -430,6 +430,15 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }
   }, [deepLinkPlaceId, places, handleOpenSheet]);
 
+  // Reset deepLinkPlaceId after sheet closes so next Discover click works
+  useEffect(() => {
+    if (!sheetOpen && deepLinkPlaceId && deepLinkHandled.current === deepLinkPlaceId) {
+      // Allow re-triggering by clearing the handled ref after a short delay
+      const t = setTimeout(() => { deepLinkHandled.current = null; }, 300);
+      return () => clearTimeout(t);
+    }
+  }, [sheetOpen, deepLinkPlaceId]);
+
 
   return (
     <div className="relative h-full w-full">
