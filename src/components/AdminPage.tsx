@@ -435,7 +435,16 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {tab === "partners" && stats && !selectedPartner && (
             <>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Partenaires actifs ({stats.partners.length})</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Partenaires actifs ({stats.partners.length})</h3>
+                <button
+                  onClick={downloadPartnerCsvTemplate}
+                  className="flex items-center gap-1.5 text-xs text-gold hover:text-gold-light transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  CSV Notion
+                </button>
+              </div>
               {stats.partners.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Aucun partenaire actif.</p>
               ) : (
