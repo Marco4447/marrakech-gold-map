@@ -317,13 +317,18 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       return true;
     };
 
-    // Deduplicate vibe pins by location name — keep only the most recent per spot
+    // Deduplicate vibe pins by location name AND skip vibes that overlap with a place marker
+    const placeLocationKeys = new Set(places.map(p => p.name.trim().toLowerCase()));
     const seenLocations = new Set<string>();
     const deduped = vibePins.filter(v => {
       if (v.latitude == null || v.longitude == null) return false;
       const key = v.location?.trim().toLowerCase();
-      if (key && seenLocations.has(key)) return false;
-      if (key) seenLocations.add(key);
+      if (!key) return true;
+      // Skip if a place marker already exists at this location
+      if (placeLocationKeys.has(key)) return false;
+      // Deduplicate by location name
+      if (seenLocations.has(key)) return false;
+      seenLocations.add(key);
       return true;
     });
 
@@ -393,7 +398,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       }, 280);
       timers.push(cleanupTimer);
     };
-  }, [vibePins, activeFilter, isNight]);
+  }, [vibePins, activeFilter, isNight, places]);
 
   // Close preview when opening sheet — fly to place with vertical offset so pin stays visible above the sheet
   const handleOpenSheet = useCallback((place: Place) => {
@@ -424,6 +429,15 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       }
     }
   }, [deepLinkPlaceId, places, handleOpenSheet]);
+
+  // Reset deepLinkPlaceId after sheet closes so next Discover click works
+  useEffect(() => {
+    if (!sheetOpen && deepLinkPlaceId && deepLinkHandled.current === deepLinkPlaceId) {
+      // Allow re-triggering by clearing the handled ref after a short delay
+      const t = setTimeout(() => { deepLinkHandled.current = null; }, 300);
+      return () => clearTimeout(t);
+    }
+  }, [sheetOpen, deepLinkPlaceId]);
 
 
   return (
