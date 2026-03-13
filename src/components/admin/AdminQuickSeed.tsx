@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Upload, Send, Loader2, Check, Plus, X, Image, Link2 } from "lucide-react";
+import { Upload, Send, Loader2, Check, Plus, X, Image, Link2, Instagram, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
