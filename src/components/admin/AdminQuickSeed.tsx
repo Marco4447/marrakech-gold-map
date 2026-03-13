@@ -111,7 +111,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           mood: item.mood || globalMood,
           is_official: true,
           likes: Math.floor(Math.random() * 200) + 30,
-          media_type: item.file.type.startsWith("video") ? "video" : "photo",
+          media_type: item.file?.type?.startsWith("video") ? "video" : "photo",
         } as any);
 
         successCount++;
