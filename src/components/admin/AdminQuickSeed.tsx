@@ -88,12 +88,19 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
 
     for (const item of queue) {
       try {
-        const ext = item.file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from("vibes").upload(fileName, item.file, { contentType: item.file.type });
-        if (uploadError) throw uploadError;
+        let imageUrl: string;
 
-        const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/vibes/${fileName}`;
+        if (item.isUrl || !item.file) {
+          // Direct URL — use as-is
+          imageUrl = item.preview;
+        } else {
+          const ext = item.file.name.split(".").pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          const { error: uploadError } = await supabase.storage.from("vibes").upload(fileName, item.file, { contentType: item.file.type });
+          if (uploadError) throw uploadError;
+          imageUrl = `${SUPABASE_URL}/storage/v1/object/public/vibes/${fileName}`;
+        }
+
         const spot = places.find((p) => p.id === (item.spotId || selectedSpot));
 
         await supabase.from("vibes").insert({
