@@ -171,25 +171,78 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
     setPublishing(false);
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          ⚡ Quick Seed — Publication en masse
-        </h3>
-        {queue.length > 0 && (
-          <span className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-full font-bold">
-            {queue.length} en file
-          </span>
-        )}
-      </div>
+  // --- Auto Instagram Import ---
+  const [igUrl, setIgUrl] = useState("");
+  const [igImporting, setIgImporting] = useState(false);
+  const [igResult, setIgResult] = useState<{ imported: number; stories: number; photos: number } | null>(null);
 
-      {/* Spot + Mood global */}
-      <div className="space-y-2">
+  const extractHandle = (url: string): string | null => {
+    const m = url.match(/instagram\.com\/([A-Za-z0-9._]+)/);
+    return m ? m[1].replace(/\/$/, '') : null;
+  };
+
+  const handleAutoImport = async () => {
+    const handle = extractHandle(igUrl.trim());
+    if (!handle) { toast.error("URL Instagram invalide"); return; }
+    if (!selectedSpot) { toast.error("Sélectionne un spot d'abord"); return; }
+
+    setIgImporting(true);
+    setIgResult(null);
+
+    try {
+      // Ensure instagram_handle is set on the place
+      await supabase.from("places").update({ instagram_handle: handle }).eq("id", selectedSpot);
+
+      // Call scrape function with full options
+      const { data, error } = await supabase.functions.invoke("scrape-instagram-feed", {
+        body: {
+          place_id: selectedSpot,
+          create_stories: true,
+          create_photos: true,
+          update_cover: true,
+        },
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        setIgResult({ imported: result.imported || 0, stories: result.stories || 0, photos: result.photos || 0 });
+        const total = (result.imported || 0) + (result.stories || 0) + (result.photos || 0);
+        if (total > 0) {
+          toast.success(`✨ ${result.imported} vibes, ${result.stories} stories, ${result.photos} photos importées !`);
+        } else {
+          toast.info("Aucun nouveau contenu trouvé (déjà importé ou profil privé)");
+        }
+      } else {
+        toast.error(result?.error || "Erreur d'import");
+      }
+    } catch (err: any) {
+      console.error("Auto import error:", err);
+      toast.error("Erreur: " + (err.message || "échec import"));
+    } finally {
+      setIgImporting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* ===== AUTO INSTAGRAM IMPORT ===== */}
+      <div className="space-y-3 p-4 rounded-2xl border border-gold/20 bg-gold/5">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
+            <Instagram className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-foreground">🚀 Auto-import Instagram</h3>
+            <p className="text-[10px] text-muted-foreground">Colle un lien profil → vibes + stories + photos en 1 clic</p>
+          </div>
+        </div>
+
         <select
           value={selectedSpot}
           onChange={(e) => setSelectedSpot(e.target.value)}
-          className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30"
+          className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30"
         >
           <option value="">— Choisir un spot —</option>
           {places.map((p) => (
@@ -199,131 +252,185 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           ))}
         </select>
 
-        <div className="flex gap-1.5">
-          {MOODS.map((m) => (
-            <button
-              key={m.key}
-              onClick={() => setGlobalMood(m.key)}
-              className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
-                globalMood === m.key
-                  ? "bg-gold/15 text-gold border border-gold/30"
-                  : "bg-surface text-muted-foreground border border-border hover:border-gold/20"
-              }`}
-            >
-              {m.emoji} {m.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Drop zone + URL input */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="flex-1 py-6 rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-1.5"
-        >
-          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
-            <Plus className="w-4 h-4 text-gold" />
-          </div>
-          <p className="text-xs font-medium text-foreground">Fichiers</p>
-          <p className="text-[10px] text-muted-foreground">Photos / vidéos</p>
-        </button>
-        <button
-          onClick={() => setShowUrlInput(!showUrlInput)}
-          className={`flex-1 py-6 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-1.5 ${
-            showUrlInput ? "border-gold/50 bg-gold/5" : "border-border hover:border-gold/50 bg-surface"
-          }`}
-        >
-          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
-            <Link2 className="w-4 h-4 text-gold" />
-          </div>
-          <p className="text-xs font-medium text-foreground">URL / Instagram</p>
-          <p className="text-[10px] text-muted-foreground">Lien image ou post IG</p>
-        </button>
-      </div>
-      <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} />
-
-      {/* URL input field */}
-      <AnimatePresence>
-        {showUrlInput && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
+        <div className="flex gap-2">
+          <input
+            value={igUrl}
+            onChange={(e) => setIgUrl(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAutoImport()}
+            placeholder="https://instagram.com/mazel_marrakech"
+            className="flex-1 bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30"
+          />
+          <button
+            onClick={handleAutoImport}
+            disabled={igImporting || !igUrl.trim() || !selectedSpot}
+            className="px-5 py-2.5 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:opacity-90 disabled:opacity-40 text-white font-semibold rounded-xl text-sm transition-all flex items-center gap-1.5"
           >
-            <div className="flex gap-2">
-              <input
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddUrl()}
-                placeholder="Lien Instagram ou URL directe d'image"
-                className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30"
-              />
-              <button
-                onClick={handleAddUrl}
-                disabled={!urlInput.trim()}
-                className="px-4 py-2.5 bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold rounded-xl text-sm transition-all"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1.5">
-              💡 Colle un lien instagram.com/p/... ou un lien direct d'image — la caption sera extraite automatiquement
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Queue preview */}
-      {queue.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          {queue.map((item) => (
-            <div key={item.id} className="relative group rounded-xl overflow-hidden aspect-square bg-surface border border-border">
-              <img src={item.preview} alt="" className="w-full h-full object-cover" />
-              <button
-                onClick={() => removeFromQueue(item.id)}
-                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <X className="w-3 h-3 text-foreground" />
-              </button>
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
-                <input
-                  value={item.caption}
-                  onChange={(e) => updateItem(item.id, { caption: e.target.value })}
-                  placeholder="Caption…"
-                  className="w-full bg-transparent text-[10px] text-white placeholder:text-white/50 focus:outline-none"
-                />
-              </div>
-            </div>
-          ))}
+            {igImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {igImporting ? "Import..." : "Go"}
+          </button>
         </div>
-      )}
 
-      {/* Publish button */}
-      {queue.length > 0 && (
-        <button
-          onClick={publishAll}
-          disabled={publishing || !selectedSpot}
-          className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
-        >
-          {publishing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              {published}/{queue.length} publiées…
-            </>
-          ) : (
-            <>
-              <Send className="w-4 h-4" />
-              Publier {queue.length} vibe{queue.length > 1 ? "s" : ""} pour {places.find((p) => p.id === selectedSpot)?.name || "…"}
-            </>
+        <AnimatePresence>
+          {igResult && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20"
+            >
+              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+              <div className="text-xs text-foreground space-y-0.5">
+                <p className="font-semibold">Import terminé ✨</p>
+                <p className="text-muted-foreground">{igResult.imported} vibes · {igResult.stories} stories · {igResult.photos} photos galerie</p>
+              </div>
+            </motion.div>
           )}
-        </button>
-      )}
+        </AnimatePresence>
 
-      {!selectedSpot && queue.length > 0 && (
-        <p className="text-[10px] text-destructive text-center">⚠️ Sélectionne un spot avant de publier</p>
-      )}
+        <p className="text-[10px] text-muted-foreground">
+          💡 Colle le lien du <b>profil</b> Instagram (pas un post). L'app va extraire les dernières photos et les publier en tant que vibes officielles, stories à la une, et photos de la fiche.
+        </p>
+      </div>
+
+      {/* ===== MANUAL QUICK SEED ===== */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            ⚡ Quick Seed — Publication manuelle
+          </h3>
+          {queue.length > 0 && (
+            <span className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-full font-bold">
+              {queue.length} en file
+            </span>
+          )}
+        </div>
+
+        {/* Mood global */}
+        <div className="space-y-2">
+          <div className="flex gap-1.5">
+            {MOODS.map((m) => (
+              <button
+                key={m.key}
+                onClick={() => setGlobalMood(m.key)}
+                className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+                  globalMood === m.key
+                    ? "bg-gold/15 text-gold border border-gold/30"
+                    : "bg-surface text-muted-foreground border border-border hover:border-gold/20"
+                }`}
+              >
+                {m.emoji} {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Drop zone + URL input */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="flex-1 py-6 rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-1.5"
+          >
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
+              <Plus className="w-4 h-4 text-gold" />
+            </div>
+            <p className="text-xs font-medium text-foreground">Fichiers</p>
+            <p className="text-[10px] text-muted-foreground">Photos / vidéos</p>
+          </button>
+          <button
+            onClick={() => setShowUrlInput(!showUrlInput)}
+            className={`flex-1 py-6 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-1.5 ${
+              showUrlInput ? "border-gold/50 bg-gold/5" : "border-border hover:border-gold/50 bg-surface"
+            }`}
+          >
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
+              <Link2 className="w-4 h-4 text-gold" />
+            </div>
+            <p className="text-xs font-medium text-foreground">URL / Instagram</p>
+            <p className="text-[10px] text-muted-foreground">Lien image ou post IG</p>
+          </button>
+        </div>
+        <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} />
+
+        {/* URL input field */}
+        <AnimatePresence>
+          {showUrlInput && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="flex gap-2">
+                <input
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddUrl()}
+                  placeholder="Lien Instagram ou URL directe d'image"
+                  className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30"
+                />
+                <button
+                  onClick={handleAddUrl}
+                  disabled={!urlInput.trim()}
+                  className="px-4 py-2.5 bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold rounded-xl text-sm transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5">
+                💡 Colle un lien instagram.com/p/... ou un lien direct d'image — la caption sera extraite automatiquement
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Queue preview */}
+        {queue.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {queue.map((item) => (
+              <div key={item.id} className="relative group rounded-xl overflow-hidden aspect-square bg-surface border border-border">
+                <img src={item.preview} alt="" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => removeFromQueue(item.id)}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3 text-foreground" />
+                </button>
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
+                  <input
+                    value={item.caption}
+                    onChange={(e) => updateItem(item.id, { caption: e.target.value })}
+                    placeholder="Caption…"
+                    className="w-full bg-transparent text-[10px] text-white placeholder:text-white/50 focus:outline-none"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Publish button */}
+        {queue.length > 0 && (
+          <button
+            onClick={publishAll}
+            disabled={publishing || !selectedSpot}
+            className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
+          >
+            {publishing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {published}/{queue.length} publiées…
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                Publier {queue.length} vibe{queue.length > 1 ? "s" : ""} pour {places.find((p) => p.id === selectedSpot)?.name || "…"}
+              </>
+            )}
+          </button>
+        )}
+
+        {!selectedSpot && queue.length > 0 && (
+          <p className="text-[10px] text-destructive text-center">⚠️ Sélectionne un spot avant de publier</p>
+        )}
+      </div>
     </div>
   );
 }
