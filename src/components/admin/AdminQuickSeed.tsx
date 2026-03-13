@@ -41,37 +41,19 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
       return;
     }
 
-    // Detect Instagram post URLs and extract image via oEmbed
+    // Detect Instagram post URLs — can't extract images server-side, guide user
     const igPostMatch = url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
     if (igPostMatch) {
-      toast.info("⏳ Extraction de l'image Instagram...");
-      try {
-        const oembedUrl = `https://graph.facebook.com/v18.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=IGQVJ`;
-        // Use noembed.com as a free fallback (no API key needed)
-        const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
-        const data = await res.json();
-        if (data.thumbnail_url) {
-          const newItem: QueuedVibe = {
-            id: Math.random().toString(36).slice(2),
-            file: null,
-            preview: data.thumbnail_url,
-            caption: data.title ? data.title.slice(0, 120) : "",
-            mood: globalMood,
-            spotId: selectedSpot,
-            isUrl: true,
-          };
-          setQueue((prev) => [...prev, newItem]);
-          setUrlInput("");
-          toast.success("✅ Image Instagram extraite !");
-          return;
-        } else {
-          toast.error("Impossible d'extraire l'image. Essaie de copier le lien direct de l'image (clic droit → Copier l'adresse de l'image).");
-          return;
-        }
-      } catch {
-        toast.error("Erreur d'extraction. Copie le lien direct de l'image à la place.");
-        return;
-      }
+      toast.error(
+        "📸 Instagram bloque l'extraction automatique. Fais comme ça :\n\n" +
+        "1. Ouvre le post dans ton navigateur\n" +
+        "2. Appuie longtemps sur la photo → Enregistrer\n" +
+        "3. Uploade-la ici avec le bouton Fichiers",
+        { duration: 8000 }
+      );
+      // Open the link in a new tab for convenience
+      window.open(url, '_blank');
+      return;
     }
 
     const newItem: QueuedVibe = {
