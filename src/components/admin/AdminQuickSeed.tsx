@@ -226,8 +226,8 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
             <Link2 className="w-4 h-4 text-gold" />
           </div>
-          <p className="text-xs font-medium text-foreground">URL</p>
-          <p className="text-[10px] text-muted-foreground">Coller un lien image</p>
+          <p className="text-xs font-medium text-foreground">URL / Instagram</p>
+          <p className="text-[10px] text-muted-foreground">Lien image ou post IG</p>
         </button>
       </div>
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} />
