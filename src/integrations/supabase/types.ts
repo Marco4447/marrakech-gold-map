@@ -470,6 +470,7 @@ export type Database = {
           name: string
           neighborhood: string | null
           notes: string | null
+          place_id: string | null
           priority: string
           status: string
           updated_at: string
@@ -490,6 +491,7 @@ export type Database = {
           name: string
           neighborhood?: string | null
           notes?: string | null
+          place_id?: string | null
           priority?: string
           status?: string
           updated_at?: string
@@ -510,12 +512,21 @@ export type Database = {
           name?: string
           neighborhood?: string | null
           notes?: string | null
+          place_id?: string | null
           priority?: string
           status?: string
           updated_at?: string
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "partner_prospects_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_requests: {
         Row: {
