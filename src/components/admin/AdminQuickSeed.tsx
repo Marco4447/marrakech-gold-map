@@ -33,14 +33,47 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
   const [showUrlInput, setShowUrlInput] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleAddUrl = () => {
+  const handleAddUrl = async () => {
     const url = urlInput.trim();
     if (!url) return;
-    // Basic URL validation
     if (!/^https?:\/\/.+\..+/.test(url)) {
       toast.error("URL invalide");
       return;
     }
+
+    // Detect Instagram post URLs and extract image via oEmbed
+    const igPostMatch = url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
+    if (igPostMatch) {
+      toast.info("⏳ Extraction de l'image Instagram...");
+      try {
+        const oembedUrl = `https://graph.facebook.com/v18.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=IGQVJ`;
+        // Use noembed.com as a free fallback (no API key needed)
+        const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (data.thumbnail_url) {
+          const newItem: QueuedVibe = {
+            id: Math.random().toString(36).slice(2),
+            file: null,
+            preview: data.thumbnail_url,
+            caption: data.title ? data.title.slice(0, 120) : "",
+            mood: globalMood,
+            spotId: selectedSpot,
+            isUrl: true,
+          };
+          setQueue((prev) => [...prev, newItem]);
+          setUrlInput("");
+          toast.success("✅ Image Instagram extraite !");
+          return;
+        } else {
+          toast.error("Impossible d'extraire l'image. Essaie de copier le lien direct de l'image (clic droit → Copier l'adresse de l'image).");
+          return;
+        }
+      } catch {
+        toast.error("Erreur d'extraction. Copie le lien direct de l'image à la place.");
+        return;
+      }
+    }
+
     const newItem: QueuedVibe = {
       id: Math.random().toString(36).slice(2),
       file: null,
@@ -193,8 +226,8 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
             <Link2 className="w-4 h-4 text-gold" />
           </div>
-          <p className="text-xs font-medium text-foreground">URL</p>
-          <p className="text-[10px] text-muted-foreground">Coller un lien image</p>
+          <p className="text-xs font-medium text-foreground">URL / Instagram</p>
+          <p className="text-[10px] text-muted-foreground">Lien image ou post IG</p>
         </button>
       </div>
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} />
@@ -213,7 +246,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddUrl()}
-                placeholder="https://… (lien direct vers une image)"
+                placeholder="Lien Instagram ou URL directe d'image"
                 className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30"
               />
               <button
@@ -225,7 +258,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground mt-1.5">
-              💡 Astuce : sur Instagram, ouvre une photo → clic droit → "Copier l'adresse de l'image"
+              💡 Colle un lien instagram.com/p/... ou un lien direct d'image — la caption sera extraite automatiquement
             </p>
           </motion.div>
         )}
