@@ -924,7 +924,12 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           {/* === POST (Ghost Poster) === */}
           {tab === "post" && (
             <>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ghost Poster — Vibe au nom d'un Spot</h3>
+              {/* Quick Seed - Batch publishing */}
+              <AdminQuickSeed places={allPlaces} />
+
+              <div className="border-t border-border my-4 pt-4" />
+
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ghost Poster — Vibe unique</h3>
 
               {/* Spot selector */}
               <select
