@@ -210,6 +210,13 @@ export default function AdminCRM() {
         )}
       </AnimatePresence>
 
+      {/* Templates panel */}
+      <AnimatePresence>
+        {showTemplates && (
+          <TemplatesPanel onClose={() => setShowTemplates(false)} onCopy={copyTemplate} copiedTemplate={copiedTemplate} />
+        )}
+      </AnimatePresence>
+
       {/* Venue editor */}
       <AnimatePresence>
         {editingVenuePlaceId && (
