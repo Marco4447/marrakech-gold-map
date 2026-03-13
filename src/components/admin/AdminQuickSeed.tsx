@@ -78,6 +78,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           </button>
         </div>
       ), { duration: 10000 });
+      setPendingIgCaption(`📸 instagram.com/p/${igPostMatch[1]}`);
       setUrlInput("");
       return;
     }
