@@ -25,7 +25,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Extract the post shortcode from the URL
     const postMatch = url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
     if (!postMatch) {
       return new Response(
@@ -35,144 +34,159 @@ Deno.serve(async (req) => {
     }
 
     const shortcode = postMatch[1];
-    const cleanUrl = `https://www.instagram.com/p/${shortcode}/`;
-    
-    console.log(`[extract-ig] Extracting image from ${cleanUrl}...`);
-
-    // Strategy 1: Try Firecrawl search to find the post with image
-    const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${firecrawlKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: `instagram.com/p/${shortcode}`,
-        limit: 5,
-      }),
-    });
+    console.log(`[extract-ig] Extracting from shortcode: ${shortcode}`);
 
     let imageUrl: string | null = null;
     let caption: string | null = null;
 
-    if (searchResponse.ok) {
-      const searchResult = await searchResponse.json();
-      const results = searchResult?.data || [];
-      console.log(`[extract-ig] Search returned ${results.length} results`);
+    // Strategy 1: Use Firecrawl search for cached Google thumbnails
+    try {
+      console.log('[extract-ig] Strategy 1: Firecrawl search...');
+      const searchRes = await fetch('https://api.firecrawl.dev/v1/search', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${firecrawlKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `instagram.com/p/${shortcode}`,
+          limit: 5,
+          scrapeOptions: { formats: ['markdown'] },
+        }),
+      });
 
-      for (const item of results) {
-        // Check if this result has a thumbnail/image
-        if (item.thumbnail) {
-          imageUrl = item.thumbnail;
-          caption = item.title || item.description || null;
-          break;
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        const results = searchData?.data || [];
+        console.log(`[extract-ig] Search returned ${results.length} results`);
+
+        for (const item of results) {
+          // Check thumbnail field
+          if (item.thumbnail) {
+            imageUrl = item.thumbnail;
+            caption = item.title || '';
+            console.log('[extract-ig] Found thumbnail in search result');
+            break;
+          }
+
+          // Check markdown content for images
+          const md = item.markdown || '';
+          const mdImgMatch = md.match(/!\[[^\]]*\]\((https?:\/\/[^)]+\.(?:jpg|jpeg|png|webp)[^)]*)\)/);
+          if (mdImgMatch) {
+            imageUrl = mdImgMatch[1];
+            caption = item.title || '';
+            console.log('[extract-ig] Found image in markdown');
+            break;
+          }
+
+          // Check for any image URL in the content
+          const imgMatch = md.match(/(https?:\/\/[^\s"'()]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'()]*)?)/);
+          if (imgMatch) {
+            imageUrl = imgMatch[1];
+            caption = item.title || '';
+            console.log('[extract-ig] Found image URL in content');
+            break;
+          }
         }
-        // Check description for image URLs
-        const desc = item.description || '';
-        const title = item.title || '';
-        if (title || desc) {
-          caption = (title || desc).slice(0, 120);
+      }
+    } catch (e) {
+      console.error('[extract-ig] Search error:', e);
+    }
+
+    // Strategy 2: Try scraping a Google cached/image search result
+    if (!imageUrl) {
+      try {
+        console.log('[extract-ig] Strategy 2: Google Images search...');
+        const searchRes = await fetch('https://api.firecrawl.dev/v1/search', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${firecrawlKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `"${shortcode}" site:instagram.com`,
+            limit: 3,
+          }),
+        });
+
+        if (searchRes.ok) {
+          const data = await searchRes.json();
+          const results = data?.data || [];
+          console.log(`[extract-ig] Google search returned ${results.length} results`);
+
+          for (const item of results) {
+            if (item.thumbnail) {
+              imageUrl = item.thumbnail;
+              caption = item.title || '';
+              console.log('[extract-ig] Found thumbnail via Google');
+              break;
+            }
+          }
         }
+      } catch (e) {
+        console.error('[extract-ig] Google search error:', e);
       }
     }
 
-    // Strategy 2: Try using the Instagram embed endpoint (public, no auth needed)
+    // Strategy 3: Try the Instagram embed API (returns JSON with thumbnail)
     if (!imageUrl) {
-      console.log('[extract-ig] Trying Instagram embed page...');
       try {
-        const embedUrl = `https://www.instagram.com/p/${shortcode}/embed/`;
-        const embedRes = await fetch(embedUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html',
-          },
-        });
-        
-        if (embedRes.ok) {
-          const html = await embedRes.text();
-          console.log(`[extract-ig] Embed page length: ${html.length}`);
-          
-          // Try multiple image extraction strategies on the embed HTML
-          
-          // 1. Look for "display_url" in JSON data
-          const displayUrlMatch = html.match(/"display_url"\s*:\s*"([^"]+)"/);
-          if (displayUrlMatch) {
-            imageUrl = displayUrlMatch[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/');
-            console.log('[extract-ig] Found via display_url');
+        console.log('[extract-ig] Strategy 3: Instagram oEmbed API...');
+        const oembedRes = await fetch(
+          `https://graph.facebook.com/v18.0/instagram_oembed?url=https://www.instagram.com/p/${shortcode}/&omit_script=true&fields=thumbnail_url,author_name,title`,
+          { headers: { 'User-Agent': 'Mozilla/5.0' } }
+        );
+        if (oembedRes.ok) {
+          const oembedData = await oembedRes.json();
+          if (oembedData.thumbnail_url) {
+            imageUrl = oembedData.thumbnail_url;
+            caption = oembedData.title || oembedData.author_name || '';
+            console.log('[extract-ig] Found via oEmbed API');
           }
-          
-          // 2. Look for image in "src" attributes with scontent
-          if (!imageUrl) {
-            const srcMatch = html.match(/src="(https:\/\/scontent[^"]+)"/);
-            if (srcMatch) {
-              imageUrl = srcMatch[1].replace(/&amp;/g, '&');
-              console.log('[extract-ig] Found via src attr');
-            }
-          }
-          
-          // 3. Look for image in "poster" attributes (for videos)
-          if (!imageUrl) {
-            const posterMatch = html.match(/poster="(https:\/\/[^"]+scontent[^"]+)"/);
-            if (posterMatch) {
-              imageUrl = posterMatch[1].replace(/&amp;/g, '&');
-              console.log('[extract-ig] Found via poster attr');
-            }
-          }
-          
-          // 4. Look for any CDN image URL pattern
-          if (!imageUrl) {
-            const cdnMatch = html.match(/(https:\/\/(?:scontent|instagram)[a-z0-9-]*\.(?:cdninstagram|fbcdn)\.net\/[^\s"'\\]+\.(?:jpg|jpeg|png|webp)[^\s"'\\]*)/);
-            if (cdnMatch) {
-              imageUrl = cdnMatch[1].replace(/&amp;/g, '&').replace(/\\u0026/g, '&');
-              console.log('[extract-ig] Found via CDN pattern');
-            }
-          }
-          
-          // 5. Broad scan: find ALL image URLs and pick the largest-looking one
-          if (!imageUrl) {
-            const allMatches = [...html.matchAll(/(https?:\/\/[^\s"'\\>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'\\>]*)?)/g)];
-            const filtered = allMatches
-              .map(m => m[1].replace(/&amp;/g, '&').replace(/\\u0026/g, '&'))
-              .filter(u => !u.includes('150x150') && !u.includes('44x44') && !u.includes('emoji') && !u.includes('static'));
-            
-            console.log(`[extract-ig] Broad scan found ${filtered.length} image URLs`);
-            if (filtered.length > 0) {
-              // Log first few for debugging
-              console.log(`[extract-ig] Sample URLs: ${filtered.slice(0, 3).join(' | ')}`);
-              imageUrl = filtered[0];
-              console.log('[extract-ig] Using first broad match');
-            }
-          }
-          
-          // Extract caption
-          if (!caption) {
-            const captionMatch = html.match(/"caption"\s*:\s*\{[^}]*"text"\s*:\s*"([^"]{1,200})"/);
-            if (captionMatch) {
-              caption = captionMatch[1].replace(/\\n/g, ' ').slice(0, 120);
-            }
-            // Alternative caption pattern
-            if (!caption) {
-              const altCaption = html.match(/<div[^>]*class="[^"]*Caption[^"]*"[^>]*>([^<]{1,200})/);
-              if (altCaption) caption = altCaption[1].trim().slice(0, 120);
-            }
-          }
+        } else {
+          console.log(`[extract-ig] oEmbed returned ${oembedRes.status}`);
         }
-      } catch (embedErr) {
-        console.error('[extract-ig] Embed fetch error:', embedErr);
+      } catch (e) {
+        console.error('[extract-ig] oEmbed error:', e);
+      }
+    }
+
+    // Strategy 4: Use a public embed proxy
+    if (!imageUrl) {
+      try {
+        console.log('[extract-ig] Strategy 4: embed proxy...');
+        const proxyRes = await fetch(`https://api.instagram.com/oembed/?url=https://www.instagram.com/p/${shortcode}/`, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+        });
+        if (proxyRes.ok) {
+          const proxyData = await proxyRes.json();
+          if (proxyData.thumbnail_url) {
+            imageUrl = proxyData.thumbnail_url;
+            caption = proxyData.title || proxyData.author_name || '';
+            console.log('[extract-ig] Found via api.instagram.com/oembed');
+          }
+        } else {
+          console.log(`[extract-ig] oembed proxy returned ${proxyRes.status}`);
+        }
+      } catch (e) {
+        console.error('[extract-ig] Proxy error:', e);
       }
     }
 
     if (imageUrl) {
-      console.log(`[extract-ig] Success! Image found, caption: ${caption?.slice(0, 50)}`);
+      console.log(`[extract-ig] ✅ Success! Image: ${imageUrl.slice(0, 80)}...`);
       return new Response(
-        JSON.stringify({ success: true, image_url: imageUrl, caption }),
+        JSON.stringify({ success: true, image_url: imageUrl, caption: caption?.slice(0, 120) || '' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('[extract-ig] No image found');
+    console.log('[extract-ig] ❌ All strategies failed');
     return new Response(
-      JSON.stringify({ success: false, error: 'Could not extract image from this post. Try saving the image to your phone and uploading it directly.' }),
+      JSON.stringify({ 
+        success: false, 
+        error: 'Impossible d\'extraire l\'image automatiquement. Astuce : ouvre le post Instagram dans ton navigateur, maintiens appuyé sur l\'image → "Enregistrer l\'image", puis uploade-la avec le bouton Fichiers.' 
+      }),
       { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
