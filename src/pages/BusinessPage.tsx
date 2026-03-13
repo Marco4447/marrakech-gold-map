@@ -1,12 +1,12 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import LanguageToggle from "@/components/LanguageToggle";
 import BusinessHero from "@/components/business/BusinessHero";
 import BusinessStats from "@/components/business/BusinessStats";
-import BusinessTestimonials from "@/components/business/BusinessTestimonials";
+import BusinessFeatures from "@/components/business/BusinessFeatures";
 import BusinessHowItWorks from "@/components/business/BusinessHowItWorks";
-import BusinessResults from "@/components/business/BusinessResults";
+import BusinessPricing from "@/components/business/BusinessPricing";
+import BusinessTestimonials from "@/components/business/BusinessTestimonials";
 import BusinessForm from "@/components/business/BusinessForm";
 
 export default function BusinessPage() {
@@ -25,21 +25,20 @@ export default function BusinessPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="font-display text-xl font-bold">
-            <span className="text-gold">Business</span>
-            <span className="text-foreground"> Partner</span>
+            <span className="text-gold">Wesh</span>
+            <span className="text-foreground">Kech</span>
+            <span className="text-muted-foreground text-sm font-normal ml-2">for Business</span>
           </h1>
-          <div className="ml-auto">
-            <LanguageToggle />
-          </div>
         </div>
       </div>
 
-      <div className="space-y-12 pb-20">
+      <div className="space-y-14 pb-20">
         <BusinessHero onCtaClick={scrollToForm} />
         <BusinessStats />
-        <BusinessTestimonials />
+        <BusinessFeatures />
         <BusinessHowItWorks />
-        <BusinessResults />
+        <BusinessTestimonials />
+        <BusinessPricing onCtaClick={scrollToForm} />
         <BusinessForm ref={formRef} />
       </div>
     </div>

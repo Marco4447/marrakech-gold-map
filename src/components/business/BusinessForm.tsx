@@ -1,71 +1,30 @@
 import { useState, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Tag, Gift, Phone, Send, Check } from "lucide-react";
+import { Building2, Phone, Send, Check, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/i18n/LanguageContext";
-
-const partnerSchema = z.object({
-  business_name: z.string().trim().min(2, "Nom requis").max(100),
-  category: z.string().trim().min(2, "Catégorie requise").max(50),
-  offer_description: z.string().trim().min(5, "Décrivez votre offre").max(500),
-  whatsapp_number: z.string().trim().min(8, "Numéro invalide").max(20).regex(/^[\d\s+()-]+$/, "Format invalide"),
-});
 
 const REST_URL = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/partner_requests`;
 const REST_API_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-const categories = [
-  "Restaurant & Café",
-  "Rooftop & Bar",
-  "Riad & Hôtel",
-  "Spa & Bien-être",
-  "Activité & Excursion",
-  "Shopping & Artisanat",
-  "Autre",
-];
-
-const inputClass =
-  "w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all";
-
 const BusinessForm = forwardRef<HTMLDivElement>((_, ref) => {
-  const { t } = useLanguage();
-  const [form, setForm] = useState({
-    business_name: "",
-    category: "",
-    offer_description: "",
-    whatsapp_number: "",
-  });
+  const [form, setForm] = useState({ business_name: "", whatsapp_number: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleChange = (field: string, value: string) => {
-    setForm((f) => ({ ...f, [field]: value }));
-    setErrors((e) => ({ ...e, [field]: "" }));
-  };
-
   const handleSubmit = async () => {
     setSubmitError("");
-    const result = partnerSchema.safeParse(form);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        fieldErrors[issue.path[0] as string] = issue.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
+    const newErrors: Record<string, string> = {};
+    if (!form.business_name.trim() || form.business_name.trim().length < 2) newErrors.business_name = "Nom requis";
+    if (!form.whatsapp_number.trim() || form.whatsapp_number.trim().length < 8) newErrors.whatsapp_number = "Numéro invalide";
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
     setSubmitting(true);
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
     try {
       const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), 12000);
-
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
       const { data: { user } } = await supabase.auth.getUser();
 
       const response = await fetch(REST_URL, {
@@ -77,27 +36,22 @@ const BusinessForm = forwardRef<HTMLDivElement>((_, ref) => {
           Prefer: "return=minimal",
         },
         body: JSON.stringify({
-          business_name: result.data.business_name,
-          category: result.data.category,
-          offer_description: result.data.offer_description,
-          whatsapp_number: result.data.whatsapp_number,
+          business_name: form.business_name.trim(),
+          category: "À définir",
+          offer_description: "Demande via page business",
+          whatsapp_number: form.whatsapp_number.trim(),
           user_id: user?.id || null,
         }),
         signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error(`REQUEST_FAILED_${response.status}`);
       setSuccess(true);
     } catch (e) {
-      console.error("Partner request error:", e);
       const isTimeout = e instanceof DOMException && e.name === "AbortError";
-      setSubmitError(
-        isTimeout
-          ? "Le serveur met trop de temps à répondre. Réessayez dans quelques secondes."
-          : "Impossible d'envoyer la demande pour le moment. Vérifiez votre connexion puis réessayez."
-      );
+      setSubmitError(isTimeout ? "Timeout. Réessayez." : "Erreur. Vérifiez votre connexion.");
     } finally {
-      if (timeoutId) clearTimeout(timeoutId);
       setSubmitting(false);
     }
   };
@@ -116,10 +70,12 @@ const BusinessForm = forwardRef<HTMLDivElement>((_, ref) => {
               <div className="w-14 h-14 mx-auto rounded-full bg-gold/20 flex items-center justify-center">
                 <Check className="w-7 h-7 text-gold" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-foreground">{t("biz_successTitle")}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{t("biz_successDesc")}</p>
+              <h3 className="font-display text-lg font-bold text-foreground">Demande envoyée ! 🎉</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Notre équipe vous contacte sur WhatsApp sous 24h pour activer vos 15 crédits gratuits.
+              </p>
               <Link to="/" className="inline-block mt-2 text-sm font-medium text-gold hover:text-gold-light transition-colors">
-                {t("biz_backToApp")}
+                ← Retour à l'app
               </Link>
             </motion.div>
           ) : (
@@ -127,58 +83,53 @@ const BusinessForm = forwardRef<HTMLDivElement>((_, ref) => {
               key="form"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
+              className="bg-surface border border-gold/15 rounded-2xl p-5 space-y-4"
             >
-              <h3 className="font-display text-base font-semibold text-foreground flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-gold" />
-                {t("biz_formTitle")}
-              </h3>
+              <div className="text-center space-y-1.5">
+                <h3 className="font-display text-base font-bold text-foreground">
+                  Rejoignez WeshKech en 30 secondes
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  On vous contacte sur WhatsApp pour tout configurer.
+                </p>
+              </div>
 
               {/* Business name */}
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                  <Building2 className="w-3 h-3" /> {t("biz_businessName")}
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-1">
+                  <Building2 className="w-3 h-3" /> Nom de l'établissement
                 </label>
-                <input value={form.business_name} onChange={(e) => handleChange("business_name", e.target.value)} placeholder="Le Jardin Secret" maxLength={100} className={inputClass} />
+                <input
+                  value={form.business_name}
+                  onChange={(e) => { setForm(f => ({ ...f, business_name: e.target.value })); setErrors(e => ({ ...e, business_name: "" })); }}
+                  placeholder="Ex: Le Jardin Secret"
+                  maxLength={100}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
+                />
                 {errors.business_name && <p className="text-xs text-destructive">{errors.business_name}</p>}
-              </div>
-
-              {/* Category */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                  <Tag className="w-3 h-3" /> {t("biz_category")}
-                </label>
-                <select value={form.category} onChange={(e) => handleChange("category", e.target.value)} className={`${inputClass} appearance-none`}>
-                  <option value="" disabled>{t("biz_chooseCategory")}</option>
-                  {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-                {errors.category && <p className="text-xs text-destructive">{errors.category}</p>}
-              </div>
-
-              {/* Offer */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                  <Gift className="w-3 h-3" /> {t("biz_guestPassOffer")}
-                </label>
-                <textarea value={form.offer_description} onChange={(e) => handleChange("offer_description", e.target.value)} placeholder={t("biz_offerPlaceholder")} maxLength={500} rows={3} className={`${inputClass} resize-none`} />
-                {errors.offer_description && <p className="text-xs text-destructive">{errors.offer_description}</p>}
               </div>
 
               {/* WhatsApp */}
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5">
-                  <Phone className="w-3 h-3" /> {t("biz_whatsapp")}
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-1">
+                  <MessageCircle className="w-3 h-3" /> WhatsApp
                 </label>
-                <input value={form.whatsapp_number} onChange={(e) => handleChange("whatsapp_number", e.target.value)} placeholder="+212 6XX XX XX XX" maxLength={20} className={inputClass} />
+                <input
+                  value={form.whatsapp_number}
+                  onChange={(e) => { setForm(f => ({ ...f, whatsapp_number: e.target.value })); setErrors(e => ({ ...e, whatsapp_number: "" })); }}
+                  placeholder="+212 6XX XX XX XX"
+                  maxLength={20}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
+                />
                 {errors.whatsapp_number && <p className="text-xs text-destructive">{errors.whatsapp_number}</p>}
               </div>
 
-              {submitError && <p className="text-xs text-destructive" aria-live="polite">{submitError}</p>}
+              {submitError && <p className="text-xs text-destructive">{submitError}</p>}
 
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="w-full py-3.5 rounded-xl font-semibold text-sm text-primary-foreground shadow-lg shadow-gold/20 flex items-center justify-center gap-2 mt-2 disabled:opacity-40 transition-all"
+                className="w-full py-3.5 rounded-xl font-bold text-sm text-primary-foreground shadow-lg shadow-gold/20 flex items-center justify-center gap-2 disabled:opacity-40 transition-all"
                 style={{ background: "linear-gradient(135deg, hsl(43 76% 52%), hsl(43 70% 62%))" }}
               >
                 {submitting ? (
@@ -186,10 +137,14 @@ const BusinessForm = forwardRef<HTMLDivElement>((_, ref) => {
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    {t("biz_submit")}
+                    Activer mes 15 crédits gratuits
                   </>
                 )}
               </button>
+
+              <p className="text-[10px] text-center text-muted-foreground">
+                Sans engagement · Activation sous 24h · Support WhatsApp
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,47 +1,57 @@
 import { motion } from "framer-motion";
 import { ClipboardCheck, Camera, TrendingUp } from "lucide-react";
-import { useLanguage } from "@/i18n/LanguageContext";
 
 const steps = [
-  { icon: ClipboardCheck, titleKey: "biz_step1Title" as const, descKey: "biz_step1Desc" as const },
-  { icon: Camera, titleKey: "biz_step2Title" as const, descKey: "biz_step2Desc" as const },
-  { icon: TrendingUp, titleKey: "biz_step3Title" as const, descKey: "biz_step3Desc" as const },
+  {
+    icon: ClipboardCheck,
+    num: "1",
+    title: "Inscrivez-vous en 30 sec",
+    desc: "Nom + WhatsApp. Notre équipe active votre compte sous 24h.",
+  },
+  {
+    icon: Camera,
+    num: "2",
+    title: "Publiez votre 1ère Vibe",
+    desc: "Photo ou vidéo de votre ambiance → visible 6h sur la carte live pour 3 000+ insiders.",
+  },
+  {
+    icon: TrendingUp,
+    num: "3",
+    title: "Recevez des clients",
+    desc: "Les insiders vous découvrent, utilisent vos offres VIP et reviennent en habitués.",
+  },
 ];
 
 export default function BusinessHowItWorks() {
-  const { t } = useLanguage();
-
   return (
     <section className="px-5">
       <div className="max-w-lg mx-auto space-y-5">
-        <h2 className="font-display text-lg font-bold text-foreground text-center">
-          {t("biz_howItWorksTitle")}
+        <h2 className="font-display text-xl font-bold text-foreground text-center">
+          3 étapes pour remplir votre salle
         </h2>
 
-        <div className="space-y-4">
-          {steps.map(({ icon: Icon, titleKey, descKey }, i) => (
+        <div className="space-y-3">
+          {steps.map(({ icon: Icon, num, title, desc }, i) => (
             <motion.div
-              key={titleKey}
-              initial={{ opacity: 0, x: -20 }}
+              key={num}
+              initial={{ opacity: 0, x: -15 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className="flex items-start gap-4"
+              transition={{ delay: i * 0.12 }}
+              className="flex items-start gap-4 bg-surface border border-border rounded-2xl p-4"
             >
               <div className="relative flex-shrink-0">
                 <div className="w-11 h-11 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
                   <Icon className="w-5 h-5 text-gold" />
                 </div>
-                <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gold text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-                  {i + 1}
+                <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center text-primary-foreground"
+                  style={{ background: "linear-gradient(135deg, hsl(43 76% 52%), hsl(43 70% 62%))" }}>
+                  {num}
                 </span>
-                {i < steps.length - 1 && (
-                  <div className="absolute top-11 left-1/2 -translate-x-1/2 w-px h-6 bg-gold/20" />
-                )}
               </div>
-              <div className="pt-1">
-                <p className="text-sm font-semibold text-foreground">{t(titleKey)}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{t(descKey)}</p>
+              <div className="pt-0.5">
+                <p className="text-sm font-bold text-foreground">{title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{desc}</p>
               </div>
             </motion.div>
           ))}
