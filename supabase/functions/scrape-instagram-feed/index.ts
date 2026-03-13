@@ -11,12 +11,12 @@ interface ScrapedPost {
   post_url: string;
 }
 
-async function scrapeInstagramWithFirecrawl(handle: string, apiKey: string): Promise<ScrapedPost[]> {
+async function scrapeWithFirecrawlScrape(handle: string, apiKey: string): Promise<ScrapedPost[]> {
   const cleanHandle = handle.replace(/^@/, '').trim();
   const url = `https://www.instagram.com/${cleanHandle}/`;
 
   try {
-    console.log(`[Firecrawl] Scraping ${url}...`);
+    console.log(`[Firecrawl] Scraping profile ${url}...`);
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
       headers: {
@@ -25,77 +25,131 @@ async function scrapeInstagramWithFirecrawl(handle: string, apiKey: string): Pro
       },
       body: JSON.stringify({
         url,
-        formats: ['html', 'links'],
-        waitFor: 3000,
+        formats: ['markdown', 'links', 'screenshot'],
+        waitFor: 5000,
       }),
     });
 
     if (!response.ok) {
-      const errData = await response.text();
-      console.error(`[Firecrawl] API error ${response.status}: ${errData}`);
+      const errText = await response.text();
+      console.error(`[Firecrawl] Scrape error ${response.status}: ${errText}`);
       return [];
     }
 
     const result = await response.json();
-    const html = result?.data?.html || result?.html || '';
-    const links: string[] = result?.data?.links || result?.links || [];
+    const data = result?.data || result;
+    const markdown = data?.markdown || '';
+    const links: string[] = data?.links || [];
+    const screenshot = data?.screenshot || '';
     const posts: ScrapedPost[] = [];
 
-    // Strategy 1: Extract post URLs from links
-    const postLinks = links
-      .filter((l: string) => /instagram\.com\/p\/[A-Za-z0-9_-]+/.test(l))
-      .slice(0, 6);
+    console.log(`[Firecrawl] Got markdown length: ${markdown.length}, links: ${links.length}, screenshot: ${screenshot ? 'yes' : 'no'}`);
 
-    // Strategy 2: Extract image URLs from HTML
-    const imgRegex = /https:\/\/(?:scontent[^"'\s]+|instagram[^"'\s]+)\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s]*)?/g;
-    const foundUrls = new Set<string>();
+    // Extract image URLs from markdown (![alt](url) pattern)
+    const mdImgRegex = /!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
     let match;
-    while ((match = imgRegex.exec(html)) !== null) {
-      const imgUrl = match[0].replace(/\\u0026/g, '&');
-      if (!imgUrl.includes('150x150') && !imgUrl.includes('44x44') && !imgUrl.includes('s150x150')) {
-        foundUrls.add(imgUrl);
+    while ((match = mdImgRegex.exec(markdown)) !== null) {
+      const imgUrl = match[2];
+      if (imgUrl.includes('scontent') || imgUrl.includes('instagram') || imgUrl.includes('cdninstagram')) {
+        posts.push({
+          image_url: imgUrl,
+          caption: match[1] || `📸 @${cleanHandle}`,
+          post_url: url,
+        });
       }
     }
 
-    // Strategy 3: Extract from og:image
-    const ogImageMatch = html.match(/<meta\s+(?:property|name)="og:image"\s+content="([^"]+)"/);
-    const ogDescMatch = html.match(/<meta\s+(?:property|name)="og:description"\s+content="([^"]+)"/);
+    // Extract from links - look for post URLs
+    const postLinks = links.filter((l: string) => /instagram\.com\/p\/[A-Za-z0-9_-]+/.test(l));
 
-    // Strategy 4: Extract from JSON data in HTML (Instagram embeds data in scripts)
-    const jsonDataRegex = /"display_url"\s*:\s*"([^"]+)"/g;
-    while ((match = jsonDataRegex.exec(html)) !== null) {
-      const imgUrl = match[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/');
-      foundUrls.add(imgUrl);
+    // Also search for any image URLs in the raw content
+    const imgRegex = /https:\/\/(?:scontent[^"'\s\)]+|cdninstagram[^"'\s\)]+)\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s\)]*)?/g;
+    while ((match = imgRegex.exec(markdown)) !== null) {
+      const imgUrl = match[0];
+      if (!imgUrl.includes('150x150') && !imgUrl.includes('44x44') && !posts.some(p => p.image_url === imgUrl)) {
+        posts.push({
+          image_url: imgUrl,
+          caption: `📸 @${cleanHandle}`,
+          post_url: postLinks.shift() || url,
+        });
+      }
     }
 
-    const captionRegex = /"text"\s*:\s*"([^"]{5,120})"/g;
-    const captions: string[] = [];
-    while ((match = captionRegex.exec(html)) !== null) {
-      captions.push(match[1].replace(/\\n/g, ' ').slice(0, 120));
-    }
-
-    const uniqueUrls = Array.from(foundUrls).slice(0, 6);
-    for (let i = 0; i < uniqueUrls.length; i++) {
-      posts.push({
-        image_url: uniqueUrls[i],
-        caption: captions[i] || (ogDescMatch ? ogDescMatch[1].slice(0, 100) : `📸 @${cleanHandle}`),
-        post_url: postLinks[i] || `https://www.instagram.com/${cleanHandle}/`,
-      });
-    }
-
-    // Fallback to og:image
-    if (posts.length === 0 && ogImageMatch) {
-      posts.push({
-        image_url: ogImageMatch[1],
-        caption: ogDescMatch ? ogDescMatch[1].slice(0, 100) : `📸 @${cleanHandle}`,
-        post_url: url,
-      });
-    }
-
-    console.log(`[Firecrawl] Found ${posts.length} posts for @${cleanHandle}`);
-    return posts;
+    console.log(`[Firecrawl] Extracted ${posts.length} posts from scrape`);
+    return posts.slice(0, 6);
   } catch (err) {
-    console.error(`[Firecrawl] Error scraping @${cleanHandle}:`, err);
+    console.error(`[Firecrawl] scrape error for @${cleanHandle}:`, err);
+    return [];
+  }
+}
+
+async function scrapeWithFirecrawlSearch(handle: string, placeName: string, apiKey: string): Promise<ScrapedPost[]> {
+  const cleanHandle = handle.replace(/^@/, '').trim();
+
+  try {
+    console.log(`[Firecrawl] Searching for @${cleanHandle} posts...`);
+    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `site:instagram.com ${cleanHandle} ${placeName} marrakech`,
+        limit: 6,
+        scrapeOptions: { formats: ['markdown'] },
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[Firecrawl] Search error ${response.status}: ${errText}`);
+      return [];
+    }
+
+    const result = await response.json();
+    const searchData = result?.data || [];
+    const posts: ScrapedPost[] = [];
+
+    console.log(`[Firecrawl] Search returned ${searchData.length} results`);
+
+    for (const item of searchData) {
+      const itemUrl = item.url || '';
+      const itemMarkdown = item.markdown || '';
+
+      // Look for image URLs in the search result content
+      const imgRegex = /https:\/\/(?:scontent[^"'\s\)]+|cdninstagram[^"'\s\)]+)\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s\)]*)?/g;
+      let match;
+      while ((match = imgRegex.exec(itemMarkdown)) !== null) {
+        const imgUrl = match[0];
+        if (!imgUrl.includes('150x150') && !imgUrl.includes('44x44')) {
+          posts.push({
+            image_url: imgUrl,
+            caption: (item.title || `📸 @${cleanHandle}`).slice(0, 120),
+            post_url: itemUrl || `https://www.instagram.com/${cleanHandle}/`,
+          });
+          break; // one image per search result
+        }
+      }
+
+      // Also check for og:image style content
+      const mdImgRegex = /!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
+      while ((match = mdImgRegex.exec(itemMarkdown)) !== null) {
+        if (!posts.some(p => p.image_url === match[2])) {
+          posts.push({
+            image_url: match[2],
+            caption: (item.title || match[1] || `📸 @${cleanHandle}`).slice(0, 120),
+            post_url: itemUrl || `https://www.instagram.com/${cleanHandle}/`,
+          });
+          break;
+        }
+      }
+    }
+
+    console.log(`[Firecrawl] Extracted ${posts.length} posts from search`);
+    return posts.slice(0, 6);
+  } catch (err) {
+    console.error(`[Firecrawl] search error for @${cleanHandle}:`, err);
     return [];
   }
 }
@@ -118,14 +172,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get optional params
     let targetPlaceId: string | null = null;
     try {
       const body = await req.json();
       targetPlaceId = body.place_id || null;
     } catch { /* cron calls with no body */ }
 
-    // Fetch places with instagram_handle set
     let query = supabase
       .from('places')
       .select('id, name, instagram_handle, latitude, longitude')
@@ -141,7 +193,7 @@ Deno.serve(async (req) => {
 
     if (!places || places.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, message: 'No places with Instagram handles found', imported: 0 }),
+        JSON.stringify({ success: true, message: 'No places with Instagram handles', imported: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -154,10 +206,14 @@ Deno.serve(async (req) => {
       const errors: string[] = [];
       let imported = 0;
 
-      const posts = await scrapeInstagramWithFirecrawl(handle, firecrawlKey);
+      // Try scrape first, fall back to search
+      let posts = await scrapeWithFirecrawlScrape(handle, firecrawlKey);
+      if (posts.length === 0) {
+        posts = await scrapeWithFirecrawlSearch(handle, place.name, firecrawlKey);
+      }
 
       for (const post of posts) {
-        // Check if already imported
+        // Deduplicate by image_url
         const { data: existing } = await supabase
           .from('instagram_scrape_log')
           .select('id')
@@ -166,7 +222,6 @@ Deno.serve(async (req) => {
 
         if (existing) continue;
 
-        // Create an official vibe
         const { data: vibe, error: vibeErr } = await supabase
           .from('vibes')
           .insert({
@@ -184,11 +239,10 @@ Deno.serve(async (req) => {
           .single();
 
         if (vibeErr) {
-          errors.push(`Vibe insert failed: ${vibeErr.message}`);
+          errors.push(`Vibe insert: ${vibeErr.message}`);
           continue;
         }
 
-        // Log the scrape
         await supabase.from('instagram_scrape_log').insert({
           place_id: place.id,
           instagram_handle: handle,
