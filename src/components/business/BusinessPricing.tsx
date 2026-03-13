@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: "Business",
-    price: "499 MAD",
+    price: "49€",
     priceNote: "/mois",
     icon: Crown,
     highlight: true,
