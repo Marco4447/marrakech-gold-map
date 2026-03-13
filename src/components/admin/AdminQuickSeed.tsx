@@ -29,7 +29,30 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
   const [globalMood, setGlobalMood] = useState("hot");
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(0);
+  const [urlInput, setUrlInput] = useState("");
+  const [showUrlInput, setShowUrlInput] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleAddUrl = () => {
+    const url = urlInput.trim();
+    if (!url) return;
+    // Basic URL validation
+    if (!/^https?:\/\/.+\..+/.test(url)) {
+      toast.error("URL invalide");
+      return;
+    }
+    const newItem: QueuedVibe = {
+      id: Math.random().toString(36).slice(2),
+      file: null,
+      preview: url,
+      caption: "",
+      mood: globalMood,
+      spotId: selectedSpot,
+      isUrl: true,
+    };
+    setQueue((prev) => [...prev, newItem]);
+    setUrlInput("");
+  };
 
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
