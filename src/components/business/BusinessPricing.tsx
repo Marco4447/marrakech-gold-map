@@ -36,7 +36,7 @@ const plans = [
   },
   {
     name: "Empire",
-    price: "999 MAD",
+    price: "99€",
     priceNote: "/mois",
     icon: Rocket,
     highlight: false,
