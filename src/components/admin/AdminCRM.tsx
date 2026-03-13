@@ -130,6 +130,13 @@ export default function AdminCRM() {
     fetchData();
   };
 
+  const copyTemplate = (template: string, key: string) => {
+    navigator.clipboard.writeText(template);
+    setCopiedTemplate(key);
+    toast.success("Template copié !");
+    setTimeout(() => setCopiedTemplate(null), 2000);
+  };
+
   const getStatusInfo = (status: string) => STATUSES.find(s => s.value === status) || STATUSES[0];
 
   if (loading) return <div className="flex justify-center py-10"><div className="w-5 h-5 border-2 border-gold border-t-transparent rounded-full animate-spin" /></div>;
@@ -142,6 +149,9 @@ export default function AdminCRM() {
           Pipeline prospects ({prospects.length})
         </h3>
         <div className="flex items-center gap-2">
+          <button onClick={() => setShowTemplates(true)} className="flex items-center gap-1 text-xs font-medium text-gold hover:text-gold-light transition-colors">
+            <MessageCircle className="w-3.5 h-3.5" /> Templates DM
+          </button>
           <button onClick={() => setView(view === "kanban" ? "table" : "kanban")} className="text-muted-foreground hover:text-foreground transition-colors">
             {view === "kanban" ? <List className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
           </button>
