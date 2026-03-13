@@ -44,15 +44,40 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
     // Detect Instagram post URLs — can't extract images server-side, guide user
     const igPostMatch = url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
     if (igPostMatch) {
-      toast.error(
-        "📸 Instagram bloque l'extraction automatique. Fais comme ça :\n\n" +
-        "1. Ouvre le post dans ton navigateur\n" +
-        "2. Appuie longtemps sur la photo → Enregistrer\n" +
-        "3. Uploade-la ici avec le bouton Fichiers",
-        { duration: 8000 }
-      );
-      // Open the link in a new tab for convenience
-      window.open(url, '_blank');
+      // Show visual tutorial toast instead of text
+      toast.custom((t) => (
+        <div className="bg-background border border-gold/30 rounded-xl p-4 shadow-lg max-w-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
+              <span className="text-primary-foreground text-sm">📸</span>
+            </div>
+            <p className="font-semibold text-sm text-foreground">Instagram bloque l'extraction</p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
+              <div className="w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">1</div>
+              <p className="text-xs">Ouvre le post dans Instagram</p>
+            </div>
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
+              <div className="w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">2</div>
+              <p className="text-xs">Appuie longtemps sur la photo → <b>Enregistrer</b></p>
+            </div>
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
+              <div className="w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">3</div>
+              <p className="text-xs">Revient ici et clique <b>Fichiers</b> pour uploader</p>
+            </div>
+          </div>
+          
+          <button 
+            onClick={() => { toast.dismiss(t); window.open(url, '_blank'); }}
+            className="mt-3 w-full py-2 bg-gold hover:bg-gold-light text-primary-foreground text-xs font-semibold rounded-lg transition-colors"
+          >
+            Ouvrir le post dans Instagram ↗
+          </button>
+        </div>
+      ), { duration: 10000 });
+      setUrlInput("");
       return;
     }
 
