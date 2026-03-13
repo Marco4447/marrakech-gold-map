@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Navigate } from "react-router-dom";
 import { analytics } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 import MapView from "@/components/MapView";
@@ -111,11 +112,9 @@ const Index = () => {
     );
   }
 
-  // Landing page removed — guests see the app directly to maximize engagement
-  if (showLanding && !user) {
-    // Auto-skip landing, go straight to the app
-    localStorage.setItem("wk_landed", "1");
-    setShowLanding(false);
+  // Redirect unauthenticated new visitors to the /go acquisition page
+  if (!user && showLanding) {
+    return <Navigate to="/go" replace />;
   }
 
   if (!user && showAdmin) setShowAdmin(false);
