@@ -63,6 +63,9 @@ export default function AdminCRM() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [copiedTemplate, setCopiedTemplate] = useState<string | null>(null);
   const [editingVenuePlaceId, setEditingVenuePlaceId] = useState<string | null>(null);
 
   const fetchData = async () => {
