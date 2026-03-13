@@ -84,6 +84,7 @@ const AppShell = () => {
               <Route path="/venue/:slug" element={<VenuePage />} />
               <Route path="/partner-invite/:token" element={<PartnerInvitePage />} />
               <Route path="/admin" element={<AdminRoute />} />
+              <Route path="/demo" element={<DemoPartnerPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
