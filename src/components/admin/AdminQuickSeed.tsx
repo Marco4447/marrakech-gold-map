@@ -15,11 +15,12 @@ const MOODS = [
 
 interface QueuedVibe {
   id: string;
-  file: File;
+  file: File | null;
   preview: string;
   caption: string;
   mood: string;
   spotId: string;
+  isUrl?: boolean;
 }
 
 export default function AdminQuickSeed({ places }: { places: { id: string; name: string; category: string | null; neighborhood: string | null }[] }) {
