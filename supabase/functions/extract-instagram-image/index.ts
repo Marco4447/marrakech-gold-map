@@ -92,45 +92,68 @@ Deno.serve(async (req) => {
           const html = await embedRes.text();
           console.log(`[extract-ig] Embed page length: ${html.length}`);
           
-          // Extract image from embed HTML
-          // Look for the main image in the embed
-          const imgPatterns = [
-            /class="[^"]*EmbeddedMediaImage[^"]*"[^>]*src="([^"]+)"/,
-            /<img[^>]+class="[^"]*"[^>]+src="(https:\/\/[^"]*scontent[^"]+)"/,
-            /<img[^>]+src="(https:\/\/[^"]*scontent[^"]+)"[^>]*/,
-            /background-image:\s*url\('?(https:\/\/[^'")]+scontent[^'")]+)'?\)/,
-            /"display_url"\s*:\s*"([^"]+)"/,
-            /"src"\s*:\s*"(https:\/\/[^"]*scontent[^"]+)"/,
-            /img[^>]*src="(https:\/\/scontent[^"]+)"/g,
-          ];
+          // Try multiple image extraction strategies on the embed HTML
           
-          for (const pattern of imgPatterns) {
-            const match = html.match(pattern);
-            if (match && match[1]) {
-              imageUrl = match[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/').replace(/&amp;/g, '&');
-              console.log(`[extract-ig] Found image via pattern`);
-              break;
+          // 1. Look for "display_url" in JSON data
+          const displayUrlMatch = html.match(/"display_url"\s*:\s*"([^"]+)"/);
+          if (displayUrlMatch) {
+            imageUrl = displayUrlMatch[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/');
+            console.log('[extract-ig] Found via display_url');
+          }
+          
+          // 2. Look for image in "src" attributes with scontent
+          if (!imageUrl) {
+            const srcMatch = html.match(/src="(https:\/\/scontent[^"]+)"/);
+            if (srcMatch) {
+              imageUrl = srcMatch[1].replace(/&amp;/g, '&');
+              console.log('[extract-ig] Found via src attr');
             }
           }
           
-          // Extract caption from embed
+          // 3. Look for image in "poster" attributes (for videos)
+          if (!imageUrl) {
+            const posterMatch = html.match(/poster="(https:\/\/[^"]+scontent[^"]+)"/);
+            if (posterMatch) {
+              imageUrl = posterMatch[1].replace(/&amp;/g, '&');
+              console.log('[extract-ig] Found via poster attr');
+            }
+          }
+          
+          // 4. Look for any CDN image URL pattern
+          if (!imageUrl) {
+            const cdnMatch = html.match(/(https:\/\/(?:scontent|instagram)[a-z0-9-]*\.(?:cdninstagram|fbcdn)\.net\/[^\s"'\\]+\.(?:jpg|jpeg|png|webp)[^\s"'\\]*)/);
+            if (cdnMatch) {
+              imageUrl = cdnMatch[1].replace(/&amp;/g, '&').replace(/\\u0026/g, '&');
+              console.log('[extract-ig] Found via CDN pattern');
+            }
+          }
+          
+          // 5. Broad scan: find ALL image URLs and pick the largest-looking one
+          if (!imageUrl) {
+            const allMatches = [...html.matchAll(/(https?:\/\/[^\s"'\\>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'\\>]*)?)/g)];
+            const filtered = allMatches
+              .map(m => m[1].replace(/&amp;/g, '&').replace(/\\u0026/g, '&'))
+              .filter(u => !u.includes('150x150') && !u.includes('44x44') && !u.includes('emoji') && !u.includes('static'));
+            
+            console.log(`[extract-ig] Broad scan found ${filtered.length} image URLs`);
+            if (filtered.length > 0) {
+              // Log first few for debugging
+              console.log(`[extract-ig] Sample URLs: ${filtered.slice(0, 3).join(' | ')}`);
+              imageUrl = filtered[0];
+              console.log('[extract-ig] Using first broad match');
+            }
+          }
+          
+          // Extract caption
           if (!caption) {
             const captionMatch = html.match(/"caption"\s*:\s*\{[^}]*"text"\s*:\s*"([^"]{1,200})"/);
             if (captionMatch) {
               caption = captionMatch[1].replace(/\\n/g, ' ').slice(0, 120);
             }
-          }
-
-          // Also try to find ANY scontent URL in the page
-          if (!imageUrl) {
-            const allImgs = html.match(/https:\/\/scontent[^"'\s\\)]+\.(?:jpg|jpeg|png|webp)[^"'\s\\)]*/g);
-            if (allImgs && allImgs.length > 0) {
-              // Filter out tiny images
-              const goodImgs = allImgs.filter(u => !u.includes('150x150') && !u.includes('44x44') && !u.includes('s150x150'));
-              if (goodImgs.length > 0) {
-                imageUrl = goodImgs[0].replace(/\\u0026/g, '&').replace(/&amp;/g, '&');
-                console.log(`[extract-ig] Found image via scontent scan`);
-              }
+            // Alternative caption pattern
+            if (!caption) {
+              const altCaption = html.match(/<div[^>]*class="[^"]*Caption[^"]*"[^>]*>([^<]{1,200})/);
+              if (altCaption) caption = altCaption[1].trim().slice(0, 120);
             }
           }
         }
