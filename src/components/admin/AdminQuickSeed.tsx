@@ -246,7 +246,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddUrl()}
-                placeholder="https://… (lien direct vers une image)"
+                placeholder="Lien Instagram ou URL directe d'image"
                 className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30"
               />
               <button
@@ -258,7 +258,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground mt-1.5">
-              💡 Astuce : sur Instagram, ouvre une photo → clic droit → "Copier l'adresse de l'image"
+              💡 Colle un lien instagram.com/p/... ou un lien direct d'image — la caption sera extraite automatiquement
             </p>
           </motion.div>
         )}
