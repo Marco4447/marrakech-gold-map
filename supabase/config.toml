@@ -17,3 +17,5 @@ project_id = "pyocqorzbsshawgknmpr"
     verify_jwt = false
   [functions.accept-partner-invite]
     verify_jwt = false
+  [functions.scrape-instagram-feed]
+    verify_jwt = false

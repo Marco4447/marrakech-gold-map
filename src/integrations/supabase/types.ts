@@ -213,6 +213,54 @@ export type Database = {
         }
         Relationships: []
       }
+      instagram_scrape_log: {
+        Row: {
+          caption: string | null
+          id: string
+          image_url: string
+          instagram_handle: string
+          place_id: string
+          post_url: string
+          scraped_at: string
+          vibe_id: string | null
+        }
+        Insert: {
+          caption?: string | null
+          id?: string
+          image_url: string
+          instagram_handle: string
+          place_id: string
+          post_url: string
+          scraped_at?: string
+          vibe_id?: string | null
+        }
+        Update: {
+          caption?: string | null
+          id?: string
+          image_url?: string
+          instagram_handle?: string
+          place_id?: string
+          post_url?: string
+          scraped_at?: string
+          vibe_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_scrape_log_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "instagram_scrape_log_vibe_id_fkey"
+            columns: ["vibe_id"]
+            isOneToOne: false
+            referencedRelation: "vibes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -686,6 +734,7 @@ export type Database = {
           has_active_offer: boolean
           id: string
           image_url: string | null
+          instagram_handle: string | null
           is_partner: boolean
           is_premium: boolean
           latitude: number
@@ -712,6 +761,7 @@ export type Database = {
           has_active_offer?: boolean
           id?: string
           image_url?: string | null
+          instagram_handle?: string | null
           is_partner?: boolean
           is_premium?: boolean
           latitude: number
@@ -738,6 +788,7 @@ export type Database = {
           has_active_offer?: boolean
           id?: string
           image_url?: string | null
+          instagram_handle?: string | null
           is_partner?: boolean
           is_premium?: boolean
           latitude?: number
