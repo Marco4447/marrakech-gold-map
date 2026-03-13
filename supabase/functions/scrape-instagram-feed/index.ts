@@ -45,7 +45,6 @@ async function scrapeWithFirecrawlScrape(handle: string, apiKey: string): Promis
 
     console.log(`[Firecrawl] Got markdown length: ${markdown.length}, links: ${links.length}, screenshot: ${screenshot ? 'yes' : 'no'}`);
 
-    // Extract image URLs from markdown (![alt](url) pattern)
     const mdImgRegex = /!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
     let match;
     while ((match = mdImgRegex.exec(markdown)) !== null) {
@@ -59,11 +58,9 @@ async function scrapeWithFirecrawlScrape(handle: string, apiKey: string): Promis
       }
     }
 
-    // Extract from links - look for post URLs
     const postLinks = links.filter((l: string) => /instagram\.com\/p\/[A-Za-z0-9_-]+/.test(l));
 
-    // Also search for any image URLs in the raw content
-    const imgRegex = /https:\/\/(?:scontent[^"'\s\)]+|cdninstagram[^"'\s\)]+)\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s\)]*)?/g;
+    const imgRegex = /https:\/\/(?:scontent[^\s"')]+|cdninstagram[^\s"')]+)\.(?:jpg|jpeg|png|webp)(?:\?[^\s"')]*)?/g;
     while ((match = imgRegex.exec(markdown)) !== null) {
       const imgUrl = match[0];
       if (!imgUrl.includes('150x150') && !imgUrl.includes('44x44') && !posts.some(p => p.image_url === imgUrl)) {
@@ -117,8 +114,7 @@ async function scrapeWithFirecrawlSearch(handle: string, placeName: string, apiK
       const itemUrl = item.url || '';
       const itemMarkdown = item.markdown || '';
 
-      // Look for image URLs in the search result content
-      const imgRegex = /https:\/\/(?:scontent[^"'\s\)]+|cdninstagram[^"'\s\)]+)\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s\)]*)?/g;
+      const imgRegex = /https:\/\/(?:scontent[^\s"')]+|cdninstagram[^\s"')]+)\.(?:jpg|jpeg|png|webp)(?:\?[^\s"')]*)?/g;
       let match;
       while ((match = imgRegex.exec(itemMarkdown)) !== null) {
         const imgUrl = match[0];
@@ -128,11 +124,10 @@ async function scrapeWithFirecrawlSearch(handle: string, placeName: string, apiK
             caption: (item.title || `📸 @${cleanHandle}`).slice(0, 120),
             post_url: itemUrl || `https://www.instagram.com/${cleanHandle}/`,
           });
-          break; // one image per search result
+          break;
         }
       }
 
-      // Also check for og:image style content
       const mdImgRegex = /!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
       while ((match = mdImgRegex.exec(itemMarkdown)) !== null) {
         if (!posts.some(p => p.image_url === match[2])) {
@@ -173,14 +168,20 @@ Deno.serve(async (req) => {
     }
 
     let targetPlaceId: string | null = null;
+    let createStories = false;
+    let createPhotos = false;
+    let updateCover = false;
     try {
       const body = await req.json();
       targetPlaceId = body.place_id || null;
+      createStories = body.create_stories === true;
+      createPhotos = body.create_photos === true;
+      updateCover = body.update_cover === true;
     } catch { /* cron calls with no body */ }
 
     let query = supabase
       .from('places')
-      .select('id, name, instagram_handle, latitude, longitude')
+      .select('id, name, instagram_handle, latitude, longitude, image_url')
       .not('instagram_handle', 'is', null)
       .neq('instagram_handle', '');
 
@@ -199,12 +200,16 @@ Deno.serve(async (req) => {
     }
 
     let totalImported = 0;
-    const results: { place: string; handle: string; imported: number; errors: string[] }[] = [];
+    let storiesCreated = 0;
+    let photosCreated = 0;
+    const results: { place: string; handle: string; imported: number; stories: number; photos: number; errors: string[] }[] = [];
 
     for (const place of places) {
       const handle = place.instagram_handle!;
       const errors: string[] = [];
       let imported = 0;
+      let placeStories = 0;
+      let placePhotos = 0;
 
       // Try scrape first, fall back to search
       let posts = await scrapeWithFirecrawlScrape(handle, firecrawlKey);
@@ -212,7 +217,15 @@ Deno.serve(async (req) => {
         posts = await scrapeWithFirecrawlSearch(handle, place.name, firecrawlKey);
       }
 
-      for (const post of posts) {
+      // Update cover image if requested and place has no cover
+      if (updateCover && !place.image_url && posts.length > 0) {
+        await supabase.from('places').update({ image_url: posts[0].image_url }).eq('id', place.id);
+        console.log(`[scrape] Updated cover for ${place.name}`);
+      }
+
+      for (let i = 0; i < posts.length; i++) {
+        const post = posts[i];
+
         // Deduplicate by image_url
         const { data: existing } = await supabase
           .from('instagram_scrape_log')
@@ -222,6 +235,7 @@ Deno.serve(async (req) => {
 
         if (existing) continue;
 
+        // Create vibe
         const { data: vibe, error: vibeErr } = await supabase
           .from('vibes')
           .insert({
@@ -243,6 +257,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        // Log scrape
         await supabase.from('instagram_scrape_log').insert({
           place_id: place.id,
           instagram_handle: handle,
@@ -252,17 +267,54 @@ Deno.serve(async (req) => {
           vibe_id: vibe.id,
         });
 
+        // Create story from first 2 images
+        if (createStories && i < 2) {
+          const { error: storyErr } = await supabase.from('stories').insert({
+            source_type: 'admin',
+            place_id: place.id,
+            media_url: post.image_url,
+            media_type: 'photo',
+            caption: post.caption ? post.caption.slice(0, 60) : `📸 @${handle}`,
+            badge: 'HOT TONIGHT',
+            is_featured: i === 0,
+            latitude: place.latitude,
+            longitude: place.longitude,
+          });
+          if (storyErr) {
+            errors.push(`Story insert: ${storyErr.message}`);
+          } else {
+            placeStories++;
+            storiesCreated++;
+          }
+        }
+
+        // Create place_photos
+        if (createPhotos) {
+          const { error: photoErr } = await supabase.from('place_photos').insert({
+            place_id: place.id,
+            photo_url: post.image_url,
+            caption: post.caption ? post.caption.slice(0, 60) : null,
+            sort_order: i,
+          });
+          if (photoErr) {
+            errors.push(`Photo insert: ${photoErr.message}`);
+          } else {
+            placePhotos++;
+            photosCreated++;
+          }
+        }
+
         imported++;
         totalImported++;
       }
 
-      results.push({ place: place.name, handle, imported, errors });
+      results.push({ place: place.name, handle, imported, stories: placeStories, photos: placePhotos, errors });
     }
 
-    console.log(`Total imported: ${totalImported} vibes from ${places.length} places`);
+    console.log(`Total imported: ${totalImported} vibes, ${storiesCreated} stories, ${photosCreated} photos from ${places.length} places`);
 
     return new Response(
-      JSON.stringify({ success: true, imported: totalImported, results }),
+      JSON.stringify({ success: true, imported: totalImported, stories: storiesCreated, photos: photosCreated, results }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
