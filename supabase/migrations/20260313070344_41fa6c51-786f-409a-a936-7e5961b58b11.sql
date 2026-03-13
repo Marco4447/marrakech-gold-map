@@ -1,0 +1,1 @@
+ALTER TABLE public.partner_prospects ADD COLUMN place_id uuid REFERENCES public.places(id) ON DELETE SET NULL DEFAULT NULL;
