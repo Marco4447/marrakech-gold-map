@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X, Check, LayoutGrid, List, Phone, ExternalLink, Calendar } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, LayoutGrid, List, Phone, ExternalLink, Calendar, MapPin, FileEdit } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { downloadPartnerCsvTemplate } from "@/lib/downloadPartnerCsvTemplate";
+import AdminVenueEditor from "./AdminVenueEditor";
 
 const STATUSES = [
   { value: "prospect", label: "🔍 Prospect", color: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
@@ -36,6 +37,12 @@ interface Prospect {
   invite_link: string;
   notes: string;
   created_at: string;
+  place_id: string | null;
+}
+
+interface Place {
+  id: string;
+  name: string;
 }
 
 type ViewMode = "table" | "kanban";
@@ -44,28 +51,30 @@ const emptyForm: Omit<Prospect, "id" | "created_at"> = {
   name: "", category: "", neighborhood: "", status: "prospect", priority: "medium",
   instagram: "", whatsapp: "", contact_name: "",
   first_contact_date: null, follow_up_date: null,
-  credits_offered: 15, app_link: "", invite_link: "", notes: "",
+  credits_offered: 15, app_link: "", invite_link: "", notes: "", place_id: null,
 };
 
 export default function AdminCRM() {
   const [prospects, setProspects] = useState<Prospect[]>([]);
+  const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewMode>("kanban");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [editingVenuePlaceId, setEditingVenuePlaceId] = useState<string | null>(null);
 
-  const fetchProspects = async () => {
-    const { data, error } = await supabase
-      .from("partner_prospects" as any)
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) { toast.error("Erreur chargement prospects"); return; }
-    setProspects((data as any[]) || []);
+  const fetchData = async () => {
+    const [{ data: prospectData }, { data: placeData }] = await Promise.all([
+      supabase.from("partner_prospects" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("places").select("id, name").order("name"),
+    ]);
+    setProspects((prospectData as any[]) || []);
+    setPlaces((placeData as Place[]) || []);
     setLoading(false);
   };
 
-  useEffect(() => { fetchProspects(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleSave = async () => {
     if (!form.name.trim()) { toast.error("Nom requis"); return; }
@@ -89,14 +98,14 @@ export default function AdminCRM() {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm);
-    fetchProspects();
+    fetchData();
   };
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("partner_prospects" as any).delete().eq("id", id);
     if (error) { toast.error("Erreur suppression"); return; }
     toast.success("Prospect supprimé");
-    fetchProspects();
+    fetchData();
   };
 
   const handleEdit = (p: Prospect) => {
@@ -106,7 +115,7 @@ export default function AdminCRM() {
       whatsapp: p.whatsapp, contact_name: p.contact_name,
       first_contact_date: p.first_contact_date, follow_up_date: p.follow_up_date,
       credits_offered: p.credits_offered, app_link: p.app_link,
-      invite_link: p.invite_link, notes: p.notes,
+      invite_link: p.invite_link, notes: p.notes, place_id: p.place_id,
     });
     setEditingId(p.id);
     setShowForm(true);
@@ -114,7 +123,7 @@ export default function AdminCRM() {
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     await supabase.from("partner_prospects" as any).update({ status: newStatus } as any).eq("id", id);
-    fetchProspects();
+    fetchData();
   };
 
   const getStatusInfo = (status: string) => STATUSES.find(s => s.value === status) || STATUSES[0];
@@ -174,6 +183,17 @@ export default function AdminCRM() {
               </div>
               <Input label="Date relance" value={form.follow_up_date || ""} onChange={v => setForm(f => ({ ...f, follow_up_date: v || null }))} type="date" />
               <Input label="1er contact" value={form.first_contact_date || ""} onChange={v => setForm(f => ({ ...f, first_contact_date: v || null }))} type="date" />
+              {/* Place link */}
+              <div className="col-span-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> Lier à un établissement
+                </label>
+                <select value={form.place_id || ""} onChange={e => setForm(f => ({ ...f, place_id: e.target.value || null }))}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground">
+                  <option value="">— Aucun —</option>
+                  {places.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
             </div>
             <div>
               <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Notes</label>
@@ -183,6 +203,13 @@ export default function AdminCRM() {
               <Check className="w-3.5 h-3.5" /> {editingId ? "Enregistrer" : "Ajouter"}
             </button>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Venue editor */}
+      <AnimatePresence>
+        {editingVenuePlaceId && (
+          <AdminVenueEditor placeId={editingVenuePlaceId} onClose={() => setEditingVenuePlaceId(null)} />
         )}
       </AnimatePresence>
 
@@ -197,7 +224,8 @@ export default function AdminCRM() {
                   {status.label} ({items.length})
                 </div>
                 {items.map(p => (
-                  <KanbanCard key={p.id} prospect={p} onEdit={handleEdit} onDelete={handleDelete} onStatusChange={handleStatusChange} />
+                  <KanbanCard key={p.id} prospect={p} onEdit={handleEdit} onDelete={handleDelete}
+                    onStatusChange={handleStatusChange} onEditVenue={setEditingVenuePlaceId} />
                 ))}
               </div>
             );
@@ -216,6 +244,7 @@ export default function AdminCRM() {
                 <th className="pb-2 font-medium">Priorité</th>
                 <th className="pb-2 font-medium">Relance</th>
                 <th className="pb-2 font-medium">WhatsApp</th>
+                <th className="pb-2 font-medium">Fiche</th>
                 <th className="pb-2 font-medium">Notes</th>
                 <th className="pb-2 font-medium"></th>
               </tr>
@@ -243,6 +272,14 @@ export default function AdminCRM() {
                         </a>
                       ) : "—"}
                     </td>
+                    <td className="py-2.5">
+                      {p.place_id ? (
+                        <button onClick={() => setEditingVenuePlaceId(p.place_id!)}
+                          className="text-gold hover:text-gold-light flex items-center gap-1 text-[10px] font-medium">
+                          <FileEdit className="w-3 h-3" /> Éditer
+                        </button>
+                      ) : <span className="text-muted-foreground text-[10px]">Non lié</span>}
+                    </td>
                     <td className="py-2.5 text-muted-foreground max-w-[150px] truncate">{p.notes || "—"}</td>
                     <td className="py-2.5">
                       <div className="flex gap-1.5">
@@ -254,7 +291,7 @@ export default function AdminCRM() {
                 );
               })}
               {prospects.length === 0 && (
-                <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">Aucun prospect. Cliquez "Ajouter" pour commencer.</td></tr>
+                <tr><td colSpan={8} className="py-8 text-center text-muted-foreground">Aucun prospect. Cliquez "Ajouter" pour commencer.</td></tr>
               )}
             </tbody>
           </table>
@@ -264,8 +301,9 @@ export default function AdminCRM() {
   );
 }
 
-function KanbanCard({ prospect: p, onEdit, onDelete, onStatusChange }: {
-  prospect: Prospect; onEdit: (p: Prospect) => void; onDelete: (id: string) => void; onStatusChange: (id: string, s: string) => void;
+function KanbanCard({ prospect: p, onEdit, onDelete, onStatusChange, onEditVenue }: {
+  prospect: Prospect; onEdit: (p: Prospect) => void; onDelete: (id: string) => void;
+  onStatusChange: (id: string, s: string) => void; onEditVenue: (placeId: string) => void;
 }) {
   const isOverdue = p.follow_up_date && new Date(p.follow_up_date) < new Date();
   return (
@@ -294,6 +332,12 @@ function KanbanCard({ prospect: p, onEdit, onDelete, onStatusChange }: {
           <a href={p.instagram.startsWith("http") ? p.instagram : `https://instagram.com/${p.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-pink-400 hover:text-pink-300 flex items-center gap-0.5">
             <ExternalLink className="w-2.5 h-2.5" /> IG
           </a>
+        )}
+        {p.place_id && (
+          <button onClick={() => onEditVenue(p.place_id!)}
+            className="text-[10px] text-gold hover:text-gold-light flex items-center gap-0.5 font-medium">
+            <FileEdit className="w-2.5 h-2.5" /> Fiche
+          </button>
         )}
       </div>
       {p.notes && <p className="text-[10px] text-muted-foreground line-clamp-2">{p.notes}</p>}
