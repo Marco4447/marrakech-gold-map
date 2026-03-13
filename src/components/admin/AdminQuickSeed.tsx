@@ -33,14 +33,47 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
   const [showUrlInput, setShowUrlInput] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleAddUrl = () => {
+  const handleAddUrl = async () => {
     const url = urlInput.trim();
     if (!url) return;
-    // Basic URL validation
     if (!/^https?:\/\/.+\..+/.test(url)) {
       toast.error("URL invalide");
       return;
     }
+
+    // Detect Instagram post URLs and extract image via oEmbed
+    const igPostMatch = url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
+    if (igPostMatch) {
+      toast.info("⏳ Extraction de l'image Instagram...");
+      try {
+        const oembedUrl = `https://graph.facebook.com/v18.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=IGQVJ`;
+        // Use noembed.com as a free fallback (no API key needed)
+        const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (data.thumbnail_url) {
+          const newItem: QueuedVibe = {
+            id: Math.random().toString(36).slice(2),
+            file: null,
+            preview: data.thumbnail_url,
+            caption: data.title ? data.title.slice(0, 120) : "",
+            mood: globalMood,
+            spotId: selectedSpot,
+            isUrl: true,
+          };
+          setQueue((prev) => [...prev, newItem]);
+          setUrlInput("");
+          toast.success("✅ Image Instagram extraite !");
+          return;
+        } else {
+          toast.error("Impossible d'extraire l'image. Essaie de copier le lien direct de l'image (clic droit → Copier l'adresse de l'image).");
+          return;
+        }
+      } catch {
+        toast.error("Erreur d'extraction. Copie le lien direct de l'image à la place.");
+        return;
+      }
+    }
+
     const newItem: QueuedVibe = {
       id: Math.random().toString(36).slice(2),
       file: null,
