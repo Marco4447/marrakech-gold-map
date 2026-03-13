@@ -31,6 +31,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
   const [published, setPublished] = useState(0);
   const [urlInput, setUrlInput] = useState("");
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [pendingIgCaption, setPendingIgCaption] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleAddUrl = async () => {
