@@ -313,7 +313,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1.5 mt-3 overflow-x-auto no-scrollbar -mx-5 px-5">
+        <div className="flex gap-1.5 mt-3 overflow-x-auto -mx-5 px-5 pb-2 scrollbar-thin" style={{ scrollbarWidth: 'thin', WebkitOverflowScrolling: 'touch' }}>
           <TabButton active={tab === "activity"} label="Activité" icon={Activity} onClick={() => setTab("activity")} />
           <TabButton active={tab === "overview"} label="Vue d'ensemble" icon={BarChart3} onClick={() => setTab("overview")} />
           <TabButton active={tab === "partners"} label="Partenaires" icon={Users} onClick={() => setTab("partners")} />
