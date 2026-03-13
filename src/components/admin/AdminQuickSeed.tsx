@@ -51,7 +51,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
               <span className="text-white text-sm">📸</span>
             </div>
-            <p className="font-semibold text-sm">Instagram bloque l'extraction</p>
+            <p className="font-semibold text-sm text-foreground">Instagram bloque l'extraction</p>
           </div>
           
           <div className="space-y-2">
