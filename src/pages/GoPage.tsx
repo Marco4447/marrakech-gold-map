@@ -219,10 +219,10 @@ export default function GoPage() {
       {/* ===== SIGNUP FORM ===== */}
       <section id="go-signup" className="px-5 py-10 max-w-md mx-auto">
         <h2 className="text-xl font-bold text-center text-foreground mb-1">
-          {lang === "fr" ? "Rejoignez la communauté WeshKech" : "Join the WeshKech Community"}
+          {lang === "fr" ? "Entre ton email, c'est tout 🔓" : "Enter your email, that's it 🔓"}
         </h2>
         <p className="text-[12px] text-muted-foreground text-center mb-5">
-          {lang === "fr" ? "Gratuit · 10 sec · Pas d'app à installer" : "Free · 10 sec · No app to install"}
+          {lang === "fr" ? "Gratuit · Pas de mot de passe · Pas d'app" : "Free · No password · No app"}
         </p>
         <GoAuthForm
           lang={lang}
