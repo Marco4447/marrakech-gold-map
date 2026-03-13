@@ -111,11 +111,9 @@ const Index = () => {
     );
   }
 
-  // Landing page removed — guests see the app directly to maximize engagement
-  if (showLanding && !user) {
-    // Auto-skip landing, go straight to the app
-    localStorage.setItem("wk_landed", "1");
-    setShowLanding(false);
+  // Redirect unauthenticated new visitors to the /go acquisition page
+  if (!user && showLanding) {
+    return <Navigate to="/go" replace />;
   }
 
   if (!user && showAdmin) setShowAdmin(false);
