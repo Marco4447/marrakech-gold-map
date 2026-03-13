@@ -212,6 +212,9 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                         </a>
                       )}
 
+                      {/* Post & Unlock Banner */}
+                      <PostUnlockBanner placeId={place.id} placeName={place.name} onPostClick={() => {}} />
+
                       {/* VIP Offers */}
                       <PlaceVipSection isPartner={isPartner} hasOffer={hasOffer} vipOffers={vipOffers} placeName={place.name} />
 
