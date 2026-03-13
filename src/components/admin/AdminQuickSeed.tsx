@@ -41,21 +41,21 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
       return;
     }
 
-    // Detect Instagram post URLs and extract image via oEmbed
+    // Detect Instagram post URLs and extract image via edge function
     const igPostMatch = url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
     if (igPostMatch) {
       toast.info("⏳ Extraction de l'image Instagram...");
       try {
-        const oembedUrl = `https://graph.facebook.com/v18.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=IGQVJ`;
-        // Use noembed.com as a free fallback (no API key needed)
-        const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
-        const data = await res.json();
-        if (data.thumbnail_url) {
+        const { data, error } = await supabase.functions.invoke('extract-instagram-image', {
+          body: { url },
+        });
+        if (error) throw error;
+        if (data?.success && data?.image_url) {
           const newItem: QueuedVibe = {
             id: Math.random().toString(36).slice(2),
             file: null,
-            preview: data.thumbnail_url,
-            caption: data.title ? data.title.slice(0, 120) : "",
+            preview: data.image_url,
+            caption: data.caption || "",
             mood: globalMood,
             spotId: selectedSpot,
             isUrl: true,
@@ -65,11 +65,12 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           toast.success("✅ Image Instagram extraite !");
           return;
         } else {
-          toast.error("Impossible d'extraire l'image. Essaie de copier le lien direct de l'image (clic droit → Copier l'adresse de l'image).");
+          toast.error(data?.error || "Impossible d'extraire l'image. Sauvegarde la photo sur ton téléphone et uploade-la directement.");
           return;
         }
-      } catch {
-        toast.error("Erreur d'extraction. Copie le lien direct de l'image à la place.");
+      } catch (err) {
+        console.error("IG extract error:", err);
+        toast.error("Erreur d'extraction. Sauvegarde la photo et uploade-la directement.");
         return;
       }
     }
