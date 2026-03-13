@@ -6,6 +6,7 @@ import AdminStoriesManager from "./admin/AdminStoriesManager";
 import AdminActivityFeed from "./admin/AdminActivityFeed";
 import AdminAcquisition from "./admin/AdminAcquisition";
 import AdminCRM from "./admin/AdminCRM";
+import AdminQuickSeed from "./admin/AdminQuickSeed";
 import { Upload, Image, MapPin, Send, ArrowLeft, Check, Loader2, BarChart3, Users, MessageCircle, CheckCircle, XCircle, TrendingUp, CreditCard, Eye, Zap, Crown, RefreshCw, Pencil, Calendar, Plus, Trophy, Gift, Film, Activity, Link2, Copy, Download, Contact } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -923,7 +924,12 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           {/* === POST (Ghost Poster) === */}
           {tab === "post" && (
             <>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ghost Poster — Vibe au nom d'un Spot</h3>
+              {/* Quick Seed - Batch publishing */}
+              <AdminQuickSeed places={allPlaces} />
+
+              <div className="border-t border-border my-4 pt-4" />
+
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ghost Poster — Vibe unique</h3>
 
               {/* Spot selector */}
               <select

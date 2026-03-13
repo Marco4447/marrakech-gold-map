@@ -10,6 +10,7 @@ import { getShareUrl } from "@/lib/shareUrl";
 import { useAuth } from "@/hooks/useAuth";
 import PremiumLock from "./PremiumLock";
 import PartnerOfferCard from "./PartnerOfferCard";
+import PostUnlockBanner from "./PostUnlockBanner";
 import PlacePhotoGallery from "./place/PlacePhotoGallery";
 import PlaceInfoCards from "./place/PlaceInfoCards";
 import PlaceVipSection from "./place/PlaceVipSection";
@@ -210,6 +211,9 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
                         </a>
                       )}
+
+                      {/* Post & Unlock Banner */}
+                      <PostUnlockBanner placeId={place.id} placeName={place.name} onPostClick={() => {}} />
 
                       {/* VIP Offers */}
                       <PlaceVipSection isPartner={isPartner} hasOffer={hasOffer} vipOffers={vipOffers} placeName={place.name} />
