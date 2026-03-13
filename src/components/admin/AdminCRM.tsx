@@ -523,7 +523,7 @@ function TemplatesPanel({ onClose, onCopy, copiedTemplate }: {
 
       {/* Footer tips */}
       <div className="p-3 bg-muted/30 border-t border-border text-[10px] text-muted-foreground">
-        💡 Astuce: Copie le template, remplace les variables {entre accolades} par les infos du prospect, puis envoie.
+        💡 Astuce: Copie le template, remplace les variables {'{'}entre accolades{'}'} par les infos du prospect, puis envoie.
       </div>
     </motion.div>
   );
