@@ -1133,6 +1133,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {/* === CRM === */}
           {tab === "crm" && <AdminCRM />}
+
+          {/* === INSTAGRAM SCRAPER === */}
+          {tab === "instagram" && <AdminInstagramScraper />}
         </div>
       )}
     </div>
