@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Navigate } from "react-router-dom";
 import { analytics } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 import MapView from "@/components/MapView";
