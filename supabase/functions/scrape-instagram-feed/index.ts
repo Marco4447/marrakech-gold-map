@@ -11,90 +11,91 @@ interface ScrapedPost {
   post_url: string;
 }
 
-async function scrapeInstagramProfile(handle: string): Promise<ScrapedPost[]> {
+async function scrapeInstagramWithFirecrawl(handle: string, apiKey: string): Promise<ScrapedPost[]> {
   const cleanHandle = handle.replace(/^@/, '').trim();
   const url = `https://www.instagram.com/${cleanHandle}/`;
-  
+
   try {
-    const response = await fetch(url, {
+    console.log(`[Firecrawl] Scraping ${url}...`);
+    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        url,
+        formats: ['html', 'links'],
+        waitFor: 3000,
+      }),
     });
 
     if (!response.ok) {
-      console.error(`Instagram returned ${response.status} for @${cleanHandle}`);
+      const errData = await response.text();
+      console.error(`[Firecrawl] API error ${response.status}: ${errData}`);
       return [];
     }
 
-    const html = await response.text();
+    const result = await response.json();
+    const html = result?.data?.html || result?.html || '';
+    const links: string[] = result?.data?.links || result?.links || [];
     const posts: ScrapedPost[] = [];
 
-    // Strategy 1: Extract from og:image meta tag (always works for profile pic at minimum)
-    const ogImageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
-    const ogDescMatch = html.match(/<meta\s+property="og:description"\s+content="([^"]+)"/);
+    // Strategy 1: Extract post URLs from links
+    const postLinks = links
+      .filter((l: string) => /instagram\.com\/p\/[A-Za-z0-9_-]+/.test(l))
+      .slice(0, 6);
 
-    // Strategy 2: Extract from window._sharedData or similar JSON blobs
-    const sharedDataMatch = html.match(/window\._sharedData\s*=\s*({.+?});<\/script>/);
-    if (sharedDataMatch) {
-      try {
-        const data = JSON.parse(sharedDataMatch[1]);
-        const user = data?.entry_data?.ProfilePage?.[0]?.graphql?.user;
-        if (user?.edge_owner_to_timeline_media?.edges) {
-          const edges = user.edge_owner_to_timeline_media.edges.slice(0, 6);
-          for (const edge of edges) {
-            const node = edge.node;
-            posts.push({
-              image_url: node.display_url || node.thumbnail_src,
-              caption: node.edge_media_to_caption?.edges?.[0]?.node?.text || '',
-              post_url: `https://www.instagram.com/p/${node.shortcode}/`,
-            });
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to parse _sharedData:', e);
+    // Strategy 2: Extract image URLs from HTML
+    const imgRegex = /https:\/\/(?:scontent[^"'\s]+|instagram[^"'\s]+)\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s]*)?/g;
+    const foundUrls = new Set<string>();
+    let match;
+    while ((match = imgRegex.exec(html)) !== null) {
+      const imgUrl = match[0].replace(/\\u0026/g, '&');
+      if (!imgUrl.includes('150x150') && !imgUrl.includes('44x44') && !imgUrl.includes('s150x150')) {
+        foundUrls.add(imgUrl);
       }
     }
 
-    // Strategy 3: Try to find image URLs in script tags with media data
-    if (posts.length === 0) {
-      // Look for high-res image URLs in the page source
-      const imgRegex = /https:\/\/(?:scontent[^"'\s]+|instagram[^"'\s]+)\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s]*)?/g;
-      const foundUrls = new Set<string>();
-      let match;
-      while ((match = imgRegex.exec(html)) !== null) {
-        const imgUrl = match[0].replace(/\\u0026/g, '&');
-        // Filter out tiny images (profile pics, icons)
-        if (!imgUrl.includes('150x150') && !imgUrl.includes('44x44') && !imgUrl.includes('s150x150')) {
-          foundUrls.add(imgUrl);
-        }
-      }
+    // Strategy 3: Extract from og:image
+    const ogImageMatch = html.match(/<meta\s+(?:property|name)="og:image"\s+content="([^"]+)"/);
+    const ogDescMatch = html.match(/<meta\s+(?:property|name)="og:description"\s+content="([^"]+)"/);
 
-      // Take up to 6 unique image URLs
-      const uniqueUrls = Array.from(foundUrls).slice(0, 6);
-      for (const imgUrl of uniqueUrls) {
-        posts.push({
-          image_url: imgUrl,
-          caption: ogDescMatch ? ogDescMatch[1].slice(0, 100) : '',
-          post_url: `https://www.instagram.com/${cleanHandle}/`,
-        });
-      }
+    // Strategy 4: Extract from JSON data in HTML (Instagram embeds data in scripts)
+    const jsonDataRegex = /"display_url"\s*:\s*"([^"]+)"/g;
+    while ((match = jsonDataRegex.exec(html)) !== null) {
+      const imgUrl = match[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/');
+      foundUrls.add(imgUrl);
     }
 
-    // Strategy 4: Fallback to og:image if nothing else found
+    const captionRegex = /"text"\s*:\s*"([^"]{5,120})"/g;
+    const captions: string[] = [];
+    while ((match = captionRegex.exec(html)) !== null) {
+      captions.push(match[1].replace(/\\n/g, ' ').slice(0, 120));
+    }
+
+    const uniqueUrls = Array.from(foundUrls).slice(0, 6);
+    for (let i = 0; i < uniqueUrls.length; i++) {
+      posts.push({
+        image_url: uniqueUrls[i],
+        caption: captions[i] || (ogDescMatch ? ogDescMatch[1].slice(0, 100) : `📸 @${cleanHandle}`),
+        post_url: postLinks[i] || `https://www.instagram.com/${cleanHandle}/`,
+      });
+    }
+
+    // Fallback to og:image
     if (posts.length === 0 && ogImageMatch) {
       posts.push({
         image_url: ogImageMatch[1],
-        caption: ogDescMatch ? ogDescMatch[1].slice(0, 100) : `Dernière photo de @${cleanHandle}`,
+        caption: ogDescMatch ? ogDescMatch[1].slice(0, 100) : `📸 @${cleanHandle}`,
         post_url: url,
       });
     }
 
+    console.log(`[Firecrawl] Found ${posts.length} posts for @${cleanHandle}`);
     return posts;
   } catch (err) {
-    console.error(`Error scraping @${cleanHandle}:`, err);
+    console.error(`[Firecrawl] Error scraping @${cleanHandle}:`, err);
     return [];
   }
 }
@@ -107,9 +108,17 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get optional params (specific place_id or "all")
+    if (!firecrawlKey) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'FIRECRAWL_API_KEY not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get optional params
     let targetPlaceId: string | null = null;
     try {
       const body = await req.json();
@@ -145,16 +154,14 @@ Deno.serve(async (req) => {
       const errors: string[] = [];
       let imported = 0;
 
-      console.log(`Scraping @${handle} for ${place.name}...`);
-      const posts = await scrapeInstagramProfile(handle);
-      console.log(`Found ${posts.length} posts for @${handle}`);
+      const posts = await scrapeInstagramWithFirecrawl(handle, firecrawlKey);
 
       for (const post of posts) {
         // Check if already imported
         const { data: existing } = await supabase
           .from('instagram_scrape_log')
           .select('id')
-          .eq('post_url', post.post_url)
+          .eq('image_url', post.image_url)
           .maybeSingle();
 
         if (existing) continue;
