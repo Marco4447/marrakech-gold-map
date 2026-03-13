@@ -98,15 +98,17 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
 
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    const captionToUse = pendingIgCaption;
     const newItems: QueuedVibe[] = files.map((f) => ({
       id: Math.random().toString(36).slice(2),
       file: f,
       preview: URL.createObjectURL(f),
-      caption: "",
+      caption: captionToUse,
       mood: globalMood,
       spotId: selectedSpot,
     }));
     setQueue((prev) => [...prev, ...newItems]);
+    if (captionToUse) setPendingIgCaption("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
