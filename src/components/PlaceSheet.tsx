@@ -10,6 +10,7 @@ import { getShareUrl } from "@/lib/shareUrl";
 import { useAuth } from "@/hooks/useAuth";
 import PremiumLock from "./PremiumLock";
 import PartnerOfferCard from "./PartnerOfferCard";
+import PostUnlockBanner from "./PostUnlockBanner";
 import PlacePhotoGallery from "./place/PlacePhotoGallery";
 import PlaceInfoCards from "./place/PlaceInfoCards";
 import PlaceVipSection from "./place/PlaceVipSection";
