@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Upload, Send, Loader2, Check, Plus, X, Image } from "lucide-react";
+import { Upload, Send, Loader2, Check, Plus, X, Image, Link2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,11 +15,12 @@ const MOODS = [
 
 interface QueuedVibe {
   id: string;
-  file: File;
+  file: File | null;
   preview: string;
   caption: string;
   mood: string;
   spotId: string;
+  isUrl?: boolean;
 }
 
 export default function AdminQuickSeed({ places }: { places: { id: string; name: string; category: string | null; neighborhood: string | null }[] }) {
@@ -28,7 +29,30 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
   const [globalMood, setGlobalMood] = useState("hot");
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(0);
+  const [urlInput, setUrlInput] = useState("");
+  const [showUrlInput, setShowUrlInput] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleAddUrl = () => {
+    const url = urlInput.trim();
+    if (!url) return;
+    // Basic URL validation
+    if (!/^https?:\/\/.+\..+/.test(url)) {
+      toast.error("URL invalide");
+      return;
+    }
+    const newItem: QueuedVibe = {
+      id: Math.random().toString(36).slice(2),
+      file: null,
+      preview: url,
+      caption: "",
+      mood: globalMood,
+      spotId: selectedSpot,
+      isUrl: true,
+    };
+    setQueue((prev) => [...prev, newItem]);
+    setUrlInput("");
+  };
 
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -64,12 +88,19 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
 
     for (const item of queue) {
       try {
-        const ext = item.file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from("vibes").upload(fileName, item.file, { contentType: item.file.type });
-        if (uploadError) throw uploadError;
+        let imageUrl: string;
 
-        const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/vibes/${fileName}`;
+        if (item.isUrl || !item.file) {
+          // Direct URL — use as-is
+          imageUrl = item.preview;
+        } else {
+          const ext = item.file.name.split(".").pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          const { error: uploadError } = await supabase.storage.from("vibes").upload(fileName, item.file, { contentType: item.file.type });
+          if (uploadError) throw uploadError;
+          imageUrl = `${SUPABASE_URL}/storage/v1/object/public/vibes/${fileName}`;
+        }
+
         const spot = places.find((p) => p.id === (item.spotId || selectedSpot));
 
         await supabase.from("vibes").insert({
@@ -80,7 +111,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           mood: item.mood || globalMood,
           is_official: true,
           likes: Math.floor(Math.random() * 200) + 30,
-          media_type: item.file.type.startsWith("video") ? "video" : "photo",
+          media_type: item.file?.type?.startsWith("video") ? "video" : "photo",
         } as any);
 
         successCount++;
@@ -141,18 +172,64 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
         </div>
       </div>
 
-      {/* Drop zone */}
-      <button
-        onClick={() => fileRef.current?.click()}
-        className="w-full py-8 rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-2"
-      >
-        <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center">
-          <Plus className="w-5 h-5 text-gold" />
-        </div>
-        <p className="text-sm font-medium text-foreground">Ajouter des photos / vidéos</p>
-        <p className="text-[10px] text-muted-foreground">Sélection multiple autorisée</p>
-      </button>
+      {/* Drop zone + URL input */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="flex-1 py-6 rounded-2xl border-2 border-dashed border-border hover:border-gold/50 bg-surface transition-colors flex flex-col items-center justify-center gap-1.5"
+        >
+          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
+            <Plus className="w-4 h-4 text-gold" />
+          </div>
+          <p className="text-xs font-medium text-foreground">Fichiers</p>
+          <p className="text-[10px] text-muted-foreground">Photos / vidéos</p>
+        </button>
+        <button
+          onClick={() => setShowUrlInput(!showUrlInput)}
+          className={`flex-1 py-6 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-1.5 ${
+            showUrlInput ? "border-gold/50 bg-gold/5" : "border-border hover:border-gold/50 bg-surface"
+          }`}
+        >
+          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
+            <Link2 className="w-4 h-4 text-gold" />
+          </div>
+          <p className="text-xs font-medium text-foreground">URL</p>
+          <p className="text-[10px] text-muted-foreground">Coller un lien image</p>
+        </button>
+      </div>
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} />
+
+      {/* URL input field */}
+      <AnimatePresence>
+        {showUrlInput && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="flex gap-2">
+              <input
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddUrl()}
+                placeholder="https://… (lien direct vers une image)"
+                className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30"
+              />
+              <button
+                onClick={handleAddUrl}
+                disabled={!urlInput.trim()}
+                className="px-4 py-2.5 bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold rounded-xl text-sm transition-all"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1.5">
+              💡 Astuce : sur Instagram, ouvre une photo → clic droit → "Copier l'adresse de l'image"
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Queue preview */}
       {queue.length > 0 && (
