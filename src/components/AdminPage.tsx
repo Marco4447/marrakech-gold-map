@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges" | "vip" | "stories" | "activity" | "acquisition" | "crm" | "instagram";
+type Tab = "overview" | "partners" | "sales" | "requests" | "post" | "spots" | "users" | "challenges" | "vip" | "stories" | "activity" | "acquisition" | "crm";
 type PassStat = { place_name: string; count: number };
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 type PartnerVibe = { id: string; image_url: string; caption: string | null; location: string | null; likes: number; super_vibes: number; created_at: string; is_official: boolean };
@@ -327,7 +327,6 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           <TabButton active={tab === "stories"} label="Stories" icon={Film} onClick={() => setTab("stories")} />
           <TabButton active={tab === "acquisition"} label="Acquisition" icon={TrendingUp} onClick={() => setTab("acquisition")} />
           <TabButton active={tab === "crm"} label="CRM" icon={Contact} onClick={() => setTab("crm")} />
-          <TabButton active={tab === "instagram"} label="Instagram" icon={Instagram} onClick={() => setTab("instagram")} />
         </div>
       </div>
 
@@ -1133,9 +1132,6 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
 
           {/* === CRM === */}
           {tab === "crm" && <AdminCRM />}
-
-          {/* === INSTAGRAM SCRAPER === */}
-          {tab === "instagram" && <AdminInstagramScraper />}
         </div>
       )}
     </div>
