@@ -83,7 +83,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [selectedVibe, setSelectedVibe] = useState<VibePin | null>(null);
   const [vibeSheetOpen, setVibeSheetOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [tonightMode, setTonightMode] = useState(false);
+  // Auto tonight mode: 8pm–6am
+  const [tonightMode] = useState(() => {
+    const h = new Date().getHours();
+    return h >= 20 || h < 6;
+  });
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
   const lastFocusedPlaceRef = useRef<Place | null>(null);
 
