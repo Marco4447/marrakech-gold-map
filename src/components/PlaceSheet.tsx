@@ -53,7 +53,7 @@ function useViewerCount(placeId: string | undefined) {
   return Math.max(1, count);
 }
 
-export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProps) {
+export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: PlaceSheetProps) {
   const [dealOpen, setDealOpen] = useState(false);
   const viewerCount = useViewerCount(place?.id);
   const { t, lang } = useLanguage();
