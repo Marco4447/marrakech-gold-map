@@ -48,9 +48,9 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };
 
-export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null; energyLabel?: string | null; energyEmoji?: string | null; listingTier?: string | null; hasActiveVipOffer?: boolean } = {}) => {
+export const createCategoryIcon = (category: string | null, options: { trending?: boolean; isPartner?: boolean; hasOffer?: boolean; blurred?: boolean; placeName?: string; imageUrl?: string | null; energyLabel?: string | null; energyEmoji?: string | null; listingTier?: string | null; hasActiveVipOffer?: boolean; highlighted?: boolean; highlightEmoji?: string } = {}) => {
   const cat = CATEGORY_CONFIG[category || ""] || DEFAULT_CAT;
-  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji, listingTier, hasActiveVipOffer = false } = options;
+  const { trending = false, isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, energyLabel, energyEmoji, listingTier, hasActiveVipOffer = false, highlighted = false, highlightEmoji } = options;
   const boosted = isBoosted(placeName);
 
   // Check if place has a local logo (handle URL-encoded paths too)
