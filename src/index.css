@@ -161,6 +161,21 @@
   50% { transform: translateX(-50%) scale(1.12); opacity: 1; }
 }
 
+/* 🎯 Filter highlight animations */
+@keyframes filter-highlight-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes filter-badge-pop {
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.filter-highlight-marker {
+  z-index: 1500 !important;
+}
+
 .boosted-marker {
   animation: boosted-glow 2.5s ease-in-out infinite;
   background: transparent !important;
