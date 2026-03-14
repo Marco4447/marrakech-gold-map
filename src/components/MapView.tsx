@@ -275,7 +275,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             return;
           }
           setPreviewPlace(place);
-          map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 16), { duration: 0.6 });
+          focusPlaceOnMap(place, { withSheetOffset: false, duration: 0.6 });
         });
 
       markers.push(marker);
