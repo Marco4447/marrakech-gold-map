@@ -657,12 +657,14 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           if (targetPlace) {
             setPreviewPlace(targetPlace);
 
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                mapRef.current?.invalidateSize({ animate: false });
-                focusPlaceOnMap(targetPlace, { withSheetOffset: false, duration: 0.55 });
-              });
-            });
+            // Wait for sheet close animation + layout to finish, then center
+            setTimeout(() => {
+              const map = mapRef.current;
+              if (!map) return;
+              map.invalidateSize({ animate: false });
+              const zoom = Math.max(map.getZoom(), 16);
+              map.setView([targetPlace.latitude, targetPlace.longitude], zoom, { animate: true, duration: 0.5 });
+            }, 350);
           } else {
             setPreviewPlace(null);
           }
