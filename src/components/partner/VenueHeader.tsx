@@ -19,7 +19,7 @@ export default function VenueHeader({ placeId, planType, credits, onEditVenue, o
     if (!placeId) return;
     supabase
       .from("places")
-      .select("name, image_url, category, listing_tier, has_active_offer, slug")
+      .select("name, image_url, category, listing_tier, has_active_offer, slug, is_founder")
       .eq("id", placeId)
       .single()
       .then(({ data }) => {
