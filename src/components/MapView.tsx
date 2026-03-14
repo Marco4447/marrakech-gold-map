@@ -168,8 +168,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
   // Fly to coordinates — retry until map is ready
   const flyToPending = useRef<{ lat: number; lng: number } | null>(null);
+  const lastFlyToCoords = useRef<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
     if (!flyToCoords) return;
+    // Skip if we already handled these exact coordinates
+    if (lastFlyToCoords.current && lastFlyToCoords.current.lat === flyToCoords.lat && lastFlyToCoords.current.lng === flyToCoords.lng) return;
+    lastFlyToCoords.current = flyToCoords;
     flyToPending.current = flyToCoords;
 
     const tryFly = () => {
