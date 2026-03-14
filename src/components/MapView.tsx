@@ -18,14 +18,28 @@ import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy"
 
 // Filter config for category matching
 const FILTER_CATEGORIES: Record<string, string[]> = {
-  rooftop: ["Rooftop"],
-  party: ["Nightlife", "Night", "Dinner Show"],
-  food: ["Restaurant", "Food", "Street Food"],
-  cafe: ["Café"],
-  street_food: ["Street Food"],
-  chill: ["Chill", "Cocktail Bar", "Café"],
-  attraction: ["Attraction", "Activity"],
+  rooftop: ["rooftop"],
+  party: ["nightlife", "night", "dinner show"],
+  food: ["restaurant", "food", "street food"],
+  cafe: ["cafe"],
+  street_food: ["street food"],
+  chill: ["chill", "cocktail bar", "cafe"],
+  attraction: ["attraction", "activity"],
 };
+
+const normalizeText = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const splitNormalizedCategories = (category: string | null) =>
+  normalizeText(category || "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
