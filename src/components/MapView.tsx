@@ -18,14 +18,28 @@ import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy"
 
 // Filter config for category matching
 const FILTER_CATEGORIES: Record<string, string[]> = {
-  rooftop: ["Rooftop"],
-  party: ["Nightlife", "Night", "Dinner Show"],
-  food: ["Restaurant", "Food", "Street Food"],
-  cafe: ["Café"],
-  street_food: ["Street Food"],
-  chill: ["Chill", "Cocktail Bar", "Café"],
-  attraction: ["Attraction", "Activity"],
+  rooftop: ["rooftop"],
+  party: ["nightlife", "night", "dinner show"],
+  food: ["restaurant", "food", "street food"],
+  cafe: ["cafe"],
+  street_food: ["street food"],
+  chill: ["chill", "cocktail bar", "cafe"],
+  attraction: ["attraction", "activity"],
 };
+
+const normalizeText = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const splitNormalizedCategories = (category: string | null) =>
+  normalizeText(category || "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -110,17 +124,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     const filtered = getFilteredPlaces();
     if (filtered.length === 0) return;
 
-    // Prioritize: boosted > featured > premium > partner > rest
-    const paidPartners = filtered.filter(p =>
-      isBoosted(p.name) || p.listing_tier === "featured" || p.listing_tier === "premium" || p.is_partner
-    );
-    const centerOn = paidPartners.length > 0 ? paidPartners : filtered;
-
-    if (centerOn.length === 1) {
-      // Single result: fly directly to it
-      map.flyTo([centerOn[0].latitude, centerOn[0].longitude], 16, { duration: 0.6 });
+    // Category/UX centering: include all filtered spots so no venue is hidden off-screen
+    if (filtered.length === 1) {
+      map.flyTo([filtered[0].latitude, filtered[0].longitude], 16, { duration: 0.6 });
     } else {
-      const points: L.LatLngExpression[] = centerOn.map(p => [p.latitude, p.longitude]);
+      const points: L.LatLngExpression[] = filtered.map((p) => [p.latitude, p.longitude]);
       const bounds = L.latLngBounds(points);
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true, duration: 0.6 });
     }
@@ -197,8 +205,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           .filter(p => (p as any)._dist < 1500)
           .sort((a, b) => (a as any)._dist - (b as any)._dist);
       } else if (FILTER_CATEGORIES[activeFilter]) {
-        const cats = FILTER_CATEGORIES[activeFilter];
-        filtered = filtered.filter(p => cats.some(c => (p.category || "").split(", ").includes(c)));
+        const targetCats = FILTER_CATEGORIES[activeFilter];
+        filtered = filtered.filter((p) => {
+          const placeCats = splitNormalizedCategories(p.category || null);
+          return targetCats.some((target) =>
+            placeCats.some((cat) => cat === target || cat.includes(target) || target.includes(cat)),
+          );
+        });
       }
     }
 
@@ -262,7 +275,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             return;
           }
           setPreviewPlace(place);
-          map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 16), { duration: 0.6 });
+          focusPlaceOnMap(place, { withSheetOffset: false, duration: 0.6 });
         });
 
       markers.push(marker);
@@ -337,23 +350,40 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     };
   }, [vibePins, activeFilter, places]);
 
-  // Close preview when opening sheet — fly to place with vertical offset so pin stays visible above the sheet
+  const focusPlaceOnMap = useCallback(
+    (
+      place: Place,
+      options: { withSheetOffset?: boolean; zoomMin?: number; duration?: number } = {},
+    ) => {
+      const map = mapRef.current;
+      if (!map) return;
+
+      const { withSheetOffset = false, zoomMin = 16, duration = 0.6 } = options;
+      const targetZoom = Math.max(map.getZoom(), zoomMin);
+
+      if (!withSheetOffset) {
+        map.flyTo([place.latitude, place.longitude], targetZoom, { duration });
+        return;
+      }
+
+      // Keep marker visible above the bottom sheet
+      const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
+      const containerHeight = map.getSize().y;
+      const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.15);
+      const offsetLatLng = map.unproject(offsetPoint, targetZoom);
+      map.flyTo(offsetLatLng, targetZoom, { duration });
+    },
+    [],
+  );
+
+  // Close preview when opening sheet — focus with vertical offset so pin stays visible above the sheet
   const handleOpenSheet = useCallback((place: Place) => {
     setPreviewPlace(null);
     setSelectedPlace(place);
     lastFocusedPlaceRef.current = place;
     setSheetOpen(true);
-    const map = mapRef.current;
-    if (map) {
-      // Offset the center upward so pin stays visible above bottom sheet
-      const targetZoom = Math.max(map.getZoom(), 16);
-      const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
-      const containerHeight = map.getSize().y;
-      const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.15);
-      const offsetLatLng = map.unproject(offsetPoint, targetZoom);
-      map.flyTo(offsetLatLng, targetZoom, { duration: 0.7 });
-    }
-  }, []);
+    focusPlaceOnMap(place, { withSheetOffset: true, duration: 0.7 });
+  }, [focusPlaceOnMap]);
 
   // Auto-open place sheet from deep link
   useEffect(() => {
@@ -473,7 +503,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             selectedPlace={previewPlace}
             onSelect={(p) => {
               setPreviewPlace(p);
-              mapRef.current?.flyTo([p.latitude, p.longitude], Math.max(mapRef.current.getZoom(), 15), { duration: 0.6 });
+              focusPlaceOnMap(p, { withSheetOffset: false, zoomMin: 15, duration: 0.6 });
             }}
             onOpenSheet={handleOpenSheet}
             userPosition={userPosition}
@@ -588,14 +618,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
       <PlaceSheet place={selectedPlace} open={sheetOpen} onRecenter={() => {
         const target = selectedPlace ?? lastFocusedPlaceRef.current;
-        if (target && mapRef.current) {
-          const map = mapRef.current;
-          const targetZoom = Math.max(map.getZoom(), 16);
-          const targetPoint = map.project([target.latitude, target.longitude], targetZoom);
-          const containerHeight = map.getSize().y;
-          const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.15);
-          const offsetLatLng = map.unproject(offsetPoint, targetZoom);
-          map.flyTo(offsetLatLng, targetZoom, { duration: 0.6 });
+        if (target) {
+          focusPlaceOnMap(target, { withSheetOffset: true, duration: 0.6 });
         }
       }} onOpenChange={(open) => {
         setSheetOpen(open);
@@ -606,7 +630,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             const map = mapRef.current;
             setTimeout(() => {
               map.invalidateSize({ animate: false });
-              map.flyTo([targetPlace.latitude, targetPlace.longitude], Math.max(map.getZoom(), 16), { duration: 0.5 });
+              focusPlaceOnMap(targetPlace, { withSheetOffset: false, duration: 0.5 });
             }, 50);
           }
         }
