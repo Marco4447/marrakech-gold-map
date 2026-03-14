@@ -27,6 +27,12 @@ const FILTER_CATEGORIES: Record<string, string[]> = {
   attraction: ["attraction", "activity", "museum", "landmark"],
 };
 
+const FILTER_EMOJIS: Record<string, string> = {
+  rooftop: "🌅", party: "💃", food: "🍽️", cafe: "☕",
+  street_food: "🧆", attraction: "📸", chill: "🍸",
+  hot: "🔥", offers: "✨", near: "📍",
+};
+
 const normalizeText = (value: string) =>
   value
     .toLowerCase()
