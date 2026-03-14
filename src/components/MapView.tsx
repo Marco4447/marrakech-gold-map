@@ -168,8 +168,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
   // Fly to coordinates — retry until map is ready
   const flyToPending = useRef<{ lat: number; lng: number } | null>(null);
+  const lastFlyToCoords = useRef<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
     if (!flyToCoords) return;
+    // Skip if we already handled these exact coordinates
+    if (lastFlyToCoords.current && lastFlyToCoords.current.lat === flyToCoords.lat && lastFlyToCoords.current.lng === flyToCoords.lng) return;
+    lastFlyToCoords.current = flyToCoords;
     flyToPending.current = flyToCoords;
 
     const tryFly = () => {
@@ -392,17 +396,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const targetZoom = Math.max(map.getZoom(), zoomMin);
 
       if (!withSheetOffset) {
-        // Center marker in visible area between header (~110px) and preview card + bottom nav (~150px)
-        // Shift marker upward by moving the center point down so the marker renders higher on screen
-        const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
-        const containerHeight = map.getSize().y;
-        // headerPx occupies top, previewPx occupies bottom → visual center is shifted up
-        const headerPx = 110;
-        const bottomPx = 150; // preview card + bottom nav
-        const visualCenterOffset = (bottomPx - headerPx) / 2; // positive = shift map center down
-        const offsetPoint = L.point(targetPoint.x, targetPoint.y + visualCenterOffset);
-        const offsetLatLng = map.unproject(offsetPoint, targetZoom);
-        map.flyTo(offsetLatLng, targetZoom, { duration });
+        map.setView([place.latitude, place.longitude], targetZoom, { animate: true });
         return;
       }
 
@@ -657,14 +651,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           if (targetPlace) {
             setPreviewPlace(targetPlace);
 
-            // Wait for sheet close animation + layout to finish, then center
+            // Wait for sheet close animation + layout reflow, then center precisely
             setTimeout(() => {
               const map = mapRef.current;
               if (!map) return;
               map.invalidateSize({ animate: false });
-              const zoom = Math.max(map.getZoom(), 16);
-              map.setView([targetPlace.latitude, targetPlace.longitude], zoom, { animate: true, duration: 0.5 });
-            }, 350);
+              map.setView([targetPlace.latitude, targetPlace.longitude], 16, { animate: true });
+            }, 500);
           } else {
             setPreviewPlace(null);
           }
