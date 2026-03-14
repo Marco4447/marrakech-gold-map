@@ -88,6 +88,7 @@ const AppShell = () => {
               <Route path="/admin" element={<AdminRoute />} />
               <Route path="/spot/:slug" element={<PlaceDetailPage />} />
               <Route path="/demo" element={<DemoPartnerPage />} />
+              <Route path="/strategic" element={<StrategicDemoPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
