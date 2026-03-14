@@ -113,6 +113,13 @@
   display: none !important;
 }
 
+/* Marker reveal pop-in animation */
+@keyframes marker-reveal-in {
+  0% { opacity: 0; transform: scale(0); }
+  60% { opacity: 1; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* Gold marker pulse (partner pins) */
 @keyframes marker-pulse {
   0%, 100% { transform: scale(1); opacity: 1; }

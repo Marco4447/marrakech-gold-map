@@ -231,18 +231,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       return 0;
     });
 
-    const tryApplyRevealAnimation = (marker: L.Marker) => {
-      const el = marker.getElement();
-      if (!el) return false;
-      el.style.transition = "opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
-      el.style.transform = "scale(0)";
-      requestAnimationFrame(() => {
-        if (!marker.getElement()) return;
-        el.style.transform = "scale(1)";
-      });
-      return true;
-    };
-
     sortedPlaces.forEach((place, index) => {
       const isTrending = trendingLocations.has(place.name.toLowerCase());
       const shouldBlur = false; // All pins visible — no guest blur
@@ -261,7 +249,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       });
       const boosted = isBoosted(place.name);
       const zOffset = boosted ? 3000 : place.is_partner ? 2000 : isTrending ? 1000 : 0;
-      const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: zOffset, opacity: 0 })
+      const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: zOffset })
         .addTo(map)
         .on("click", () => {
           if (shouldBlur) {
@@ -277,19 +265,27 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 16), { duration: 0.6 });
         });
 
-      // Staggered discovery animation (robuste même si le DOM du marker n'est pas prêt immédiatement)
-      const delay = Math.min(index * 60, 2500);
-      const t = setTimeout(() => {
-        if (!map.hasLayer(marker)) return;
-        marker.setOpacity(1);
-        if (!tryApplyRevealAnimation(marker)) {
-          requestAnimationFrame(() => {
-            if (!map.hasLayer(marker)) return;
-            tryApplyRevealAnimation(marker);
-          });
-        }
-      }, delay);
-      timers.push(t);
+      // Apply staggered pop-in animation via CSS class
+      const el = marker.getElement();
+      const delay = Math.min(index * 50, 1500);
+      if (el) {
+        el.style.opacity = "0";
+        const t = setTimeout(() => {
+          if (!map.hasLayer(marker)) return;
+          el.classList.add("marker-pop-in");
+        }, delay);
+        timers.push(t);
+      } else {
+        // Fallback: if DOM not ready, use requestAnimationFrame
+        const t = setTimeout(() => {
+          if (!map.hasLayer(marker)) return;
+          const domEl = marker.getElement();
+          if (domEl) {
+            domEl.classList.add("marker-pop-in");
+          }
+        }, delay + 50);
+        timers.push(t);
+      }
 
       markers.push(marker);
     });
@@ -307,15 +303,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     const markers: L.Marker[] = [];
     const timers: Array<ReturnType<typeof setTimeout>> = [];
-
-    const tryApplyVibeRevealAnimation = (marker: L.Marker) => {
-      const el = marker.getElement();
-      if (!el) return false;
-      el.style.transition = "opacity 0.35s ease-out, transform 0.35s ease-out";
-      el.style.transform = "scale(0.7)";
-      requestAnimationFrame(() => { el.style.transform = "scale(1)"; });
-      return true;
-    };
 
     // Deduplicate vibe pins by location name AND skip vibes that overlap with a place marker
     const placeLocationKeys = new Set(places.map(p => p.name.trim().toLowerCase()));
@@ -360,43 +347,40 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       });
 
       const zOffset = isOfficial ? 1500 : 500;
-      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: zOffset, opacity: 0 })
+      const marker = L.marker([vibe.latitude, vibe.longitude], { icon, zIndexOffset: zOffset })
         .addTo(map)
         .on("click", () => {
           setSelectedVibe(vibe);
           setVibeSheetOpen(true);
         });
 
+      // Apply staggered pop-in animation via CSS class
+      const el = marker.getElement();
       const delay = Math.min(idx * 40, 800);
-      const t = setTimeout(() => {
-        if (!map.hasLayer(marker)) return;
-        marker.setOpacity(1);
-        if (!tryApplyVibeRevealAnimation(marker)) {
-          requestAnimationFrame(() => {
-            if (!map.hasLayer(marker)) return;
-            tryApplyVibeRevealAnimation(marker);
-          });
-        }
-      }, delay);
-      timers.push(t);
+      if (el) {
+        el.style.opacity = "0";
+        const t = setTimeout(() => {
+          if (!map.hasLayer(marker)) return;
+          el.classList.add("marker-pop-in");
+        }, delay);
+        timers.push(t);
+      } else {
+        const t = setTimeout(() => {
+          if (!map.hasLayer(marker)) return;
+          const domEl = marker.getElement();
+          if (domEl) {
+            domEl.classList.add("marker-pop-in");
+          }
+        }, delay + 50);
+        timers.push(t);
+      }
 
       markers.push(marker);
     });
 
     return () => {
       timers.forEach(clearTimeout);
-      markers.forEach((m) => {
-        const el = m.getElement();
-        if (el) {
-          el.style.transition = "opacity 0.25s ease-in, transform 0.25s ease-in";
-          el.style.opacity = "0";
-          el.style.transform = "scale(0.6)";
-        }
-      });
-      const cleanupTimer = setTimeout(() => {
-        markers.forEach((m) => m.remove());
-      }, 280);
-      timers.push(cleanupTimer);
+      markers.forEach((m) => m.remove());
     };
   }, [vibePins, activeFilter, isNight, places]);
 

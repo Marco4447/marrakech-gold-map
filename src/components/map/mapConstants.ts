@@ -143,6 +143,6 @@ export const createCategoryIcon = (category: string | null, options: { trending?
       ${lockBadge}
     `,
     iconSize: [size + (boosted || isFeatured ? 20 : 0), size + (boosted || isFeatured ? 20 : 0)],
-    iconAnchor: [(size + (boosted || isFeatured ? 20 : 0)) / 2, size + (boosted || isFeatured ? 20 : 0)],
+    iconAnchor: [(size + (boosted || isFeatured ? 20 : 0)) / 2, (size + (boosted || isFeatured ? 20 : 0)) / 2],
   });
 };
