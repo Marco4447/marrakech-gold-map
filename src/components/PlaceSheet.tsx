@@ -66,7 +66,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
 
   useEffect(() => {
     if (!place?.id || !open) return;
-    supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url").eq("id", place.id).single().then(({ data }) => {
+    supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url, is_founder, listing_tier").eq("id", place.id).single().then(({ data }) => {
       if (data) setPlaceDetails(data as any);
     });
     // Fetch place photos
