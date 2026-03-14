@@ -91,7 +91,7 @@ export default function PlaceDetailPage() {
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
 
   const handleShare = async () => {
-    const url = getShareUrl("venue", place.slug || place.id);
+    const url = getShareUrl("place", place.slug || place.id);
     const text = `${place.name} sur Weshkech 🔥`;
     if (navigator.share) {
       try { await navigator.share({ title: place.name, text, url }); } catch {}

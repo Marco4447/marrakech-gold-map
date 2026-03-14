@@ -38,6 +38,7 @@ const VenuePage = lazy(() => import("./pages/VenuePage"));
 const PartnerInvitePage = lazy(() => import("./pages/PartnerInvitePage"));
 const AdminRoute = lazy(() => import("./pages/AdminRoute"));
 const DemoPartnerPage = lazy(() => import("./pages/DemoPartnerPage"));
+const PlaceDetailPage = lazy(() => import("./pages/PlaceDetailPage"));
 
 const queryClient = new QueryClient();
 
