@@ -9,7 +9,8 @@ import {
   TrendingUp,
   Crown,
   ArrowUpRight,
-  Clock
+  Clock,
+  MapPin
 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
