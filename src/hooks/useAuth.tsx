@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           full_name: data.full_name || fallbackProfile.full_name,
           email: data.email || fallbackProfile.email,
           avatar_url: data.avatar_url || fallbackProfile.avatar_url,
+          bio: (data as any).bio || null,
         });
         return;
       }
