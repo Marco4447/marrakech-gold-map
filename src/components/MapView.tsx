@@ -392,10 +392,15 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const targetZoom = Math.max(map.getZoom(), zoomMin);
 
       if (!withSheetOffset) {
-        // Offset slightly upward so marker sits above preview card on mobile
+        // Center marker in visible area between header (~110px) and preview card + bottom nav (~150px)
+        // Shift marker upward by moving the center point down so the marker renders higher on screen
         const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
         const containerHeight = map.getSize().y;
-        const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.08);
+        // headerPx occupies top, previewPx occupies bottom → visual center is shifted up
+        const headerPx = 110;
+        const bottomPx = 150; // preview card + bottom nav
+        const visualCenterOffset = (bottomPx - headerPx) / 2; // positive = shift map center down
+        const offsetPoint = L.point(targetPoint.x, targetPoint.y + visualCenterOffset);
         const offsetLatLng = map.unproject(offsetPoint, targetZoom);
         map.flyTo(offsetLatLng, targetZoom, { duration });
         return;
