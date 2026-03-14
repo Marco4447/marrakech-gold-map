@@ -28,6 +28,10 @@ export default {
           light: "hsl(var(--gold-light))",
           dark: "hsl(var(--gold-dark))",
         },
+        "accent-warm": {
+          DEFAULT: "hsl(var(--accent-warm))",
+          light: "hsl(var(--accent-warm-light))",
+        },
         surface: {
           DEFAULT: "hsl(var(--surface))",
           elevated: "hsl(var(--surface-elevated))",
