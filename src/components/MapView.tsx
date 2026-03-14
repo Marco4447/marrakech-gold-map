@@ -378,6 +378,24 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   }, [sheetOpen, deepLinkPlaceId]);
 
 
+  // Tap ripple effect on map click
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      const container = map.getContainer();
+      const point = map.latLngToContainerPoint(e.latlng);
+      const ripple = document.createElement("div");
+      ripple.className = "map-tap-ripple";
+      ripple.style.left = `${point.x}px`;
+      ripple.style.top = `${point.y}px`;
+      container.appendChild(ripple);
+      ripple.addEventListener("animationend", () => ripple.remove());
+    };
+    map.on("click", handleMapClick);
+    return () => { map.off("click", handleMapClick); };
+  }, []);
+
   return (
     <div className="relative h-full w-full">
       <div
