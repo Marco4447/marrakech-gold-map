@@ -10,6 +10,8 @@ const QUICK_FILTERS: FilterDef[] = [
   { key: "rooftop", emoji: "🌅", label: "Rooftops" },
   { key: "party", emoji: "💃", label: "Clubs" },
   { key: "food", emoji: "🍽️", label: "Restos" },
+  { key: "cafe", emoji: "☕", label: "Cafés" },
+  { key: "street_food", emoji: "🧆", label: "Street Food" },
   { key: "attraction", emoji: "📸", label: "Attractions" },
   { key: "hot", emoji: "🔥", label: "Trending" },
   { key: "offers", emoji: "✨", label: "Offres" },
