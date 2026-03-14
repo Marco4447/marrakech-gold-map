@@ -195,7 +195,51 @@ function ProfileCard({
         </button>
       )}
 
-      <p className="text-muted-foreground text-xs text-center max-w-xs">
+      {/* Bio */}
+      {editingBio ? (
+        <div className="flex items-center gap-2 mt-1.5 w-full max-w-xs">
+          <input
+            value={newBio}
+            onChange={(e) => setNewBio(e.target.value)}
+            placeholder="Ajoute une bio…"
+            maxLength={120}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center"
+            autoFocus
+          />
+          <button
+            onClick={async () => {
+              if (!user) return;
+              setSaving(true);
+              try {
+                await supabase.from("profiles").update({ bio: newBio.trim() || null } as any).eq("user_id", user.id);
+                await onProfileUpdated();
+                setEditingBio(false);
+                toast.success("Bio enregistrée");
+              } catch { toast.error("Erreur"); }
+              finally { setSaving(false); }
+            }}
+            disabled={saving}
+            className="text-green-400 hover:text-green-300"
+          >
+            <Check className="w-4 h-4" />
+          </button>
+          <button onClick={() => setEditingBio(false)} className="text-muted-foreground hover:text-foreground">
+            <XIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => { setNewBio(profile?.bio || ""); setEditingBio(true); }}
+          className="mt-1 group"
+        >
+          <p className="text-xs text-muted-foreground text-center max-w-xs">
+            {profile?.bio || "Ajoute une bio…"}
+            <Pencil className="w-3 h-3 text-muted-foreground/50 inline-block ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </p>
+        </button>
+      )}
+
+      <p className="text-muted-foreground text-xs text-center max-w-xs mt-1">
         {displayEmail}
       </p>
 
