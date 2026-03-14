@@ -502,9 +502,18 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               <div className="mt-1.5 pointer-events-auto">
                 <MapFiltersBar
                   activeFilter={activeFilter}
-                  onFilterChange={setActiveFilter}
+                  onFilterChange={(nextFilter) => {
+                    setActiveFilter(nextFilter);
+                    setTonightMode(false);
+                  }}
                   tonightMode={tonightMode}
-                  onTonightToggle={() => setTonightMode(t => !t)}
+                  onTonightToggle={() => {
+                    setTonightMode((prev) => {
+                      const next = !prev;
+                      if (next) setActiveFilter(null);
+                      return next;
+                    });
+                  }}
                 />
               </div>
             </div>
