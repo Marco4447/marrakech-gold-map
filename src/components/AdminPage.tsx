@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import AdminSpotsManager from "./admin/AdminSpotsManager";
 import { downloadPartnerCsvTemplate } from "@/lib/downloadPartnerCsvTemplate";
 import UsersTab from "./UsersTab";
 import AdminVipOffers from "./admin/AdminVipOffers";
