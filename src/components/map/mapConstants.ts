@@ -28,6 +28,7 @@ export const CATEGORY_CONFIG: Record<string, { emoji: string; color: string }> =
   Chill: { emoji: "🍸", color: "hsl(160,50%,45%)" },
   "Cocktail Bar": { emoji: "🍹", color: "hsl(320,60%,55%)" },
   Café: { emoji: "☕", color: "hsl(30,50%,45%)" },
+  "Street Food": { emoji: "🧆", color: "hsl(85,60%,42%)" },
   Food: { emoji: "🍽️", color: "hsl(25,90%,55%)" },
   Night: { emoji: "🎶", color: "hsl(280,60%,60%)" },
   Hôtel: { emoji: "🏨", color: "hsl(200,70%,55%)" },
