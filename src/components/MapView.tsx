@@ -205,8 +205,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           .filter(p => (p as any)._dist < 1500)
           .sort((a, b) => (a as any)._dist - (b as any)._dist);
       } else if (FILTER_CATEGORIES[activeFilter]) {
-        const cats = FILTER_CATEGORIES[activeFilter];
-        filtered = filtered.filter(p => cats.some(c => (p.category || "").split(", ").includes(c)));
+        const targetCats = FILTER_CATEGORIES[activeFilter];
+        filtered = filtered.filter((p) => {
+          const placeCats = splitNormalizedCategories(p.category || null);
+          return targetCats.some((target) =>
+            placeCats.some((cat) => cat === target || cat.includes(target) || target.includes(cat)),
+          );
+        });
       }
     }
 
