@@ -47,6 +47,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [tonightMode, setTonightMode] = useState(false);
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
+  const lastFocusedPlaceRef = useRef<Place | null>(null);
 
   // Map onboarding tooltips
   const [onboardingStep, setOnboardingStep] = useState(() => {
@@ -269,7 +270,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const el = marker.getElement();
       const delay = Math.min(index * 50, 1500);
       if (el) {
-        el.style.opacity = "0";
         const t = setTimeout(() => {
           if (!map.hasLayer(marker)) return;
           el.classList.add("marker-pop-in");
@@ -358,7 +358,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const el = marker.getElement();
       const delay = Math.min(idx * 40, 800);
       if (el) {
-        el.style.opacity = "0";
         const t = setTimeout(() => {
           if (!map.hasLayer(marker)) return;
           el.classList.add("marker-pop-in");
@@ -388,10 +387,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const handleOpenSheet = useCallback((place: Place) => {
     setPreviewPlace(null);
     setSelectedPlace(place);
+    lastFocusedPlaceRef.current = place;
     setSheetOpen(true);
     const map = mapRef.current;
     if (map) {
-      // Offset the center upward by ~30% of container height so pin sits above the bottom sheet
+      // Offset the center upward so pin stays visible above bottom sheet
       const targetZoom = Math.max(map.getZoom(), 16);
       const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
       const containerHeight = map.getSize().y;
@@ -618,12 +618,10 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         setSheetOpen(open);
         if (!open) {
           setPreviewPlace(null);
-          // Re-center map on the place after closing the sheet — use a small delay to let the sheet animate out
-          if (selectedPlace && mapRef.current) {
+          const targetPlace = selectedPlace ?? lastFocusedPlaceRef.current;
+          if (targetPlace && mapRef.current) {
             const map = mapRef.current;
-            setTimeout(() => {
-              map.flyTo([selectedPlace.latitude, selectedPlace.longitude], Math.max(map.getZoom(), 17), { duration: 0.5 });
-            }, 100);
+            map.flyTo([targetPlace.latitude, targetPlace.longitude], Math.max(map.getZoom(), 17), { duration: 0.45 });
           }
         }
       }} />
