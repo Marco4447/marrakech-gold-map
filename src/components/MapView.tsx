@@ -124,17 +124,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     const filtered = getFilteredPlaces();
     if (filtered.length === 0) return;
 
-    // Prioritize: boosted > featured > premium > partner > rest
-    const paidPartners = filtered.filter(p =>
-      isBoosted(p.name) || p.listing_tier === "featured" || p.listing_tier === "premium" || p.is_partner
-    );
-    const centerOn = paidPartners.length > 0 ? paidPartners : filtered;
-
-    if (centerOn.length === 1) {
-      // Single result: fly directly to it
-      map.flyTo([centerOn[0].latitude, centerOn[0].longitude], 16, { duration: 0.6 });
+    // Category/UX centering: include all filtered spots so no venue is hidden off-screen
+    if (filtered.length === 1) {
+      map.flyTo([filtered[0].latitude, filtered[0].longitude], 16, { duration: 0.6 });
     } else {
-      const points: L.LatLngExpression[] = centerOn.map(p => [p.latitude, p.longitude]);
+      const points: L.LatLngExpression[] = filtered.map((p) => [p.latitude, p.longitude]);
       const bounds = L.latLngBounds(points);
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true, duration: 0.6 });
     }
