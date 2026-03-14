@@ -450,6 +450,33 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
       if (savedData) setSavedVibes(savedData);
     }
 
+    // Fetch visited places (unique locations from user's vibes + checkins)
+    const uniqueLocations = new Set<string>();
+    if (userVibes) {
+      userVibes.forEach((v: any) => { if (v.location) uniqueLocations.add(v.location); });
+    }
+    // Also from checkins
+    const { data: checkins } = await supabase
+      .from("checkins")
+      .select("place_id")
+      .eq("user_id", user.id);
+    
+    const checkinPlaceIds = checkins?.map((c: any) => c.place_id) || [];
+    
+    // Fetch places matching locations or checkin IDs
+    if (uniqueLocations.size > 0 || checkinPlaceIds.length > 0) {
+      let query = supabase.from("places").select("name, image_url, slug");
+      if (uniqueLocations.size > 0 && checkinPlaceIds.length > 0) {
+        query = query.or(`name.in.(${Array.from(uniqueLocations).map(n => `"${n}"`).join(",")}),id.in.(${checkinPlaceIds.join(",")})`);
+      } else if (uniqueLocations.size > 0) {
+        query = query.in("name", Array.from(uniqueLocations));
+      } else {
+        query = query.in("id", checkinPlaceIds);
+      }
+      const { data: places } = await query.limit(50);
+      if (places) setVisitedPlaces(places);
+    }
+
     setLoading(false);
   }, [deviceId, user]);
 
