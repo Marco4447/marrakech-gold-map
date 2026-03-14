@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronUp } from "lucide-react";
 import TopLivePlaces from "@/components/TopLivePlaces";
 
