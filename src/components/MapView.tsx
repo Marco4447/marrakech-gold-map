@@ -276,6 +276,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const isTrending = trendingLocations.has(place.name.toLowerCase());
       const shouldBlur = false; // All pins visible — no guest blur
       const energy = getEnergy(energyMap, place.name);
+      const isFilterHighlighted = !!activeFilter && activeFilter !== "hot" && activeFilter !== "offers" && activeFilter !== "near";
       const icon = createCategoryIcon(place.category, {
         trending: isTrending,
         isPartner: place.is_partner,
@@ -287,6 +288,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         energyEmoji: energy?.emoji || null,
         listingTier: place.listing_tier || null,
         hasActiveVipOffer: activeVipPlaceIds.has(place.id),
+        highlighted: isFilterHighlighted,
+        highlightEmoji: isFilterHighlighted && activeFilter ? FILTER_EMOJIS[activeFilter] : undefined,
       });
       const boosted = isBoosted(place.name);
       const zOffset = boosted ? 3000 : place.is_partner ? 2000 : isTrending ? 1000 : 0;
