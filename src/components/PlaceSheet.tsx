@@ -36,6 +36,7 @@ interface PlaceSheetProps {
   place: Place | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onRecenter?: () => void;
 }
 
 function useViewerCount(placeId: string | undefined) {
