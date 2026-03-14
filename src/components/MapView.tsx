@@ -83,7 +83,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [selectedVibe, setSelectedVibe] = useState<VibePin | null>(null);
   const [vibeSheetOpen, setVibeSheetOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [tonightMode, setTonightMode] = useState(false);
+  // Auto tonight mode: 8pm–6am
+  const [tonightMode] = useState(() => {
+    const h = new Date().getHours();
+    return h >= 20 || h < 6;
+  });
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
   const lastFocusedPlaceRef = useRef<Place | null>(null);
 
@@ -502,18 +506,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               <div className="mt-1.5 pointer-events-auto">
                 <MapFiltersBar
                   activeFilter={activeFilter}
-                  onFilterChange={(nextFilter) => {
-                    setActiveFilter(nextFilter);
-                    setTonightMode(false);
-                  }}
-                  tonightMode={tonightMode}
-                  onTonightToggle={() => {
-                    setTonightMode((prev) => {
-                      const next = !prev;
-                      if (next) setActiveFilter(null);
-                      return next;
-                    });
-                  }}
+                  onFilterChange={setActiveFilter}
                 />
               </div>
             </div>
@@ -560,25 +553,15 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Tonight mode active indicator */}
-      <AnimatePresence>
-        {tonightMode && !sheetOpen && !vibeSheetOpen && (
-          <motion.div
-            key="tonight-indicator"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-[88px] left-3 z-[999]"
-          >
-            <div className="flex items-center gap-1.5 bg-[hsl(280,50%,15%,0.9)] backdrop-blur-xl border border-[hsl(280,60%,50%,0.3)] rounded-full px-3 py-1.5 shadow-lg">
-              <span className="text-xs">🌙</span>
-              <span className="text-[10px] font-bold text-[hsl(280,60%,75%)]">Tonight Mode</span>
-              <span className="text-[10px] text-[hsl(280,40%,60%)]">·</span>
-              <span className="text-[10px] text-[hsl(280,40%,60%)]">{getFilteredPlaces().length} spots</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Tonight mode subtle indicator (auto) */}
+      {tonightMode && !sheetOpen && !vibeSheetOpen && (
+        <div className="absolute bottom-[88px] left-3 z-[999]">
+          <div className="flex items-center gap-1 bg-card/70 backdrop-blur-md border border-border/40 rounded-full px-2.5 py-1 shadow-sm">
+            <span className="text-[10px]">🌙</span>
+            <span className="text-[9px] font-medium text-muted-foreground">Night · {getFilteredPlaces().length} spots</span>
+          </div>
+        </div>
+      )}
 
       {/* Onboarding tooltips */}
       <AnimatePresence>
