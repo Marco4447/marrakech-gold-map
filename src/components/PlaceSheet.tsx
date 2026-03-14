@@ -61,12 +61,12 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   const [isVip, setIsVip] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);
   const [vipOffers, setVipOffers] = useState<any[]>([]);
-  const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string; drinks_menu_url?: string } | null>(null);
+  const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string; drinks_menu_url?: string; is_founder?: boolean; listing_tier?: string } | null>(null);
   const [placePhotos, setPlacePhotos] = useState<{ id: string; photo_url: string; caption: string | null }[]>([]);
 
   useEffect(() => {
     if (!place?.id || !open) return;
-    supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url").eq("id", place.id).single().then(({ data }) => {
+    supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url, is_founder, listing_tier").eq("id", place.id).single().then(({ data }) => {
       if (data) setPlaceDetails(data as any);
     });
     // Fetch place photos
@@ -156,7 +156,19 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                         className="font-display text-xl font-semibold text-foreground hover:text-gold transition-colors">
                         {place.name}
                       </Link>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {placeDetails?.is_founder && (
+                          <span className="flex items-center gap-1 bg-gold/15 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px]">🛡️</span>
+                            <span className="text-[9px] font-bold text-gold uppercase tracking-wider">Fondateur</span>
+                          </span>
+                        )}
+                        {placeDetails?.listing_tier === "featured" && (
+                          <span className="flex items-center gap-1 bg-accent/15 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px]">⚡</span>
+                            <span className="text-[9px] font-bold text-accent uppercase tracking-wider">Featured</span>
+                          </span>
+                        )}
                         {place.category && (<div className="flex items-center gap-1"><Tag className="w-3 h-3 text-gold" /><span className="text-xs text-gold font-medium uppercase tracking-wider">{place.category}</span></div>)}
                         {(place as any).neighborhood && (<span className="text-[10px] text-muted-foreground">· {(place as any).neighborhood}</span>)}
                       </div>

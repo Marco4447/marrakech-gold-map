@@ -99,9 +99,14 @@ export default function VenuePreviewCard({
               {/* Info */}
               <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                 <div>
-                  <h3 className="text-sm font-display font-bold text-foreground truncate">
-                    {currentPlace.name}
-                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-display font-bold text-foreground truncate">
+                      {currentPlace.name}
+                    </h3>
+                    {(currentPlace as any).is_founder && (
+                      <span className="text-[8px] font-bold text-gold bg-gold/10 px-1.5 py-0.5 rounded-full shrink-0">🛡️</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     {currentPlace.category && (
                       <span className="text-[10px] text-gold font-medium uppercase tracking-wider">

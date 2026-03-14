@@ -91,8 +91,13 @@ Deno.serve(async (req) => {
       { onConflict: "user_id" }
     );
 
-    // 4. Set place as partner
-    await admin.from("places").update({ is_partner: true }).eq("id", invite.place_id);
+    // 4. Set place as partner + founder benefits
+    // Founding partners get: is_founder badge, listing_tier "featured" (priority visibility + homepage placement)
+    await admin.from("places").update({
+      is_partner: true,
+      is_founder: true,
+      listing_tier: "featured",
+    }).eq("id", invite.place_id);
 
     // 5. Create subscription if initial_plan is set
     if (invite.initial_plan) {
