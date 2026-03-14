@@ -648,6 +648,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
       {/* Vibe Boost */}
       <VibeBoostSheet vibeId={boostVibeId || ""} open={!!boostVibeId} onOpenChange={(open) => !open && setBoostVibeId(null)} />
+
+      {/* Floating VIP Offer CTA */}
+      <FloatingVipOffer />
     </div>
   );
 }
