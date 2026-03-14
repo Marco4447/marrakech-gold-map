@@ -387,10 +387,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const handleOpenSheet = useCallback((place: Place) => {
     setPreviewPlace(null);
     setSelectedPlace(place);
+    lastFocusedPlaceRef.current = place;
     setSheetOpen(true);
     const map = mapRef.current;
     if (map) {
-      // Offset the center upward by ~30% of container height so pin sits above the bottom sheet
+      // Offset the center upward so pin stays visible above bottom sheet
       const targetZoom = Math.max(map.getZoom(), 16);
       const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
       const containerHeight = map.getSize().y;
