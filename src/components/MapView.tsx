@@ -650,14 +650,19 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       }} onOpenChange={(open) => {
         setSheetOpen(open);
         if (!open) {
-          setPreviewPlace(null);
           const targetPlace = selectedPlace ?? lastFocusedPlaceRef.current;
-          if (targetPlace && mapRef.current) {
-            const map = mapRef.current;
-            setTimeout(() => {
-              map.invalidateSize({ animate: false });
-              focusPlaceOnMap(targetPlace, { withSheetOffset: false, duration: 0.5 });
-            }, 50);
+
+          if (targetPlace) {
+            setPreviewPlace(targetPlace);
+
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                mapRef.current?.invalidateSize({ animate: false });
+                focusPlaceOnMap(targetPlace, { withSheetOffset: false, duration: 0.55 });
+              });
+            });
+          } else {
+            setPreviewPlace(null);
           }
         }
       }} />
