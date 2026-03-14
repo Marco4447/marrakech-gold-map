@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function VenueHeader({ placeId, planType, credits, onEditVenue, onPostVibe }: Props) {
-  const [venue, setVenue] = useState<{ name: string; image_url: string | null; category: string | null; listing_tier: string | null; has_active_offer: boolean; slug: string | null } | null>(null);
+  const [venue, setVenue] = useState<{ name: string; image_url: string | null; category: string | null; listing_tier: string | null; has_active_offer: boolean; slug: string | null; is_founder: boolean } | null>(null);
 
   useEffect(() => {
     if (!placeId) return;
