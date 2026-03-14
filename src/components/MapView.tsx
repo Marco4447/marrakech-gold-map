@@ -666,8 +666,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               const map = mapRef.current;
               if (!map) return;
               map.invalidateSize({ animate: false });
-              // Use panTo to center exactly on marker without changing zoom
-              map.flyTo([targetPlace.latitude, targetPlace.longitude], 16, { animate: true, duration: 0.8 });
+              console.log('[MAP] Re-centering on', targetPlace.name, targetPlace.latitude, targetPlace.longitude);
+              map.setView([targetPlace.latitude, targetPlace.longitude], 16);
             }, 500);
           } else {
             setPreviewPlace(null);
