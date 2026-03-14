@@ -735,6 +735,7 @@ export type Database = {
           id: string
           image_url: string | null
           instagram_handle: string | null
+          is_founder: boolean
           is_partner: boolean
           is_premium: boolean
           latitude: number
@@ -762,6 +763,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           instagram_handle?: string | null
+          is_founder?: boolean
           is_partner?: boolean
           is_premium?: boolean
           latitude: number
@@ -789,6 +791,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           instagram_handle?: string | null
+          is_founder?: boolean
           is_partner?: boolean
           is_premium?: boolean
           latitude?: number

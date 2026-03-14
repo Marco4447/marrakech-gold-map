@@ -1,0 +1,1 @@
+ALTER TABLE public.places ADD COLUMN IF NOT EXISTS is_founder boolean NOT NULL DEFAULT false;
