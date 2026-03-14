@@ -43,6 +43,7 @@ export interface Place {
   vip_perk_description: string | null;
   listing_tier?: string | null;
   has_active_vip_offer?: boolean;
+  is_founder?: boolean;
 }
 
 export interface VibePin {
