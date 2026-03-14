@@ -634,9 +634,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         setSheetOpen(open);
         if (!open) {
           setPreviewPlace(null);
-          // Re-center map on the place after closing the sheet
+          // Re-center map on the place after closing the sheet — use a small delay to let the sheet animate out
           if (selectedPlace && mapRef.current) {
-            mapRef.current.flyTo([selectedPlace.latitude, selectedPlace.longitude], Math.max(mapRef.current.getZoom(), 16), { duration: 0.6 });
+            const map = mapRef.current;
+            setTimeout(() => {
+              map.flyTo([selectedPlace.latitude, selectedPlace.longitude], Math.max(map.getZoom(), 17), { duration: 0.5 });
+            }, 100);
           }
         }
       }} />
