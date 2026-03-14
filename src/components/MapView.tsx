@@ -350,23 +350,40 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     };
   }, [vibePins, activeFilter, places]);
 
-  // Close preview when opening sheet — fly to place with vertical offset so pin stays visible above the sheet
+  const focusPlaceOnMap = useCallback(
+    (
+      place: Place,
+      options: { withSheetOffset?: boolean; zoomMin?: number; duration?: number } = {},
+    ) => {
+      const map = mapRef.current;
+      if (!map) return;
+
+      const { withSheetOffset = false, zoomMin = 16, duration = 0.6 } = options;
+      const targetZoom = Math.max(map.getZoom(), zoomMin);
+
+      if (!withSheetOffset) {
+        map.flyTo([place.latitude, place.longitude], targetZoom, { duration });
+        return;
+      }
+
+      // Keep marker visible above the bottom sheet
+      const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
+      const containerHeight = map.getSize().y;
+      const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.15);
+      const offsetLatLng = map.unproject(offsetPoint, targetZoom);
+      map.flyTo(offsetLatLng, targetZoom, { duration });
+    },
+    [],
+  );
+
+  // Close preview when opening sheet — focus with vertical offset so pin stays visible above the sheet
   const handleOpenSheet = useCallback((place: Place) => {
     setPreviewPlace(null);
     setSelectedPlace(place);
     lastFocusedPlaceRef.current = place;
     setSheetOpen(true);
-    const map = mapRef.current;
-    if (map) {
-      // Offset the center upward so pin stays visible above bottom sheet
-      const targetZoom = Math.max(map.getZoom(), 16);
-      const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
-      const containerHeight = map.getSize().y;
-      const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.15);
-      const offsetLatLng = map.unproject(offsetPoint, targetZoom);
-      map.flyTo(offsetLatLng, targetZoom, { duration: 0.7 });
-    }
-  }, []);
+    focusPlaceOnMap(place, { withSheetOffset: true, duration: 0.7 });
+  }, [focusPlaceOnMap]);
 
   // Auto-open place sheet from deep link
   useEffect(() => {
