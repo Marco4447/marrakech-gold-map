@@ -15,6 +15,7 @@ import MapFiltersBar from "./map/MapFiltersBar";
 import VenuePreviewCard from "./map/VenuePreviewCard";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy";
+import HotPlacesDrawer from "./map/HotPlacesDrawer";
 
 // Filter config for category matching
 const FILTER_CATEGORIES: Record<string, string[]> = {
