@@ -270,7 +270,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const el = marker.getElement();
       const delay = Math.min(index * 50, 1500);
       if (el) {
-        el.style.opacity = "0";
         const t = setTimeout(() => {
           if (!map.hasLayer(marker)) return;
           el.classList.add("marker-pop-in");
