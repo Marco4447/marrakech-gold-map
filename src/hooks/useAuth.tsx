@@ -7,6 +7,7 @@ interface Profile {
   full_name: string | null;
   email: string | null;
   avatar_url: string | null;
+  bio: string | null;
 }
 
 interface AuthContextType {
@@ -39,12 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         null,
       email: currentUser.email || null,
       avatar_url: (currentUser.user_metadata?.avatar_url as string | undefined) || null,
+      bio: null,
     };
 
     for (let attempt = 0; attempt < retries; attempt++) {
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, email, avatar_url")
+        .select("full_name, email, avatar_url, bio")
         .eq("user_id", currentUser.id)
         .maybeSingle();
 
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           full_name: data.full_name || fallbackProfile.full_name,
           email: data.email || fallbackProfile.email,
           avatar_url: data.avatar_url || fallbackProfile.avatar_url,
+          bio: (data as any).bio || null,
         });
         return;
       }

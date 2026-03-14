@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark, Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,7 +51,9 @@ function ProfileCard({
   onProfileUpdated: () => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
+  const [editingBio, setEditingBio] = useState(false);
   const [newName, setNewName] = useState(displayName);
+  const [newBio, setNewBio] = useState(profile?.bio || "");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -193,7 +195,51 @@ function ProfileCard({
         </button>
       )}
 
-      <p className="text-muted-foreground text-xs text-center max-w-xs">
+      {/* Bio */}
+      {editingBio ? (
+        <div className="flex items-center gap-2 mt-1.5 w-full max-w-xs">
+          <input
+            value={newBio}
+            onChange={(e) => setNewBio(e.target.value)}
+            placeholder="Ajoute une bio…"
+            maxLength={120}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center"
+            autoFocus
+          />
+          <button
+            onClick={async () => {
+              if (!user) return;
+              setSaving(true);
+              try {
+                await supabase.from("profiles").update({ bio: newBio.trim() || null } as any).eq("user_id", user.id);
+                await onProfileUpdated();
+                setEditingBio(false);
+                toast.success("Bio enregistrée");
+              } catch { toast.error("Erreur"); }
+              finally { setSaving(false); }
+            }}
+            disabled={saving}
+            className="text-green-400 hover:text-green-300"
+          >
+            <Check className="w-4 h-4" />
+          </button>
+          <button onClick={() => setEditingBio(false)} className="text-muted-foreground hover:text-foreground">
+            <XIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => { setNewBio(profile?.bio || ""); setEditingBio(true); }}
+          className="mt-1 group"
+        >
+          <p className="text-xs text-muted-foreground text-center max-w-xs">
+            {profile?.bio || "Ajoute une bio…"}
+            <Pencil className="w-3 h-3 text-muted-foreground/50 inline-block ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </p>
+        </button>
+      )}
+
+      <p className="text-muted-foreground text-xs text-center max-w-xs mt-1">
         {displayEmail}
       </p>
 
@@ -294,7 +340,8 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [myVibes, setMyVibes] = useState<Vibe[]>([]);
   const [savedVibes, setSavedVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profileTab, setProfileTab] = useState<"vibes" | "likes" | "saved">("vibes");
+  const [profileTab, setProfileTab] = useState<"vibes" | "likes" | "saved" | "visited">("vibes");
+  const [visitedPlaces, setVisitedPlaces] = useState<{ name: string; image_url: string | null; slug: string | null }[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -401,6 +448,33 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         .in("id", bIds)
         .order("created_at", { ascending: false });
       if (savedData) setSavedVibes(savedData);
+    }
+
+    // Fetch visited places (unique locations from user's vibes + checkins)
+    const uniqueLocations = new Set<string>();
+    if (userVibes) {
+      userVibes.forEach((v: any) => { if (v.location) uniqueLocations.add(v.location); });
+    }
+    // Also from checkins
+    const { data: checkins } = await supabase
+      .from("checkins")
+      .select("place_id")
+      .eq("user_id", user.id);
+    
+    const checkinPlaceIds = checkins?.map((c: any) => c.place_id) || [];
+    
+    // Fetch places matching locations or checkin IDs
+    if (uniqueLocations.size > 0 || checkinPlaceIds.length > 0) {
+      let query = supabase.from("places").select("name, image_url, slug");
+      if (uniqueLocations.size > 0 && checkinPlaceIds.length > 0) {
+        query = query.or(`name.in.(${Array.from(uniqueLocations).map(n => `"${n}"`).join(",")}),id.in.(${checkinPlaceIds.join(",")})`);
+      } else if (uniqueLocations.size > 0) {
+        query = query.in("name", Array.from(uniqueLocations));
+      } else {
+        query = query.in("id", checkinPlaceIds);
+      }
+      const { data: places } = await query.limit(50);
+      if (places) setVisitedPlaces(places);
     }
 
     setLoading(false);
@@ -683,9 +757,10 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
       <div className="px-5 pt-4">
         <div className="flex border-b border-border">
           {([
-            { key: "vibes" as const, icon: Grid3X3, label: "Vibes", count: myVibes.length },
-            { key: "likes" as const, icon: Heart, label: "Likes", count: favorites.length },
-            { key: "saved" as const, icon: Bookmark, label: "Saved", count: savedVibes.length },
+            { key: "vibes" as const, icon: Grid3X3, count: myVibes.length },
+            { key: "likes" as const, icon: Heart, count: favorites.length },
+            { key: "saved" as const, icon: Bookmark, count: savedVibes.length },
+            { key: "visited" as const, icon: MapPin, count: visitedPlaces.length },
           ]).map(({ key, icon: Icon, count }) => (
             <button
               key={key}
@@ -706,6 +781,37 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
               <div key={i} className="aspect-square bg-surface animate-pulse" />
             ))}
           </div>
+        ) : profileTab === "visited" ? (
+          visitedPlaces.length === 0 ? (
+            <div className="text-center py-10">
+              <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3">
+                <MapPin className="w-6 h-6 text-gold/50" />
+              </div>
+              <p className="text-sm text-muted-foreground">Explore des lieux pour les retrouver ici !</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 pt-3">
+              {visitedPlaces.map((place, i) => (
+                <Link
+                  key={place.slug || place.name}
+                  to={place.slug ? `/spot/${place.slug}` : "/"}
+                  className="relative rounded-xl overflow-hidden aspect-[4/3] bg-card border border-border group"
+                >
+                  {place.image_url ? (
+                    <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-gold/5 flex items-center justify-center">
+                      <MapPin className="w-8 h-8 text-gold/30" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                    <p className="text-xs font-semibold text-foreground truncate">{place.name}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )
         ) : (
           (() => {
             const items = profileTab === "vibes" ? myVibes : profileTab === "likes" ? favorites : savedVibes;
