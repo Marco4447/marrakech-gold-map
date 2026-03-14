@@ -657,14 +657,14 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           if (targetPlace) {
             setPreviewPlace(targetPlace);
 
-            // Wait for sheet close animation + layout to finish, then center
+            // Wait for sheet close animation + layout reflow, then center precisely
             setTimeout(() => {
               const map = mapRef.current;
               if (!map) return;
               map.invalidateSize({ animate: false });
-              const zoom = Math.max(map.getZoom(), 16);
-              map.setView([targetPlace.latitude, targetPlace.longitude], zoom, { animate: true, duration: 0.5 });
-            }, 350);
+              // Use panTo to center exactly on marker without changing zoom
+              map.flyTo([targetPlace.latitude, targetPlace.longitude], 16, { animate: true, duration: 0.8 });
+            }, 500);
           } else {
             setPreviewPlace(null);
           }
