@@ -340,7 +340,8 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [myVibes, setMyVibes] = useState<Vibe[]>([]);
   const [savedVibes, setSavedVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profileTab, setProfileTab] = useState<"vibes" | "likes" | "saved">("vibes");
+  const [profileTab, setProfileTab] = useState<"vibes" | "likes" | "saved" | "visited">("vibes");
+  const [visitedPlaces, setVisitedPlaces] = useState<{ name: string; image_url: string | null; slug: string | null }[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
