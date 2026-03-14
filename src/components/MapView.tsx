@@ -47,6 +47,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [tonightMode, setTonightMode] = useState(false);
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
+  const lastFocusedPlaceRef = useRef<Place | null>(null);
 
   // Map onboarding tooltips
   const [onboardingStep, setOnboardingStep] = useState(() => {
