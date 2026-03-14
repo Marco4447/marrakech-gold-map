@@ -1,0 +1,1 @@
+UPDATE public.places SET image_url = '/images/mazel-logo.png' WHERE name = 'Mazel Café';
