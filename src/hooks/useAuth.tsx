@@ -40,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         null,
       email: currentUser.email || null,
       avatar_url: (currentUser.user_metadata?.avatar_url as string | undefined) || null,
+      bio: null,
     };
 
     for (let attempt = 0; attempt < retries; attempt++) {
