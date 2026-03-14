@@ -57,11 +57,21 @@ export default function VenueHeader({ placeId, planType, credits, onEditVenue, o
         <div className="flex items-start justify-between">
           <div>
             <h2 className="font-display text-lg font-bold text-foreground">{venue.name}</h2>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              {venue.is_founder && (
+                <span className="flex items-center gap-1 text-[10px] font-bold text-gold bg-gold/10 px-2 py-0.5 rounded-full">
+                  🛡️ Fondateur
+                </span>
+              )}
               {planType && (
                 <span className="flex items-center gap-1 text-[10px] font-bold text-gold">
                   <Crown className="w-3 h-3" />
                   {planType.charAt(0).toUpperCase() + planType.slice(1)}
+                </span>
+              )}
+              {venue.listing_tier === "featured" && (
+                <span className="flex items-center gap-1 text-[10px] font-bold text-accent">
+                  ⚡ Featured
                 </span>
               )}
               {venue.category && (

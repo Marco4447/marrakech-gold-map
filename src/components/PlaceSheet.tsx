@@ -156,7 +156,19 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                         className="font-display text-xl font-semibold text-foreground hover:text-gold transition-colors">
                         {place.name}
                       </Link>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {placeDetails?.is_founder && (
+                          <span className="flex items-center gap-1 bg-gold/15 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px]">🛡️</span>
+                            <span className="text-[9px] font-bold text-gold uppercase tracking-wider">Fondateur</span>
+                          </span>
+                        )}
+                        {placeDetails?.listing_tier === "featured" && (
+                          <span className="flex items-center gap-1 bg-accent/15 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px]">⚡</span>
+                            <span className="text-[9px] font-bold text-accent uppercase tracking-wider">Featured</span>
+                          </span>
+                        )}
                         {place.category && (<div className="flex items-center gap-1"><Tag className="w-3 h-3 text-gold" /><span className="text-xs text-gold font-medium uppercase tracking-wider">{place.category}</span></div>)}
                         {(place as any).neighborhood && (<span className="text-[10px] text-muted-foreground">· {(place as any).neighborhood}</span>)}
                       </div>

@@ -239,10 +239,22 @@ export default function VenuePage() {
 
         {/* Badges */}
         <div className="absolute bottom-20 right-4 flex flex-col items-end gap-1.5">
+          {(place as any).is_founder && (
+            <div className="flex items-center gap-1.5 bg-card/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg border border-gold/40">
+              <span className="text-xs">🛡️</span>
+              <span className="text-[10px] font-bold text-gold uppercase tracking-wider">Fondateur</span>
+            </div>
+          )}
           {isPartner && (
             <div className="flex items-center gap-1.5 bg-gold/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <span className="text-xs">⭐</span>
               <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">Partenaire</span>
+            </div>
+          )}
+          {place.listing_tier === "featured" && (
+            <div className="flex items-center gap-1.5 bg-accent/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+              <span className="text-xs">⚡</span>
+              <span className="text-[10px] font-bold text-accent-foreground uppercase tracking-wider">Featured</span>
             </div>
           )}
           {hasOffer && (
