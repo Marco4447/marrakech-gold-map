@@ -43,7 +43,7 @@ export const MOOD_FILTERS: { key: string; emoji: string; label: string; categori
   { key: "party", emoji: "💃", label: "Party", categories: ["Nightlife", "Night", "Dinner Show"] },
   { key: "chill", emoji: "🍸", label: "Chill", categories: ["Rooftop", "Chill", "Cocktail Bar", "Café", "Hôtel"] },
   
-  { key: "food", emoji: "🍽️", label: "Food", categories: ["Restaurant", "Food"] },
+  { key: "food", emoji: "🍽️", label: "Food", categories: ["Restaurant", "Food", "Street Food"] },
 ];
 
 const DEFAULT_CAT = { emoji: "📍", color: "hsl(43,56%,52%)" };

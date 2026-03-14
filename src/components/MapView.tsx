@@ -20,7 +20,7 @@ import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy"
 const FILTER_CATEGORIES: Record<string, string[]> = {
   rooftop: ["Rooftop"],
   party: ["Nightlife", "Night", "Dinner Show"],
-  food: ["Restaurant", "Food"],
+  food: ["Restaurant", "Food", "Street Food"],
   chill: ["Chill", "Cocktail Bar", "Café"],
   attraction: ["Attraction", "Activity"],
 };
