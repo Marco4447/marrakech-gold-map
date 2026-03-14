@@ -272,10 +272,10 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
 
       {/* Hidden SEO */}
       <div className="sr-only">
-        <h1>WeshKech – Discover the Best Spots in Marrakech</h1>
-        <h2>Marrakech Nightlife Guide — Bars, Clubs & Night Spots</h2>
-        <h2>Best Rooftops in Marrakech — Sunset Views & Cocktails</h2>
-        <p>Discover where to go in Marrakech tonight. WeshKech is the local guide that shows you the best bars, rooftops, restaurants and clubs in Marrakech in real time.</p>
+        <h1>Weshkech – Marrakech Live Vibes | Flux Temps Réel & Spots Exclusifs</h1>
+        <h2>Guide Marrakech en Direct — Rooftops, Restaurants & Vie Nocturne</h2>
+        <h2>Les 30 Meilleurs Spots à Marrakech — Deals Exclusifs</h2>
+        <p>Découvrez Marrakech en direct avec Weshkech. Flux photo et vidéo authentique qui disparaît toutes les 6 heures. Trouvez les meilleurs rooftops, restaurants et bars en temps réel.</p>
       </div>
     </motion.div>
   );
