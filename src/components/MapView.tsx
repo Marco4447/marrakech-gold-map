@@ -656,8 +656,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               const map = mapRef.current;
               if (!map) return;
               map.invalidateSize({ animate: false });
-              console.log('[MAP] Re-centering on', targetPlace.name, targetPlace.latitude, targetPlace.longitude);
-              map.setView([targetPlace.latitude, targetPlace.longitude], 16);
+              map.setView([targetPlace.latitude, targetPlace.longitude], 16, { animate: true });
             }, 500);
           } else {
             setPreviewPlace(null);
