@@ -36,6 +36,7 @@ interface PlaceSheetProps {
   place: Place | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onRecenter?: () => void;
 }
 
 function useViewerCount(placeId: string | undefined) {
@@ -52,7 +53,7 @@ function useViewerCount(placeId: string | undefined) {
   return Math.max(1, count);
 }
 
-export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProps) {
+export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: PlaceSheetProps) {
   const [dealOpen, setDealOpen] = useState(false);
   const viewerCount = useViewerCount(place?.id);
   const { t, lang } = useLanguage();
@@ -237,6 +238,11 @@ export default function PlaceSheet({ place, open, onOpenChange }: PlaceSheetProp
                         <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20">
                           <Navigation className="w-4 h-4" /> {t("place_goThere")}
                         </a>
+                        {onRecenter && (
+                          <button onClick={onRecenter} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors active:scale-95" title={lang === "fr" ? "Recentrer" : "Recenter"}>
+                            <MapPin className="w-4 h-4 text-gold" />
+                          </button>
+                        )}
                         <button onClick={handleShare} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors"><Share2 className="w-4 h-4 text-foreground" /></button>
                       </div>
 
