@@ -575,7 +575,11 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           const targetPlace = selectedPlace ?? lastFocusedPlaceRef.current;
           if (targetPlace && mapRef.current) {
             const map = mapRef.current;
-            map.flyTo([targetPlace.latitude, targetPlace.longitude], Math.max(map.getZoom(), 17), { duration: 0.45 });
+            // Invalidate size first so Leaflet recalculates after blur filter removal
+            setTimeout(() => {
+              map.invalidateSize({ animate: false });
+              map.flyTo([targetPlace.latitude, targetPlace.longitude], Math.max(map.getZoom(), 16), { duration: 0.5 });
+            }, 50);
           }
         }
       }} />
