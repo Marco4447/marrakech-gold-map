@@ -221,9 +221,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     const energyMap = computeEnergyScores(vibesForEnergy);
 
     const markers: L.Marker[] = [];
-    const timers: Array<ReturnType<typeof setTimeout>> = [];
     const filteredPlaces = getFilteredPlaces();
-    const filteredIds = new Set(filteredPlaces.map(p => p.id));
 
     // Sort places so boosted ones render last (= on top visually)
     const sortedPlaces = [...filteredPlaces].sort((a, b) => {
@@ -234,7 +232,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       return 0;
     });
 
-    sortedPlaces.forEach((place, index) => {
+    sortedPlaces.forEach((place) => {
       const isTrending = trendingLocations.has(place.name.toLowerCase());
       const shouldBlur = false; // All pins visible — no guest blur
       const energy = getEnergy(energyMap, place.name);
@@ -263,37 +261,14 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             setTimeout(() => map.closePopup(), 2500);
             return;
           }
-          // Show preview card instead of directly opening sheet
           setPreviewPlace(place);
           map.flyTo([place.latitude, place.longitude], Math.max(map.getZoom(), 16), { duration: 0.6 });
         });
-
-      // Apply staggered pop-in animation via CSS class
-      const el = marker.getElement();
-      const delay = Math.min(index * 50, 1500);
-      if (el) {
-        const t = setTimeout(() => {
-          if (!map.hasLayer(marker)) return;
-          el.classList.add("marker-pop-in");
-        }, delay);
-        timers.push(t);
-      } else {
-        // Fallback: if DOM not ready, use requestAnimationFrame
-        const t = setTimeout(() => {
-          if (!map.hasLayer(marker)) return;
-          const domEl = marker.getElement();
-          if (domEl) {
-            domEl.classList.add("marker-pop-in");
-          }
-        }, delay + 50);
-        timers.push(t);
-      }
 
       markers.push(marker);
     });
 
     return () => {
-      timers.forEach(clearTimeout);
       markers.forEach((m) => m.remove());
     };
   }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds, tonightMode]);
