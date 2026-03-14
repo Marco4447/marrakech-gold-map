@@ -23,23 +23,27 @@ export default function TopLivePlaces({ onPlaceClick }: { onPlaceClick?: (name: 
       .gte("created_at", threeHoursAgo)
       .not("location", "is", null);
 
-    if (!data || data.length === 0) {
-      setHotPlaces([]);
-      setLoading(false);
-      return;
-    }
-
     const map = new Map<string, { count: number; lastImage: string; lastDate: string }>();
-    for (const v of data) {
-      if (!v.location) continue;
-      const existing = map.get(v.location);
-      if (!existing) {
-        map.set(v.location, { count: 1, lastImage: v.image_url, lastDate: v.created_at });
-      } else {
-        existing.count++;
-        if (v.created_at > existing.lastDate) {
-          existing.lastImage = v.image_url;
-          existing.lastDate = v.created_at;
+    
+    // Always include Mazel as a featured place
+    map.set("Mazel", { 
+      count: 0, 
+      lastImage: "/images/mazel-1.jpg", 
+      lastDate: new Date().toISOString() 
+    });
+    
+    if (data && data.length > 0) {
+      for (const v of data) {
+        if (!v.location) continue;
+        const existing = map.get(v.location);
+        if (!existing) {
+          map.set(v.location, { count: 1, lastImage: v.image_url, lastDate: v.created_at });
+        } else {
+          existing.count++;
+          if (v.created_at > existing.lastDate) {
+            existing.lastImage = v.image_url;
+            existing.lastDate = v.created_at;
+          }
         }
       }
     }
