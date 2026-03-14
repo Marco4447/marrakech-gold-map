@@ -51,7 +51,9 @@ function ProfileCard({
   onProfileUpdated: () => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
+  const [editingBio, setEditingBio] = useState(false);
   const [newName, setNewName] = useState(displayName);
+  const [newBio, setNewBio] = useState(profile?.bio || "");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
