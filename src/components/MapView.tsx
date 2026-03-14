@@ -18,13 +18,13 @@ import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy"
 
 // Filter config for category matching
 const FILTER_CATEGORIES: Record<string, string[]> = {
-  rooftop: ["rooftop"],
-  party: ["nightlife", "night", "dinner show"],
-  food: ["restaurant", "food", "street food"],
-  cafe: ["cafe"],
-  street_food: ["street food"],
-  chill: ["chill", "cocktail bar", "cafe"],
-  attraction: ["attraction", "activity"],
+  rooftop: ["rooftop", "roof top", "terrace"],
+  party: ["nightlife", "night", "club", "dinner show", "bar"],
+  food: ["restaurant", "resto", "food", "street food", "snack"],
+  cafe: ["cafe", "coffee", "coffee shop", "cafeteria"],
+  street_food: ["street food", "streetfood", "snack", "fast casual"],
+  chill: ["chill", "cocktail bar", "lounge", "cafe"],
+  attraction: ["attraction", "activity", "museum", "landmark"],
 };
 
 const normalizeText = (value: string) =>
@@ -37,9 +37,31 @@ const normalizeText = (value: string) =>
 
 const splitNormalizedCategories = (category: string | null) =>
   normalizeText(category || "")
-    .split(",")
+    .split(/[,/|;&-]+/)
     .map((c) => c.trim())
     .filter(Boolean);
+
+const categoryMatchesFilter = (category: string | null, targetCategories: string[]) => {
+  const normalizedCategory = normalizeText(category || "");
+  if (!normalizedCategory) return false;
+
+  const chunks = splitNormalizedCategories(category);
+  const words = new Set(normalizedCategory.split(" ").filter(Boolean));
+
+  return targetCategories.some((rawTarget) => {
+    const target = normalizeText(rawTarget);
+    if (!target) return false;
+
+    if (normalizedCategory.includes(target)) return true;
+
+    if (chunks.some((chunk) => chunk === target || chunk.includes(target) || target.includes(chunk))) {
+      return true;
+    }
+
+    const targetWords = target.split(" ").filter(Boolean);
+    return targetWords.length > 0 && targetWords.every((word) => words.has(word));
+  });
+};
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
