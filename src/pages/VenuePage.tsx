@@ -32,6 +32,7 @@ interface PlaceData {
   is_partner: boolean;
   has_active_offer: boolean;
   is_premium: boolean;
+  is_founder: boolean;
   opening_hours: string | null;
   price_range: string | null;
   music_style: string | null;
