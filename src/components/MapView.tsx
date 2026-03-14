@@ -20,7 +20,7 @@ import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy"
 const FILTER_CATEGORIES: Record<string, string[]> = {
   rooftop: ["Rooftop"],
   party: ["Nightlife", "Night", "Dinner Show"],
-  food: ["Restaurant", "Food"],
+  food: ["Restaurant", "Food", "Street Food"],
   chill: ["Chill", "Cocktail Bar", "Café"],
   attraction: ["Attraction", "Activity"],
 };
@@ -195,7 +195,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           .sort((a, b) => (a as any)._dist - (b as any)._dist);
       } else if (FILTER_CATEGORIES[activeFilter]) {
         const cats = FILTER_CATEGORIES[activeFilter];
-        filtered = filtered.filter(p => cats.includes(p.category || ""));
+        filtered = filtered.filter(p => cats.some(c => (p.category || "").split(", ").includes(c)));
       }
     }
 

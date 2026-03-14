@@ -24,7 +24,7 @@ type DayKey = typeof DAYS[number]["key"];
 interface DayHours { open: boolean; from: string; to: string; }
 type WeekSchedule = Record<DayKey, DayHours>;
 
-const CATEGORIES = ["Rooftop", "Restaurant", "Bar", "Nightclub", "Café", "Speakeasy", "Lounge", "Activity", "Attraction"];
+const CATEGORIES = ["Rooftop", "Restaurant", "Bar", "Nightclub", "Café", "Street Food", "Speakeasy", "Lounge", "Activity", "Attraction"];
 
 const PRICE_OPTIONS = [
   { value: "€", label: "€", desc: "Économique" },
