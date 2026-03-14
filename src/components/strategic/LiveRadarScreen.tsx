@@ -1,9 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import L from "leaflet";
 import { MapPin, ChevronUp, Flame, Zap } from "lucide-react";
-import "leaflet/dist/leaflet.css";
 
 // Marrakech center
 const MARRAKECH_CENTER: [number, number] = [31.6295, -7.9811];
@@ -43,38 +40,6 @@ const MOCK_HOT_PLACES: HotPlace[] = [
     position: [31.62, -7.995],
   },
 ];
-
-// Custom heat pin icon
-function createHeatPinIcon(isPartner: boolean): L.DivIcon {
-  return L.divIcon({
-    className: "custom-heat-pin",
-    html: `
-      <div class="relative">
-        ${isPartner ? `
-          <div class="absolute -inset-4 rounded-full bg-gold/20 animate-ping" />
-          <div class="absolute -inset-2 rounded-full bg-gold/30 animate-pulse" />
-        ` : `
-          <div class="absolute -inset-3 rounded-full bg-accent-warm/15 animate-ping" />
-        `}
-        <div class="relative w-10 h-10 rounded-full ${isPartner ? 'bg-gold' : 'bg-accent-warm'} flex items-center justify-center shadow-lg">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-        </div>
-      </div>
-    `,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-  });
-}
-
-function MapController({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.flyTo(center, 14, { duration: 1 });
-  }, [center, map]);
-  return null;
-}
 
 function HotPlacesDrawer({
   places,
@@ -184,11 +149,9 @@ function HotPlacesDrawer({
 export default function LiveRadarScreen() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<HotPlace | null>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number]>(MARRAKECH_CENTER);
 
   const handlePlaceClick = useCallback((place: HotPlace) => {
     setSelectedPlace(place);
-    setMapCenter(place.position);
     setDrawerOpen(false);
   }, []);
 
@@ -211,31 +174,69 @@ export default function LiveRadarScreen() {
         </div>
       </div>
 
-      {/* Map */}
-      <MapContainer
-        center={MARRAKECH_CENTER}
-        zoom={14}
-        className="h-full w-full"
-        zoomControl={false}
-        attributionControl={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      {/* Map Placeholder with Heat Pins */}
+      <div className="h-full w-full bg-surface relative">
+        {/* Dark map background */}
+        <div className="absolute inset-0 bg-[#121212]" />
+        
+        {/* Grid pattern overlay */}
+        <div 
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(212, 175, 55, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(212, 175, 55, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }}
         />
-        <MapController center={mapCenter} />
 
-        {MOCK_HOT_PLACES.map((place) => (
-          <Marker
+        {/* Heat Pins */}
+        {MOCK_HOT_PLACES.map((place, i) => (
+          <motion.button
             key={place.id}
-            position={place.position}
-            icon={createHeatPinIcon(place.isPartner)}
-            eventHandlers={{
-              click: () => handlePlaceClick(place),
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: i * 0.2, type: "spring", stiffness: 200 }}
+            onClick={() => handlePlaceClick(place)}
+            className="absolute"
+            style={{
+              left: `${20 + i * 25}%`,
+              top: `${30 + (i % 2) * 20}%`,
             }}
-          />
+          >
+            {/* Pulsing rings */}
+            <div className="relative">
+              {place.isPartner && (
+                <>
+                  <span className="absolute -inset-8 rounded-full bg-gold/10 animate-ping" />
+                  <span className="absolute -inset-5 rounded-full bg-gold/20 animate-pulse" />
+                </>
+              )}
+              <span className="absolute -inset-4 rounded-full bg-accent-warm/10 animate-ping" style={{ animationDelay: '0.5s' }} />
+              
+              {/* Pin */}
+              <div className={`relative w-12 h-12 rounded-full ${
+                place.isPartner 
+                  ? 'bg-gradient-to-br from-gold to-gold-dark' 
+                  : 'bg-gradient-to-br from-accent-warm to-accent-warm/70'
+              } flex items-center justify-center shadow-lg`}>
+                <MapPin className="w-6 h-6 text-white" />
+                
+                {/* Counter badge */}
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-background border-2 border-gold rounded-full flex items-center justify-center">
+                  <span className="text-[10px] font-bold text-foreground">{place.vibeCount}</span>
+                </span>
+              </div>
+            </div>
+          </motion.button>
         ))}
-      </MapContainer>
+
+        {/* Marrakech center marker */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="w-4 h-4 rounded-full bg-accent-warm/50" />
+        </div>
+      </div>
 
       {/* What's Hot Drawer */}
       <HotPlacesDrawer
