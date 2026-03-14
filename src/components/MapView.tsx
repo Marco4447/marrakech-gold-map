@@ -618,14 +618,8 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
       <PlaceSheet place={selectedPlace} open={sheetOpen} onRecenter={() => {
         const target = selectedPlace ?? lastFocusedPlaceRef.current;
-        if (target && mapRef.current) {
-          const map = mapRef.current;
-          const targetZoom = Math.max(map.getZoom(), 16);
-          const targetPoint = map.project([target.latitude, target.longitude], targetZoom);
-          const containerHeight = map.getSize().y;
-          const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.15);
-          const offsetLatLng = map.unproject(offsetPoint, targetZoom);
-          map.flyTo(offsetLatLng, targetZoom, { duration: 0.6 });
+        if (target) {
+          focusPlaceOnMap(target, { withSheetOffset: true, duration: 0.6 });
         }
       }} onOpenChange={(open) => {
         setSheetOpen(open);
@@ -636,7 +630,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             const map = mapRef.current;
             setTimeout(() => {
               map.invalidateSize({ animate: false });
-              map.flyTo([targetPlace.latitude, targetPlace.longitude], Math.max(map.getZoom(), 16), { duration: 0.5 });
+              focusPlaceOnMap(targetPlace, { withSheetOffset: false, duration: 0.5 });
             }, 50);
           }
         }
