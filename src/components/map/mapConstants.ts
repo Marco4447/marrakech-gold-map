@@ -108,7 +108,15 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   const energyBadge = energyLabel && !boosted && !blurred && !hasActiveVipOffer
     ? `<div style="position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);background:hsl(0,0%,5%,0.85);backdrop-filter:blur(4px);color:white;font-size:7px;font-weight:800;padding:1px 5px;border-radius:4px;white-space:nowrap;letter-spacing:0.03em">${energyEmoji || ""} ${energyLabel}</div>`
     : "";
-  const markerClass = boosted ? "boosted-marker gold-marker" : isFeatured ? "featured-marker gold-marker" : isHotEnergy ? "energy-hot-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "";
+  const markerClass = highlighted ? "filter-highlight-marker " : "" + (boosted ? "boosted-marker gold-marker" : isFeatured ? "featured-marker gold-marker" : isHotEnergy ? "energy-hot-marker gold-marker" : trending ? "trending-marker" : isPartner ? "gold-marker" : "");
+
+  // Filter highlight: glowing ring + emoji badge
+  const highlightRing = highlighted && !boosted
+    ? `<div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid ${cat.color.replace(")", ",0.7)")};animation:filter-highlight-pulse 1.8s ease-in-out infinite;pointer-events:none"></div>`
+    : "";
+  const highlightBadge = highlighted && highlightEmoji && !boosted && !hasActiveVipOffer
+    ? `<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:${cat.color};color:white;font-size:8px;font-weight:800;padding:1px 5px;border-radius:6px;white-space:nowrap;box-shadow:0 2px 8px ${cat.color.replace(")", ",0.5)")};z-index:4;animation:filter-badge-pop 0.4s cubic-bezier(0.34,1.56,0.64,1)">${highlightEmoji}</div>`
+    : "";
 
   // Determine inner content: show logo for local images (/images/) or Supabase storage, emoji for generic Unsplash
   const isLocalLogo = imageUrl && (imageUrl.startsWith("/images/") || imageUrl.includes("vibes_media/places") || imageUrl.includes("vibes_media%2Fplaces"));
@@ -121,20 +129,24 @@ export const createCategoryIcon = (category: string | null, options: { trending?
       ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><span style="font-size:${emojiSize}px;line-height:1;display:none;align-items:center;justify-content:center;width:100%;height:100%">${cat.emoji}</span>`
       : `<span style="font-size:${emojiSize}px;line-height:1">${cat.emoji}</span>`;
 
+  const highlightGlow = highlighted && !boosted ? `, 0 0 14px ${cat.color.replace(")", ",0.5)")}` : "";
+
   return L.divIcon({
     className: markerClass,
     html: `
       <div class="category-marker" style="
         width:${size}px;height:${size}px;border-radius:50%;
         background:${boosted ? "linear-gradient(135deg, hsl(0,0%,8%), hsl(30,10%,12%))" : isFeatured ? "linear-gradient(135deg, hsl(0,0%,8%), hsl(30,10%,12%))" : "hsl(0,0%,8%)"};
-        border:${borderWidth} solid ${borderColor};
-        box-shadow:${glow};
+        border:${borderWidth} solid ${highlighted && !boosted ? cat.color : borderColor};
+        box-shadow:${glow}${highlightGlow};
         display:flex;align-items:center;justify-content:center;
         position:relative;${blurFilter}overflow:hidden;
       ">
+        ${highlightRing}
         ${boostedRing}
         ${innerContent}
         ${partnerBadge}
+        ${highlightBadge}
         ${offerTonightBadge}
         ${trendingBadge}
         ${boostedLabel}
