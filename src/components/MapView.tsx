@@ -503,7 +503,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             selectedPlace={previewPlace}
             onSelect={(p) => {
               setPreviewPlace(p);
-              mapRef.current?.flyTo([p.latitude, p.longitude], Math.max(mapRef.current.getZoom(), 15), { duration: 0.6 });
+              focusPlaceOnMap(p, { withSheetOffset: false, zoomMin: 15, duration: 0.6 });
             }}
             onOpenSheet={handleOpenSheet}
             userPosition={userPosition}
