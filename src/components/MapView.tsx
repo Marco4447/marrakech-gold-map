@@ -279,7 +279,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     if (!map || activeFilter === "offers") return;
 
     const markers: L.Marker[] = [];
-    const timers: Array<ReturnType<typeof setTimeout>> = [];
 
     // Deduplicate vibe pins by location name AND skip vibes that overlap with a place marker
     const placeLocationKeys = new Set(places.map(p => p.name.trim().toLowerCase()));
@@ -288,18 +287,17 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       if (v.latitude == null || v.longitude == null) return false;
       const key = v.location?.trim().toLowerCase();
       if (!key) return true;
-      // Skip if a place marker already exists at this location
       if (placeLocationKeys.has(key)) return false;
-      // Deduplicate by location name
       if (seenLocations.has(key)) return false;
       seenLocations.add(key);
       return true;
     });
 
-    deduped.forEach((vibe, idx) => {
+    deduped.forEach((vibe) => {
       const isOfficial = vibe.is_official === true;
       const age = Date.now() - new Date(vibe.created_at).getTime();
-      if (age > THREE_HOURS && !isOfficial) return; // Only show fresh vibes
+      if (age > THREE_HOURS && !isOfficial) return;
+
       const remaining = isOfficial ? 1 : Math.max(0, 1 - age / SIX_HOURS);
       const size = isOfficial ? 38 : Math.round(24 + remaining * 10);
       const borderColor = isOfficial ? "hsl(43,76%,52%)" : (MOOD_COLORS[vibe.mood || ""] || "hsl(43,56%,52%)");
@@ -331,34 +329,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           setVibeSheetOpen(true);
         });
 
-      // Apply staggered pop-in animation via CSS class
-      const el = marker.getElement();
-      const delay = Math.min(idx * 40, 800);
-      if (el) {
-        const t = setTimeout(() => {
-          if (!map.hasLayer(marker)) return;
-          el.classList.add("marker-pop-in");
-        }, delay);
-        timers.push(t);
-      } else {
-        const t = setTimeout(() => {
-          if (!map.hasLayer(marker)) return;
-          const domEl = marker.getElement();
-          if (domEl) {
-            domEl.classList.add("marker-pop-in");
-          }
-        }, delay + 50);
-        timers.push(t);
-      }
-
       markers.push(marker);
     });
 
     return () => {
-      timers.forEach(clearTimeout);
       markers.forEach((m) => m.remove());
     };
-  }, [vibePins, activeFilter, isNight, places]);
+  }, [vibePins, activeFilter, places]);
 
   // Close preview when opening sheet — fly to place with vertical offset so pin stays visible above the sheet
   const handleOpenSheet = useCallback((place: Place) => {
