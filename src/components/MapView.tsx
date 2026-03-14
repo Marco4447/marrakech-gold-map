@@ -586,14 +586,24 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         </div>
       )}
 
-      <PlaceSheet place={selectedPlace} open={sheetOpen} onOpenChange={(open) => {
+      <PlaceSheet place={selectedPlace} open={sheetOpen} onRecenter={() => {
+        const target = selectedPlace ?? lastFocusedPlaceRef.current;
+        if (target && mapRef.current) {
+          const map = mapRef.current;
+          const targetZoom = Math.max(map.getZoom(), 16);
+          const targetPoint = map.project([target.latitude, target.longitude], targetZoom);
+          const containerHeight = map.getSize().y;
+          const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.15);
+          const offsetLatLng = map.unproject(offsetPoint, targetZoom);
+          map.flyTo(offsetLatLng, targetZoom, { duration: 0.6 });
+        }
+      }} onOpenChange={(open) => {
         setSheetOpen(open);
         if (!open) {
           setPreviewPlace(null);
           const targetPlace = selectedPlace ?? lastFocusedPlaceRef.current;
           if (targetPlace && mapRef.current) {
             const map = mapRef.current;
-            // Invalidate size first so Leaflet recalculates after blur filter removal
             setTimeout(() => {
               map.invalidateSize({ animate: false });
               map.flyTo([targetPlace.latitude, targetPlace.longitude], Math.max(map.getZoom(), 16), { duration: 0.5 });
