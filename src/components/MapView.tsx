@@ -392,7 +392,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const targetZoom = Math.max(map.getZoom(), zoomMin);
 
       if (!withSheetOffset) {
-        map.flyTo([place.latitude, place.longitude], targetZoom, { duration });
+        // Offset slightly upward so marker sits above preview card on mobile
+        const targetPoint = map.project([place.latitude, place.longitude], targetZoom);
+        const containerHeight = map.getSize().y;
+        const offsetPoint = L.point(targetPoint.x, targetPoint.y + containerHeight * 0.08);
+        const offsetLatLng = map.unproject(offsetPoint, targetZoom);
+        map.flyTo(offsetLatLng, targetZoom, { duration });
         return;
       }
 
