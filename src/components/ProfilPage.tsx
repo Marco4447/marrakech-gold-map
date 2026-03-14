@@ -757,9 +757,10 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
       <div className="px-5 pt-4">
         <div className="flex border-b border-border">
           {([
-            { key: "vibes" as const, icon: Grid3X3, label: "Vibes", count: myVibes.length },
-            { key: "likes" as const, icon: Heart, label: "Likes", count: favorites.length },
-            { key: "saved" as const, icon: Bookmark, label: "Saved", count: savedVibes.length },
+            { key: "vibes" as const, icon: Grid3X3, count: myVibes.length },
+            { key: "likes" as const, icon: Heart, count: favorites.length },
+            { key: "saved" as const, icon: Bookmark, count: savedVibes.length },
+            { key: "visited" as const, icon: MapPin, count: visitedPlaces.length },
           ]).map(({ key, icon: Icon, count }) => (
             <button
               key={key}
@@ -780,6 +781,37 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
               <div key={i} className="aspect-square bg-surface animate-pulse" />
             ))}
           </div>
+        ) : profileTab === "visited" ? (
+          visitedPlaces.length === 0 ? (
+            <div className="text-center py-10">
+              <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3">
+                <MapPin className="w-6 h-6 text-gold/50" />
+              </div>
+              <p className="text-sm text-muted-foreground">Explore des lieux pour les retrouver ici !</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 pt-3">
+              {visitedPlaces.map((place, i) => (
+                <Link
+                  key={place.slug || place.name}
+                  to={place.slug ? `/spot/${place.slug}` : "/"}
+                  className="relative rounded-xl overflow-hidden aspect-[4/3] bg-card border border-border group"
+                >
+                  {place.image_url ? (
+                    <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-gold/5 flex items-center justify-center">
+                      <MapPin className="w-8 h-8 text-gold/30" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                    <p className="text-xs font-semibold text-foreground truncate">{place.name}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )
         ) : (
           (() => {
             const items = profileTab === "vibes" ? myVibes : profileTab === "likes" ? favorites : savedVibes;
