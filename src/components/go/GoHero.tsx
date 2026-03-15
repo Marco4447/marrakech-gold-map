@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { Lang } from "@/i18n/translations";
+import GoAuthForm from "./GoAuthForm";
 
 interface GoHeroProps {
   heroImage: string;
@@ -10,13 +11,17 @@ interface GoHeroProps {
   lang: Lang;
   t: (key: string) => string;
   onCtaClick: () => void;
+  isInApp: boolean;
+  isTikTok: boolean;
+  utmSource: string;
+  utmCampaign: string;
 }
 
-export default function GoHero({ heroImage, isEvening, liveStats, lang, onCtaClick }: GoHeroProps) {
+export default function GoHero({ heroImage, isEvening, liveStats, lang, t, isInApp, isTikTok, utmSource, utmCampaign }: GoHeroProps) {
   return (
-    <header className="relative w-full min-h-[75vh] flex items-end overflow-hidden">
+    <header className="relative w-full min-h-[100dvh] flex items-center overflow-hidden">
       <img src={heroImage} alt="Marrakech nightlife rooftop view" className="absolute inset-0 w-full h-full object-cover" loading="eager" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
 
       {/* Live badge */}
       <motion.div
@@ -32,35 +37,38 @@ export default function GoHero({ heroImage, isEvening, liveStats, lang, onCtaCli
         </span>
       </motion.div>
 
-      {/* Hero content */}
+      {/* Hero content with form */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-        className="relative z-10 w-full px-5 pb-8 max-w-lg mx-auto"
+        className="relative z-10 w-full px-5 pt-16 pb-8 max-w-md mx-auto"
       >
-        <h1 className="text-[28px] sm:text-[34px] font-black leading-tight text-foreground mb-3">
+        <h1 className="text-[26px] sm:text-[32px] font-black leading-tight text-foreground mb-2 text-center">
           {lang === "fr"
-            ? <>Découvrez les <span className="text-primary">meilleurs spots</span> à Marrakech</>
-            : <>Discover the <span className="text-primary">Best Spots</span> in Marrakech</>
+            ? <>Les <span className="text-primary">meilleurs spots</span> de Marrakech</>
+            : <>The <span className="text-primary">Best Spots</span> in Marrakech</>
           }
         </h1>
-        <p className="text-[14px] text-muted-foreground leading-relaxed mb-5 max-w-sm">
+        <p className="text-[13px] text-muted-foreground leading-relaxed mb-6 text-center max-w-xs mx-auto">
           {lang === "fr"
-            ? "WeshKech vous aide à trouver les meilleurs rooftops, restaurants, bars et pépites cachées de Marrakech."
-            : "WeshKech helps you find the best rooftops, restaurants, nightlife and hidden gems in Marrakech."
+            ? "Rooftops, restaurants, bars, pépites cachées. Gratuit, pas de mot de passe."
+            : "Rooftops, restaurants, bars, hidden gems. Free, no password needed."
           }
         </p>
-        <div className="flex flex-col sm:flex-row gap-2.5">
-          <button onClick={onCtaClick}
-            className="flex-1 py-3.5 rounded-2xl bg-foreground text-background font-bold text-[15px] active:scale-[0.98] transition-transform shadow-lg">
-            {lang === "fr" ? "Rejoindre la communauté" : "Join the Community"}
-          </button>
-          <button onClick={onCtaClick}
-            className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-[15px] active:scale-[0.98] transition-transform">
-            {lang === "fr" ? "Découvrir les spots" : "Discover Spots"}
-          </button>
+
+        {/* AUTH FORM — directly in hero */}
+        <div id="go-signup">
+          <GoAuthForm
+            lang={lang}
+            t={t}
+            isInApp={isInApp}
+            isTikTok={isTikTok}
+            utmSource={utmSource}
+            utmCampaign={utmCampaign}
+          />
         </div>
-        <p className="text-[10px] text-muted-foreground text-center mt-2.5">
-          {lang === "fr" ? "⚡ Gratuit · 10 secondes · Pas d'app à installer" : "⚡ Free · 10 seconds · No app to install"}
+
+        <p className="text-[10px] text-muted-foreground text-center mt-3">
+          ⚡ {lang === "fr" ? "10 secondes · Gratuit · Pas d'app" : "10 seconds · Free · No app"}
         </p>
       </motion.div>
     </header>
