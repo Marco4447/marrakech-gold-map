@@ -220,23 +220,7 @@ export default function GoPage() {
       {/* ===== SEO SECTIONS ===== */}
       <GoSections lang={lang} t={t} onCtaClick={scrollToSignup} />
 
-      {/* ===== SIGNUP FORM ===== */}
-      <section id="go-signup" className="px-5 py-10 max-w-md mx-auto">
-        <h2 className="text-xl font-bold text-center text-foreground mb-1">
-          {lang === "fr" ? "Entre ton email, c'est tout 🔓" : "Enter your email, that's it 🔓"}
-        </h2>
-        <p className="text-[12px] text-muted-foreground text-center mb-5">
-          {lang === "fr" ? "Gratuit · Pas de mot de passe · Pas d'app" : "Free · No password · No app"}
-        </p>
-        <GoAuthForm
-          lang={lang}
-          t={t}
-          isInApp={isInApp}
-          isTikTok={isTikTok}
-          utmSource={utmSource}
-          utmCampaign={utmCampaign}
-        />
-      </section>
+      {/* Signup form is now in the hero */}
 
       {/* ===== FAQ ===== */}
       <GoFAQ lang={lang} t={t} />
