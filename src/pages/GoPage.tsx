@@ -152,6 +152,10 @@ export default function GoPage() {
         lang={lang}
         t={t}
         onCtaClick={scrollToSignup}
+        isInApp={isInApp}
+        isTikTok={isTikTok}
+        utmSource={utmSource}
+        utmCampaign={utmCampaign}
       />
 
       {/* In-app browser banner */}
