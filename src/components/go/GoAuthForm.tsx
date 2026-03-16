@@ -7,6 +7,7 @@ import { ttqTrack, ttqIdentify } from "@/lib/ttq";
 import { trackEvent } from "@/lib/analytics";
 import type { Lang } from "@/i18n/translations";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { isInAppBrowser } from "@/lib/openInExternalBrowser";
 
 interface GoAuthFormProps {
   lang: Lang;
