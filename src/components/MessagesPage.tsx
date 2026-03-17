@@ -217,7 +217,17 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
   const [activeConvo, setActiveConvo] = useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [pendingShareUrl, setPendingShareUrl] = useState<string | null>(null);
   const { user } = useAuth();
+
+  // Listen for DM share events
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      setPendingShareUrl(e.detail.vibeUrl);
+    };
+    window.addEventListener("wk:share-vibe-dm", handler as EventListener);
+    return () => window.removeEventListener("wk:share-vibe-dm", handler as EventListener);
+  }, []);
 
   const handleSearch = async (q: string) => {
     setSearchQuery(q);
