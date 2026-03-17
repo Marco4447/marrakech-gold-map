@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export function useFollows() {
   const { user } = useAuth();
@@ -12,18 +13,23 @@ export function useFollows() {
   const fetchFollows = useCallback(async () => {
     if (!user) { setLoading(false); return; }
     
-    const [followingRes, followerRes, followingCountRes] = await Promise.all([
-      supabase.from("follows" as any).select("following_id").eq("follower_id", user.id),
-      supabase.from("follows" as any).select("id", { count: "exact", head: true }).eq("following_id", user.id),
-      supabase.from("follows" as any).select("id", { count: "exact", head: true }).eq("follower_id", user.id),
-    ]);
+    try {
+      const [followingRes, followerRes, followingCountRes] = await Promise.all([
+        supabase.from("follows").select("following_id").eq("follower_id", user.id),
+        supabase.from("follows").select("id", { count: "exact", head: true }).eq("following_id", user.id),
+        supabase.from("follows").select("id", { count: "exact", head: true }).eq("follower_id", user.id),
+      ]);
 
-    if (followingRes.data) {
-      setFollowingIds(new Set((followingRes.data as any[]).map((f: any) => f.following_id)));
+      if (followingRes.data) {
+        setFollowingIds(new Set(followingRes.data.map((f) => f.following_id)));
+      }
+      setFollowerCount(followerRes.count || 0);
+      setFollowingCount(followingCountRes.count || 0);
+    } catch (err) {
+      console.error("Error fetching follows:", err);
+    } finally {
+      setLoading(false);
     }
-    setFollowerCount(followerRes.count || 0);
-    setFollowingCount(followingCountRes.count || 0);
-    setLoading(false);
   }, [user]);
 
   useEffect(() => { fetchFollows(); }, [fetchFollows]);
@@ -44,20 +50,35 @@ export function useFollows() {
     });
     setFollowingCount(prev => wasFollowing ? prev - 1 : prev + 1);
 
-    if (wasFollowing) {
-      await supabase.from("follows" as any).delete().eq("follower_id", user.id).eq("following_id", targetUserId);
-    } else {
-      await supabase.from("follows" as any).insert({ follower_id: user.id, following_id: targetUserId } as any);
+    try {
+      if (wasFollowing) {
+        const { error } = await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", targetUserId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("follows").insert({ follower_id: user.id, following_id: targetUserId });
+        if (error) throw error;
+      }
+    } catch (err: unknown) {
+      console.error("Follow toggle error:", err);
+      toast.error("Erreur lors du suivi");
+      // Revert optimistic update
+      setFollowingIds(prev => {
+        const next = new Set(prev);
+        if (wasFollowing) next.add(targetUserId);
+        else next.delete(targetUserId);
+        return next;
+      });
+      setFollowingCount(prev => wasFollowing ? prev + 1 : prev - 1);
     }
   }, [user, followingIds]);
 
   const getFollowerCount = useCallback(async (userId: string) => {
-    const { count } = await supabase.from("follows" as any).select("id", { count: "exact", head: true }).eq("following_id", userId);
+    const { count } = await supabase.from("follows").select("id", { count: "exact", head: true }).eq("following_id", userId);
     return count || 0;
   }, []);
 
   const getFollowingCount = useCallback(async (userId: string) => {
-    const { count } = await supabase.from("follows" as any).select("id", { count: "exact", head: true }).eq("follower_id", userId);
+    const { count } = await supabase.from("follows").select("id", { count: "exact", head: true }).eq("follower_id", userId);
     return count || 0;
   }, []);
 
