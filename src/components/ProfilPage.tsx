@@ -1174,6 +1174,61 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         )}
       </AnimatePresence>
 
+      {/* Follow list bottom sheet */}
+      <AnimatePresence>
+        {showFollowList !== null && (
+          <div className="fixed inset-0 z-[3000] flex flex-col justify-end" onClick={() => setShowFollowList(null)}>
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              className="relative bg-card border-t border-border rounded-t-3xl max-h-[70vh] flex flex-col"
+            >
+              <div className="w-10 h-1 bg-muted/50 rounded-full mx-auto mt-3 mb-2" />
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border/50">
+                <h3 className="text-sm font-bold text-foreground">
+                  {showFollowList === "followers" ? "Abonnés" : "Abonnements"}
+                </h3>
+                <button onClick={() => setShowFollowList(null)} className="text-muted-foreground">
+                  <XIcon className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {followListLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-gold" />
+                  </div>
+                ) : followListData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
+                    <Users className="w-8 h-8 opacity-30" />
+                    <p className="text-sm">Aucun {showFollowList === "followers" ? "abonné" : "abonnement"}</p>
+                  </div>
+                ) : (
+                  followListData.map(person => (
+                    <div key={person.user_id} className="flex items-center gap-3 px-4 py-3 border-b border-border/20">
+                      <Avatar className="w-10 h-10 shrink-0">
+                        <AvatarImage src={person.avatar_url || undefined} />
+                        <AvatarFallback className="bg-gold/10 text-gold text-xs font-bold">
+                          {(person.full_name || "?")[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {person.full_name || "Anonyme"}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

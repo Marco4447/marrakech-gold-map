@@ -278,7 +278,26 @@ export default function AuthGate() {
                     />
                   </div>
                 )}
-                <div className="relative">
+                {mode === "signup" && (
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold select-none">@</span>
+                    <input
+                      type="text"
+                      placeholder="ton_pseudo"
+                      value={username}
+                      onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, "").slice(0, 20))}
+                      className="w-full pl-8 pr-4 py-3.5 rounded-2xl bg-surface border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors"
+                      maxLength={20}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                    />
+                    {username.length > 0 && (
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+                        {20 - username.length}
+                      </span>
+                    )}
+                  </div>
+                )}
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="email"
