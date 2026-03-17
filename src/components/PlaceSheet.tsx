@@ -59,8 +59,8 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   const { t, lang } = useLanguage();
   const { user } = useAuth();
   const [isVip, setIsVip] = useState(false);
-  const [offers, setOffers] = useState<any[]>([]);
-  const [vipOffers, setVipOffers] = useState<any[]>([]);
+  const [offers, setOffers] = useState<Array<{ id: string; title: string; description: string; expiration_date: string | null; vip_only: boolean }>>([]);
+  const [vipOffers, setVipOffers] = useState<Array<{ id: string; title: string; description: string; perk_type: string; start_time: string | null; end_time: string | null }>>([]);
   const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string; drinks_menu_url?: string; is_founder?: boolean; listing_tier?: string } | null>(null);
   const [placePhotos, setPlacePhotos] = useState<{ id: string; photo_url: string; caption: string | null }[]>([]);
 
