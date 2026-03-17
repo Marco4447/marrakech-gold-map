@@ -152,7 +152,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                   {/* Header: Name + Rating */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <Link to={`/venue/${(place as any).slug || place.id}`} onClick={() => onOpenChange(false)}
+                      <Link to={`/venue/${place.id}`} onClick={() => onOpenChange(false)}
                         className="font-display text-xl font-semibold text-foreground hover:text-gold transition-colors">
                         {place.name}
                       </Link>
