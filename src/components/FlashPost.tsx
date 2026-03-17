@@ -585,7 +585,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
           location: resolvedLocation,
           username: user?.user_metadata?.full_name || user?.email?.split("@")[0] || null,
           user_id: user?.id || null,
-          caption: null,
+          caption: caption.trim() || null,
           insider_tip: insiderTip.trim() || null,
           likes: 0,
           mood: selectedMood,
