@@ -631,6 +631,24 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             >
               <Navigation className="w-4 h-4 text-gold" />
             </button>
+            <button
+              onClick={() => setShowHeatmap(h => !h)}
+              className={`w-10 h-10 rounded-xl backdrop-blur-md border flex items-center justify-center transition-all shadow-lg ${
+                showHeatmap
+                  ? "bg-orange-500/20 border-orange-500/50 text-orange-400"
+                  : "bg-card/80 border-border text-muted-foreground"
+              }`}
+              title="Heatmap live"
+            >
+              <span className="text-lg">🔥</span>
+            </button>
+            <button
+              onClick={() => setShowRadar(true)}
+              className="w-10 h-10 rounded-xl bg-card/80 backdrop-blur-md border border-border flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+              title="Radar soirée"
+            >
+              <span className="text-lg">📡</span>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
