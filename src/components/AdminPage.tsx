@@ -67,7 +67,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
     try {
       const [statsRes, requestsRes, bookingsRes, placesRes] = await Promise.all([
         supabase.functions.invoke("admin-stats"),
-        supabase.from("partner_requests" as any).select("*").order("created_at", { ascending: false }),
+        supabase.from("partner_requests").select("*").order("created_at", { ascending: false }),
         supabase.from("bookings").select("place_name").eq("status", "free_pass"),
         supabase.from("places").select("id, name, category, neighborhood").order("name"),
       ]);
