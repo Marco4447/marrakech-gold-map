@@ -812,12 +812,77 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
               ))}
             </div>
           )
+        ) : profileTab === "vibes" ? (
+          (() => {
+            const SIX_H = 6 * 60 * 60 * 1000;
+            const activeVibes = myVibes.filter(v => Date.now() - new Date(v.created_at).getTime() < SIX_H);
+            const archivedVibes = myVibes.filter(v => Date.now() - new Date(v.created_at).getTime() >= SIX_H);
+
+            return (
+              <div>
+                {/* Archive toggle */}
+                {myVibes.length > 0 && (
+                  <div className="flex items-center justify-between pt-3 pb-2">
+                    <p className="text-[11px] text-muted-foreground">
+                      {activeVibes.length} publique{activeVibes.length !== 1 ? "s" : ""} · {archivedVibes.length} archivée{archivedVibes.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                )}
+
+                {myVibes.length === 0 ? (
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3">
+                      <Grid3X3 className="w-6 h-6 text-gold/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Partage ta première vibe !</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-3 gap-0.5 md:gap-1">
+                      {myVibes.map((vibe, i) => {
+                        const isExpired = Date.now() - new Date(vibe.created_at).getTime() >= SIX_H;
+                        return (
+                          <motion.div
+                            key={vibe.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.03 }}
+                            className="relative aspect-square overflow-hidden bg-card group"
+                          >
+                            <img
+                              src={vibe.image_url}
+                              alt={vibe.caption || "Vibe"}
+                              className={`w-full h-full object-cover ${isExpired ? "opacity-50" : ""}`}
+                              loading="lazy"
+                            />
+                            {isExpired && (
+                              <div className="absolute top-1 right-1 bg-background/70 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+                                <span className="text-[8px] font-bold text-muted-foreground">🗄️</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                              <span className="flex items-center gap-1 text-foreground font-semibold text-sm">
+                                <Heart className="w-5 h-5 fill-foreground" />{vibe.likes}
+                              </span>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                    {archivedVibes.length > 0 && (
+                      <p className="text-[10px] text-muted-foreground text-center mt-3 px-4">
+                        👻 Tes vibes expirent publiquement après 6h mais restent dans ton archive privée.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })()
         ) : (
           (() => {
-            const items = profileTab === "vibes" ? myVibes : profileTab === "likes" ? favorites : savedVibes;
-            const emptyMsg = profileTab === "vibes"
-              ? "Partage ta première vibe !"
-              : profileTab === "likes"
+            const items = profileTab === "likes" ? favorites : savedVibes;
+            const emptyMsg = profileTab === "likes"
               ? "Like des vibes pour les retrouver ici !"
               : "Sauvegarde des vibes avec le bouton 🔖";
 
@@ -825,8 +890,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
               return (
                 <div className="text-center py-10">
                   <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3">
-                    {profileTab === "vibes" ? <Grid3X3 className="w-6 h-6 text-gold/50" /> :
-                     profileTab === "likes" ? <Heart className="w-6 h-6 text-gold/50" /> :
+                    {profileTab === "likes" ? <Heart className="w-6 h-6 text-gold/50" /> :
                      <Bookmark className="w-6 h-6 text-gold/50" />}
                   </div>
                   <p className="text-sm text-muted-foreground">{emptyMsg}</p>
