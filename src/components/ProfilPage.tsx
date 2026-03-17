@@ -218,49 +218,97 @@ function ProfileCard({
         </button>
       )}
 
+      {/* Username */}
+      {(profile as any)?.username && (
+        <p className="text-xs text-muted-foreground mt-0.5">@{(profile as any).username}</p>
+      )}
+
       {/* Bio */}
       {editingBio ? (
-        <div className="flex items-center gap-2 mt-1.5 w-full max-w-xs">
-          <input
+        <div className="flex flex-col gap-2 mt-1.5 w-full max-w-xs">
+          <textarea
             value={newBio}
             onChange={(e) => setNewBio(e.target.value)}
             placeholder="Ajoute une bio…"
             maxLength={120}
-            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center"
+            rows={2}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center resize-none"
             autoFocus
           />
-          <button
-            onClick={async () => {
-              if (!user) return;
-              setSaving(true);
-              try {
-                await supabase.from("profiles").update({ bio: newBio.trim() || null } as any).eq("user_id", user.id);
-                await onProfileUpdated();
-                setEditingBio(false);
-                toast.success("Bio enregistrée");
-              } catch { toast.error("Erreur"); }
-              finally { setSaving(false); }
-            }}
-            disabled={saving}
-            className="text-green-400 hover:text-green-300"
-          >
-            <Check className="w-4 h-4" />
-          </button>
-          <button onClick={() => setEditingBio(false)} className="text-muted-foreground hover:text-foreground">
-            <XIcon className="w-4 h-4" />
-          </button>
+          <input
+            value={newLink}
+            onChange={(e) => setNewLink(e.target.value)}
+            placeholder="ton-site.com ou @instagram"
+            maxLength={100}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center"
+          />
+          <input
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, "").slice(0, 20))}
+            placeholder="username"
+            maxLength={20}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center"
+          />
+          <div className="flex items-center gap-2 justify-center">
+            <button
+              onClick={async () => {
+                if (!user) return;
+                setSaving(true);
+                try {
+                  const finalBio = serializeBioWithLink(newBio.trim(), newLink.trim());
+                  await supabase.from("profiles").update({ bio: finalBio || null, username: newUsername.trim() || null } as any).eq("user_id", user.id);
+                  await onProfileUpdated();
+                  setEditingBio(false);
+                  toast.success("Profil enregistré");
+                } catch { toast.error("Erreur"); }
+                finally { setSaving(false); }
+              }}
+              disabled={saving}
+              className="text-green-400 hover:text-green-300"
+            >
+              <Check className="w-4 h-4" />
+            </button>
+            <button onClick={() => setEditingBio(false)} className="text-muted-foreground hover:text-foreground">
+              <XIcon className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       ) : (
         <button
-          onClick={() => { setNewBio(profile?.bio || ""); setEditingBio(true); }}
+          onClick={() => {
+            const parsed = parseBioWithLink(profile?.bio || null);
+            setNewBio(parsed.bio);
+            setNewLink(parsed.link);
+            setNewUsername((profile as any)?.username || "");
+            setEditingBio(true);
+          }}
           className="mt-1 group"
         >
           <p className="text-xs text-muted-foreground text-center max-w-xs">
-            {profile?.bio || "Ajoute une bio…"}
+            {parseBioWithLink(profile?.bio || null).bio || "Ajoute une bio…"}
             <Pencil className="w-3 h-3 text-muted-foreground/50 inline-block ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
           </p>
         </button>
       )}
+
+      {/* Bio link */}
+      {(() => {
+        const { link } = parseBioWithLink(profile?.bio || null);
+        if (!link) return null;
+        return (
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs text-gold font-semibold mt-1.5 hover:underline"
+          >
+            <Link2 className="w-3 h-3 shrink-0" />
+            <span className="truncate max-w-[200px]">
+              {link.replace(/^https?:\/\//, "").split("/")[0]}
+            </span>
+          </a>
+        );
+      })()}
 
       <p className="text-muted-foreground text-xs text-center max-w-xs mt-1">
         {displayEmail}
