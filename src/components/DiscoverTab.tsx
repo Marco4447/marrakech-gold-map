@@ -38,6 +38,7 @@ interface PlaceMatch {
 
 export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (lat: number, lng: number, placeId?: string) => void; onStartChat?: (userId: string) => void }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [vibes, setVibes] = useState<ExploreVibe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchFocused, setSearchFocused] = useState(false);
