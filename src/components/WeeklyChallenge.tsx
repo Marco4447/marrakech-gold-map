@@ -191,12 +191,18 @@ export default function WeeklyChallenge() {
           <p className="text-[13px] font-semibold text-foreground truncate">
             {challenge.title}
           </p>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <Clock className="w-3 h-3 text-muted-foreground" />
             <span className="text-[11px] text-muted-foreground font-medium">{timeLeft}</span>
             {userRank > 0 && (
               <span className="text-[11px] text-muted-foreground">
                 · {userRank === 1 ? "1er 🔥" : `${userRank}ème`}
+              </span>
+            )}
+            {challenge.theme_tag?.startsWith("geo:") && (
+              <span className="flex items-center gap-0.5 text-[10px] text-gold font-semibold">
+                <MapPin className="w-3 h-3 text-gold" />
+                {challenge.theme_tag.split(":")[1]}
               </span>
             )}
           </div>

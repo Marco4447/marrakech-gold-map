@@ -47,6 +47,23 @@ export default function AdminChallengesTab() {
             <option value="14">14 jours</option>
           </select>
         </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground">Type :</label>
+          <select value={chType} onChange={(e) => setChType(e.target.value as "standard" | "geo")} className="bg-background border border-border rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30">
+            <option value="standard">Standard</option>
+            <option value="geo">Quartier</option>
+          </select>
+        </div>
+        {chType === "geo" && (
+          <div className="flex items-center gap-2">
+            <MapPin className="w-3.5 h-3.5 text-gold" />
+            <select value={chNeighborhood} onChange={(e) => setChNeighborhood(e.target.value)} className="bg-background border border-border rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30">
+              {NEIGHBORHOODS.map(n => (
+                <option key={n.slug} value={n.slug}>{n.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <button
           disabled={!chTitle.trim() || savingCh}
           onClick={async () => {
