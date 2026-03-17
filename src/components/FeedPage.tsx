@@ -301,6 +301,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         }
         localStorage.setItem("wk_last_feed_visit", Date.now().toString());
         lastVisitRef.current = Date.now();
+      }
     } catch (err) {
       console.error("Feed fetch error:", err);
       setFetchError("Impossible de charger le feed.");
