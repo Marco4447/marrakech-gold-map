@@ -440,6 +440,25 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     "Explorateur";
   const displayEmail = profile?.email || user?.email || "Tes coups de cœur sont sauvegardés ici.";
 
+  const fetchFollowList = async (type: "followers" | "following") => {
+    if (!user) return;
+    setFollowListLoading(true);
+    try {
+      let userIds: string[] = [];
+      if (type === "followers") {
+        const { data } = await supabase.from("follows" as any).select("follower_id").eq("following_id", user.id);
+        userIds = (data || []).map((r: any) => r.follower_id);
+      } else {
+        const { data } = await supabase.from("follows" as any).select("following_id").eq("follower_id", user.id);
+        userIds = (data || []).map((r: any) => r.following_id);
+      }
+      if (userIds.length === 0) { setFollowListData([]); setFollowListLoading(false); return; }
+      const { data: profiles } = await supabase.from("profiles_public" as any).select("user_id, full_name, avatar_url").in("user_id", userIds);
+      setFollowListData((profiles || []) as any[]);
+    } catch { toast.error("Impossible de charger la liste"); }
+    finally { setFollowListLoading(false); }
+  };
+
   const handleDeleteAccount = async () => {
     if (!user) return;
     setDeleting(true);
