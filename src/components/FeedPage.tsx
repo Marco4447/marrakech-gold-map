@@ -243,7 +243,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
     // Fetch active boosts
     supabase.from("vibe_boosts").select("vibe_id, boost_expires_at").gt("boost_expires_at", new Date().toISOString()).then(({ data }) => {
-      if (data) setBoostedVibeIds(new Set(data.map((b: any) => b.vibe_id)));
+      if (data) setBoostedVibeIds(new Set(data.map((b) => b.vibe_id)));
     });
 
     // Fetch partner place names
