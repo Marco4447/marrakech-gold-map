@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           full_name: data.full_name || fallbackProfile.full_name,
           email: data.email || fallbackProfile.email,
           avatar_url: data.avatar_url || fallbackProfile.avatar_url,
-          bio: (data as any).bio || null,
+          bio: data.bio || null,
         });
         return;
       }
@@ -97,13 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
     let initialSessionHandled = false;
 
-    // 1. Set up listener FIRST — catches INITIAL_SESSION, SIGNED_IN, TOKEN_REFRESHED
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
         const currentUser = session?.user ?? null;
 
-        // Mark initial session handled to avoid double-processing
         if (event === "INITIAL_SESSION") {
           initialSessionHandled = true;
         }
@@ -114,21 +112,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (currentUser) {
           if (event === "SIGNED_IN") {
             ttqTrack("CompleteRegistration", { content_name: "google_oauth" });
-            // Process referral code if present
             try {
               const refCode = localStorage.getItem("weshkech_ref");
               if (refCode) {
                 localStorage.removeItem("weshkech_ref");
                 const { data: codeData } = await supabase
-                  .from("referral_codes" as any)
+                  .from("referral_codes")
                   .select("user_id, code")
                   .eq("code", refCode)
                   .maybeSingle();
-                if (codeData && (codeData as any).user_id !== currentUser.id) {
-                  await supabase.from("referral_uses" as any).insert({
+                if (codeData && codeData.user_id !== currentUser.id) {
+                  await supabase.from("referral_uses").insert({
                     code: refCode,
                     referred_user_id: currentUser.id,
-                    referrer_user_id: (codeData as any).user_id,
+                    referrer_user_id: codeData.user_id,
                   });
                 }
               }
@@ -137,7 +134,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
 
-          // TOKEN_REFRESHED means the session was restored — still fetch profile
           if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
             fetchProfile(currentUser).catch((e) => {
               console.error("Failed to fetch profile:", e);
@@ -149,8 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // 2. Also call getSession immediately as a safety net
-    // (some Supabase versions don't emit INITIAL_SESSION reliably on mobile)
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted || initialSessionHandled) return;
       initialSessionHandled = true;
@@ -193,7 +187,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       localStorage.removeItem("wk_landed");
 
-      // Force clear persisted auth tokens
       for (const key of Object.keys(localStorage)) {
         if (
           (key.startsWith("sb-") && key.includes("-auth-token")) ||

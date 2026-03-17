@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Volume2, VolumeX, Play, Pause } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getOptimizedImageUrl } from "@/lib/imageOptimize";
 
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".m4v"];
 function isVideo(url: string): boolean {
@@ -24,6 +25,8 @@ export default function PlaceHero({ mediaUrl, placeName, category, neighborhood,
   const [paused, setPaused] = useState(false);
   const video = isVideo(mediaUrl);
 
+  const optimizedUrl = video ? mediaUrl : getOptimizedImageUrl(mediaUrl, { width: 800, quality: 85 });
+
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
@@ -42,7 +45,7 @@ export default function PlaceHero({ mediaUrl, placeName, category, neighborhood,
           autoPlay loop muted={muted} playsInline preload="auto"
         />
       ) : (
-        <img src={mediaUrl} alt={placeName} className="w-full h-full object-cover" />
+        <img src={optimizedUrl} alt={placeName} className="w-full h-full object-cover" />
       )}
 
       {/* Gradient overlays */}

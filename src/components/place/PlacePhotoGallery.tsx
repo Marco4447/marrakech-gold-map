@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Users, Image as ImageIcon, Volume2, VolumeX, Play } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { getOptimizedImageUrl } from "@/lib/imageOptimize";
 
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".m4v"];
 
@@ -48,7 +49,6 @@ function GalleryVideo({ src, isActive }: { src: string; isActive: boolean }) {
         playsInline
         preload="metadata"
       />
-      {/* Tap to play/pause */}
       <button onClick={togglePlay} className="absolute inset-0 z-10" aria-label="Play/Pause">
         <AnimatePresence>
           {paused && (
@@ -65,7 +65,6 @@ function GalleryVideo({ src, isActive }: { src: string; isActive: boolean }) {
           )}
         </AnimatePresence>
       </button>
-      {/* Mute toggle — bottom-right like Instagram */}
       <button
         onClick={toggleMute}
         className="absolute bottom-3 right-3 z-20 w-7 h-7 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center text-foreground"
@@ -91,6 +90,7 @@ export default function PlacePhotoGallery({ images, placeName, isPartner, viewer
 
   const currentUrl = images[galleryIndex];
   const currentIsVideo = isVideo(currentUrl);
+  const optimizedUrl = currentIsVideo ? currentUrl : getOptimizedImageUrl(currentUrl, { width: 800, quality: 85 });
 
   return (
     <div className="space-y-0">
@@ -111,7 +111,7 @@ export default function PlacePhotoGallery({ images, placeName, isPartner, viewer
           ) : (
             <motion.img
               key={galleryIndex}
-              src={currentUrl}
+              src={optimizedUrl}
               alt={placeName}
               className="w-full h-full object-cover"
               initial={{ opacity: 0 }}
@@ -170,6 +170,7 @@ export default function PlacePhotoGallery({ images, placeName, isPartner, viewer
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
             {images.map((url, i) => {
               const thumbIsVideo = isVideo(url);
+              const thumbUrl = thumbIsVideo ? url : getOptimizedImageUrl(url, { width: 100, quality: 60 });
               return (
                 <button key={i} onClick={() => setGalleryIndex(i)}
                   className={`relative shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${i === galleryIndex ? "border-gold shadow-md shadow-gold/20 scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
@@ -181,7 +182,7 @@ export default function PlacePhotoGallery({ images, placeName, isPartner, viewer
                       </div>
                     </>
                   ) : (
-                    <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    <img src={thumbUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                   )}
                 </button>
               );

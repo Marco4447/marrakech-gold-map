@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Video, VolumeX, Volume2 } from "lucide-react";
-
+import { getOptimizedImageUrl } from "@/lib/imageOptimize";
 import type { Vibe } from "@/types/models";
 
 function withCacheBust(url: string, token: string) {
@@ -17,15 +17,17 @@ function withCacheBust(url: string, token: string) {
 export default function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
   const [muted, setMuted] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
-  const [imageSrc, setImageSrc] = useState(() =>
-    withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`)
-  );
+  const [imageSrc, setImageSrc] = useState(() => {
+    const raw = withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`);
+    return getOptimizedImageUrl(raw, { width: 600, quality: 75 });
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = vibe.media_type === "video";
 
   useEffect(() => {
     setRetryCount(0);
-    setImageSrc(withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`));
+    const raw = withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`);
+    setImageSrc(getOptimizedImageUrl(raw, { width: 600, quality: 75 }));
   }, [vibe.id, vibe.image_url, vibe.created_at]);
 
   const handleImageError = () => {
@@ -33,7 +35,8 @@ export default function VibeMedia({ vibe, className }: { vibe: Vibe; className?:
     const nextRetry = retryCount + 1;
     setRetryCount(nextRetry);
     setTimeout(() => {
-      setImageSrc(withCacheBust(vibe.image_url, `${Date.now()}-${nextRetry}`));
+      const raw = withCacheBust(vibe.image_url, `${Date.now()}-${nextRetry}`);
+      setImageSrc(getOptimizedImageUrl(raw, { width: 600, quality: 75 }));
     }, 400 * nextRetry);
   };
 
