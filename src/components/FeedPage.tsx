@@ -793,6 +793,73 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
       {/* Floating VIP Offer CTA */}
       <FloatingVipOffer />
+
+      {/* Share DM Picker */}
+      <AnimatePresence>
+        {showDmPicker && shareVibeId && (
+          <div className="fixed inset-0 z-[3000] flex flex-col justify-end" onClick={() => setShowDmPicker(false)}>
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              className="relative bg-card border-t border-border rounded-t-3xl pb-8"
+            >
+              <div className="w-10 h-1 bg-muted/50 rounded-full mx-auto mt-3 mb-4" />
+              <div className="px-4 space-y-2">
+                <h3 className="text-sm font-bold text-foreground mb-3">Partager cette vibe</h3>
+                <button
+                  onClick={async () => {
+                    const url = getShareUrl("vibe", shareVibeId);
+                    const text = "Regarde cette vibe sur Weshkech 👀";
+                    if (navigator.share) {
+                      try { await navigator.share({ title: "Weshkech", text, url }); } catch {}
+                    } else {
+                      await navigator.clipboard.writeText(url);
+                      toast.success("Lien copié !");
+                    }
+                    setShowDmPicker(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border active:bg-muted/30 transition-colors"
+                >
+                  <Share2 className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Partager via...</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    const url = getShareUrl("vibe", shareVibeId);
+                    await navigator.clipboard.writeText(url).catch(() => {});
+                    toast.success("Lien copié !");
+                    setShowDmPicker(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border active:bg-muted/30 transition-colors"
+                >
+                  <Copy className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Copier le lien</span>
+                </button>
+                {userId && (
+                  <button
+                    onClick={() => {
+                      const url = getShareUrl("vibe", shareVibeId);
+                      window.dispatchEvent(new CustomEvent("wk:share-vibe-dm", {
+                        detail: { vibeUrl: url, vibeId: shareVibeId }
+                      }));
+                      setShowDmPicker(false);
+                      toast.success("Ouvre un message pour partager !");
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gold/10 border border-gold/25 active:bg-gold/20 transition-colors"
+                  >
+                    <MessageCircle className="w-5 h-5 text-gold" />
+                    <span className="text-sm font-bold text-gold">Envoyer en message privé</span>
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
