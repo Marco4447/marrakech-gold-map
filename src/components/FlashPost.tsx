@@ -117,6 +117,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
   const [preview, setPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"photo" | "video">("photo");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [caption, setCaption] = useState("");
   const [insiderTip, setInsiderTip] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -130,9 +131,75 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
   const [isOfficial, setIsOfficial] = useState(false);
   const [isPartner, setIsPartner] = useState(false);
   const [partnerCredits, setPartnerCredits] = useState(0);
+  const [showHashtagSuggestions, setShowHashtagSuggestions] = useState(false);
+  const [hashtagQuery, setHashtagQuery] = useState("");
+  const [hasDraft, setHasDraft] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const HASHTAG_SUGGESTIONS = [
+    "medina", "gueliz", "hivernage", "palmeraie", "rooftop",
+    "nightlife", "foodie", "cocktail", "sunset", "riad",
+    "chill", "party", "streetfood", "pool", "marrakech",
+    "terasse", "hammam", "souk", "djemaa", "musique"
+  ];
+
+  const handleCaptionChange = (value: string) => {
+    setCaption(value);
+    const words = value.split(/\s/);
+    const lastWord = words[words.length - 1];
+    if (lastWord.startsWith("#") && lastWord.length > 1) {
+      const q = lastWord.slice(1).toLowerCase();
+      setHashtagQuery(q);
+      setShowHashtagSuggestions(true);
+    } else {
+      setShowHashtagSuggestions(false);
+    }
+  };
+
+  // Draft auto-save
+  useEffect(() => {
+    if (!caption && !geoName && !selectedMood) return;
+    localStorage.setItem("wk_flash_draft", JSON.stringify({
+      caption, location: geoName, mood: selectedMood, savedAt: Date.now()
+    }));
+  }, [caption, geoName, selectedMood]);
+
+  // Draft restore check
+  useEffect(() => {
+    if (!open) return;
+    try {
+      const raw = localStorage.getItem("wk_flash_draft");
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      const age = Date.now() - draft.savedAt;
+      if (age < 2 * 60 * 60 * 1000 && (draft.caption || draft.location)) {
+        setHasDraft(true);
+      } else {
+        localStorage.removeItem("wk_flash_draft");
+      }
+    } catch {
+      localStorage.removeItem("wk_flash_draft");
+    }
+  }, [open]);
+
+  const restoreDraft = () => {
+    try {
+      const raw = localStorage.getItem("wk_flash_draft");
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.caption) setCaption(draft.caption);
+      if (draft.location) setGeoName(draft.location);
+      if (draft.mood) setSelectedMood(draft.mood);
+      setHasDraft(false);
+    } catch {}
+  };
+
+  const discardDraft = () => {
+    localStorage.removeItem("wk_flash_draft");
+    setHasDraft(false);
+  };
 
   // Video recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -518,7 +585,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
           location: resolvedLocation,
           username: user?.user_metadata?.full_name || user?.email?.split("@")[0] || null,
           user_id: user?.id || null,
-          caption: null,
+          caption: caption.trim() || null,
           insider_tip: insiderTip.trim() || null,
           likes: 0,
           mood: selectedMood,
@@ -564,6 +631,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       });
       clearTimeout(globalTimeout);
 
+      localStorage.removeItem("wk_flash_draft");
       // Show success animation then close (B2C boost upsell disabled)
       setShowSuccess(true);
       setTimeout(() => {
@@ -588,6 +656,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     setPreview(null);
     setMediaType("photo");
     setSelectedMood(null);
+    setCaption("");
     setInsiderTip("");
     setUploading(false);
     setUploadProgress(0);
@@ -597,6 +666,8 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     setShowSuccess(false);
     setIsOfficial(false);
     setPostLimitReached(false);
+    setHasDraft(false);
+    setShowHashtagSuggestions(false);
   };
 
   const handleClose = () => {
@@ -644,6 +715,17 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                     <X className="w-5 h-5" />
                   </button>
                 </div>
+
+                {/* Draft restore banner */}
+                {hasDraft && (
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-gold/[0.08] border border-gold/15 rounded-xl mb-3">
+                    <span className="text-xs text-gold font-semibold">📝 Brouillon sauvegardé</span>
+                    <div className="flex gap-3">
+                      <button type="button" onClick={restoreDraft} className="text-xs text-gold font-bold">Restaurer</button>
+                      <button type="button" onClick={discardDraft} className="text-xs text-muted-foreground">Ignorer</button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Incitation message */}
                 <div className="bg-gold/10 border border-gold/20 rounded-xl px-4 py-2.5 mb-4">
@@ -850,6 +932,43 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                         </button>
                       </div>
                     )}
+
+                    {/* Caption with hashtag suggestions */}
+                    <div className="mb-4">
+                      <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5 mb-1">
+                        ✏️ Légende
+                      </label>
+                      <textarea
+                        value={caption}
+                        onChange={(e) => handleCaptionChange(e.target.value.slice(0, 200))}
+                        placeholder="Décris le moment... #rooftop #nightlife"
+                        rows={2}
+                        className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all resize-none"
+                      />
+                      {showHashtagSuggestions && (
+                        <div className="flex gap-1.5 flex-wrap mt-1.5 px-1">
+                          {HASHTAG_SUGGESTIONS
+                            .filter(h => h.startsWith(hashtagQuery) || h.includes(hashtagQuery))
+                            .slice(0, 8)
+                            .map(h => (
+                              <button
+                                key={h}
+                                type="button"
+                                onClick={() => {
+                                  const words = caption.split(/\s/);
+                                  words[words.length - 1] = `#${h}`;
+                                  setCaption(words.join(" ") + " ");
+                                  setShowHashtagSuggestions(false);
+                                }}
+                                className="px-2.5 py-1 rounded-full bg-gold/10 text-gold text-xs font-semibold border border-gold/20 active:scale-95 transition-transform"
+                              >
+                                #{h}
+                              </button>
+                            ))
+                          }
+                        </div>
+                      )}
+                    </div>
 
                     {/* Insider Tip */}
                     <div className="mb-4">

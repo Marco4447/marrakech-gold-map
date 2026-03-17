@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark, Sparkles } from "lucide-react";
+import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark, Sparkles, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -68,18 +68,48 @@ function withCacheBust(url: string, token: string) {
   }
 }
 
+function renderCaption(text: string | null) {
+  if (!text) return null;
+  return text.split(/(\s+)/).map((token, i) =>
+    token.startsWith("#") && token.length > 1 ? (
+      <span key={i} className="text-gold font-semibold">{token}</span>
+    ) : (
+      <span key={i}>{token}</span>
+    )
+  );
+}
+
 function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
   const [muted, setMuted] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [imageSrc, setImageSrc] = useState(() =>
     withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`)
   );
+  const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = vibe.media_type === "video";
 
   useEffect(() => {
     setRetryCount(0);
     setImageSrc(withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`));
   }, [vibe.id, vibe.image_url, vibe.created_at]);
+
+  // Auto-pause video when scrolled out of view
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isVideo) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [isVideo]);
 
   const handleImageError = () => {
     if (retryCount >= 2) return;
@@ -98,13 +128,37 @@ function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
 
   return (
     <div className="relative w-full h-full">
-      <video src={vibe.image_url} className={className} autoPlay loop muted={muted} playsInline preload="metadata" />
+      <video ref={videoRef} src={vibe.image_url} className={className} loop muted={muted} playsInline preload="metadata" />
       <button
         onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
         className="absolute bottom-12 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center z-10"
       >
         {muted ? <VolumeX className="w-4 h-4 text-foreground" /> : <Volume2 className="w-4 h-4 text-foreground" />}
       </button>
+    </div>
+  );
+}
+
+function VibeSkeleton() {
+  return (
+    <div className="animate-pulse border-b border-border/20">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="w-9 h-9 rounded-full bg-muted/40 shrink-0" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3 w-28 bg-muted/40 rounded-full" />
+          <div className="h-2 w-16 bg-muted/25 rounded-full" />
+        </div>
+      </div>
+      <div className="aspect-[4/5] bg-muted/25" />
+      <div className="flex gap-5 px-4 py-3">
+        <div className="h-4 w-10 bg-muted/30 rounded-full" />
+        <div className="h-4 w-10 bg-muted/30 rounded-full" />
+        <div className="h-4 w-10 bg-muted/30 rounded-full" />
+      </div>
+      <div className="px-4 pb-3 space-y-1.5">
+        <div className="h-2.5 w-3/4 bg-muted/25 rounded-full" />
+        <div className="h-2.5 w-1/2 bg-muted/25 rounded-full" />
+      </div>
     </div>
   );
 }
@@ -183,6 +237,12 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     const h = new Date().getHours();
     return h >= 20 || h < 6;
   });
+  const lastVisitRef = useRef<number>(parseInt(localStorage.getItem("wk_last_feed_visit") || "0"));
+  const [newVibesCount, setNewVibesCount] = useState(0);
+  const [showNewPill, setShowNewPill] = useState(false);
+  const feedScrollRef = useRef<HTMLDivElement>(null);
+  const [shareVibeId, setShareVibeId] = useState<string | null>(null);
+  const [showDmPicker, setShowDmPicker] = useState(false);
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -228,7 +288,19 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             .in("user_id", userIds);
           if (profiles) profilesMap = Object.fromEntries(profiles.filter(p => p.user_id).map(p => [p.user_id!, p]));
         }
-        setVibes(data.map(v => ({ ...v, profile: v.user_id ? profilesMap[v.user_id] || null : null })));
+        const vibesData = data.map(v => ({ ...v, profile: v.user_id ? profilesMap[v.user_id] || null : null }));
+        setVibes(vibesData);
+        // Track new vibes pill
+        const freshCount = vibesData.filter(v =>
+          new Date(v.created_at).getTime() > lastVisitRef.current
+        ).length;
+        if (freshCount > 0 && lastVisitRef.current > 0) {
+          setNewVibesCount(freshCount);
+          setShowNewPill(true);
+          setTimeout(() => setShowNewPill(false), 8000);
+        }
+        localStorage.setItem("wk_last_feed_visit", Date.now().toString());
+        lastVisitRef.current = Date.now();
       }
     } catch (err) {
       console.error("Feed fetch error:", err);
@@ -274,6 +346,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         if (payload.eventType === "INSERT") {
           const nv = payload.new as Vibe;
           setVibes((prev) => prev.some((v) => v.id === nv.id) ? prev : [nv, ...prev]);
+          setNewVibesCount(c => c + 1);
+          setShowNewPill(true);
+          setTimeout(() => setShowNewPill(false), 8000);
         } else if (payload.eventType === "DELETE") {
           setVibes((prev) => prev.filter((v) => v.id !== (payload.old as { id: string }).id));
         } else if (payload.eventType === "UPDATE") {
@@ -398,7 +473,27 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const visibleFeed = filteredFeed.slice(0, visibleCount);
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
+    <div ref={feedScrollRef} className="h-full overflow-y-auto no-scrollbar pb-20 relative" onScroll={(e) => {
+      if ((e.target as HTMLDivElement).scrollTop < 100) setShowNewPill(false);
+    }}>
+      {/* New vibes pill */}
+      <AnimatePresence>
+        {showNewPill && newVibesCount > 0 && (
+          <motion.button
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            onClick={() => {
+              feedScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+              setShowNewPill(false);
+            }}
+            className="fixed top-14 left-1/2 -translate-x-1/2 z-[1500] flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl shadow-black/30 whitespace-nowrap"
+          >
+            ↑ {newVibesCount} nouvelle{newVibesCount > 1 ? "s" : ""} vibe{newVibesCount > 1 ? "s" : ""}
+          </motion.button>
+        )}
+      </AnimatePresence>
       {/* Header — Instagram style */}
       <div className="sticky top-0 z-10 bg-background border-b border-border/30 px-4 pt-12 md:pt-4 pb-2">
         <div className="flex items-center justify-between">
@@ -476,16 +571,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-[13px] font-semibold text-foreground underline">Réessayer</button>
         </div>
       ) : loading ? (
-        <div className="space-y-0 divide-y divide-border">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-3">
-              <div className="flex items-center gap-2.5 mb-2.5">
-                <div className="w-8 h-8 rounded-full bg-card animate-pulse" />
-                <div className="h-3 w-24 bg-card animate-pulse rounded" />
-              </div>
-              <div className="aspect-[4/5] bg-card animate-pulse" />
-            </div>
-          ))}
+        <div>
+          <VibeSkeleton />
+          <VibeSkeleton />
+          <VibeSkeleton />
         </div>
       ) : vibes.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
@@ -631,16 +720,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <MessageCircle className="w-[26px] h-[26px] text-foreground" />
                       </button>
                       <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const url = getShareUrl("vibe", vibe.id);
-                          const text = `${vibe.location || "Marrakech"} sur Weshkech 🔥`;
-                          if (navigator.share) {
-                            try { await navigator.share({ title: "Weshkech", text, url }); } catch {}
-                          } else {
-                            await navigator.clipboard.writeText(url);
-                            toast.success("Lien copié !");
-                          }
+                        onClick={() => {
+                          setShareVibeId(vibe.id);
+                          setShowDmPicker(true);
                         }}
                       >
                         <Share2 className="w-[24px] h-[24px] text-foreground" />
@@ -658,7 +740,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     </p>
                     {vibe.caption && (
                       <p className="text-[13px] text-foreground leading-[18px]">
-                        <span className="font-semibold mr-1">{getDisplayName(vibe)}</span>{vibe.caption}
+                        <span className="font-semibold mr-1">{getDisplayName(vibe)}</span>{renderCaption(vibe.caption)}
                       </p>
                     )}
                     {vibe.insider_tip && (
@@ -711,6 +793,73 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
       {/* Floating VIP Offer CTA */}
       <FloatingVipOffer />
+
+      {/* Share DM Picker */}
+      <AnimatePresence>
+        {showDmPicker && shareVibeId && (
+          <div className="fixed inset-0 z-[3000] flex flex-col justify-end" onClick={() => setShowDmPicker(false)}>
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              className="relative bg-card border-t border-border rounded-t-3xl pb-8"
+            >
+              <div className="w-10 h-1 bg-muted/50 rounded-full mx-auto mt-3 mb-4" />
+              <div className="px-4 space-y-2">
+                <h3 className="text-sm font-bold text-foreground mb-3">Partager cette vibe</h3>
+                <button
+                  onClick={async () => {
+                    const url = getShareUrl("vibe", shareVibeId);
+                    const text = "Regarde cette vibe sur Weshkech 👀";
+                    if (navigator.share) {
+                      try { await navigator.share({ title: "Weshkech", text, url }); } catch {}
+                    } else {
+                      await navigator.clipboard.writeText(url);
+                      toast.success("Lien copié !");
+                    }
+                    setShowDmPicker(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border active:bg-muted/30 transition-colors"
+                >
+                  <Share2 className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Partager via...</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    const url = getShareUrl("vibe", shareVibeId);
+                    await navigator.clipboard.writeText(url).catch(() => {});
+                    toast.success("Lien copié !");
+                    setShowDmPicker(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border active:bg-muted/30 transition-colors"
+                >
+                  <Copy className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Copier le lien</span>
+                </button>
+                {userId && (
+                  <button
+                    onClick={() => {
+                      const url = getShareUrl("vibe", shareVibeId);
+                      window.dispatchEvent(new CustomEvent("wk:share-vibe-dm", {
+                        detail: { vibeUrl: url, vibeId: shareVibeId }
+                      }));
+                      setShowDmPicker(false);
+                      toast.success("Ouvre un message pour partager !");
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gold/10 border border-gold/25 active:bg-gold/20 transition-colors"
+                  >
+                    <MessageCircle className="w-5 h-5 text-gold" />
+                    <span className="text-sm font-bold text-gold">Envoyer en message privé</span>
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
