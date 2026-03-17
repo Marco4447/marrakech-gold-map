@@ -1,11 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Search, Play, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Play, Heart, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import UnifiedSearch from "./UnifiedSearch";
+
+const HOODS = [
+  { slug: "medina", label: "Médina", emoji: "🕌" },
+  { slug: "gueliz", label: "Guéliz", emoji: "🏙️" },
+  { slug: "hivernage", label: "Hivernage", emoji: "🌴" },
+  { slug: "palmeraie", label: "Palmeraie", emoji: "🏝️" },
+];
 
 interface ExploreVibe {
   id: string;
   image_url: string;
+  insider_tip: string | null;
   location: string | null;
   likes: number;
   super_vibes: number;
@@ -26,6 +35,7 @@ interface PlaceMatch {
 }
 
 export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (lat: number, lng: number, placeId?: string) => void; onStartChat?: (userId: string) => void }) {
+  const navigate = useNavigate();
   const [vibes, setVibes] = useState<ExploreVibe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -37,7 +47,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
       const [vibesRes, placesRes] = await Promise.all([
         supabase
           .from("vibes")
-          .select("id, image_url, location, likes, super_vibes, mood, media_type, is_official, created_at, latitude, longitude")
+          .select("id, image_url, location, likes, super_vibes, mood, media_type, is_official, created_at, latitude, longitude, insider_tip")
           .order("likes", { ascending: false })
           .limit(120),
         supabase
@@ -128,6 +138,19 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
         )}
       </div>
 
+      {/* Neighborhood pills */}
+      <div className="flex gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
+        {HOODS.map(h => (
+          <button
+            key={h.slug}
+            onClick={() => navigate(`/quartier/${h.slug}`)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs font-semibold text-foreground whitespace-nowrap active:scale-95 transition-transform"
+          >
+            <span>{h.emoji}</span> {h.label}
+          </button>
+        ))}
+      </div>
+
       {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-3 gap-[1px] px-[1px]">
@@ -199,6 +222,11 @@ function GridCell({ vibe, onVibeClick }: { vibe: ExploreVibe; span?: number; onV
       {isVideo && (
         <div className="absolute top-2 right-2 transition-opacity group-hover:opacity-0">
           <Play className="w-4 h-4 text-white drop-shadow-lg" fill="white" />
+        </div>
+      )}
+      {vibe.insider_tip && (
+        <div className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-gold/80 flex items-center justify-center">
+          <Sparkles className="w-3 h-3 text-primary-foreground" />
         </div>
       )}
       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
