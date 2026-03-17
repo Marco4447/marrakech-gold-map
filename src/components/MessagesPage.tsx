@@ -67,7 +67,14 @@ function ChatView({
     }
   }, [conversation.id, user]);
 
-  useEffect(() => { fetchMessages(); }, [fetchMessages]);
+  useEffect(() => { fetchMessages(0); }, [fetchMessages]);
+
+  useEffect(() => {
+    if (page > 0) {
+      setLoadingMore(true);
+      fetchMessages(page).finally(() => setLoadingMore(false));
+    }
+  }, [page, fetchMessages]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
