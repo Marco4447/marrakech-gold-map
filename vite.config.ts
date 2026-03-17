@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico", "images/weshkech-logo.png"],
       manifest: false,
       workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp}"],
         runtimeCaching: [
           {
