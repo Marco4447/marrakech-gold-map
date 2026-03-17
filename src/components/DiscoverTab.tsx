@@ -138,6 +138,19 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
         )}
       </div>
 
+      {/* Neighborhood pills */}
+      <div className="flex gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
+        {HOODS.map(h => (
+          <button
+            key={h.slug}
+            onClick={() => navigate(`/quartier/${h.slug}`)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs font-semibold text-foreground whitespace-nowrap active:scale-95 transition-transform"
+          >
+            <span>{h.emoji}</span> {h.label}
+          </button>
+        ))}
+      </div>
+
       {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-3 gap-[1px] px-[1px]">
