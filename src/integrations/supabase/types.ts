@@ -935,6 +935,7 @@ export type Database = {
           is_vip: boolean
           updated_at: string
           user_id: string
+          username: string | null
           vip_expires_at: string | null
         }
         Insert: {
@@ -947,6 +948,7 @@ export type Database = {
           is_vip?: boolean
           updated_at?: string
           user_id: string
+          username?: string | null
           vip_expires_at?: string | null
         }
         Update: {
@@ -959,6 +961,7 @@ export type Database = {
           is_vip?: boolean
           updated_at?: string
           user_id?: string
+          username?: string | null
           vip_expires_at?: string | null
         }
         Relationships: []
