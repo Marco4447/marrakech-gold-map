@@ -202,16 +202,16 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       const { data, error } = await supabase.from("vibes").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       if (data) {
-        const userIds = [...new Set((data as any[]).filter(v => v.user_id).map(v => v.user_id))];
+        const userIds = [...new Set(data.filter(v => v.user_id).map(v => v.user_id))] as string[];
         let profilesMap: Record<string, VibeProfile> = {};
         if (userIds.length > 0) {
           const { data: profiles } = await supabase
-            .from("profiles_public" as any)
+            .from("profiles_public")
             .select("user_id, full_name, avatar_url, is_vip")
             .in("user_id", userIds);
-          if (profiles) profilesMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p]));
+          if (profiles) profilesMap = Object.fromEntries(profiles.filter(p => p.user_id).map(p => [p.user_id!, p]));
         }
-        setVibes((data as any[]).map(v => ({ ...v, profile: v.user_id ? profilesMap[v.user_id] || null : null })));
+        setVibes(data.map(v => ({ ...v, profile: v.user_id ? profilesMap[v.user_id] || null : null })));
       }
     } catch (err) {
       console.error("Feed fetch error:", err);
