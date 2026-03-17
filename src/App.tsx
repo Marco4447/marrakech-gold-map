@@ -41,6 +41,7 @@ const DemoPartnerPage = lazy(() => import("./pages/DemoPartnerPage"));
 const PlaceDetailPage = lazy(() => import("./pages/PlaceDetailPage"));
 const StrategicDemoPage = lazy(() => import("./pages/StrategicDemoPage"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
+const NeighborhoodPage = lazy(() => import("./pages/NeighborhoodPage"));
 
 const queryClient = new QueryClient();
 
