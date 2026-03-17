@@ -282,6 +282,9 @@ export default function VibeCard({
           </button>
         )}
       </div>
+
+      {/* Expiry bar */}
+      <VibeExpiryBar createdAt={vibe.created_at} isOfficial={vibe.is_official} />
     </motion.div>
   );
 }
