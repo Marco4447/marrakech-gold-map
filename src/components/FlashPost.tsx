@@ -850,6 +850,25 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                       </div>
                     )}
 
+                    {/* Insider Tip */}
+                    <div className="mb-4">
+                      <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5 mb-1">
+                        💡 Conseil d'insider
+                      </label>
+                      <p className="text-[10px] text-gold mb-1.5">Les vibes avec un conseil insider reçoivent +40% d'engagement</p>
+                      <div className="relative">
+                        <input
+                          value={insiderTip}
+                          onChange={(e) => setInsiderTip(e.target.value.slice(0, 120))}
+                          placeholder="Ton conseil secret pour ce spot... (horaire idéal, table préférée, ce qu'il faut commander 🤫)"
+                          className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all pr-12"
+                        />
+                        <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] ${insiderTip.length > 100 ? "text-destructive" : "text-muted-foreground"}`}>
+                          {insiderTip.length}/120
+                        </span>
+                      </div>
+                    </div>
+
                     {/* Location with nearby suggestion */}
                     <div className="mb-4">
                       <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5 mb-1">
