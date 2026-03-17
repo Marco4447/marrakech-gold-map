@@ -20,6 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getMayorOfPlace, type MayorInfo } from "@/lib/mayorSystem";
 import PlaceEnergyScore from "@/components/place/PlaceEnergyScore";
 import PlaceHourlyPattern from "@/components/place/PlaceHourlyPattern";
+import PartyGroups from "@/components/PartyGroups";
 
 interface PlaceData {
   id: string;
