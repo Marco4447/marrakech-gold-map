@@ -346,6 +346,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         if (payload.eventType === "INSERT") {
           const nv = payload.new as Vibe;
           setVibes((prev) => prev.some((v) => v.id === nv.id) ? prev : [nv, ...prev]);
+          setNewVibesCount(c => c + 1);
+          setShowNewPill(true);
+          setTimeout(() => setShowNewPill(false), 8000);
         } else if (payload.eventType === "DELETE") {
           setVibes((prev) => prev.filter((v) => v.id !== (payload.old as { id: string }).id));
         } else if (payload.eventType === "UPDATE") {
