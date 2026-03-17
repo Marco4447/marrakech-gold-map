@@ -9,6 +9,7 @@ import { MARRAKECH_CENTER } from "./mapConstants";
 export function useMapData(refreshSignal: number) {
   const [places, setPlaces] = useState<Place[]>([]);
   const [vibePins, setVibePins] = useState<VibePin[]>([]);
+  const [heatPoints, setHeatPoints] = useState<[number, number, number][]>([]);
   const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
   const [placesLoading, setPlacesLoading] = useState(true);
   const [placesError, setPlacesError] = useState<string | null>(null);
