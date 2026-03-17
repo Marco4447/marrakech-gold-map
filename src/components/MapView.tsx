@@ -751,6 +751,20 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         }
       }} />
       <VibeSheet vibe={selectedVibe} open={vibeSheetOpen} onOpenChange={setVibeSheetOpen} />
+
+      <SoireeRadar
+        open={showRadar}
+        places={places}
+        userPosition={userPosition}
+        energyMap={radarEnergyMap}
+        vibePins={vibePins}
+        onPlaceSelect={(place) => {
+          setShowRadar(false);
+          setPreviewPlace(place);
+          focusPlaceOnMap(place, { withSheetOffset: false, zoomMin: 16, duration: 0.8 });
+        }}
+        onClose={() => setShowRadar(false)}
+      />
     </div>
   );
 }
