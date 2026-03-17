@@ -119,19 +119,19 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     const { data } = await supabase
       .from("vibe_likes")
       .select("vibe_id")
-      .eq("user_id", userId as any);
+      .eq("user_id", userId);
     if (data) {
-      setLikedIds(new Set(data.map((l: any) => l.vibe_id)));
+      setLikedIds(new Set(data.map((l) => l.vibe_id)));
     }
     const { data: oldData } = await supabase
       .from("vibe_likes")
       .select("vibe_id")
       .eq("device_id", deviceId)
-      .is("user_id" as any, null);
+      .is("user_id", null);
     if (oldData) {
       setLikedIds(prev => {
         const next = new Set(prev);
-        oldData.forEach((l: any) => next.add(l.vibe_id));
+        oldData.forEach((l) => next.add(l.vibe_id));
         return next;
       });
     }
