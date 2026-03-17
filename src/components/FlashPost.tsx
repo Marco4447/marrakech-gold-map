@@ -656,6 +656,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     setPreview(null);
     setMediaType("photo");
     setSelectedMood(null);
+    setCaption("");
     setInsiderTip("");
     setUploading(false);
     setUploadProgress(0);
@@ -665,6 +666,8 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     setShowSuccess(false);
     setIsOfficial(false);
     setPostLimitReached(false);
+    setHasDraft(false);
+    setShowHashtagSuggestions(false);
   };
 
   const handleClose = () => {
