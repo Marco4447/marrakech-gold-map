@@ -631,6 +631,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       });
       clearTimeout(globalTimeout);
 
+      localStorage.removeItem("wk_flash_draft");
       // Show success animation then close (B2C boost upsell disabled)
       setShowSuccess(true);
       setTimeout(() => {
