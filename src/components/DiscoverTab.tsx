@@ -14,6 +14,7 @@ const HOODS = [
 interface ExploreVibe {
   id: string;
   image_url: string;
+  insider_tip: string | null;
   location: string | null;
   likes: number;
   super_vibes: number;
