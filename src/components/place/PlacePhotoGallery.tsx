@@ -118,6 +118,15 @@ export default function PlacePhotoGallery({ images, placeName, isPartner, viewer
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
+              onError={(e) => {
+                const target = e.currentTarget;
+                // Fallback: try original URL if optimized fails
+                if (target.src !== currentUrl) {
+                  target.src = currentUrl;
+                } else {
+                  target.style.display = "none";
+                }
+              }}
             />
           )}
         </AnimatePresence>
