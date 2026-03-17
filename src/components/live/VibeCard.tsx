@@ -293,6 +293,9 @@ export default function VibeCard({
 
       {/* Expiry bar */}
       <VibeExpiryBar createdAt={vibe.created_at} isOfficial={vibe.is_official} />
+
+      {/* Vibe Replies modal */}
+      <VibeReplies vibeId={vibe.id} open={showReplies} onOpenChange={setShowReplies} />
     </motion.div>
   );
 }
