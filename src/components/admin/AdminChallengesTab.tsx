@@ -71,10 +71,12 @@ export default function AdminChallengesTab() {
             try {
               const now = new Date();
               const end = new Date(now.getTime() + parseInt(chDays) * 86400000);
+              const themeTag = chType === "geo" ? `geo:${chNeighborhood}` : null;
               const { error } = await supabase.from("weekly_challenges" as any).insert({
                 title: chTitle.trim(),
                 description: chDesc.trim() || null,
                 emoji: chEmoji || "🏆",
+                theme_tag: themeTag,
                 start_date: now.toISOString(),
                 end_date: end.toISOString(),
                 status: "active",
