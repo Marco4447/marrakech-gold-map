@@ -167,6 +167,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [boostVibeId, setBoostVibeId] = useState<string | null>(null);
   const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
   const { isBookmarked, toggleBookmark } = useBookmarks();
+  const [showStoryUpload, setShowStoryUpload] = useState(false);
 
   const deviceId = getDeviceId();
   const userId = user?.id;
