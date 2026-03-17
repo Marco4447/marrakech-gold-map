@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Search, Play, Heart, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import UnifiedSearch from "./UnifiedSearch";
+import HallOfFame from "./HallOfFame";
+import { useAuth } from "@/hooks/useAuth";
 
 const HOODS = [
   { slug: "medina", label: "Médina", emoji: "🕌" },
