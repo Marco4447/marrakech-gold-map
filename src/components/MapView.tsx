@@ -402,7 +402,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     if (showHeatmap && heatPoints.length > 0) {
       try {
-        const layer = heatLayer(heatPoints, {
+        const layer = (L as any).heatLayer(heatPoints, {
           radius: 35,
           blur: 25,
           maxZoom: 17,
