@@ -519,6 +519,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
           username: user?.user_metadata?.full_name || user?.email?.split("@")[0] || null,
           user_id: user?.id || null,
           caption: null,
+          insider_tip: insiderTip.trim() || null,
           likes: 0,
           mood: selectedMood,
           media_type: finalMediaType,
