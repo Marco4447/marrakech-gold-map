@@ -653,16 +653,47 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
 
       {/* Follow Stats */}
       <div className="flex items-center justify-center gap-8 px-5 py-3">
-        <div className="text-center">
+        <button onClick={() => { setShowFollowList("followers"); fetchFollowList("followers"); }} className="text-center active:opacity-70 transition-opacity">
           <p className="text-lg font-bold text-foreground">{followerCount}</p>
           <p className="text-[11px] text-muted-foreground">Abonnés</p>
-        </div>
+        </button>
         <div className="w-px h-8 bg-border" />
-        <div className="text-center">
+        <button onClick={() => { setShowFollowList("following"); fetchFollowList("following"); }} className="text-center active:opacity-70 transition-opacity">
           <p className="text-lg font-bold text-foreground">{followingCount}</p>
           <p className="text-[11px] text-muted-foreground">Abonnements</p>
-        </div>
+        </button>
       </div>
+
+      {/* Tier Progress Bar */}
+      {(() => {
+        const vibesPosted = myVibes.length;
+        const tp = getTierProgress(vibesPosted);
+        return (
+          <div className="mx-4 px-4 py-3 rounded-2xl bg-card border border-border/50 space-y-2 mb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-foreground">
+                {tp.currentEmoji} {tp.currentTier}
+              </span>
+              {tp.nextTier ? (
+                <span className="text-[10px] text-muted-foreground">
+                  {tp.current}/{tp.target} vibes → {tp.nextEmoji} {tp.nextTier}
+                </span>
+              ) : (
+                <span className="text-[10px] text-gold font-bold">Niveau max ✨</span>
+              )}
+            </div>
+            <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, #BF953F, #FCF6BA, #B38728)" }}
+                initial={{ width: 0 }}
+                animate={{ width: `${tp.progress}%` }}
+                transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+              />
+            </div>
+          </div>
+        );
+      })()}
 
       {/* VIP CTA — hidden: B2C is free for now */}
 
