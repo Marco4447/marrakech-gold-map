@@ -173,6 +173,11 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
           ))}
         </div>
       )}
+
+      {/* Hall of Fame */}
+      <div className="py-6">
+        <HallOfFame currentUserId={user?.id} />
+      </div>
     </div>
   );
 }
