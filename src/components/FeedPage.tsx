@@ -720,16 +720,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <MessageCircle className="w-[26px] h-[26px] text-foreground" />
                       </button>
                       <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const url = getShareUrl("vibe", vibe.id);
-                          const text = `${vibe.location || "Marrakech"} sur Weshkech 🔥`;
-                          if (navigator.share) {
-                            try { await navigator.share({ title: "Weshkech", text, url }); } catch {}
-                          } else {
-                            await navigator.clipboard.writeText(url);
-                            toast.success("Lien copié !");
-                          }
+                        onClick={() => {
+                          setShareVibeId(vibe.id);
+                          setShowDmPicker(true);
                         }}
                       >
                         <Share2 className="w-[24px] h-[24px] text-foreground" />
