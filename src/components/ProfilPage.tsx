@@ -545,6 +545,12 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     fetchFavorites();
   }, [fetchFavorites]);
 
+  // Fetch territories
+  useEffect(() => {
+    if (!user) return;
+    getUserMayorTerritories(user.id).then(setTerritories).catch(() => {});
+  }, [user]);
+
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
       {/* Header */}
