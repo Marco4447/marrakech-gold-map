@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, MapPin, Loader2, Trash2, Zap, Crown, Sparkles, Share2 } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Loader2, Trash2, Zap, Crown, Sparkles, Share2, Camera } from "lucide-react";
+import VibeReplies from "../VibeReplies";
 import VibeMedia from "./VibeMedia";
 import DoubleTapHeart from "../DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "../VibeReactions";
