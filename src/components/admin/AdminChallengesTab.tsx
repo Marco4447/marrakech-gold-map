@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Trophy, XCircle, Crown } from "lucide-react";
+import { Plus, Loader2, Trophy, XCircle, Crown, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Challenge = { id: string; title: string; description: string | null; emoji: string; theme_tag: string | null; start_date: string; end_date: string; status: string; winner_user_id: string | null };
+
+const NEIGHBORHOODS = [
+  { slug: "medina", label: "Médina" },
+  { slug: "gueliz", label: "Guéliz" },
+  { slug: "hivernage", label: "Hivernage" },
+  { slug: "palmeraie", label: "Palmeraie" },
+];
 
 export default function AdminChallengesTab() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -11,6 +18,8 @@ export default function AdminChallengesTab() {
   const [chDesc, setChDesc] = useState("");
   const [chEmoji, setChEmoji] = useState("🏆");
   const [chDays, setChDays] = useState("7");
+  const [chType, setChType] = useState<"standard" | "geo">("standard");
+  const [chNeighborhood, setChNeighborhood] = useState("medina");
   const [savingCh, setSavingCh] = useState(false);
 
   const fetchChallenges = async () => {
