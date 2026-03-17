@@ -25,6 +25,7 @@ import { useBookmarks } from "@/hooks/useBookmarks";
 import { rankFeedVibes, createScoringContext, type FeedVibe } from "@/lib/feedAlgorithm";
 import FloatingVipOffer from "./feed/FloatingVipOffer";
 import UserStoryUpload from "./stories/UserStoryUpload";
+import VibeExpiryBar from "./VibeExpiryBar";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
@@ -141,6 +142,15 @@ function isNew(dateStr: string) {
 
 type FeedTab = "foryou" | "following" | "recents";
 
+// "Ce soir" night filter
+function getTonightStart(): Date {
+  const now = new Date();
+  const tonightStart = new Date();
+  tonightStart.setHours(20, 0, 0, 0);
+  if (now.getHours() < 6) tonightStart.setDate(tonightStart.getDate() - 1);
+  return tonightStart;
+}
+
 export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSignal?: number; onGoToMap?: (lat: number, lng: number) => void }) {
   const { user } = useAuth();
   const [vibes, setVibes] = useState<Vibe[]>([]);
@@ -168,6 +178,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const [showStoryUpload, setShowStoryUpload] = useState(false);
+  const [nightOnly, setNightOnly] = useState(() => {
+    const h = new Date().getHours();
+    return h >= 20 || h < 6;
+  });
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -359,6 +373,15 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     }
   }, [vibes, activeTab, scoringContext, followingIds]);
 
+  // Apply night filter
+  const filteredFeed = useMemo(() => {
+    if (!nightOnly) return sortedFeed;
+    const tonightStart = getTonightStart();
+    return sortedFeed.filter(v => new Date(v.created_at) >= tonightStart);
+  }, [sortedFeed, nightOnly]);
+
+  const nightVibeCount = nightOnly ? filteredFeed.length : 0;
+
   const rankMedals = ["🥇", "🥈", "🥉"];
 
   useEffect(() => {
@@ -368,10 +391,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     }, { rootMargin: "200px" });
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [sortedFeed.length]);
+  }, [filteredFeed.length]);
 
-  useEffect(() => { setVisibleCount(10); }, [activeTab]);
-  const visibleFeed = sortedFeed.slice(0, visibleCount);
+  useEffect(() => { setVisibleCount(10); }, [activeTab, nightOnly]);
+  const visibleFeed = filteredFeed.slice(0, visibleCount);
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
@@ -420,6 +443,25 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           userId={user.id}
         />
       )}
+
+      {/* Night filter toggle */}
+      <div className="flex items-center gap-2 px-4 py-2">
+        <button
+          onClick={() => setNightOnly(n => !n)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+            nightOnly 
+              ? 'bg-card border-gold/40 text-gold' 
+              : 'bg-transparent border-border text-muted-foreground'
+          }`}
+        >
+          🌙 Cette nuit
+        </button>
+        {nightOnly && (
+          <span className="text-[11px] text-muted-foreground">
+            {nightVibeCount} moment{nightVibeCount !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
 
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
@@ -630,14 +672,17 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     )}
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{timeAgo(vibe.created_at)}</p>
                   </div>
+
+                  {/* Expiry bar */}
+                  <VibeExpiryBar createdAt={vibe.created_at} isOfficial={vibe.is_official} />
                 </motion.div>
               );
             })}
-            {visibleCount < sortedFeed.length ? (
+            {visibleCount < filteredFeed.length ? (
               <div ref={sentinelRef} className="flex justify-center py-4">
                 <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : sortedFeed.length > 0 && (
+            ) : filteredFeed.length > 0 && (
               <div className="flex flex-col items-center py-8 text-center gap-2">
                 <span className="text-2xl">🔥</span>
                 <p className="text-sm font-semibold text-foreground">Tu as tout vu !</p>
