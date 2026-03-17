@@ -336,6 +336,35 @@ export default function VenuePage() {
           </div>
         </div>
 
+        {/* Mayor of the spot */}
+        {mayor && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${
+              user?.id === mayor.userId
+                ? "bg-gold/10 border-gold/30 shadow-sm shadow-gold/10"
+                : "bg-card/95 border-border"
+            }`}
+          >
+            <span className="text-base">👑</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-gold font-bold uppercase tracking-wider">Mayor du spot</p>
+              <p className="text-xs text-foreground truncate">
+                {user?.id === mayor.userId
+                  ? "Tu es le Mayor de ce spot !"
+                  : `${mayor.fullName || "Anonyme"} · ${mayor.vibeCount} vibes ce mois`}
+              </p>
+            </div>
+            <Avatar className="w-7 h-7 border border-gold/30 shrink-0">
+              <AvatarImage src={mayor.avatarUrl || undefined} />
+              <AvatarFallback className="text-[10px] bg-gold/10 text-gold">
+                {(mayor.fullName || "?")[0]}
+              </AvatarFallback>
+            </Avatar>
+          </motion.div>
+        )}
+
         {/* VIP Offers */}
         {isPartner && vipOffers.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
