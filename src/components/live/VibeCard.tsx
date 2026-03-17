@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, MapPin, Loader2, Trash2, Zap, Crown, Sparkles, Share2 } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Loader2, Trash2, Zap, Crown, Sparkles, Share2, Camera } from "lucide-react";
+import VibeReplies from "../VibeReplies";
 import VibeMedia from "./VibeMedia";
 import DoubleTapHeart from "../DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "../VibeReactions";
@@ -72,6 +74,8 @@ export default function VibeCard({
   floatingReaction, activeTab, currentUserId, onLike, onSuperVibe, onDelete,
   onDoubleTap, onOpenComments, onReaction, onSetReactionsVibeId, onGoToMap,
 }: Props) {
+  const [showReplies, setShowReplies] = useState(false);
+
   return (
     <motion.div
       key={vibe.id}
@@ -209,6 +213,10 @@ export default function VibeCard({
           <button onClick={() => onOpenComments(vibe.id)} className="group">
             <MessageCircle className="w-6 h-6 text-foreground group-hover:text-foreground/70 transition-colors" />
           </button>
+          {/* Vibe Reply */}
+          <button onClick={() => setShowReplies(true)} className="group">
+            <Camera className="w-5.5 h-5.5 text-foreground group-hover:text-foreground/70 transition-colors" />
+          </button>
           {/* Share */}
           <button
             onClick={async (e) => {
@@ -285,6 +293,9 @@ export default function VibeCard({
 
       {/* Expiry bar */}
       <VibeExpiryBar createdAt={vibe.created_at} isOfficial={vibe.is_official} />
+
+      {/* Vibe Replies modal */}
+      <VibeReplies vibeId={vibe.id} open={showReplies} onOpenChange={setShowReplies} />
     </motion.div>
   );
 }

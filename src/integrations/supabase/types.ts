@@ -659,6 +659,105 @@ export type Database = {
           },
         ]
       }
+      party_group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "party_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_group_messages: {
+        Row: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_group_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "party_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          emoji: string
+          expires_at: string
+          id: string
+          name: string
+          place_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          emoji?: string
+          expires_at?: string
+          id?: string
+          name: string
+          place_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          emoji?: string
+          expires_at?: string
+          id?: string
+          name?: string
+          place_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_groups_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       place_follows: {
         Row: {
           created_at: string
@@ -1270,6 +1369,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vibe_likes_vibe_id_fkey"
+            columns: ["vibe_id"]
+            isOneToOne: false
+            referencedRelation: "vibes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vibe_replies: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+          media_type: string
+          user_id: string
+          vibe_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          media_type?: string
+          user_id: string
+          vibe_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          media_type?: string
+          user_id?: string
+          vibe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vibe_replies_vibe_id_fkey"
             columns: ["vibe_id"]
             isOneToOne: false
             referencedRelation: "vibes"

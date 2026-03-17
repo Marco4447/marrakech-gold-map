@@ -20,6 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getMayorOfPlace, type MayorInfo } from "@/lib/mayorSystem";
 import PlaceEnergyScore from "@/components/place/PlaceEnergyScore";
 import PlaceHourlyPattern from "@/components/place/PlaceHourlyPattern";
+import PartyGroups from "@/components/PartyGroups";
 
 interface PlaceData {
   id: string;
@@ -370,6 +371,9 @@ export default function VenuePage() {
         {/* Energy Score + Hourly Pattern */}
         <PlaceEnergyScore placeName={place.name} placeId={place.id} />
         <PlaceHourlyPattern placeName={place.name} />
+
+        {/* Party Groups */}
+        <PartyGroups placeId={place.id} placeName={place.name} />
 
         {/* VIP Offers */}
         {isPartner && vipOffers.length > 0 && (
