@@ -390,6 +390,57 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     };
   }, [vibePins, activeFilter, places]);
 
+  // Heatmap layer
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (heatLayerRef.current) {
+      map.removeLayer(heatLayerRef.current);
+      heatLayerRef.current = null;
+    }
+
+    if (showHeatmap && heatPoints.length > 0) {
+      try {
+        const layer = heatLayer(heatPoints, {
+          radius: 35,
+          blur: 25,
+          maxZoom: 17,
+          gradient: {
+            0.2: "#1a1a2e",
+            0.4: "#16213e",
+            0.6: "#e94560",
+            0.8: "#f5a623",
+            1.0: "#ffffff",
+          },
+        });
+        layer.addTo(map);
+        heatLayerRef.current = layer;
+      } catch (e) {
+        console.warn("Heatmap layer failed:", e);
+      }
+    }
+
+    return () => {
+      if (heatLayerRef.current && map) {
+        try { map.removeLayer(heatLayerRef.current); } catch {}
+        heatLayerRef.current = null;
+      }
+    };
+  }, [showHeatmap, heatPoints]);
+
+  // Compute energy map for radar
+  const radarEnergyMap = (() => {
+    const vibesForEnergy = vibePins.map(v => ({
+      location: v.location,
+      likes: 0,
+      super_vibes: 0,
+      created_at: v.created_at,
+      is_official: v.is_official,
+    }));
+    return computeEnergyScores(vibesForEnergy);
+  })();
+
   const focusPlaceOnMap = useCallback(
     (
       place: Place,
