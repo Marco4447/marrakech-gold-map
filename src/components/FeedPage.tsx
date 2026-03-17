@@ -288,8 +288,19 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             .in("user_id", userIds);
           if (profiles) profilesMap = Object.fromEntries(profiles.filter(p => p.user_id).map(p => [p.user_id!, p]));
         }
-        setVibes(data.map(v => ({ ...v, profile: v.user_id ? profilesMap[v.user_id] || null : null })));
-      }
+        const vibesData = data.map(v => ({ ...v, profile: v.user_id ? profilesMap[v.user_id] || null : null }));
+        setVibes(vibesData);
+        // Track new vibes pill
+        const freshCount = vibesData.filter(v =>
+          new Date(v.created_at).getTime() > lastVisitRef.current
+        ).length;
+        if (freshCount > 0 && lastVisitRef.current > 0) {
+          setNewVibesCount(freshCount);
+          setShowNewPill(true);
+          setTimeout(() => setShowNewPill(false), 8000);
+        }
+        localStorage.setItem("wk_last_feed_visit", Date.now().toString());
+        lastVisitRef.current = Date.now();
     } catch (err) {
       console.error("Feed fetch error:", err);
       setFetchError("Impossible de charger le feed.");
