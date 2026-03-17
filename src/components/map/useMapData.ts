@@ -140,7 +140,7 @@ export function useMapData(refreshSignal: number) {
     return () => { supabase.removeChannel(channel); };
   }, [refreshSignal]);
 
-  return { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds };
+  return { places, vibePins, heatPoints, trendingLocations, placesLoading, placesError, activeVipPlaceIds };
 }
 
 export function useMapInstance(containerRef: React.RefObject<HTMLDivElement | null>) {
