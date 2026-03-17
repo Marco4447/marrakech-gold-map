@@ -67,10 +67,10 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   useEffect(() => {
     if (!place?.id || !open) return;
     supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url, is_founder, listing_tier").eq("id", place.id).single().then(({ data }) => {
-      if (data) setPlaceDetails(data as any);
+      if (data) setPlaceDetails(data);
     });
     // Fetch place photos
-    (supabase.from("place_photos") as any).select("id, photo_url, caption").eq("place_id", place.id).order("sort_order", { ascending: true }).then(({ data }: any) => {
+    supabase.from("place_photos").select("id, photo_url, caption").eq("place_id", place.id).order("sort_order", { ascending: true }).then(({ data }) => {
       if (data) setPlacePhotos(data);
     });
   }, [place?.id, open]);
