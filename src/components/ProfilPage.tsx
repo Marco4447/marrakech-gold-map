@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark, Navigation } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark, Navigation, Archive } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
