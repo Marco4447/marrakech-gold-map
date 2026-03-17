@@ -74,6 +74,8 @@ export default function VibeCard({
   floatingReaction, activeTab, currentUserId, onLike, onSuperVibe, onDelete,
   onDoubleTap, onOpenComments, onReaction, onSetReactionsVibeId, onGoToMap,
 }: Props) {
+  const [showReplies, setShowReplies] = useState(false);
+
   return (
     <motion.div
       key={vibe.id}
