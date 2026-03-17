@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, Send, Search, MessageCircle } from "lucide-react";
+import { ArrowLeft, Send, Search, MessageCircle, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -153,6 +153,7 @@ function ChatView({
         )}
         {messages.map((msg) => {
           const isMine = msg.sender_id === user?.id;
+          const isVibeLink = msg.content.includes("/vibe/");
           return (
             <motion.div
               key={msg.id}
@@ -165,7 +166,19 @@ function ChatView({
                   ? "bg-foreground text-background rounded-br-md"
                   : "bg-card border border-border text-foreground rounded-bl-md"
               }`}>
-                <p>{msg.content}</p>
+                {isVibeLink ? (
+                  <div className="rounded-xl overflow-hidden border border-border/50 bg-card/50 max-w-[200px]">
+                    <div className="px-3 py-2 flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5 text-gold shrink-0" />
+                      <span className="text-xs text-gold font-semibold truncate">Vibe partagée</span>
+                    </div>
+                    <a href={msg.content} className="block px-3 pb-2 text-[11px] text-muted-foreground underline truncate">
+                      Voir la vibe →
+                    </a>
+                  </div>
+                ) : (
+                  <p>{msg.content}</p>
+                )}
                 <p className={`text-[9px] mt-1 ${isMine ? "text-background/50" : "text-muted-foreground"}`}>
                   {timeAgo(msg.created_at)}
                 </p>
@@ -204,7 +217,17 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
   const [activeConvo, setActiveConvo] = useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [pendingShareUrl, setPendingShareUrl] = useState<string | null>(null);
   const { user } = useAuth();
+
+  // Listen for DM share events
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      setPendingShareUrl(e.detail.vibeUrl);
+    };
+    window.addEventListener("wk:share-vibe-dm", handler as EventListener);
+    return () => window.removeEventListener("wk:share-vibe-dm", handler as EventListener);
+  }, []);
 
   const handleSearch = async (q: string) => {
     setSearchQuery(q);

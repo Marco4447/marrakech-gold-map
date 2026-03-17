@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark, Navigation, Archive } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark, Navigation, Archive, Link2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +32,26 @@ interface Vibe {
 
 // timeAgo and getDeviceId imported from shared libs
 
+function parseBioWithLink(rawBio: string | null): { bio: string; link: string } {
+  if (!rawBio) return { bio: "", link: "" };
+  const match = rawBio.match(/^\[LINK:(.*?)\]\n?([\s\S]*)$/);
+  if (match) return { bio: match[2].trim(), link: match[1].trim() };
+  return { bio: rawBio, link: "" };
+}
+
+function serializeBioWithLink(bio: string, link: string): string {
+  if (!link) return bio;
+  const cleanLink = link.startsWith("http") ? link : `https://${link}`;
+  return `[LINK:${cleanLink}]\n${bio}`;
+}
+
+function getTierProgress(vibeCount: number) {
+  if (vibeCount >= 20) return { currentTier: "Legend", currentEmoji: "👑", nextTier: null, nextEmoji: null, progress: 100, current: vibeCount, target: 20 };
+  if (vibeCount >= 5) return { currentTier: "Insider", currentEmoji: "🔥", nextTier: "Legend", nextEmoji: "👑", progress: Math.round(((vibeCount - 5) / 15) * 100), current: vibeCount, target: 20 };
+  if (vibeCount >= 1) return { currentTier: "Explorer", currentEmoji: "🧭", nextTier: "Insider", nextEmoji: "🔥", progress: Math.round(((vibeCount - 1) / 4) * 100), current: vibeCount, target: 5 };
+  return { currentTier: "Nouveau", currentEmoji: "🌱", nextTier: "Explorer", nextEmoji: "🧭", progress: 0, current: 0, target: 1 };
+}
+
 function ProfileCard({
   user,
   profile,
@@ -54,7 +74,9 @@ function ProfileCard({
   const [editing, setEditing] = useState(false);
   const [editingBio, setEditingBio] = useState(false);
   const [newName, setNewName] = useState(displayName);
-  const [newBio, setNewBio] = useState(profile?.bio || "");
+  const [newBio, setNewBio] = useState("");
+  const [newLink, setNewLink] = useState("");
+  const [newUsername, setNewUsername] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -196,49 +218,97 @@ function ProfileCard({
         </button>
       )}
 
+      {/* Username */}
+      {(profile as any)?.username && (
+        <p className="text-xs text-muted-foreground mt-0.5">@{(profile as any).username}</p>
+      )}
+
       {/* Bio */}
       {editingBio ? (
-        <div className="flex items-center gap-2 mt-1.5 w-full max-w-xs">
-          <input
+        <div className="flex flex-col gap-2 mt-1.5 w-full max-w-xs">
+          <textarea
             value={newBio}
             onChange={(e) => setNewBio(e.target.value)}
             placeholder="Ajoute une bio…"
             maxLength={120}
-            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center"
+            rows={2}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center resize-none"
             autoFocus
           />
-          <button
-            onClick={async () => {
-              if (!user) return;
-              setSaving(true);
-              try {
-                await supabase.from("profiles").update({ bio: newBio.trim() || null } as any).eq("user_id", user.id);
-                await onProfileUpdated();
-                setEditingBio(false);
-                toast.success("Bio enregistrée");
-              } catch { toast.error("Erreur"); }
-              finally { setSaving(false); }
-            }}
-            disabled={saving}
-            className="text-green-400 hover:text-green-300"
-          >
-            <Check className="w-4 h-4" />
-          </button>
-          <button onClick={() => setEditingBio(false)} className="text-muted-foreground hover:text-foreground">
-            <XIcon className="w-4 h-4" />
-          </button>
+          <input
+            value={newLink}
+            onChange={(e) => setNewLink(e.target.value)}
+            placeholder="ton-site.com ou @instagram"
+            maxLength={100}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center"
+          />
+          <input
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, "").slice(0, 20))}
+            placeholder="username"
+            maxLength={20}
+            className="bg-surface border border-gold/30 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-gold w-full text-center"
+          />
+          <div className="flex items-center gap-2 justify-center">
+            <button
+              onClick={async () => {
+                if (!user) return;
+                setSaving(true);
+                try {
+                  const finalBio = serializeBioWithLink(newBio.trim(), newLink.trim());
+                  await supabase.from("profiles").update({ bio: finalBio || null, username: newUsername.trim() || null } as any).eq("user_id", user.id);
+                  await onProfileUpdated();
+                  setEditingBio(false);
+                  toast.success("Profil enregistré");
+                } catch { toast.error("Erreur"); }
+                finally { setSaving(false); }
+              }}
+              disabled={saving}
+              className="text-green-400 hover:text-green-300"
+            >
+              <Check className="w-4 h-4" />
+            </button>
+            <button onClick={() => setEditingBio(false)} className="text-muted-foreground hover:text-foreground">
+              <XIcon className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       ) : (
         <button
-          onClick={() => { setNewBio(profile?.bio || ""); setEditingBio(true); }}
+          onClick={() => {
+            const parsed = parseBioWithLink(profile?.bio || null);
+            setNewBio(parsed.bio);
+            setNewLink(parsed.link);
+            setNewUsername((profile as any)?.username || "");
+            setEditingBio(true);
+          }}
           className="mt-1 group"
         >
           <p className="text-xs text-muted-foreground text-center max-w-xs">
-            {profile?.bio || "Ajoute une bio…"}
+            {parseBioWithLink(profile?.bio || null).bio || "Ajoute une bio…"}
             <Pencil className="w-3 h-3 text-muted-foreground/50 inline-block ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
           </p>
         </button>
       )}
+
+      {/* Bio link */}
+      {(() => {
+        const { link } = parseBioWithLink(profile?.bio || null);
+        if (!link) return null;
+        return (
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs text-gold font-semibold mt-1.5 hover:underline"
+          >
+            <Link2 className="w-3 h-3 shrink-0" />
+            <span className="truncate max-w-[200px]">
+              {link.replace(/^https?:\/\//, "").split("/")[0]}
+            </span>
+          </a>
+        );
+      })()}
 
       <p className="text-muted-foreground text-xs text-center max-w-xs mt-1">
         {displayEmail}
@@ -356,6 +426,9 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const deviceId = getDeviceId();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifList, setNotifList] = useState<any[]>([]);
+  const [showFollowList, setShowFollowList] = useState<"followers" | "following" | null>(null);
+  const [followListData, setFollowListData] = useState<Array<{ user_id: string; full_name: string | null; avatar_url: string | null }>>([]);
+  const [followListLoading, setFollowListLoading] = useState(false);
   const { followerCount, followingCount } = useFollows();
   const { bookmarkedIds } = useBookmarks();
   const { user, profile, signOut, refreshProfile } = useAuth();
@@ -366,6 +439,25 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     user?.email?.split("@")[0] ||
     "Explorateur";
   const displayEmail = profile?.email || user?.email || "Tes coups de cœur sont sauvegardés ici.";
+
+  const fetchFollowList = async (type: "followers" | "following") => {
+    if (!user) return;
+    setFollowListLoading(true);
+    try {
+      let userIds: string[] = [];
+      if (type === "followers") {
+        const { data } = await supabase.from("follows" as any).select("follower_id").eq("following_id", user.id);
+        userIds = (data || []).map((r: any) => r.follower_id);
+      } else {
+        const { data } = await supabase.from("follows" as any).select("following_id").eq("follower_id", user.id);
+        userIds = (data || []).map((r: any) => r.following_id);
+      }
+      if (userIds.length === 0) { setFollowListData([]); setFollowListLoading(false); return; }
+      const { data: profiles } = await supabase.from("profiles_public" as any).select("user_id, full_name, avatar_url").in("user_id", userIds);
+      setFollowListData((profiles || []) as any[]);
+    } catch { toast.error("Impossible de charger la liste"); }
+    finally { setFollowListLoading(false); }
+  };
 
   const handleDeleteAccount = async () => {
     if (!user) return;
@@ -580,16 +672,47 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
 
       {/* Follow Stats */}
       <div className="flex items-center justify-center gap-8 px-5 py-3">
-        <div className="text-center">
+        <button onClick={() => { setShowFollowList("followers"); fetchFollowList("followers"); }} className="text-center active:opacity-70 transition-opacity">
           <p className="text-lg font-bold text-foreground">{followerCount}</p>
           <p className="text-[11px] text-muted-foreground">Abonnés</p>
-        </div>
+        </button>
         <div className="w-px h-8 bg-border" />
-        <div className="text-center">
+        <button onClick={() => { setShowFollowList("following"); fetchFollowList("following"); }} className="text-center active:opacity-70 transition-opacity">
           <p className="text-lg font-bold text-foreground">{followingCount}</p>
           <p className="text-[11px] text-muted-foreground">Abonnements</p>
-        </div>
+        </button>
       </div>
+
+      {/* Tier Progress Bar */}
+      {(() => {
+        const vibesPosted = myVibes.length;
+        const tp = getTierProgress(vibesPosted);
+        return (
+          <div className="mx-4 px-4 py-3 rounded-2xl bg-card border border-border/50 space-y-2 mb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-foreground">
+                {tp.currentEmoji} {tp.currentTier}
+              </span>
+              {tp.nextTier ? (
+                <span className="text-[10px] text-muted-foreground">
+                  {tp.current}/{tp.target} vibes → {tp.nextEmoji} {tp.nextTier}
+                </span>
+              ) : (
+                <span className="text-[10px] text-gold font-bold">Niveau max ✨</span>
+              )}
+            </div>
+            <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, #BF953F, #FCF6BA, #B38728)" }}
+                initial={{ width: 0 }}
+                animate={{ width: `${tp.progress}%` }}
+                transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+              />
+            </div>
+          </div>
+        );
+      })()}
 
       {/* VIP CTA — hidden: B2C is free for now */}
 
@@ -1048,6 +1171,61 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Follow list bottom sheet */}
+      <AnimatePresence>
+        {showFollowList !== null && (
+          <div className="fixed inset-0 z-[3000] flex flex-col justify-end" onClick={() => setShowFollowList(null)}>
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              className="relative bg-card border-t border-border rounded-t-3xl max-h-[70vh] flex flex-col"
+            >
+              <div className="w-10 h-1 bg-muted/50 rounded-full mx-auto mt-3 mb-2" />
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border/50">
+                <h3 className="text-sm font-bold text-foreground">
+                  {showFollowList === "followers" ? "Abonnés" : "Abonnements"}
+                </h3>
+                <button onClick={() => setShowFollowList(null)} className="text-muted-foreground">
+                  <XIcon className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {followListLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-gold" />
+                  </div>
+                ) : followListData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
+                    <Users className="w-8 h-8 opacity-30" />
+                    <p className="text-sm">Aucun {showFollowList === "followers" ? "abonné" : "abonnement"}</p>
+                  </div>
+                ) : (
+                  followListData.map(person => (
+                    <div key={person.user_id} className="flex items-center gap-3 px-4 py-3 border-b border-border/20">
+                      <Avatar className="w-10 h-10 shrink-0">
+                        <AvatarImage src={person.avatar_url || undefined} />
+                        <AvatarFallback className="bg-gold/10 text-gold text-xs font-bold">
+                          {(person.full_name || "?")[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {person.full_name || "Anonyme"}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

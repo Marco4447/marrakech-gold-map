@@ -14,6 +14,7 @@ export default function AuthGate() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [forgotSent, setForgotSent] = useState(false);
@@ -56,18 +57,31 @@ export default function AuthGate() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name || email.split("@")[0] },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) {
-      setError(error.message);
-    } else {
-      setSuccess("Vérifiez votre boîte mail pour confirmer votre inscription.");
+    try {
+      const { data: signupData, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name || email.split("@")[0] },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        if (signupData?.user) {
+          const finalUsername = username || email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g, "").slice(0, 20);
+          await supabase.from("profiles").upsert({
+            user_id: signupData.user.id,
+            full_name: name || finalUsername,
+            email: email,
+            username: finalUsername,
+          } as any, { onConflict: "user_id" });
+        }
+        setSuccess("Vérifiez votre boîte mail pour confirmer votre inscription.");
+      }
+    } catch (e: any) {
+      setError(e?.message || "Erreur lors de l'inscription");
     }
     setLoading(false);
   };
@@ -94,6 +108,7 @@ export default function AuthGate() {
     setEmail("");
     setPassword("");
     setName("");
+    setUsername("");
     setError(null);
     setSuccess(null);
     setForgotSent(false);
@@ -261,6 +276,26 @@ export default function AuthGate() {
                       onChange={(e) => setName(e.target.value)}
                       className="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-surface border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors"
                     />
+                  </div>
+                )}
+                {mode === "signup" && (
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-bold select-none">@</span>
+                    <input
+                      type="text"
+                      placeholder="ton_pseudo"
+                      value={username}
+                      onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, "").slice(0, 20))}
+                      className="w-full pl-8 pr-4 py-3.5 rounded-2xl bg-surface border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors"
+                      maxLength={20}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                    />
+                    {username.length > 0 && (
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+                        {20 - username.length}
+                      </span>
+                    )}
                   </div>
                 )}
                 <div className="relative">
