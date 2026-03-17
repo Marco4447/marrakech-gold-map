@@ -373,6 +373,15 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     }
   }, [vibes, activeTab, scoringContext, followingIds]);
 
+  // Apply night filter
+  const filteredFeed = useMemo(() => {
+    if (!nightOnly) return sortedFeed;
+    const tonightStart = getTonightStart();
+    return sortedFeed.filter(v => new Date(v.created_at) >= tonightStart);
+  }, [sortedFeed, nightOnly]);
+
+  const nightVibeCount = nightOnly ? filteredFeed.length : 0;
+
   const rankMedals = ["🥇", "🥈", "🥉"];
 
   useEffect(() => {
@@ -382,10 +391,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     }, { rootMargin: "200px" });
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [sortedFeed.length]);
+  }, [filteredFeed.length]);
 
-  useEffect(() => { setVisibleCount(10); }, [activeTab]);
-  const visibleFeed = sortedFeed.slice(0, visibleCount);
+  useEffect(() => { setVisibleCount(10); }, [activeTab, nightOnly]);
+  const visibleFeed = filteredFeed.slice(0, visibleCount);
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
