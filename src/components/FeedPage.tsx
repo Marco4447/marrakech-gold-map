@@ -473,7 +473,27 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const visibleFeed = filteredFeed.slice(0, visibleCount);
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar pb-20 relative">
+    <div ref={feedScrollRef} className="h-full overflow-y-auto no-scrollbar pb-20 relative" onScroll={(e) => {
+      if ((e.target as HTMLDivElement).scrollTop < 100) setShowNewPill(false);
+    }}>
+      {/* New vibes pill */}
+      <AnimatePresence>
+        {showNewPill && newVibesCount > 0 && (
+          <motion.button
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            onClick={() => {
+              feedScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+              setShowNewPill(false);
+            }}
+            className="fixed top-14 left-1/2 -translate-x-1/2 z-[1500] flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl shadow-black/30 whitespace-nowrap"
+          >
+            ↑ {newVibesCount} nouvelle{newVibesCount > 1 ? "s" : ""} vibe{newVibesCount > 1 ? "s" : ""}
+          </motion.button>
+        )}
+      </AnimatePresence>
       {/* Header — Instagram style */}
       <div className="sticky top-0 z-10 bg-background border-b border-border/30 px-4 pt-12 md:pt-4 pb-2">
         <div className="flex items-center justify-between">
