@@ -13,6 +13,7 @@ import { getDeviceId } from "@/lib/deviceId";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useFollows } from "@/hooks/useFollows";
 import { useBookmarks } from "@/hooks/useBookmarks";
+import { getUserMayorTerritories } from "@/lib/mayorSystem";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
@@ -342,6 +343,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const [loading, setLoading] = useState(true);
   const [profileTab, setProfileTab] = useState<"vibes" | "likes" | "saved" | "visited">("vibes");
   const [visitedPlaces, setVisitedPlaces] = useState<{ name: string; image_url: string | null; slug: string | null }[]>([]);
+  const [territories, setTerritories] = useState<{ placeName: string; vibeCount: number }[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -543,6 +545,12 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     fetchFavorites();
   }, [fetchFavorites]);
 
+  // Fetch territories
+  useEffect(() => {
+    if (!user) return;
+    getUserMayorTerritories(user.id).then(setTerritories).catch(() => {});
+  }, [user]);
+
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-20">
       {/* Header */}
@@ -688,6 +696,34 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
 
       {/* Badges / Gamification */}
       {user && <BadgesSection userId={user.id} />}
+
+      {/* Territories (Mayor system) */}
+      {user && territories.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="px-5 pt-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Crown className="w-4 h-4 text-gold" />
+            <h3 className="font-display text-sm font-semibold text-foreground">Tes territoires</h3>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {territories.map((t) => (
+              <div
+                key={t.placeName}
+                className="flex items-center gap-1.5 bg-gold/10 border border-gold/20 rounded-full px-3 py-1.5"
+              >
+                <span className="text-xs">👑</span>
+                <span className="text-[11px] font-semibold text-gold">{t.placeName}</span>
+                <span className="text-[9px] text-muted-foreground">{t.vibeCount} vibes</span>
+              </div>
+            ))}
+          </div>
+          <div className="h-px bg-border mt-4" />
+        </motion.div>
+      )}
 
       {/* Community Leaderboard */}
       {user && <CommunityLeaderboard currentUserId={user.id} />}

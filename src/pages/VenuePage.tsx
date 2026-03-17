@@ -16,6 +16,8 @@ import PremiumLock from "@/components/PremiumLock";
 import PartnerOfferCard from "@/components/PartnerOfferCard";
 import FomoCountdown from "@/components/FomoCountdown";
 import ShareOfferCTA from "@/components/ShareOfferCTA";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getMayorOfPlace, type MayorInfo } from "@/lib/mayorSystem";
 
 interface PlaceData {
   id: string;
@@ -99,6 +101,7 @@ export default function VenuePage() {
   const [dealOpen, setDealOpen] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [mayor, setMayor] = useState<MayorInfo | null>(null);
 
   const vibeImages = useVenueGallery(place?.name);
   const userVibes = useUserVibes(place?.name);
@@ -123,6 +126,12 @@ export default function VenuePage() {
     if (!place) return;
     supabase.from("venue_analytics").insert({ place_id: place.id, event_type: "page_view", user_id: user?.id || null } as any).then(() => {});
   }, [place?.id]);
+
+  // Fetch Mayor
+  useEffect(() => {
+    if (!place) return;
+    getMayorOfPlace(place.name).then(setMayor).catch(() => {});
+  }, [place?.name]);
 
   // VIP status
   useEffect(() => {
@@ -326,6 +335,35 @@ export default function VenuePage() {
             </button>
           </div>
         </div>
+
+        {/* Mayor of the spot */}
+        {mayor && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${
+              user?.id === mayor.userId
+                ? "bg-gold/10 border-gold/30 shadow-sm shadow-gold/10"
+                : "bg-card/95 border-border"
+            }`}
+          >
+            <span className="text-base">👑</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-gold font-bold uppercase tracking-wider">Mayor du spot</p>
+              <p className="text-xs text-foreground truncate">
+                {user?.id === mayor.userId
+                  ? "Tu es le Mayor de ce spot !"
+                  : `${mayor.fullName || "Anonyme"} · ${mayor.vibeCount} vibes ce mois`}
+              </p>
+            </div>
+            <Avatar className="w-7 h-7 border border-gold/30 shrink-0">
+              <AvatarImage src={mayor.avatarUrl || undefined} />
+              <AvatarFallback className="text-[10px] bg-gold/10 text-gold">
+                {(mayor.fullName || "?")[0]}
+              </AvatarFallback>
+            </Avatar>
+          </motion.div>
+        )}
 
         {/* VIP Offers */}
         {isPartner && vipOffers.length > 0 && (

@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Trophy, XCircle, Crown } from "lucide-react";
+import { Plus, Loader2, Trophy, XCircle, Crown, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Challenge = { id: string; title: string; description: string | null; emoji: string; theme_tag: string | null; start_date: string; end_date: string; status: string; winner_user_id: string | null };
+
+const NEIGHBORHOODS = [
+  { slug: "medina", label: "Médina" },
+  { slug: "gueliz", label: "Guéliz" },
+  { slug: "hivernage", label: "Hivernage" },
+  { slug: "palmeraie", label: "Palmeraie" },
+];
 
 export default function AdminChallengesTab() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -11,6 +18,8 @@ export default function AdminChallengesTab() {
   const [chDesc, setChDesc] = useState("");
   const [chEmoji, setChEmoji] = useState("🏆");
   const [chDays, setChDays] = useState("7");
+  const [chType, setChType] = useState<"standard" | "geo">("standard");
+  const [chNeighborhood, setChNeighborhood] = useState("medina");
   const [savingCh, setSavingCh] = useState(false);
 
   const fetchChallenges = async () => {
@@ -38,6 +47,23 @@ export default function AdminChallengesTab() {
             <option value="14">14 jours</option>
           </select>
         </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground">Type :</label>
+          <select value={chType} onChange={(e) => setChType(e.target.value as "standard" | "geo")} className="bg-background border border-border rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30">
+            <option value="standard">Standard</option>
+            <option value="geo">Quartier</option>
+          </select>
+        </div>
+        {chType === "geo" && (
+          <div className="flex items-center gap-2">
+            <MapPin className="w-3.5 h-3.5 text-gold" />
+            <select value={chNeighborhood} onChange={(e) => setChNeighborhood(e.target.value)} className="bg-background border border-border rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30">
+              {NEIGHBORHOODS.map(n => (
+                <option key={n.slug} value={n.slug}>{n.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <button
           disabled={!chTitle.trim() || savingCh}
           onClick={async () => {
@@ -45,10 +71,12 @@ export default function AdminChallengesTab() {
             try {
               const now = new Date();
               const end = new Date(now.getTime() + parseInt(chDays) * 86400000);
+              const themeTag = chType === "geo" ? `geo:${chNeighborhood}` : null;
               const { error } = await supabase.from("weekly_challenges" as any).insert({
                 title: chTitle.trim(),
                 description: chDesc.trim() || null,
                 emoji: chEmoji || "🏆",
+                theme_tag: themeTag,
                 start_date: now.toISOString(),
                 end_date: end.toISOString(),
                 status: "active",
