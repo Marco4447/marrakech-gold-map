@@ -411,7 +411,15 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       </div>
 
       {/* Stories — directly under header */}
-      <StoriesModule userId={user?.id} />
+      <StoriesModule userId={user?.id} onAddStory={user ? () => setShowStoryUpload(true) : undefined} />
+
+      {user && (
+        <UserStoryUpload
+          open={showStoryUpload}
+          onClose={() => setShowStoryUpload(false)}
+          userId={user.id}
+        />
+      )}
 
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">

@@ -139,6 +139,15 @@ function ChatView({
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-2 no-scrollbar">
+        {hasMore && (
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={loadingMore}
+            className="w-full text-center text-[11px] text-muted-foreground hover:text-foreground py-2 transition-colors"
+          >
+            {loadingMore ? "Chargement…" : "Voir les messages précédents"}
+          </button>
+        )}
         {messages.length === 0 && (
           <p className="text-center text-xs text-muted-foreground pt-10">Commence la conversation 👋</p>
         )}

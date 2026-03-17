@@ -91,6 +91,7 @@ const AppShell = () => {
               <Route path="/spot/:slug" element={<PlaceDetailPage />} />
               <Route path="/demo" element={<DemoPartnerPage />} />
               <Route path="/strategic" element={<StrategicDemoPage />} />
+              <Route path="/u/:userId" element={<UserProfilePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

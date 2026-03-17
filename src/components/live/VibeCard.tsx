@@ -107,6 +107,7 @@ export default function VibeCard({
                 </span>
               )}
             </p>
+            </Link>
             {vibe.location && (
               <div className="flex items-center gap-1">
                 <span className="text-[11px] text-muted-foreground truncate">{vibe.location}</span>
