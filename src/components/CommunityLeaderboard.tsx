@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Crown, Flame, Compass, Heart, Zap } from "lucide-react";
+import { Trophy, Crown, Heart, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Link } from "react-router-dom";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -12,6 +13,11 @@ interface LeaderboardEntry {
   vibes_count: number;
   total_likes: number;
   score: number;
+}
+
+interface CacheData {
+  entries: LeaderboardEntry[];
+  cachedAt: number;
 }
 
 function getTier(vibeCount: number): { emoji: string; label: string; color: string } {
@@ -29,70 +35,97 @@ const RANK_STYLES = [
 
 const RANK_MEDALS = ["🥇", "🥈", "🥉"];
 
-export default function CommunityLeaderboard({ currentUserId }: { currentUserId: string }) {
+const CACHE_KEY = "wk_leaderboard_cache";
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+export default function CommunityLeaderboard({ currentUserId, refreshSignal = 0 }: { currentUserId: string; refreshSignal?: number }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      // Fetch all vibes with user_id (non-official only)
-      const { data: vibes } = await supabase
-        .from("vibes")
-        .select("user_id, likes, super_vibes")
-        .eq("is_official", false)
-        .not("user_id", "is", null);
-
-      if (!vibes || vibes.length === 0) {
-        setLoading(false);
-        return;
-      }
-
-      // Aggregate per user
-      const userStats: Record<string, { vibes_count: number; total_likes: number; total_super: number }> = {};
-      vibes.forEach((v) => {
-        if (!v.user_id) return;
-        if (!userStats[v.user_id]) {
-          userStats[v.user_id] = { vibes_count: 0, total_likes: 0, total_super: 0 };
+    // Check sessionStorage cache
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed: CacheData = JSON.parse(cached);
+        if (Date.now() - parsed.cachedAt < CACHE_TTL) {
+          setEntries(parsed.entries);
+          setLoading(false);
+          return;
         }
-        userStats[v.user_id].vibes_count += 1;
-        userStats[v.user_id].total_likes += v.likes || 0;
-        userStats[v.user_id].total_super += v.super_vibes || 0;
-      });
+      }
+    } catch {}
 
-      // Score = likes + super_vibes * 3 + vibes_count * 2
-      const ranked = Object.entries(userStats)
-        .map(([uid, s]) => ({
-          user_id: uid,
-          vibes_count: s.vibes_count,
-          total_likes: s.total_likes,
-          score: s.total_likes + s.total_super * 3 + s.vibes_count * 2,
-        }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
+    const fetchLeaderboard = async () => {
+      try {
+        // Only fetch top 500 most liked vibes instead of all
+        const { data: vibes } = await supabase
+          .from("vibes")
+          .select("user_id, likes, super_vibes")
+          .eq("is_official", false)
+          .not("user_id", "is", null)
+          .order("likes", { ascending: false })
+          .limit(500);
 
-      // Fetch profiles
-      const userIds = ranked.map((r) => r.user_id);
-      const { data: profiles } = await supabase
-        .from("profiles_public" as any)
-        .select("user_id, full_name, avatar_url, is_vip")
-        .in("user_id", userIds);
+        if (!vibes || vibes.length === 0) {
+          setLoading(false);
+          return;
+        }
 
-      const profileMap: Record<string, any> = {};
-      if (profiles) profiles.forEach((p: any) => { profileMap[p.user_id] = p; });
+        // Aggregate per user
+        const userStats: Record<string, { vibes_count: number; total_likes: number; total_super: number }> = {};
+        vibes.forEach((v) => {
+          if (!v.user_id) return;
+          if (!userStats[v.user_id]) {
+            userStats[v.user_id] = { vibes_count: 0, total_likes: 0, total_super: 0 };
+          }
+          userStats[v.user_id].vibes_count += 1;
+          userStats[v.user_id].total_likes += v.likes || 0;
+          userStats[v.user_id].total_super += v.super_vibes || 0;
+        });
 
-      const final: LeaderboardEntry[] = ranked.map((r) => ({
-        ...r,
-        full_name: profileMap[r.user_id]?.full_name || null,
-        avatar_url: profileMap[r.user_id]?.avatar_url || null,
-        is_vip: profileMap[r.user_id]?.is_vip || false,
-      }));
+        // Score = likes + super_vibes * 3 + vibes_count * 2
+        const ranked = Object.entries(userStats)
+          .map(([uid, s]) => ({
+            user_id: uid,
+            vibes_count: s.vibes_count,
+            total_likes: s.total_likes,
+            score: s.total_likes + s.total_super * 3 + s.vibes_count * 2,
+          }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 10);
 
-      setEntries(final);
+        // Fetch profiles
+        const userIds = ranked.map((r) => r.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles_public")
+          .select("user_id, full_name, avatar_url, is_vip")
+          .in("user_id", userIds);
+
+        const profileMap: Record<string, { full_name: string | null; avatar_url: string | null; is_vip: boolean | null }> = {};
+        if (profiles) profiles.forEach((p) => { if (p.user_id) profileMap[p.user_id] = p; });
+
+        const final: LeaderboardEntry[] = ranked.map((r) => ({
+          ...r,
+          full_name: profileMap[r.user_id]?.full_name || null,
+          avatar_url: profileMap[r.user_id]?.avatar_url || null,
+          is_vip: profileMap[r.user_id]?.is_vip || false,
+        }));
+
+        setEntries(final);
+
+        // Cache in sessionStorage
+        try {
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify({ entries: final, cachedAt: Date.now() } satisfies CacheData));
+        } catch {}
+      } catch (err) {
+        console.error("Leaderboard fetch error:", err);
+      }
       setLoading(false);
     };
 
     fetchLeaderboard();
-  }, []);
+  }, [refreshSignal]);
 
   if (loading) return null;
   if (entries.length === 0) return null;
@@ -146,7 +179,7 @@ export default function CommunityLeaderboard({ currentUserId }: { currentUserId:
               </Avatar>
 
               {/* Name + tier */}
-              <div className="flex-1 min-w-0">
+              <Link to={`/u/${entry.user_id}`} className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className={`text-xs font-semibold truncate ${isMe ? "text-gold" : "text-foreground"}`}>
                     {isMe ? `${displayName} (toi)` : displayName}
@@ -158,7 +191,7 @@ export default function CommunityLeaderboard({ currentUserId }: { currentUserId:
                   <span className={`text-[9px] font-semibold ${tier.color}`}>{tier.label}</span>
                   <span className="text-[9px] text-muted-foreground">· {entry.vibes_count} vibes</span>
                 </div>
-              </div>
+              </Link>
 
               {/* Stats */}
               <div className="flex items-center gap-2 shrink-0">

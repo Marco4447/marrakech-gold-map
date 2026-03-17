@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 import type { Story } from "@/hooks/useStories";
 
 const BADGE_COLORS: Record<string, string> = {
@@ -14,12 +15,13 @@ const BADGE_COLORS: Record<string, string> = {
 interface StoryBubblesProps {
   stories: Story[];
   onStoryPress: (index: number) => void;
+  onAddStory?: () => void;
 }
 
-export default function StoryBubbles({ stories, onStoryPress }: StoryBubblesProps) {
+export default function StoryBubbles({ stories, onStoryPress, onAddStory }: StoryBubblesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  if (stories.length === 0) return null;
+  if (stories.length === 0 && !onAddStory) return null;
 
   // Group stories by author (place or user)
   const groups: { key: string; story: Story; index: number }[] = [];
@@ -37,6 +39,19 @@ export default function StoryBubbles({ stories, onStoryPress }: StoryBubblesProp
       ref={scrollRef}
       className="flex gap-4 overflow-x-auto no-scrollbar px-4 py-2.5 border-b border-border/30"
     >
+      {/* Add story bubble */}
+      {onAddStory && (
+        <button
+          onClick={onAddStory}
+          className="flex flex-col items-center gap-1 shrink-0"
+        >
+          <div className="w-14 h-14 rounded-full border-2 border-dashed border-gold/40 bg-gold/5 flex items-center justify-center">
+            <Plus className="w-5 h-5 text-gold/60" />
+          </div>
+          <span className="text-[10px] text-muted-foreground">Ma story</span>
+        </button>
+      )}
+
       {groups.map(({ story, index }, gi) => {
         const name = story.author_name || "Anon";
         const isViewed = story.viewed;

@@ -16,6 +16,7 @@ export interface NearbyPlace {
 
 const PROXIMITY_RADIUS_M = 100;
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 min per place
+const DELTA = 0.01; // ~1.1km bounding box
 
 export function useProximityDetection(userId: string | undefined) {
   const [nearbyPlace, setNearbyPlace] = useState<NearbyPlace | null>(null);
@@ -33,33 +34,41 @@ export function useProximityDetection(userId: string | undefined) {
     lastCheckRef.current = key;
 
     const check = async () => {
-      const { data: places } = await supabase
-        .from("places")
-        .select("id, name, category, image_url, latitude, longitude, is_partner");
+      try {
+        const { data: places } = await supabase
+          .from("places")
+          .select("id, name, category, image_url, latitude, longitude, is_partner")
+          .gte("latitude", userLocation.lat - DELTA)
+          .lte("latitude", userLocation.lat + DELTA)
+          .gte("longitude", userLocation.lng - DELTA)
+          .lte("longitude", userLocation.lng + DELTA);
 
-      if (!places || places.length === 0) return;
+        if (!places || places.length === 0) return;
 
-      const now = Date.now();
-      let closest: NearbyPlace | null = null;
-      let minDist = Infinity;
+        const now = Date.now();
+        let closest: NearbyPlace | null = null;
+        let minDist = Infinity;
 
-      for (const p of places) {
-        const dist = getDistanceMeters(userLocation.lat, userLocation.lng, p.latitude, p.longitude);
-        if (dist <= PROXIMITY_RADIUS_M && dist < minDist) {
-          // Check cooldown
-          const lastPost = cooldowns.current.get(p.id);
-          if (lastPost && now - lastPost < COOLDOWN_MS) continue;
+        for (const p of places) {
+          const dist = getDistanceMeters(userLocation.lat, userLocation.lng, p.latitude, p.longitude);
+          if (dist <= PROXIMITY_RADIUS_M && dist < minDist) {
+            // Check cooldown
+            const lastPost = cooldowns.current.get(p.id);
+            if (lastPost && now - lastPost < COOLDOWN_MS) continue;
 
-          minDist = dist;
-          closest = { ...p, distance: Math.round(dist) };
+            minDist = dist;
+            closest = { ...p, distance: Math.round(dist) };
+          }
         }
-      }
 
-      if (closest) {
-        setNearbyPlace(closest);
-        setDismissed(false);
-      } else {
-        setNearbyPlace(null);
+        if (closest) {
+          setNearbyPlace(closest);
+          setDismissed(false);
+        } else {
+          setNearbyPlace(null);
+        }
+      } catch (err) {
+        console.error("Proximity check error:", err);
       }
     };
 
