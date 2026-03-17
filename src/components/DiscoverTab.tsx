@@ -1,7 +1,15 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Search, Play, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Play, Heart, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import UnifiedSearch from "./UnifiedSearch";
+
+const HOODS = [
+  { slug: "medina", label: "Médina", emoji: "🕌" },
+  { slug: "gueliz", label: "Guéliz", emoji: "🏙️" },
+  { slug: "hivernage", label: "Hivernage", emoji: "🌴" },
+  { slug: "palmeraie", label: "Palmeraie", emoji: "🏝️" },
+];
 
 interface ExploreVibe {
   id: string;
