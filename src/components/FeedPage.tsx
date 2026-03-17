@@ -444,6 +444,25 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         />
       )}
 
+      {/* Night filter toggle */}
+      <div className="flex items-center gap-2 px-4 py-2">
+        <button
+          onClick={() => setNightOnly(n => !n)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+            nightOnly 
+              ? 'bg-card border-gold/40 text-gold' 
+              : 'bg-transparent border-border text-muted-foreground'
+          }`}
+        >
+          🌙 Cette nuit
+        </button>
+        {nightOnly && (
+          <span className="text-[11px] text-muted-foreground">
+            {nightVibeCount} moment{nightVibeCount !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
           <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-3">
