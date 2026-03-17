@@ -562,8 +562,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <button
                           onClick={() => handleLike(vibe.id)}
                           onContextMenu={(e) => { e.preventDefault(); setReactionsVibeId(vibe.id); }}
-                          onTouchStart={() => { const timer = setTimeout(() => setReactionsVibeId(vibe.id), 500); (window as any).__reactionTimer = timer; }}
-                          onTouchEnd={() => clearTimeout((window as any).__reactionTimer)}
+                          onTouchStart={() => { const timer = setTimeout(() => setReactionsVibeId(vibe.id), 500); (window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer = timer; }}
+                          onTouchEnd={() => clearTimeout((window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer)}
                         >
                           <motion.div animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}} transition={{ duration: 0.4, ease: "easeOut" }}>
                             <Heart className={`w-[26px] h-[26px] transition-colors duration-200 ${liked ? "fill-destructive text-destructive" : "text-foreground"}`} />

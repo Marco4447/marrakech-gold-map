@@ -30,6 +30,7 @@ interface Place {
   has_active_offer?: boolean;
   neighborhood?: string | null;
   is_premium?: boolean;
+  slug?: string | null;
 }
 
 interface PlaceSheetProps {
