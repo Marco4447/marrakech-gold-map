@@ -85,15 +85,15 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   useEffect(() => {
     if (!place?.id || !open) return;
     supabase.from("partner_offers").select("*").eq("place_id", place.id).eq("is_active", true).then(({ data }) => {
-      if (data) setOffers(data.filter((o: any) => !o.expiration_date || new Date(o.expiration_date) > new Date()));
+      if (data) setOffers(data.filter((o) => !o.expiration_date || new Date(o.expiration_date) > new Date()));
     });
     const now = new Date().toISOString();
-    (supabase.from("vip_offers") as any)
+    supabase.from("vip_offers")
       .select("id, title, description, perk_type, start_time, end_time")
       .eq("place_id", place.id)
       .eq("is_active", true)
       .or(`end_time.is.null,end_time.gte.${now}`)
-      .then(({ data }: any) => {
+      .then(({ data }) => {
         if (data) setVipOffers(data);
       });
   }, [place?.id, open]);
