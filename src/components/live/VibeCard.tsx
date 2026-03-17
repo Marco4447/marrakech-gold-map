@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, MapPin, Loader2, Trash2, Zap, Crown, Sparkles, Share2, Camera } from "lucide-react";
+import { Heart, MessageCircle, Loader2, Trash2, Zap, Crown, Sparkles, Share2, Camera } from "lucide-react";
 import VibeReplies from "../VibeReplies";
 import VibeMedia from "./VibeMedia";
 import DoubleTapHeart from "../DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "../VibeReactions";
 import SuperVibeParticles from "../SuperVibeParticles";
+import SuperVibePhotoBlast from "../SuperVibePhotoBlast";
+import LongPressRing from "../LongPressRing";
+import { useLongPress } from "@/hooks/useLongPress";
 import { timeAgo } from "@/lib/timeAgo";
 import { getShareUrl } from "@/lib/shareUrl";
 import { toast } from "sonner";
-import type { Vibe, VibeProfile } from "@/types/models";
+import type { Vibe } from "@/types/models";
 import VibeExpiryBar from "../VibeExpiryBar";
 
 function getUserTier(vibeCount: number): { emoji: string; label: string } | null {
@@ -59,7 +62,7 @@ interface Props {
   activeTab: "tendances" | "recents";
   currentUserId?: string;
   onLike: (vibeId: string) => void;
-  onSuperVibe: (vibeId: string) => void;
+  onSuperVibe: (vibeId: string, isLongPress?: boolean) => void;
   onDelete: (vibeId: string) => void;
   onDoubleTap: (vibeId: string) => void;
   onOpenComments: (vibeId: string) => void;
@@ -75,6 +78,49 @@ export default function VibeCard({
   onDoubleTap, onOpenComments, onReaction, onSetReactionsVibeId, onGoToMap,
 }: Props) {
   const [showReplies, setShowReplies] = useState(false);
+  const [longPressActive, setLongPressActive] = useState(false);
+  const [blastActive, setBlastActive] = useState(false);
+
+  const isPartnerVibe = vibe.is_official === true;
+  const alreadySuperVibed = superVibeIds.has(vibe.id);
+
+  const handleLongPressTrigger = useCallback(() => {
+    if (!isPartnerVibe || alreadySuperVibed || !canSuperVibe) return;
+    setLongPressActive(false);
+    setBlastActive(true);
+    setTimeout(() => setBlastActive(false), 1200);
+    onSuperVibe(vibe.id, true);
+    toast("⚡ Super Vibe envoyé !", {
+      description: "Tu booste la visibilité de ce spot dans le feed",
+      duration: 2000,
+    });
+  }, [isPartnerVibe, alreadySuperVibed, canSuperVibe, onSuperVibe, vibe.id]);
+
+  const longPress = useLongPress({
+    onLongPress: handleLongPressTrigger,
+    onPress: () => onDoubleTap(vibe.id),
+    delay: 800,
+  });
+
+  // Wire start/end callbacks for ring
+  useEffect(() => {
+    if (isPartnerVibe && canSuperVibe && !alreadySuperVibed) {
+      longPress.setOnStart(() => setLongPressActive(true));
+      longPress.setOnEnd(() => setLongPressActive(false));
+    }
+  }, [isPartnerVibe, canSuperVibe, alreadySuperVibed]);
+
+  // Build handlers for the photo area
+  const photoHandlers = isPartnerVibe && canSuperVibe && !alreadySuperVibed
+    ? {
+        onTouchStart: longPress.onTouchStart,
+        onTouchEnd: longPress.onTouchEnd,
+        onTouchMove: longPress.onTouchMove,
+        onMouseDown: longPress.onMouseDown,
+        onMouseUp: longPress.onMouseUp,
+        onMouseLeave: longPress.onMouseLeave,
+      }
+    : { onClick: () => onDoubleTap(vibe.id) };
 
   return (
     <motion.div
@@ -152,7 +198,11 @@ export default function VibeCard({
       </div>
 
       {/* ── MEDIA ── */}
-      <div className="relative aspect-[4/5] bg-background" onClick={() => onDoubleTap(vibe.id)}>
+      <div
+        className="relative aspect-[4/5] bg-background select-none"
+        style={{ userSelect: "none", WebkitUserSelect: "none" } as React.CSSProperties}
+        {...photoHandlers}
+      >
         <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
         <DoubleTapHeart show={doubleTapId === vibe.id} />
         {vibe.mood && (
@@ -168,6 +218,28 @@ export default function VibeCard({
               <Zap className="w-2.5 h-2.5" /> {getScore(vibe)}
             </span>
           </div>
+        )}
+
+        {/* Long press ring */}
+        <LongPressRing active={longPressActive} duration={800} />
+
+        {/* Super Vibe blast animation */}
+        <SuperVibePhotoBlast active={blastActive} />
+
+        {/* "Hold for super vibe" hint on partner vibes */}
+        {isPartnerVibe && !alreadySuperVibed && canSuperVibe && (
+          <div className="absolute bottom-2 right-2 px-2 py-1 rounded-full bg-background/50 backdrop-blur-sm flex items-center gap-1">
+            <Zap className="w-3 h-3 text-gold" />
+            <span className="text-[9px] text-gold font-bold">Maintiens</span>
+          </div>
+        )}
+
+        {/* Gold glow border if already super vibed */}
+        {alreadySuperVibed && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ boxShadow: "inset 0 0 0 2px hsl(var(--gold) / 0.6)" }}
+          />
         )}
       </div>
 
@@ -238,7 +310,7 @@ export default function VibeCard({
         {/* Super Vibe */}
         <button
           onClick={() => onSuperVibe(vibe.id)}
-          disabled={!canSuperVibe || superVibeIds.has(vibe.id)}
+          disabled={!canSuperVibe || alreadySuperVibed}
           className="group relative"
           title="Super Vibe — Booste ce post ×3 !"
         >
@@ -248,7 +320,7 @@ export default function VibeCard({
           >
             <Zap
               className={`w-6 h-6 transition-colors duration-200 ${
-                superVibeIds.has(vibe.id)
+                alreadySuperVibed
                   ? "fill-gold text-gold"
                   : !canSuperVibe
                   ? "text-foreground/30"
