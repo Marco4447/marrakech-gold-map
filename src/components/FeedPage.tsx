@@ -740,7 +740,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     </p>
                     {vibe.caption && (
                       <p className="text-[13px] text-foreground leading-[18px]">
-                        <span className="font-semibold mr-1">{getDisplayName(vibe)}</span>{vibe.caption}
+                        <span className="font-semibold mr-1">{getDisplayName(vibe)}</span>{renderCaption(vibe.caption)}
                       </p>
                     )}
                     {vibe.insider_tip && (
