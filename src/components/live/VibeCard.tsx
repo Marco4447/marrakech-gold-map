@@ -9,6 +9,7 @@ import { timeAgo } from "@/lib/timeAgo";
 import { getShareUrl } from "@/lib/shareUrl";
 import { toast } from "sonner";
 import type { Vibe, VibeProfile } from "@/types/models";
+import VibeExpiryBar from "../VibeExpiryBar";
 
 function getUserTier(vibeCount: number): { emoji: string; label: string } | null {
   if (vibeCount >= 20) return { emoji: "👑", label: "Legend" };
