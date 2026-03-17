@@ -672,6 +672,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     )}
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{timeAgo(vibe.created_at)}</p>
                   </div>
+
+                  {/* Expiry bar */}
+                  <VibeExpiryBar createdAt={vibe.created_at} isOfficial={vibe.is_official} />
                 </motion.div>
               );
             })}
