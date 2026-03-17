@@ -47,7 +47,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
       const [vibesRes, placesRes] = await Promise.all([
         supabase
           .from("vibes")
-          .select("id, image_url, location, likes, super_vibes, mood, media_type, is_official, created_at, latitude, longitude")
+          .select("id, image_url, location, likes, super_vibes, mood, media_type, is_official, created_at, latitude, longitude, insider_tip")
           .order("likes", { ascending: false })
           .limit(120),
         supabase
