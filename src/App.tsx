@@ -40,6 +40,7 @@ const AdminRoute = lazy(() => import("./pages/AdminRoute"));
 const DemoPartnerPage = lazy(() => import("./pages/DemoPartnerPage"));
 const PlaceDetailPage = lazy(() => import("./pages/PlaceDetailPage"));
 const StrategicDemoPage = lazy(() => import("./pages/StrategicDemoPage"));
+const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const AppShell = () => {
               <Route path="/spot/:slug" element={<PlaceDetailPage />} />
               <Route path="/demo" element={<DemoPartnerPage />} />
               <Route path="/strategic" element={<StrategicDemoPage />} />
+              <Route path="/u/:userId" element={<UserProfilePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

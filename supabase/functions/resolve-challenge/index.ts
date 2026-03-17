@@ -1,3 +1,17 @@
+/**
+ * CRON SETUP REQUIRED:
+ * Run this SQL via the SQL editor to auto-resolve challenges every hour:
+ *
+ *   select cron.schedule('resolve-challenges', '0 * * * *', $$
+ *     select net.http_post(
+ *       url := current_setting('app.supabase_url') || '/functions/v1/resolve-challenge',
+ *       headers := '{"Authorization": "Bearer ' || current_setting('app.service_role_key') || '"}'::jsonb
+ *     )
+ *   $$);
+ *
+ * This runs every hour to auto-resolve ended challenges.
+ */
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 

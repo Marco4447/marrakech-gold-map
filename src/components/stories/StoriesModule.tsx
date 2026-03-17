@@ -5,9 +5,10 @@ import StoryViewer from "./StoryViewer";
 
 interface StoriesModuleProps {
   userId?: string | null;
+  onAddStory?: () => void;
 }
 
-export default function StoriesModule({ userId }: StoriesModuleProps) {
+export default function StoriesModule({ userId, onAddStory }: StoriesModuleProps) {
   const { stories, loading, markViewed } = useStories(userId);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
@@ -18,6 +19,7 @@ export default function StoriesModule({ userId }: StoriesModuleProps) {
       <StoryBubbles
         stories={stories}
         onStoryPress={(index) => setViewerIndex(index)}
+        onAddStory={onAddStory}
       />
 
       {viewerIndex !== null && (

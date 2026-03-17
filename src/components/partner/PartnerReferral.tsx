@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Copy, Gift, Check } from "lucide-react";
+import { Users, Copy, Gift, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   userId: string;
@@ -10,20 +11,60 @@ interface Props {
 
 export default function PartnerReferral({ userId, businessName }: Props) {
   const [copied, setCopied] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [usesCount, setUsesCount] = useState(0);
+  const [loadingCode, setLoadingCode] = useState(true);
 
-  const referralCode = `WK-${userId.slice(0, 6).toUpperCase()}`;
-  const referralUrl = `${window.location.origin}/business?ref=${referralCode}`;
+  useEffect(() => {
+    if (!userId) return;
+    const loadOrCreate = async () => {
+      try {
+        // Try to fetch existing code
+        const { data: codeRow } = await supabase
+          .from("referral_codes")
+          .select("code")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        let code: string;
+        if (codeRow?.code) {
+          code = codeRow.code;
+        } else {
+          // Generate and insert
+          code = `WK-${userId.slice(0, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
+          await supabase.from("referral_codes").insert({ user_id: userId, code });
+        }
+        setReferralCode(code);
+
+        // Count uses
+        const { count } = await supabase
+          .from("referral_uses")
+          .select("id", { count: "exact", head: true })
+          .eq("referrer_user_id", userId);
+        setUsesCount(count ?? 0);
+      } catch (err) {
+        console.error("Referral load error:", err);
+        toast.error("Erreur chargement parrainage");
+      } finally {
+        setLoadingCode(false);
+      }
+    };
+    loadOrCreate();
+  }, [userId]);
+
+  const referralUrl = `${window.location.origin}/business?ref=${referralCode || ""}`;
 
   const handleCopy = async () => {
+    if (!referralCode) return;
     const text = `🔥 ${businessName} te recommande Weshkech Partners !\n\nRejoins la première app nightlife de Marrakech et booste la visibilité de ton établissement.\n\n👉 ${referralUrl}\n\nCode parrain : ${referralCode}`;
-    
+
     if (navigator.share) {
       try {
         await navigator.share({ title: "Weshkech Partners", text, url: referralUrl });
         return;
       } catch {}
     }
-    
+
     await navigator.clipboard.writeText(text);
     setCopied(true);
     toast.success("Lien de parrainage copié !");
@@ -46,19 +87,37 @@ export default function PartnerReferral({ userId, businessName }: Props) {
       </p>
 
       <div className="bg-card/60 border border-border rounded-xl p-3 flex items-center gap-2">
-        <code className="text-xs text-gold font-mono flex-1 truncate">{referralCode}</code>
+        {loadingCode ? (
+          <Loader2 className="w-4 h-4 text-gold animate-spin" />
+        ) : (
+          <code className="text-xs text-gold font-mono flex-1 truncate">{referralCode}</code>
+        )}
         <button
           onClick={handleCopy}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gold/15 text-gold hover:bg-gold/25 transition-colors"
+          disabled={loadingCode}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gold/15 text-gold hover:bg-gold/25 transition-colors disabled:opacity-40"
         >
           {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
           {copied ? "Copié" : "Partager"}
         </button>
       </div>
 
+      {/* Uses counter */}
+      {!loadingCode && (
+        <div className="space-y-1">
+          <p className="text-[11px] text-muted-foreground">{usesCount} établissement{usesCount !== 1 ? "s" : ""} parrainé{usesCount !== 1 ? "s" : ""}</p>
+          {usesCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">
+              🎁 {usesCount} × 10 crédits gagnés
+            </span>
+          )}
+        </div>
+      )}
+
       <button
         onClick={handleCopy}
-        className="w-full py-3 rounded-xl text-sm font-bold text-primary-foreground active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+        disabled={loadingCode}
+        className="w-full py-3 rounded-xl text-sm font-bold text-primary-foreground active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-40"
         style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)), hsl(var(--gold-dark)))" }}
       >
         <Gift className="w-4 h-4" /> Inviter un établissement

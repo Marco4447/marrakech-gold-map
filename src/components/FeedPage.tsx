@@ -24,6 +24,7 @@ import TikTokFeed from "./TikTokFeed";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { rankFeedVibes, createScoringContext, type FeedVibe } from "@/lib/feedAlgorithm";
 import FloatingVipOffer from "./feed/FloatingVipOffer";
+import UserStoryUpload from "./stories/UserStoryUpload";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
@@ -166,6 +167,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [boostVibeId, setBoostVibeId] = useState<string | null>(null);
   const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
   const { isBookmarked, toggleBookmark } = useBookmarks();
+  const [showStoryUpload, setShowStoryUpload] = useState(false);
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -409,7 +411,15 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       </div>
 
       {/* Stories — directly under header */}
-      <StoriesModule userId={user?.id} />
+      <StoriesModule userId={user?.id} onAddStory={user ? () => setShowStoryUpload(true) : undefined} />
+
+      {user && (
+        <UserStoryUpload
+          open={showStoryUpload}
+          onClose={() => setShowStoryUpload(false)}
+          userId={user.id}
+        />
+      )}
 
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">

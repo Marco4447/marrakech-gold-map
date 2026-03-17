@@ -66,13 +66,22 @@ function useViewerCount(placeId: string | undefined) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     if (!placeId) return;
-    let hash = 0;
-    for (let i = 0; i < placeId.length; i++) hash = ((hash << 5) - hash) + placeId.charCodeAt(i);
-    setCount(Math.abs(hash % 12) + 2);
-    const interval = setInterval(() => setCount(c => c + (Math.random() > 0.5 ? 1 : -1)), 8000);
+    const fetchCount = async () => {
+      try {
+        const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { count: c } = await supabase
+          .from("venue_analytics")
+          .select("id", { count: "exact", head: true })
+          .eq("place_id", placeId)
+          .gte("created_at", since);
+        setCount(c ?? 0);
+      } catch {}
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 2 * 60 * 1000);
     return () => clearInterval(interval);
   }, [placeId]);
-  return Math.max(1, count);
+  return count;
 }
 
 export default function VenuePage() {
@@ -265,11 +274,13 @@ export default function VenuePage() {
           )}
         </div>
 
-        {/* Viewer count */}
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-background/40 backdrop-blur-xl px-3 py-1.5 rounded-full">
-          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-          <span className="text-[11px] text-foreground font-medium">{viewerCount} en ligne</span>
-        </div>
+        {/* Viewer count — only show if > 0 */}
+        {viewerCount > 0 && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-background/40 backdrop-blur-xl px-3 py-1.5 rounded-full">
+            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            <span className="text-[11px] text-foreground font-medium">{viewerCount} en ligne</span>
+          </div>
+        )}
       </div>
 
       {/* Main content */}

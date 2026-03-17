@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Heart, MessageCircle, MapPin, Loader2, Trash2, Zap, Crown, Sparkles, Share2 } from "lucide-react";
 import VibeMedia from "./VibeMedia";
@@ -81,15 +82,18 @@ export default function VibeCard({
       {/* ── Instagram-style HEADER ── */}
       <div className="flex items-center justify-between px-3 py-2.5">
         <div className="flex items-center gap-2.5 min-w-0">
-          {getAvatarUrl(vibe) ? (
-            <img src={getAvatarUrl(vibe)!} alt="" className="w-8 h-8 rounded-full border border-border object-cover flex-shrink-0" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-surface-elevated flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-semibold text-foreground">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
-            </div>
-          )}
+          <Link to={vibe.user_id ? `/u/${vibe.user_id}` : "#"} className="shrink-0">
+            {getAvatarUrl(vibe) ? (
+              <img src={getAvatarUrl(vibe)!} alt="" className="w-8 h-8 rounded-full border border-border object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-surface-elevated flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-semibold text-foreground">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
+              </div>
+            )}
+          </Link>
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-foreground truncate flex items-center gap-1.5">
+            <Link to={vibe.user_id ? `/u/${vibe.user_id}` : "#"}>
+              <p className="text-[13px] font-semibold text-foreground truncate flex items-center gap-1.5 hover:underline">
               {getDisplayName(vibe)}
               {vibe.is_official && (
                 <span className="text-[9px] bg-gold/15 text-gold px-1.5 py-0.5 rounded font-bold">PRO</span>
@@ -103,6 +107,7 @@ export default function VibeCard({
                 </span>
               )}
             </p>
+            </Link>
             {vibe.location && (
               <div className="flex items-center gap-1">
                 <span className="text-[11px] text-muted-foreground truncate">{vibe.location}</span>
