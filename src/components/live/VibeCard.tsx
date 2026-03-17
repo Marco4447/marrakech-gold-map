@@ -213,6 +213,10 @@ export default function VibeCard({
           <button onClick={() => onOpenComments(vibe.id)} className="group">
             <MessageCircle className="w-6 h-6 text-foreground group-hover:text-foreground/70 transition-colors" />
           </button>
+          {/* Vibe Reply */}
+          <button onClick={() => setShowReplies(true)} className="group">
+            <Camera className="w-5.5 h-5.5 text-foreground group-hover:text-foreground/70 transition-colors" />
+          </button>
           {/* Share */}
           <button
             onClick={async (e) => {
