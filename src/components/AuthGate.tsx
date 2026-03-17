@@ -108,6 +108,7 @@ export default function AuthGate() {
     setEmail("");
     setPassword("");
     setName("");
+    setUsername("");
     setError(null);
     setSuccess(null);
     setForgotSent(false);
