@@ -127,6 +127,12 @@ export default function VenuePage() {
     supabase.from("venue_analytics").insert({ place_id: place.id, event_type: "page_view", user_id: user?.id || null } as any).then(() => {});
   }, [place?.id]);
 
+  // Fetch Mayor
+  useEffect(() => {
+    if (!place) return;
+    getMayorOfPlace(place.name).then(setMayor).catch(() => {});
+  }, [place?.name]);
+
   // VIP status
   useEffect(() => {
     if (!user || !place) return;
