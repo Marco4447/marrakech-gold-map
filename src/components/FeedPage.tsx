@@ -296,7 +296,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     setSuperVibeIds((prev) => new Set(prev).add(vibeId));
     setCanSuperVibe(false);
     setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, super_vibes: (v.super_vibes || 0) + 1 } : v)));
-    await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId } as any);
+    await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId ?? undefined });
     await supabase.rpc("increment_vibe_super_vibes", { p_vibe_id: vibeId, p_delta: 1 });
   };
 
