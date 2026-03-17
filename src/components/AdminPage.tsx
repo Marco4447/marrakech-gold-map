@@ -138,7 +138,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
       ) : (
         <div className="px-5 pt-5 space-y-5">
           {tab === "overview" && stats && <AdminOverview stats={stats} passStats={passStats} />}
-          {tab === "partners" && stats && <AdminPartnersTab stats={stats} setStats={setStats as any} />}
+          {tab === "partners" && stats && <AdminPartnersTab stats={stats} setStats={setStats} />}
           {tab === "sales" && stats && <AdminSalesTab stats={stats} />}
           {tab === "requests" && <AdminRequestsTab partnerRequests={partnerRequests} setPartnerRequests={setPartnerRequests} allPlaces={allPlaces} />}
           {tab === "users" && <UsersTab />}

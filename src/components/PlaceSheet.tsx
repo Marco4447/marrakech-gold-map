@@ -170,7 +170,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                           </span>
                         )}
                         {place.category && (<div className="flex items-center gap-1"><Tag className="w-3 h-3 text-gold" /><span className="text-xs text-gold font-medium uppercase tracking-wider">{place.category}</span></div>)}
-                        {(place as any).neighborhood && (<span className="text-[10px] text-muted-foreground">· {(place as any).neighborhood}</span>)}
+                        {place.neighborhood && (<span className="text-[10px] text-muted-foreground">· {place.neighborhood}</span>)}
                       </div>
                     </div>
                     {place.rating && (
