@@ -678,11 +678,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                 </motion.div>
               );
             })}
-            {visibleCount < sortedFeed.length ? (
+            {visibleCount < filteredFeed.length ? (
               <div ref={sentinelRef} className="flex justify-center py-4">
                 <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : sortedFeed.length > 0 && (
+            ) : filteredFeed.length > 0 && (
               <div className="flex flex-col items-center py-8 text-center gap-2">
                 <span className="text-2xl">🔥</span>
                 <p className="text-sm font-semibold text-foreground">Tu as tout vu !</p>
