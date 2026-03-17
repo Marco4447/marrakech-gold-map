@@ -283,7 +283,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     } else {
       setLikedIds((prev) => new Set(prev).add(vibeId));
       setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v)));
-      await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId } as any);
+      await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId ?? undefined });
       await supabase.rpc("increment_vibe_likes", { p_vibe_id: vibeId, p_delta: 1 });
     }
   };
