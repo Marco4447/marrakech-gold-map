@@ -99,6 +99,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   });
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
   const lastFocusedPlaceRef = useRef<Place | null>(null);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showRadar, setShowRadar] = useState(false);
+  const heatLayerRef = useRef<L.Layer | null>(null);
 
   // Map onboarding tooltips
   const [onboardingStep, setOnboardingStep] = useState(() => {
