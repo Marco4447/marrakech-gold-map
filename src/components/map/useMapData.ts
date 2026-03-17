@@ -9,6 +9,7 @@ import { MARRAKECH_CENTER } from "./mapConstants";
 export function useMapData(refreshSignal: number) {
   const [places, setPlaces] = useState<Place[]>([]);
   const [vibePins, setVibePins] = useState<VibePin[]>([]);
+  const [heatPoints, setHeatPoints] = useState<[number, number, number][]>([]);
   const [trendingLocations, setTrendingLocations] = useState<Set<string>>(new Set());
   const [placesLoading, setPlacesLoading] = useState(true);
   const [placesError, setPlacesError] = useState<string | null>(null);
@@ -112,6 +113,19 @@ export function useMapData(refreshSignal: number) {
           .slice(0, 5);
         setTrendingLocations(new Set(scored.map((s) => s.location.toLowerCase())));
         setVibePins((data as any[]).filter((v) => v.latitude !== null && v.longitude !== null));
+
+        // Compute heat points for heatmap layer
+        const SIX_H = 6 * 60 * 60 * 1000;
+        const now = Date.now();
+        const points: [number, number, number][] = (data as any[])
+          .filter(v => v.latitude && v.longitude)
+          .map(v => {
+            const age = now - new Date(v.created_at).getTime();
+            const freshness = Math.max(0, 1 - age / SIX_H);
+            const intensity = (freshness * 0.5) + ((v.likes || 0) * 0.03) + ((v.super_vibes || 0) * 0.08);
+            return [v.latitude, v.longitude, Math.min(1, intensity)] as [number, number, number];
+          });
+        setHeatPoints(points);
       }
     };
     fetchVibeData();
@@ -126,7 +140,7 @@ export function useMapData(refreshSignal: number) {
     return () => { supabase.removeChannel(channel); };
   }, [refreshSignal]);
 
-  return { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds };
+  return { places, vibePins, heatPoints, trendingLocations, placesLoading, placesError, activeVipPlaceIds };
 }
 
 export function useMapInstance(containerRef: React.RefObject<HTMLDivElement | null>) {

@@ -1,18 +1,18 @@
 declare module "leaflet.heat" {
   import * as L from "leaflet";
-  
-  namespace L {
-    function heatLayer(
-      latlngs: Array<[number, number] | [number, number, number]>,
-      options?: {
-        minOpacity?: number;
-        maxZoom?: number;
-        max?: number;
-        radius?: number;
-        blur?: number;
-        gradient?: Record<number, string>;
-        pane?: string;
-      }
-    ): L.Layer;
-  }
+
+  function heatLayer(
+    latlngs: Array<[number, number] | [number, number, number]>,
+    options?: {
+      minOpacity?: number;
+      maxZoom?: number;
+      max?: number;
+      radius?: number;
+      blur?: number;
+      gradient?: Record<number, string>;
+      pane?: string;
+    }
+  ): L.Layer;
+
+  export = heatLayer;
 }

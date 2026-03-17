@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import heatLayer from "leaflet.heat";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
@@ -16,6 +17,7 @@ import VenuePreviewCard from "./map/VenuePreviewCard";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy";
 import HotPlacesDrawer from "./map/HotPlacesDrawer";
+import SoireeRadar from "./map/SoireeRadar";
 
 // Filter config for category matching
 const FILTER_CATEGORIES: Record<string, string[]> = {
@@ -72,7 +74,7 @@ const categoryMatchesFilter = (category: string | null, targetCategories: string
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds } = useMapData(refreshSignal);
+  const { places, vibePins, heatPoints, trendingLocations, placesLoading, placesError, activeVipPlaceIds } = useMapData(refreshSignal);
   const { mapRef, userMarkerRef, userPosition, handleGeolocate, handleRecenter } = useMapInstance(containerRef);
 
   // Stable refs to avoid re-triggering place markers effect
@@ -97,6 +99,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   });
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
   const lastFocusedPlaceRef = useRef<Place | null>(null);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showRadar, setShowRadar] = useState(false);
+  const heatLayerRef = useRef<L.Layer | null>(null);
 
   // Map onboarding tooltips
   const [onboardingStep, setOnboardingStep] = useState(() => {
@@ -385,6 +390,57 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     };
   }, [vibePins, activeFilter, places]);
 
+  // Heatmap layer
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (heatLayerRef.current) {
+      map.removeLayer(heatLayerRef.current);
+      heatLayerRef.current = null;
+    }
+
+    if (showHeatmap && heatPoints.length > 0) {
+      try {
+        const layer = heatLayer(heatPoints, {
+          radius: 35,
+          blur: 25,
+          maxZoom: 17,
+          gradient: {
+            0.2: "#1a1a2e",
+            0.4: "#16213e",
+            0.6: "#e94560",
+            0.8: "#f5a623",
+            1.0: "#ffffff",
+          },
+        });
+        layer.addTo(map);
+        heatLayerRef.current = layer;
+      } catch (e) {
+        console.warn("Heatmap layer failed:", e);
+      }
+    }
+
+    return () => {
+      if (heatLayerRef.current && map) {
+        try { map.removeLayer(heatLayerRef.current); } catch {}
+        heatLayerRef.current = null;
+      }
+    };
+  }, [showHeatmap, heatPoints]);
+
+  // Compute energy map for radar
+  const radarEnergyMap = (() => {
+    const vibesForEnergy = vibePins.map(v => ({
+      location: v.location,
+      likes: 0,
+      super_vibes: 0,
+      created_at: v.created_at,
+      is_official: v.is_official,
+    }));
+    return computeEnergyScores(vibesForEnergy);
+  })();
+
   const focusPlaceOnMap = useCallback(
     (
       place: Place,
@@ -575,6 +631,24 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             >
               <Navigation className="w-4 h-4 text-gold" />
             </button>
+            <button
+              onClick={() => setShowHeatmap(h => !h)}
+              className={`w-10 h-10 rounded-xl backdrop-blur-md border flex items-center justify-center transition-all shadow-lg ${
+                showHeatmap
+                  ? "bg-orange-500/20 border-orange-500/50 text-orange-400"
+                  : "bg-card/80 border-border text-muted-foreground"
+              }`}
+              title="Heatmap live"
+            >
+              <span className="text-lg">🔥</span>
+            </button>
+            <button
+              onClick={() => setShowRadar(true)}
+              className="w-10 h-10 rounded-xl bg-card/80 backdrop-blur-md border border-border flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+              title="Radar soirée"
+            >
+              <span className="text-lg">📡</span>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -677,6 +751,20 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         }
       }} />
       <VibeSheet vibe={selectedVibe} open={vibeSheetOpen} onOpenChange={setVibeSheetOpen} />
+
+      <SoireeRadar
+        open={showRadar}
+        places={places}
+        userPosition={userPosition}
+        energyMap={radarEnergyMap}
+        vibePins={vibePins}
+        onPlaceSelect={(place) => {
+          setShowRadar(false);
+          setPreviewPlace(place);
+          focusPlaceOnMap(place, { withSheetOffset: false, zoomMin: 16, duration: 0.8 });
+        }}
+        onClose={() => setShowRadar(false)}
+      />
     </div>
   );
 }
