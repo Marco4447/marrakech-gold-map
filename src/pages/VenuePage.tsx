@@ -18,6 +18,8 @@ import FomoCountdown from "@/components/FomoCountdown";
 import ShareOfferCTA from "@/components/ShareOfferCTA";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getMayorOfPlace, type MayorInfo } from "@/lib/mayorSystem";
+import PlaceEnergyScore from "@/components/place/PlaceEnergyScore";
+import PlaceHourlyPattern from "@/components/place/PlaceHourlyPattern";
 
 interface PlaceData {
   id: string;
