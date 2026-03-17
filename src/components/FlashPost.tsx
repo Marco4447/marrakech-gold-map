@@ -117,6 +117,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
   const [preview, setPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"photo" | "video">("photo");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [insiderTip, setInsiderTip] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [postLimitReached, setPostLimitReached] = useState(false);
