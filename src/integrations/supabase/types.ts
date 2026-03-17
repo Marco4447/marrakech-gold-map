@@ -1376,6 +1376,44 @@ export type Database = {
           },
         ]
       }
+      vibe_replies: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+          media_type: string
+          user_id: string
+          vibe_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          media_type?: string
+          user_id: string
+          vibe_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          media_type?: string
+          user_id?: string
+          vibe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vibe_replies_vibe_id_fkey"
+            columns: ["vibe_id"]
+            isOneToOne: false
+            referencedRelation: "vibes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vibe_super_vibes: {
         Row: {
           created_at: string
