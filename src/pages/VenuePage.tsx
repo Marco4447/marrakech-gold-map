@@ -101,6 +101,7 @@ export default function VenuePage() {
   const [dealOpen, setDealOpen] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [mayor, setMayor] = useState<MayorInfo | null>(null);
 
   const vibeImages = useVenueGallery(place?.name);
   const userVibes = useUserVibes(place?.name);
