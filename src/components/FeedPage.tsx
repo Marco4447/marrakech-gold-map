@@ -27,9 +27,6 @@ import FloatingVipOffer from "./feed/FloatingVipOffer";
 import UserStoryUpload from "./stories/UserStoryUpload";
 import VibeExpiryBar from "./VibeExpiryBar";
 import MarrakechTonightWidget from "./MarrakechTonightWidget";
-import FloatingVipOffer from "./feed/FloatingVipOffer";
-import UserStoryUpload from "./stories/UserStoryUpload";
-import VibeExpiryBar from "./VibeExpiryBar";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
