@@ -142,10 +142,10 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     const { data } = await supabase
       .from("vibe_super_vibes")
       .select("vibe_id, created_at")
-      .eq("user_id", userId as any);
+      .eq("user_id", userId);
     if (data) {
-      setSuperVibeIds(new Set(data.map((s: any) => s.vibe_id)));
-      const recent = (data as any[]).some((s) => Date.now() - new Date(s.created_at).getTime() < SIX_HOURS);
+      setSuperVibeIds(new Set(data.map((s) => s.vibe_id)));
+      const recent = data.some((s) => Date.now() - new Date(s.created_at).getTime() < SIX_HOURS);
       setCanSuperVibe(!recent);
     }
   }, [userId]);
