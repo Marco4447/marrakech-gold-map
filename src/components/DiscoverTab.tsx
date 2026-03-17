@@ -224,6 +224,11 @@ function GridCell({ vibe, onVibeClick }: { vibe: ExploreVibe; span?: number; onV
           <Play className="w-4 h-4 text-white drop-shadow-lg" fill="white" />
         </div>
       )}
+      {vibe.insider_tip && (
+        <div className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-gold/80 flex items-center justify-center">
+          <Sparkles className="w-3 h-3 text-primary-foreground" />
+        </div>
+      )}
       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
         <span className="flex items-center gap-1 text-white text-sm font-bold">
           <Heart className="w-4 h-4 fill-white" /> {vibe.likes}

@@ -665,11 +665,12 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       </p>
                     )}
                     {vibe.insider_tip && (
-                      <div className="flex items-start gap-1.5 mt-1 px-2.5 py-2 rounded-lg bg-gold/[0.08] border border-gold/[0.15]">
-                        <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0 mt-0.5" />
-                        <p className="text-[12px] text-gold leading-relaxed">
-                          <span className="font-semibold">Insider tip :</span> {vibe.insider_tip}
-                        </p>
+                      <div className="mx-0 mt-1 px-2.5 py-2 rounded-xl bg-gold/[0.08] border border-gold/[0.15] flex gap-2 items-start">
+                        <span className="text-sm shrink-0">💡</span>
+                        <div>
+                          <p className="text-[9px] font-bold text-gold uppercase tracking-wider mb-0.5">Conseil d'insider</p>
+                          <p className="text-[11px] text-foreground/80 leading-relaxed">{vibe.insider_tip}</p>
+                        </div>
                       </div>
                     )}
                     {(commentCounts[vibe.id] || 0) > 0 && (
