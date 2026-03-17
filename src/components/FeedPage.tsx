@@ -237,6 +237,12 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     const h = new Date().getHours();
     return h >= 20 || h < 6;
   });
+  const lastVisitRef = useRef<number>(parseInt(localStorage.getItem("wk_last_feed_visit") || "0"));
+  const [newVibesCount, setNewVibesCount] = useState(0);
+  const [showNewPill, setShowNewPill] = useState(false);
+  const feedScrollRef = useRef<HTMLDivElement>(null);
+  const [shareVibeId, setShareVibeId] = useState<string | null>(null);
+  const [showDmPicker, setShowDmPicker] = useState(false);
 
   const deviceId = getDeviceId();
   const userId = user?.id;
