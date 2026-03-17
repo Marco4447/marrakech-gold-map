@@ -142,6 +142,15 @@ function isNew(dateStr: string) {
 
 type FeedTab = "foryou" | "following" | "recents";
 
+// "Ce soir" night filter
+function getTonightStart(): Date {
+  const now = new Date();
+  const tonightStart = new Date();
+  tonightStart.setHours(20, 0, 0, 0);
+  if (now.getHours() < 6) tonightStart.setDate(tonightStart.getDate() - 1);
+  return tonightStart;
+}
+
 export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSignal?: number; onGoToMap?: (lat: number, lng: number) => void }) {
   const { user } = useAuth();
   const [vibes, setVibes] = useState<Vibe[]>([]);
