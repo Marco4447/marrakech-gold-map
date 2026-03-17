@@ -258,7 +258,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           const nv = payload.new as Vibe;
           setVibes((prev) => prev.some((v) => v.id === nv.id) ? prev : [nv, ...prev]);
         } else if (payload.eventType === "DELETE") {
-          setVibes((prev) => prev.filter((v) => v.id !== (payload.old as any).id));
+          setVibes((prev) => prev.filter((v) => v.id !== (payload.old as { id: string }).id));
         } else if (payload.eventType === "UPDATE") {
           setVibes((prev) => prev.map((v) => v.id === (payload.new as Vibe).id ? { ...v, ...(payload.new as Vibe) } : v));
         }
