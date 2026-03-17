@@ -113,6 +113,19 @@ export function useMapData(refreshSignal: number) {
           .slice(0, 5);
         setTrendingLocations(new Set(scored.map((s) => s.location.toLowerCase())));
         setVibePins((data as any[]).filter((v) => v.latitude !== null && v.longitude !== null));
+
+        // Compute heat points for heatmap layer
+        const SIX_H = 6 * 60 * 60 * 1000;
+        const now = Date.now();
+        const points: [number, number, number][] = (data as any[])
+          .filter(v => v.latitude && v.longitude)
+          .map(v => {
+            const age = now - new Date(v.created_at).getTime();
+            const freshness = Math.max(0, 1 - age / SIX_H);
+            const intensity = (freshness * 0.5) + ((v.likes || 0) * 0.03) + ((v.super_vibes || 0) * 0.08);
+            return [v.latitude, v.longitude, Math.min(1, intensity)] as [number, number, number];
+          });
+        setHeatPoints(points);
       }
     };
     fetchVibeData();
