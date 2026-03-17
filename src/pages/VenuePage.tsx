@@ -372,6 +372,9 @@ export default function VenuePage() {
         <PlaceEnergyScore placeName={place.name} placeId={place.id} />
         <PlaceHourlyPattern placeName={place.name} />
 
+        {/* Party Groups */}
+        <PartyGroups placeId={place.id} placeName={place.name} />
+
         {/* VIP Offers */}
         {isPartner && vipOffers.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
