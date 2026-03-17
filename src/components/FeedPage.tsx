@@ -178,6 +178,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const [showStoryUpload, setShowStoryUpload] = useState(false);
+  const [nightOnly, setNightOnly] = useState(() => {
+    const h = new Date().getHours();
+    return h >= 20 || h < 6;
+  });
 
   const deviceId = getDeviceId();
   const userId = user?.id;
