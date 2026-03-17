@@ -716,6 +716,17 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                   </button>
                 </div>
 
+                {/* Draft restore banner */}
+                {hasDraft && (
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-gold/[0.08] border border-gold/15 rounded-xl mb-3">
+                    <span className="text-xs text-gold font-semibold">📝 Brouillon sauvegardé</span>
+                    <div className="flex gap-3">
+                      <button type="button" onClick={restoreDraft} className="text-xs text-gold font-bold">Restaurer</button>
+                      <button type="button" onClick={discardDraft} className="text-xs text-muted-foreground">Ignorer</button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Incitation message */}
                 <div className="bg-gold/10 border border-gold/20 rounded-xl px-4 py-2.5 mb-4">
                   <p className="text-xs text-gold-light font-medium text-center leading-relaxed">
