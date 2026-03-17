@@ -426,6 +426,9 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   const deviceId = getDeviceId();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifList, setNotifList] = useState<any[]>([]);
+  const [showFollowList, setShowFollowList] = useState<"followers" | "following" | null>(null);
+  const [followListData, setFollowListData] = useState<Array<{ user_id: string; full_name: string | null; avatar_url: string | null }>>([]);
+  const [followListLoading, setFollowListLoading] = useState(false);
   const { followerCount, followingCount } = useFollows();
   const { bookmarkedIds } = useBookmarks();
   const { user, profile, signOut, refreshProfile } = useAuth();
