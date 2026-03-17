@@ -176,9 +176,9 @@ export default function VibeCard({
               onContextMenu={(e) => { e.preventDefault(); onSetReactionsVibeId(vibe.id); }}
               onTouchStart={() => {
                 const timer = setTimeout(() => onSetReactionsVibeId(vibe.id), 500);
-                (window as any).__reactionTimer = timer;
+                (window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer = timer;
               }}
-              onTouchEnd={() => clearTimeout((window as any).__reactionTimer)}
+              onTouchEnd={() => clearTimeout((window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer)}
               className="group"
             >
               <motion.div

@@ -30,6 +30,7 @@ interface Place {
   has_active_offer?: boolean;
   neighborhood?: string | null;
   is_premium?: boolean;
+  slug?: string | null;
 }
 
 interface PlaceSheetProps {
@@ -59,18 +60,18 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   const { t, lang } = useLanguage();
   const { user } = useAuth();
   const [isVip, setIsVip] = useState(false);
-  const [offers, setOffers] = useState<any[]>([]);
-  const [vipOffers, setVipOffers] = useState<any[]>([]);
+  const [offers, setOffers] = useState<Array<{ id: string; title: string; description: string; expiration_date: string | null; vip_only: boolean }>>([]);
+  const [vipOffers, setVipOffers] = useState<Array<{ id: string; title: string; description: string; perk_type: string; start_time: string | null; end_time: string | null }>>([]);
   const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string; drinks_menu_url?: string; is_founder?: boolean; listing_tier?: string } | null>(null);
   const [placePhotos, setPlacePhotos] = useState<{ id: string; photo_url: string; caption: string | null }[]>([]);
 
   useEffect(() => {
     if (!place?.id || !open) return;
     supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url, is_founder, listing_tier").eq("id", place.id).single().then(({ data }) => {
-      if (data) setPlaceDetails(data as any);
+      if (data) setPlaceDetails(data);
     });
     // Fetch place photos
-    (supabase.from("place_photos") as any).select("id, photo_url, caption").eq("place_id", place.id).order("sort_order", { ascending: true }).then(({ data }: any) => {
+    supabase.from("place_photos").select("id, photo_url, caption").eq("place_id", place.id).order("sort_order", { ascending: true }).then(({ data }) => {
       if (data) setPlacePhotos(data);
     });
   }, [place?.id, open]);
@@ -85,15 +86,15 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   useEffect(() => {
     if (!place?.id || !open) return;
     supabase.from("partner_offers").select("*").eq("place_id", place.id).eq("is_active", true).then(({ data }) => {
-      if (data) setOffers(data.filter((o: any) => !o.expiration_date || new Date(o.expiration_date) > new Date()));
+      if (data) setOffers(data.filter((o) => !o.expiration_date || new Date(o.expiration_date) > new Date()));
     });
     const now = new Date().toISOString();
-    (supabase.from("vip_offers") as any)
+    supabase.from("vip_offers")
       .select("id, title, description, perk_type, start_time, end_time")
       .eq("place_id", place.id)
       .eq("is_active", true)
       .or(`end_time.is.null,end_time.gte.${now}`)
-      .then(({ data }: any) => {
+      .then(({ data }) => {
         if (data) setVipOffers(data);
       });
   }, [place?.id, open]);
@@ -152,7 +153,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                   {/* Header: Name + Rating */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <Link to={`/venue/${(place as any).slug || place.id}`} onClick={() => onOpenChange(false)}
+                      <Link to={`/venue/${place.id}`} onClick={() => onOpenChange(false)}
                         className="font-display text-xl font-semibold text-foreground hover:text-gold transition-colors">
                         {place.name}
                       </Link>
@@ -170,7 +171,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                           </span>
                         )}
                         {place.category && (<div className="flex items-center gap-1"><Tag className="w-3 h-3 text-gold" /><span className="text-xs text-gold font-medium uppercase tracking-wider">{place.category}</span></div>)}
-                        {(place as any).neighborhood && (<span className="text-[10px] text-muted-foreground">· {(place as any).neighborhood}</span>)}
+                        {place.neighborhood && (<span className="text-[10px] text-muted-foreground">· {place.neighborhood}</span>)}
                       </div>
                     </div>
                     {place.rating && (
@@ -209,8 +210,8 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                       )}
 
                       {/* Drinks menu link */}
-                      {(placeDetails as any)?.drinks_menu_url && (
-                        <a href={(placeDetails as any).drinks_menu_url} target="_blank" rel="noopener noreferrer"
+                      {placeDetails?.drinks_menu_url && (
+                        <a href={placeDetails.drinks_menu_url} target="_blank" rel="noopener noreferrer"
                           className="flex items-center gap-3 bg-muted/50 hover:bg-muted rounded-xl px-4 py-3 transition-colors group">
                           <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
                             <span className="text-sm">🍸</span>

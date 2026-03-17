@@ -202,16 +202,16 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       const { data, error } = await supabase.from("vibes").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       if (data) {
-        const userIds = [...new Set((data as any[]).filter(v => v.user_id).map(v => v.user_id))];
+        const userIds = [...new Set(data.filter(v => v.user_id).map(v => v.user_id))] as string[];
         let profilesMap: Record<string, VibeProfile> = {};
         if (userIds.length > 0) {
           const { data: profiles } = await supabase
-            .from("profiles_public" as any)
+            .from("profiles_public")
             .select("user_id, full_name, avatar_url, is_vip")
             .in("user_id", userIds);
-          if (profiles) profilesMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p]));
+          if (profiles) profilesMap = Object.fromEntries(profiles.filter(p => p.user_id).map(p => [p.user_id!, p]));
         }
-        setVibes((data as any[]).map(v => ({ ...v, profile: v.user_id ? profilesMap[v.user_id] || null : null })));
+        setVibes(data.map(v => ({ ...v, profile: v.user_id ? profilesMap[v.user_id] || null : null })));
       }
     } catch (err) {
       console.error("Feed fetch error:", err);
@@ -222,16 +222,16 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
   const fetchMyLikes = useCallback(async () => {
     if (!userId) return;
-    const { data } = await supabase.from("vibe_likes").select("vibe_id").eq("user_id", userId as any);
-    if (data) setLikedIds(new Set(data.map((l: any) => l.vibe_id)));
+    const { data } = await supabase.from("vibe_likes").select("vibe_id").eq("user_id", userId);
+    if (data) setLikedIds(new Set(data.map((l) => l.vibe_id)));
   }, [userId]);
 
   const fetchMySuperVibes = useCallback(async () => {
     if (!userId) return;
-    const { data } = await supabase.from("vibe_super_vibes").select("vibe_id, created_at").eq("user_id", userId as any);
+    const { data } = await supabase.from("vibe_super_vibes").select("vibe_id, created_at").eq("user_id", userId);
     if (data) {
-      setSuperVibeIds(new Set(data.map((s: any) => s.vibe_id)));
-      const recent = (data as any[]).some((s) => Date.now() - new Date(s.created_at).getTime() < SIX_HOURS);
+      setSuperVibeIds(new Set(data.map((s) => s.vibe_id)));
+      const recent = data.some((s) => Date.now() - new Date(s.created_at).getTime() < SIX_HOURS);
       setCanSuperVibe(!recent);
     }
   }, [userId]);
@@ -243,12 +243,12 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
     // Fetch active boosts
     supabase.from("vibe_boosts").select("vibe_id, boost_expires_at").gt("boost_expires_at", new Date().toISOString()).then(({ data }) => {
-      if (data) setBoostedVibeIds(new Set(data.map((b: any) => b.vibe_id)));
+      if (data) setBoostedVibeIds(new Set(data.map((b) => b.vibe_id)));
     });
 
     // Fetch partner place names
     supabase.from("places").select("name").eq("is_partner", true).then(({ data }) => {
-      if (data) setPartnerPlaceNames(new Set(data.map((p: any) => (p.name as string).toLowerCase())));
+      if (data) setPartnerPlaceNames(new Set(data.map((p) => p.name.toLowerCase())));
     });
 
     const channel = supabase
@@ -258,7 +258,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           const nv = payload.new as Vibe;
           setVibes((prev) => prev.some((v) => v.id === nv.id) ? prev : [nv, ...prev]);
         } else if (payload.eventType === "DELETE") {
-          setVibes((prev) => prev.filter((v) => v.id !== (payload.old as any).id));
+          setVibes((prev) => prev.filter((v) => v.id !== (payload.old as { id: string }).id));
         } else if (payload.eventType === "UPDATE") {
           setVibes((prev) => prev.map((v) => v.id === (payload.new as Vibe).id ? { ...v, ...(payload.new as Vibe) } : v));
         }
@@ -277,13 +277,13 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     if (alreadyLiked) {
       setLikedIds((prev) => { const next = new Set(prev); next.delete(vibeId); return next; });
       setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v)));
-      if (userId) await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("user_id", userId as any);
-      await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId).is("user_id" as any, null);
+      if (userId) await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("user_id", userId);
+      await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId).is("user_id", null);
       await supabase.rpc("increment_vibe_likes", { p_vibe_id: vibeId, p_delta: -1 });
     } else {
       setLikedIds((prev) => new Set(prev).add(vibeId));
       setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: v.likes + 1 } : v)));
-      await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId } as any);
+      await supabase.from("vibe_likes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId ?? undefined });
       await supabase.rpc("increment_vibe_likes", { p_vibe_id: vibeId, p_delta: 1 });
     }
   };
@@ -296,7 +296,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     setSuperVibeIds((prev) => new Set(prev).add(vibeId));
     setCanSuperVibe(false);
     setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, super_vibes: (v.super_vibes || 0) + 1 } : v)));
-    await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId } as any);
+    await supabase.from("vibe_super_vibes").insert({ vibe_id: vibeId, device_id: deviceId, user_id: userId ?? undefined });
     await supabase.rpc("increment_vibe_super_vibes", { p_vibe_id: vibeId, p_delta: 1 });
   };
 
@@ -562,8 +562,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <button
                           onClick={() => handleLike(vibe.id)}
                           onContextMenu={(e) => { e.preventDefault(); setReactionsVibeId(vibe.id); }}
-                          onTouchStart={() => { const timer = setTimeout(() => setReactionsVibeId(vibe.id), 500); (window as any).__reactionTimer = timer; }}
-                          onTouchEnd={() => clearTimeout((window as any).__reactionTimer)}
+                          onTouchStart={() => { const timer = setTimeout(() => setReactionsVibeId(vibe.id), 500); (window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer = timer; }}
+                          onTouchEnd={() => clearTimeout((window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer)}
                         >
                           <motion.div animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}} transition={{ duration: 0.4, ease: "easeOut" }}>
                             <Heart className={`w-[26px] h-[26px] transition-colors duration-200 ${liked ? "fill-destructive text-destructive" : "text-foreground"}`} />

@@ -67,17 +67,17 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
     try {
       const [statsRes, requestsRes, bookingsRes, placesRes] = await Promise.all([
         supabase.functions.invoke("admin-stats"),
-        supabase.from("partner_requests" as any).select("*").order("created_at", { ascending: false }),
+        supabase.from("partner_requests").select("*").order("created_at", { ascending: false }),
         supabase.from("bookings").select("place_name").eq("status", "free_pass"),
         supabase.from("places").select("id, name, category, neighborhood").order("name"),
       ]);
 
       if (statsRes.data) setStats(statsRes.data as AdminStats);
-      if (requestsRes.data) setPartnerRequests(requestsRes.data as any);
-      if (placesRes.data) setAllPlaces(placesRes.data as any);
+      if (requestsRes.data) setPartnerRequests(requestsRes.data as PartnerRequest[]);
+      if (placesRes.data) setAllPlaces(placesRes.data);
       if (bookingsRes.data) {
         const counts: Record<string, number> = {};
-        (bookingsRes.data as any[]).forEach((b) => { counts[b.place_name] = (counts[b.place_name] || 0) + 1; });
+        bookingsRes.data.forEach((b) => { counts[b.place_name] = (counts[b.place_name] || 0) + 1; });
         setPassStats(Object.entries(counts).map(([place_name, count]) => ({ place_name, count })).sort((a, b) => b.count - a.count));
       }
     } catch (e) {
@@ -138,7 +138,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
       ) : (
         <div className="px-5 pt-5 space-y-5">
           {tab === "overview" && stats && <AdminOverview stats={stats} passStats={passStats} />}
-          {tab === "partners" && stats && <AdminPartnersTab stats={stats} setStats={setStats as any} />}
+          {tab === "partners" && stats && <AdminPartnersTab stats={stats} setStats={setStats} />}
           {tab === "sales" && stats && <AdminSalesTab stats={stats} />}
           {tab === "requests" && <AdminRequestsTab partnerRequests={partnerRequests} setPartnerRequests={setPartnerRequests} allPlaces={allPlaces} />}
           {tab === "users" && <UsersTab />}
