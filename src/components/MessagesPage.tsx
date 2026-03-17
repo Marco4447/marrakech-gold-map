@@ -26,16 +26,35 @@ function ChatView({
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const fetchMessages = useCallback(async () => {
+  const PAGE_SIZE = 50;
+
+  const fetchMessages = useCallback(async (pageNum: number = 0) => {
+    const from = pageNum * PAGE_SIZE;
     const { data } = await supabase
       .from("messages")
       .select("*")
       .eq("conversation_id", conversation.id)
-      .order("created_at", { ascending: true })
-      .limit(100);
-    if (data) setMessages(data as Message[]);
+      .order("created_at", { ascending: false })
+      .range(from, from + PAGE_SIZE - 1);
+
+    const sorted = (data || []).reverse();
+    if (pageNum === 0) setMessages(sorted);
+    else {
+      const prevHeight = scrollRef.current?.scrollHeight || 0;
+      setMessages(prev => [...sorted, ...prev]);
+      // Restore scroll position after prepend
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight - prevHeight;
+        }
+      });
+    }
+    setHasMore((data || []).length === PAGE_SIZE);
 
     // Mark as read
     if (user) {
