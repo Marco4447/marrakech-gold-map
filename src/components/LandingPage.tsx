@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { trackEvent } from "@/lib/analytics";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/i18n/LanguageContext";
 import MockVibesPreview from "@/components/landing/MockVibesPreview";
 
 interface LandingPageProps {
@@ -18,6 +19,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [insiderCount, setInsiderCount] = useState<number | null>(null);
+  const { t, lang } = useLanguage();
 
   useEffect(() => {
     supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
@@ -25,7 +27,6 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
     });
   }, []);
 
-  // Listen for auth state change to auto-enter
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
@@ -44,12 +45,11 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
 
   const handleEmailSignup = async () => {
     setError(null);
-    if (!email || !email.includes("@")) { setError("Entre ton email."); return; }
-    if (!password || password.length < 6) { setError("Mot de passe : 6 caractères min."); return; }
+    if (!email || !email.includes("@")) { setError(lang === "fr" ? "Entre ton email." : "Enter your email."); return; }
+    if (!password || password.length < 6) { setError(lang === "fr" ? "Mot de passe : 6 caractères min." : "Password: 6 characters min."); return; }
     setLoading(true);
     trackEvent("landing_email_signup_submit");
 
-    // Submit to Formspree (fire-and-forget)
     fetch("https://formspree.io/f/xdawajaq", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -65,7 +65,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
       if (signupError.message?.includes("already registered") || signupError.message?.includes("already been registered")) {
         const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
         if (loginError) {
-          setError("Email déjà utilisé ou mot de passe incorrect.");
+          setError(t("landing_emailRegistered"));
         } else {
           setSuccess(true);
           trackEvent("landing_email_login_success");
@@ -90,7 +90,6 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Full-screen blurred background */}
       <div className="absolute inset-0">
         <img
           src="/images/landing-bg-dark.jpg"
@@ -100,11 +99,9 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
       </div>
 
-      {/* Floating particles / ambient glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[hsl(220,90%,50%)] opacity-[0.06] blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-0 w-[300px] h-[300px] rounded-full bg-[hsl(25,95%,55%)] opacity-[0.05] blur-[100px] pointer-events-none" />
 
-      {/* Glass Card */}
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -113,7 +110,6 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
       >
         <div className="rounded-3xl border border-white/[0.08] bg-white/[0.06] backdrop-blur-2xl shadow-[0_8px_60px_-12px_rgba(0,0,0,0.7)] p-6 sm:p-8 space-y-6">
           
-          {/* Eyebrow */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -122,11 +118,10 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
           >
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/[0.1] text-[11px] font-medium tracking-[0.15em] uppercase text-white/70">
               <Lock className="w-3 h-3" />
-              Accès privé
+              {t("landing_privateAccess")}
             </span>
           </motion.div>
 
-          {/* Headline */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -134,14 +129,13 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
             className="text-center space-y-3"
           >
             <h1 className="text-[22px] sm:text-[26px] font-bold text-white leading-[1.2] tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Le Marrakech que les touristes ne verront jamais.
+              {t("landing_headline")}
             </h1>
             <p className="text-[13px] sm:text-[14px] text-white/50 leading-relaxed">
-              3 rooftops secrets à Guéliz. 2 speakeasys cachés dans la Médina. Débloque la carte.
+              {t("landing_headlineDesc")}
             </p>
           </motion.div>
 
-          {/* Form or Success */}
           <AnimatePresence mode="wait">
             {!success ? (
               <motion.div
@@ -152,7 +146,6 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
                 transition={{ delay: 0.5, duration: 0.5 }}
                 className="space-y-3"
               >
-                {/* Google CTA */}
                 <button
                   onClick={handleGoogleSignup}
                   disabled={loading}
@@ -168,23 +161,21 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
                   )}
-                  Débloquer l'accès
+                  {t("landing_unlockAccess")}
                 </button>
 
-                {/* Divider */}
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-px bg-white/[0.08]" />
-                  <span className="text-[11px] text-white/30">ou par email</span>
+                  <span className="text-[11px] text-white/30">{t("landing_orByEmail")}</span>
                   <div className="flex-1 h-px bg-white/[0.08]" />
                 </div>
 
-                {/* Email input */}
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                   <input
                     type="email"
                     name="email"
-                    placeholder="Entrez votre email..."
+                    placeholder={t("landing_emailPlaceholder")}
                     autoComplete="email"
                     inputMode="email"
                     value={email}
@@ -193,10 +184,9 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
                   />
                 </div>
 
-                {/* Password */}
                 <input
                   type="password"
-                  placeholder="Mot de passe (6+ car.)"
+                  placeholder={t("landing_passwordPlaceholder")}
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(null); }}
@@ -204,13 +194,12 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
                   className="w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white text-[14px] placeholder:text-white/25 focus:outline-none focus:border-white/20 transition-colors"
                 />
 
-                {/* Email submit */}
                 <button
                   onClick={handleEmailSignup}
                   disabled={loading}
                   className="w-full py-3 rounded-xl bg-white/[0.08] border border-white/[0.1] text-white/70 font-medium text-[13px] transition-all active:scale-[0.98] disabled:opacity-60 hover:bg-white/[0.12] hover:text-white"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "S'inscrire par email"}
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t("landing_signUpEmail")}
                 </button>
 
                 {error && (
@@ -226,13 +215,12 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
                 className="text-center space-y-3 py-2"
               >
                 <div className="text-3xl">🎉</div>
-                <p className="text-[15px] font-semibold text-white">Vous êtes sur la liste.</p>
-                <p className="text-[12px] text-white/40">Redirection en cours...</p>
+                <p className="text-[15px] font-semibold text-white">{t("landing_onList")}</p>
+                <p className="text-[12px] text-white/40">{t("landing_redirecting")}</p>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Social proof */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -244,16 +232,14 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
             </span>
             <span className="text-[11px] text-white/40">
-              Rejoignez <span className="text-white/60 font-medium">+{insiderCount !== null ? insiderCount : "…"}</span> Insiders déjà présents
+              {t("landing_joinInsiders")} <span className="text-white/60 font-medium">+{insiderCount !== null ? insiderCount : "…"}</span> {t("landing_insidersPresent")}
             </span>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Mock vibes preview */}
       <MockVibesPreview />
 
-      {/* Footer */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -261,16 +247,15 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         className="relative mt-8 mb-8 left-0 right-0 text-center space-y-1.5 z-10"
       >
         <p className="text-[10px] text-white/20">
-          Weshkech © 2026 — Invitation Only.
+          {t("landing_copyright")}
         </p>
         <p className="text-[9px] text-white/15">
-          <Link to="/terms" className="underline hover:text-white/30">Conditions</Link>
+          <Link to="/terms" className="underline hover:text-white/30">{t("landing_conditions")}</Link>
           {" · "}
-          <Link to="/privacy" className="underline hover:text-white/30">Confidentialité</Link>
+          <Link to="/privacy" className="underline hover:text-white/30">{t("landing_confidentiality")}</Link>
         </p>
       </motion.div>
 
-      {/* Hidden SEO */}
       <div className="sr-only">
         <h1>Weshkech – Marrakech Live Vibes | Flux Temps Réel & Spots Exclusifs</h1>
         <h2>Guide Marrakech en Direct — Rooftops, Restaurants & Vie Nocturne</h2>

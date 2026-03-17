@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Map, Heart, Zap, ArrowRight, X, Sparkles } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface OnboardingTutorialProps {
   open: boolean;
@@ -8,48 +9,6 @@ interface OnboardingTutorialProps {
   onOpenFlashPost: () => void;
   onGoToTab: (tab: "map" | "live" | "profil") => void;
 }
-
-const STEPS = [
-  {
-    id: "explore",
-    emoji: "🗺️",
-    icon: Map,
-    title: "Explore la carte",
-    desc: "Découvre les meilleurs spots de Marrakech. Chaque épingle cache un lieu secret !",
-    highlight: "map", // which tab to highlight
-    cta: "Suivant",
-  },
-  {
-    id: "post",
-    emoji: "📸",
-    icon: Camera,
-    title: "Poste ta première vibe",
-    desc: "Appuie sur le bouton doré '+' pour capturer l'instant. Photo ou vidéo, c'est toi qui décides !",
-    highlight: "plus",
-    cta: "Poster ma vibe ✨",
-    action: "flash" as const,
-  },
-  {
-    id: "engage",
-    emoji: "🔥",
-    icon: Heart,
-    title: "Like & réagis",
-    desc: "Double-tap pour liker, appui long pour les réactions. Collectionne les ❤️ et monte dans le classement !",
-    highlight: "live",
-    cta: "Voir le feed",
-    action: "live" as const,
-  },
-  {
-    id: "rewards",
-    emoji: "⚡",
-    icon: Zap,
-    title: "Gagne des récompenses",
-    desc: "Plus tu postes, plus tu montes en niveau : Explorer → Insider → Legend. Le meilleur vibe de la semaine gagne 7 jours VIP !",
-    highlight: "profil",
-    cta: "C'est parti ! 🚀",
-    action: "complete" as const,
-  },
-];
 
 export default function OnboardingTutorial({
   open,
@@ -59,6 +18,49 @@ export default function OnboardingTutorial({
 }: OnboardingTutorialProps) {
   const [step, setStep] = useState(0);
   const [exiting, setExiting] = useState(false);
+  const { t } = useLanguage();
+
+  const STEPS = [
+    {
+      id: "explore",
+      emoji: "🗺️",
+      icon: Map,
+      title: t("onboarding_exploreTitle"),
+      desc: t("onboarding_exploreDesc"),
+      highlight: "map",
+      cta: t("onboarding_next"),
+    },
+    {
+      id: "post",
+      emoji: "📸",
+      icon: Camera,
+      title: t("onboarding_postTitle"),
+      desc: t("onboarding_postDesc"),
+      highlight: "plus",
+      cta: t("onboarding_postCta"),
+      action: "flash" as const,
+    },
+    {
+      id: "engage",
+      emoji: "🔥",
+      icon: Heart,
+      title: t("onboarding_engageTitle"),
+      desc: t("onboarding_engageDesc"),
+      highlight: "live",
+      cta: t("onboarding_engageCta"),
+      action: "live" as const,
+    },
+    {
+      id: "rewards",
+      emoji: "⚡",
+      icon: Zap,
+      title: t("onboarding_rewardsTitle"),
+      desc: t("onboarding_rewardsDesc"),
+      highlight: "profil",
+      cta: t("onboarding_rewardsCta"),
+      action: "complete" as const,
+    },
+  ];
 
   useEffect(() => {
     if (open) setStep(0);
@@ -68,7 +70,6 @@ export default function OnboardingTutorial({
 
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
-  const Icon = current.icon;
 
   const handleNext = () => {
     if (current.action === "flash") {
@@ -97,7 +98,6 @@ export default function OnboardingTutorial({
     setTimeout(onComplete, 300);
   };
 
-  // Highlight position for the bottom nav
   const getSpotlightStyle = (): React.CSSProperties => {
     const positions: Record<string, string> = {
       map: "25%",
@@ -120,10 +120,8 @@ export default function OnboardingTutorial({
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[5000]"
         >
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
 
-          {/* Spotlight on bottom nav element */}
           <motion.div
             key={current.highlight}
             initial={{ opacity: 0, scale: 0.5 }}
@@ -137,7 +135,6 @@ export default function OnboardingTutorial({
             }}
           />
 
-          {/* Content card */}
           <div className="absolute inset-x-0 bottom-24 flex justify-center px-6">
             <AnimatePresence mode="wait">
               <motion.div
@@ -152,7 +149,6 @@ export default function OnboardingTutorial({
                   backdropFilter: "blur(24px)",
                 }}
               >
-                {/* Progress bar */}
                 <div className="h-1 w-full bg-muted">
                   <motion.div
                     className="h-full"
@@ -164,7 +160,6 @@ export default function OnboardingTutorial({
                 </div>
 
                 <div className="p-6 space-y-4">
-                  {/* Step indicator */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {STEPS.map((_, i) => (
@@ -185,11 +180,10 @@ export default function OnboardingTutorial({
                       className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
                     >
                       <X className="w-3 h-3" />
-                      Passer
+                      {t("onboarding_skip")}
                     </button>
                   </div>
 
-                  {/* Icon + Content */}
                   <div className="flex items-start gap-4">
                     <motion.div
                       initial={{ rotate: -10, scale: 0.8 }}
@@ -213,7 +207,6 @@ export default function OnboardingTutorial({
                     </div>
                   </div>
 
-                  {/* CTA */}
                   <button
                     onClick={handleNext}
                     className="cta-shimmer relative w-full overflow-hidden py-3.5 rounded-2xl font-bold text-primary-foreground text-sm tracking-wide transition-all active:scale-[0.98] shadow-[0_6px_20px_-4px_hsl(var(--primary)/0.4)] flex items-center justify-center gap-2"

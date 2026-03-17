@@ -29,23 +29,38 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // Read lang from localStorage (can't use hooks in class components)
+      let lang: "fr" | "en" = "fr";
+      try {
+        const stored = localStorage.getItem("wk_lang");
+        if (stored === "en") lang = "en";
+      } catch {}
+
+      const t = {
+        title: lang === "fr" ? "Oops, quelque chose a planté" : "Oops, something crashed",
+        desc: lang === "fr"
+          ? "Une erreur inattendue s'est produite. Recharge la page pour continuer."
+          : "An unexpected error occurred. Reload the page to continue.",
+        reload: lang === "fr" ? "Recharger l'app" : "Reload app",
+      };
+
       return (
         <div className="h-[100dvh] w-full bg-background flex flex-col items-center justify-center px-8 text-center gap-4">
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
             <span className="text-2xl">💥</span>
           </div>
           <h1 className="font-display text-xl font-bold text-foreground">
-            Oops, quelque chose a planté
+            {t.title}
           </h1>
           <p className="text-sm text-muted-foreground max-w-xs">
-            Une erreur inattendue s'est produite. Recharge la page pour continuer.
+            {t.desc}
           </p>
           <button
             onClick={this.handleReload}
             className="px-6 py-3 rounded-xl text-sm font-bold text-primary-foreground"
             style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
           >
-            Recharger l'app
+            {t.reload}
           </button>
         </div>
       );
