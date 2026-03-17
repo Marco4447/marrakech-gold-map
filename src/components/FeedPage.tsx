@@ -25,6 +25,7 @@ import { useBookmarks } from "@/hooks/useBookmarks";
 import { rankFeedVibes, createScoringContext, type FeedVibe } from "@/lib/feedAlgorithm";
 import FloatingVipOffer from "./feed/FloatingVipOffer";
 import UserStoryUpload from "./stories/UserStoryUpload";
+import VibeExpiryBar from "./VibeExpiryBar";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_MIN = 30 * 60 * 1000;
