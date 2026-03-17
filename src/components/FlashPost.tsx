@@ -200,9 +200,6 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     localStorage.removeItem("wk_flash_draft");
     setHasDraft(false);
   };
-  const fileRef = useRef<HTMLInputElement>(null);
-  const galleryRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Video recording state
   const [isRecording, setIsRecording] = useState(false);
