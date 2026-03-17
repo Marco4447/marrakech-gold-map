@@ -40,6 +40,8 @@ const AdminRoute = lazy(() => import("./pages/AdminRoute"));
 const DemoPartnerPage = lazy(() => import("./pages/DemoPartnerPage"));
 const PlaceDetailPage = lazy(() => import("./pages/PlaceDetailPage"));
 const StrategicDemoPage = lazy(() => import("./pages/StrategicDemoPage"));
+const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
+const StrategicDemoPage = lazy(() => import("./pages/StrategicDemoPage"));
 
 const queryClient = new QueryClient();
 
