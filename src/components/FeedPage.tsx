@@ -248,7 +248,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
     // Fetch partner place names
     supabase.from("places").select("name").eq("is_partner", true).then(({ data }) => {
-      if (data) setPartnerPlaceNames(new Set(data.map((p: any) => (p.name as string).toLowerCase())));
+      if (data) setPartnerPlaceNames(new Set(data.map((p) => p.name.toLowerCase())));
     });
 
     const channel = supabase
