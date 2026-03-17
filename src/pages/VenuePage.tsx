@@ -16,6 +16,8 @@ import PremiumLock from "@/components/PremiumLock";
 import PartnerOfferCard from "@/components/PartnerOfferCard";
 import FomoCountdown from "@/components/FomoCountdown";
 import ShareOfferCTA from "@/components/ShareOfferCTA";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getMayorOfPlace, type MayorInfo } from "@/lib/mayorSystem";
 
 interface PlaceData {
   id: string;
