@@ -66,13 +66,22 @@ function useViewerCount(placeId: string | undefined) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     if (!placeId) return;
-    let hash = 0;
-    for (let i = 0; i < placeId.length; i++) hash = ((hash << 5) - hash) + placeId.charCodeAt(i);
-    setCount(Math.abs(hash % 12) + 2);
-    const interval = setInterval(() => setCount(c => c + (Math.random() > 0.5 ? 1 : -1)), 8000);
+    const fetchCount = async () => {
+      try {
+        const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { count: c } = await supabase
+          .from("venue_analytics")
+          .select("id", { count: "exact", head: true })
+          .eq("place_id", placeId)
+          .gte("created_at", since);
+        setCount(c ?? 0);
+      } catch {}
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 2 * 60 * 1000);
     return () => clearInterval(interval);
   }, [placeId]);
-  return Math.max(1, count);
+  return count;
 }
 
 export default function VenuePage() {
