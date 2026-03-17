@@ -587,6 +587,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
     setPreview(null);
     setMediaType("photo");
     setSelectedMood(null);
+    setInsiderTip("");
     setUploading(false);
     setUploadProgress(0);
     setGeoLocation(null);
