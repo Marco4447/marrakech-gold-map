@@ -222,8 +222,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
   const fetchMyLikes = useCallback(async () => {
     if (!userId) return;
-    const { data } = await supabase.from("vibe_likes").select("vibe_id").eq("user_id", userId as any);
-    if (data) setLikedIds(new Set(data.map((l: any) => l.vibe_id)));
+    const { data } = await supabase.from("vibe_likes").select("vibe_id").eq("user_id", userId);
+    if (data) setLikedIds(new Set(data.map((l) => l.vibe_id)));
   }, [userId]);
 
   const fetchMySuperVibes = useCallback(async () => {
