@@ -440,6 +440,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       {/* Stories — directly under header */}
       <StoriesModule userId={user?.id} onAddStory={user ? () => setShowStoryUpload(true) : undefined} />
 
+      {/* Ce soir à Marrakech widget */}
+      <MarrakechTonightWidget />
+
       {user && (
         <UserStoryUpload
           open={showStoryUpload}
