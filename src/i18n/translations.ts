@@ -276,6 +276,44 @@ const translations = {
   seo_faq3A: { fr: "De la cuisine marocaine traditionnelle à la fusion moderne, WeshKech liste les meilleurs restaurants de Marrakech avec des vibes en direct et des avis d'insiders.", en: "From traditional Moroccan cuisine to modern fusion, WeshKech lists the best restaurants in Marrakech with live vibes and insider reviews." },
   seo_faq4Q: { fr: "Quelles sont les pépites cachées de Marrakech ?", en: "What are hidden gems in Marrakech?" },
   seo_faq4A: { fr: "WeshKech est construit par des locaux qui connaissent les meilleurs secrets de Marrakech. Découvrez des spots hors des sentiers battus et des favoris locaux que les touristes trouvent rarement.", en: "WeshKech is built by locals who know Marrakech's best-kept secrets. Discover off-the-beaten-path spots and local favorites tourists rarely find." },
+
+  // ===== ERROR BOUNDARY =====
+  error_title: { fr: "Oops, quelque chose a planté", en: "Oops, something crashed" },
+  error_desc: { fr: "Une erreur inattendue s'est produite. Recharge la page pour continuer.", en: "An unexpected error occurred. Reload the page to continue." },
+  error_reload: { fr: "Recharger l'app", en: "Reload app" },
+
+  // ===== ONBOARDING TUTORIAL =====
+  onboarding_exploreTitle: { fr: "Explore la carte", en: "Explore the map" },
+  onboarding_exploreDesc: { fr: "Découvre les meilleurs spots de Marrakech. Chaque épingle cache un lieu secret !", en: "Discover the best spots in Marrakech. Every pin hides a secret place!" },
+  onboarding_postTitle: { fr: "Poste ta première vibe", en: "Post your first vibe" },
+  onboarding_postDesc: { fr: "Appuie sur le bouton doré '+' pour capturer l'instant. Photo ou vidéo, c'est toi qui décides !", en: "Tap the golden '+' button to capture the moment. Photo or video, you decide!" },
+  onboarding_postCta: { fr: "Poster ma vibe ✨", en: "Post my vibe ✨" },
+  onboarding_engageTitle: { fr: "Like & réagis", en: "Like & react" },
+  onboarding_engageDesc: { fr: "Double-tap pour liker, appui long pour les réactions. Collectionne les ❤️ et monte dans le classement !", en: "Double-tap to like, long press for reactions. Collect ❤️ and climb the rankings!" },
+  onboarding_engageCta: { fr: "Voir le feed", en: "See the feed" },
+  onboarding_rewardsTitle: { fr: "Gagne des récompenses", en: "Earn rewards" },
+  onboarding_rewardsDesc: { fr: "Plus tu postes, plus tu montes en niveau : Explorer → Insider → Legend. Le meilleur vibe de la semaine gagne 7 jours VIP !", en: "The more you post, the higher you level up: Explorer → Insider → Legend. Best vibe of the week wins 7 days VIP!" },
+  onboarding_rewardsCta: { fr: "C'est parti ! 🚀", en: "Let's go! 🚀" },
+  onboarding_next: { fr: "Suivant", en: "Next" },
+  onboarding_skip: { fr: "Passer", en: "Skip" },
+
+  // ===== LANDING PAGE (hardcoded) =====
+  landing_privateAccess: { fr: "Accès privé", en: "Private access" },
+  landing_headline: { fr: "Le Marrakech que les touristes ne verront jamais.", en: "The Marrakech tourists will never see." },
+  landing_headlineDesc: { fr: "3 rooftops secrets à Guéliz. 2 speakeasys cachés dans la Médina. Débloque la carte.", en: "3 secret rooftops in Guéliz. 2 hidden speakeasies in the Medina. Unlock the map." },
+  landing_unlockAccess: { fr: "Débloquer l'accès", en: "Unlock access" },
+  landing_orByEmail: { fr: "ou par email", en: "or with email" },
+  landing_emailPlaceholder: { fr: "Entrez votre email...", en: "Enter your email..." },
+  landing_passwordPlaceholder: { fr: "Mot de passe (6+ car.)", en: "Password (6+ chars)" },
+  landing_signUpEmail: { fr: "S'inscrire par email", en: "Sign up with email" },
+  landing_emailRegistered: { fr: "Email déjà utilisé ou mot de passe incorrect.", en: "Email already used or wrong password." },
+  landing_onList: { fr: "Vous êtes sur la liste.", en: "You're on the list." },
+  landing_redirecting: { fr: "Redirection en cours...", en: "Redirecting..." },
+  landing_joinInsiders: { fr: "Rejoignez", en: "Join" },
+  landing_insidersPresent: { fr: "Insiders déjà présents", en: "Insiders already here" },
+  landing_copyright: { fr: "Weshkech © 2026 — Invitation Only.", en: "Weshkech © 2026 — Invitation Only." },
+  landing_conditions: { fr: "Conditions", en: "Terms" },
+  landing_confidentiality: { fr: "Confidentialité", en: "Privacy" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

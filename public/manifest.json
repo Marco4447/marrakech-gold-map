@@ -1,15 +1,27 @@
 {
-  "name": "Weshkech",
+  "name": "Weshkech — Marrakech Live Vibes",
   "short_name": "Weshkech",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
+  "background_color": "#0a0a0a",
   "theme_color": "#D4AF37",
   "icons": [
     {
       "src": "/logo_72.png",
       "sizes": "72x72",
       "type": "image/png"
+    },
+    {
+      "src": "/images/weshkech-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/weshkech-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
