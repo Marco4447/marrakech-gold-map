@@ -277,8 +277,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     if (alreadyLiked) {
       setLikedIds((prev) => { const next = new Set(prev); next.delete(vibeId); return next; });
       setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, likes: Math.max(0, v.likes - 1) } : v)));
-      if (userId) await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("user_id", userId as any);
-      await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId).is("user_id" as any, null);
+      if (userId) await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("user_id", userId);
+      await supabase.from("vibe_likes").delete().eq("vibe_id", vibeId).eq("device_id", deviceId).is("user_id", null);
       await supabase.rpc("increment_vibe_likes", { p_vibe_id: vibeId, p_delta: -1 });
     } else {
       setLikedIds((prev) => new Set(prev).add(vibeId));
