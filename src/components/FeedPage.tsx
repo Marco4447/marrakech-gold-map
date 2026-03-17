@@ -571,16 +571,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-[13px] font-semibold text-foreground underline">Réessayer</button>
         </div>
       ) : loading ? (
-        <div className="space-y-0 divide-y divide-border">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-3">
-              <div className="flex items-center gap-2.5 mb-2.5">
-                <div className="w-8 h-8 rounded-full bg-card animate-pulse" />
-                <div className="h-3 w-24 bg-card animate-pulse rounded" />
-              </div>
-              <div className="aspect-[4/5] bg-card animate-pulse" />
-            </div>
-          ))}
+        <div>
+          <VibeSkeleton />
+          <VibeSkeleton />
+          <VibeSkeleton />
         </div>
       ) : vibes.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
