@@ -68,18 +68,48 @@ function withCacheBust(url: string, token: string) {
   }
 }
 
+function renderCaption(text: string | null) {
+  if (!text) return null;
+  return text.split(/(\s+)/).map((token, i) =>
+    token.startsWith("#") && token.length > 1 ? (
+      <span key={i} className="text-gold font-semibold">{token}</span>
+    ) : (
+      <span key={i}>{token}</span>
+    )
+  );
+}
+
 function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
   const [muted, setMuted] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [imageSrc, setImageSrc] = useState(() =>
     withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`)
   );
+  const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = vibe.media_type === "video";
 
   useEffect(() => {
     setRetryCount(0);
     setImageSrc(withCacheBust(vibe.image_url, vibe.created_at || `${Date.now()}`));
   }, [vibe.id, vibe.image_url, vibe.created_at]);
+
+  // Auto-pause video when scrolled out of view
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isVideo) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [isVideo]);
 
   const handleImageError = () => {
     if (retryCount >= 2) return;
@@ -98,13 +128,37 @@ function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
 
   return (
     <div className="relative w-full h-full">
-      <video src={vibe.image_url} className={className} autoPlay loop muted={muted} playsInline preload="metadata" />
+      <video ref={videoRef} src={vibe.image_url} className={className} loop muted={muted} playsInline preload="metadata" />
       <button
         onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
         className="absolute bottom-12 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center z-10"
       >
         {muted ? <VolumeX className="w-4 h-4 text-foreground" /> : <Volume2 className="w-4 h-4 text-foreground" />}
       </button>
+    </div>
+  );
+}
+
+function VibeSkeleton() {
+  return (
+    <div className="animate-pulse border-b border-border/20">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="w-9 h-9 rounded-full bg-muted/40 shrink-0" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3 w-28 bg-muted/40 rounded-full" />
+          <div className="h-2 w-16 bg-muted/25 rounded-full" />
+        </div>
+      </div>
+      <div className="aspect-[4/5] bg-muted/25" />
+      <div className="flex gap-5 px-4 py-3">
+        <div className="h-4 w-10 bg-muted/30 rounded-full" />
+        <div className="h-4 w-10 bg-muted/30 rounded-full" />
+        <div className="h-4 w-10 bg-muted/30 rounded-full" />
+      </div>
+      <div className="px-4 pb-3 space-y-1.5">
+        <div className="h-2.5 w-3/4 bg-muted/25 rounded-full" />
+        <div className="h-2.5 w-1/2 bg-muted/25 rounded-full" />
+      </div>
     </div>
   );
 }
