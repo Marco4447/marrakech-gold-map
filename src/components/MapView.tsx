@@ -74,7 +74,7 @@ const categoryMatchesFilter = (category: string | null, targetCategories: string
 
 export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceId, isGuest = false }: { refreshSignal?: number; flyToCoords?: { lat: number; lng: number } | null; deepLinkPlaceId?: string | null; isGuest?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { places, vibePins, trendingLocations, placesLoading, placesError, activeVipPlaceIds } = useMapData(refreshSignal);
+  const { places, vibePins, heatPoints, trendingLocations, placesLoading, placesError, activeVipPlaceIds } = useMapData(refreshSignal);
   const { mapRef, userMarkerRef, userPosition, handleGeolocate, handleRecenter } = useMapInstance(containerRef);
 
   // Stable refs to avoid re-triggering place markers effect
