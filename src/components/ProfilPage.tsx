@@ -32,6 +32,26 @@ interface Vibe {
 
 // timeAgo and getDeviceId imported from shared libs
 
+function parseBioWithLink(rawBio: string | null): { bio: string; link: string } {
+  if (!rawBio) return { bio: "", link: "" };
+  const match = rawBio.match(/^\[LINK:(.*?)\]\n?([\s\S]*)$/);
+  if (match) return { bio: match[2].trim(), link: match[1].trim() };
+  return { bio: rawBio, link: "" };
+}
+
+function serializeBioWithLink(bio: string, link: string): string {
+  if (!link) return bio;
+  const cleanLink = link.startsWith("http") ? link : `https://${link}`;
+  return `[LINK:${cleanLink}]\n${bio}`;
+}
+
+function getTierProgress(vibeCount: number) {
+  if (vibeCount >= 20) return { currentTier: "Legend", currentEmoji: "👑", nextTier: null, nextEmoji: null, progress: 100, current: vibeCount, target: 20 };
+  if (vibeCount >= 5) return { currentTier: "Insider", currentEmoji: "🔥", nextTier: "Legend", nextEmoji: "👑", progress: Math.round(((vibeCount - 5) / 15) * 100), current: vibeCount, target: 20 };
+  if (vibeCount >= 1) return { currentTier: "Explorer", currentEmoji: "🧭", nextTier: "Insider", nextEmoji: "🔥", progress: Math.round(((vibeCount - 1) / 4) * 100), current: vibeCount, target: 5 };
+  return { currentTier: "Nouveau", currentEmoji: "🌱", nextTier: "Explorer", nextEmoji: "🧭", progress: 0, current: 0, target: 1 };
+}
+
 function ProfileCard({
   user,
   profile,
@@ -54,7 +74,9 @@ function ProfileCard({
   const [editing, setEditing] = useState(false);
   const [editingBio, setEditingBio] = useState(false);
   const [newName, setNewName] = useState(displayName);
-  const [newBio, setNewBio] = useState(profile?.bio || "");
+  const [newBio, setNewBio] = useState("");
+  const [newLink, setNewLink] = useState("");
+  const [newUsername, setNewUsername] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
