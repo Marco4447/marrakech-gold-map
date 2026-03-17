@@ -933,6 +933,43 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                       </div>
                     )}
 
+                    {/* Caption with hashtag suggestions */}
+                    <div className="mb-4">
+                      <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5 mb-1">
+                        ✏️ Légende
+                      </label>
+                      <textarea
+                        value={caption}
+                        onChange={(e) => handleCaptionChange(e.target.value.slice(0, 200))}
+                        placeholder="Décris le moment... #rooftop #nightlife"
+                        rows={2}
+                        className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all resize-none"
+                      />
+                      {showHashtagSuggestions && (
+                        <div className="flex gap-1.5 flex-wrap mt-1.5 px-1">
+                          {HASHTAG_SUGGESTIONS
+                            .filter(h => h.startsWith(hashtagQuery) || h.includes(hashtagQuery))
+                            .slice(0, 8)
+                            .map(h => (
+                              <button
+                                key={h}
+                                type="button"
+                                onClick={() => {
+                                  const words = caption.split(/\s/);
+                                  words[words.length - 1] = `#${h}`;
+                                  setCaption(words.join(" ") + " ");
+                                  setShowHashtagSuggestions(false);
+                                }}
+                                className="px-2.5 py-1 rounded-full bg-gold/10 text-gold text-xs font-semibold border border-gold/20 active:scale-95 transition-transform"
+                              >
+                                #{h}
+                              </button>
+                            ))
+                          }
+                        </div>
+                      )}
+                    </div>
+
                     {/* Insider Tip */}
                     <div className="mb-4">
                       <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5 mb-1">
