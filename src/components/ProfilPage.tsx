@@ -13,6 +13,7 @@ import { getDeviceId } from "@/lib/deviceId";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useFollows } from "@/hooks/useFollows";
 import { useBookmarks } from "@/hooks/useBookmarks";
+import { getUserMayorTerritories } from "@/lib/mayorSystem";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
