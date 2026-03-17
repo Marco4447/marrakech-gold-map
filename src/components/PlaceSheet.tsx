@@ -209,8 +209,8 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                       )}
 
                       {/* Drinks menu link */}
-                      {(placeDetails as any)?.drinks_menu_url && (
-                        <a href={(placeDetails as any).drinks_menu_url} target="_blank" rel="noopener noreferrer"
+                      {placeDetails?.drinks_menu_url && (
+                        <a href={placeDetails.drinks_menu_url} target="_blank" rel="noopener noreferrer"
                           className="flex items-center gap-3 bg-muted/50 hover:bg-muted rounded-xl px-4 py-3 transition-colors group">
                           <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
                             <span className="text-sm">🍸</span>
