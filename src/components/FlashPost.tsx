@@ -117,6 +117,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
   const [preview, setPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"photo" | "video">("photo");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [caption, setCaption] = useState("");
   const [insiderTip, setInsiderTip] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -130,6 +131,75 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
   const [isOfficial, setIsOfficial] = useState(false);
   const [isPartner, setIsPartner] = useState(false);
   const [partnerCredits, setPartnerCredits] = useState(0);
+  const [showHashtagSuggestions, setShowHashtagSuggestions] = useState(false);
+  const [hashtagQuery, setHashtagQuery] = useState("");
+  const [hasDraft, setHasDraft] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const HASHTAG_SUGGESTIONS = [
+    "medina", "gueliz", "hivernage", "palmeraie", "rooftop",
+    "nightlife", "foodie", "cocktail", "sunset", "riad",
+    "chill", "party", "streetfood", "pool", "marrakech",
+    "terasse", "hammam", "souk", "djemaa", "musique"
+  ];
+
+  const handleCaptionChange = (value: string) => {
+    setCaption(value);
+    const words = value.split(/\s/);
+    const lastWord = words[words.length - 1];
+    if (lastWord.startsWith("#") && lastWord.length > 1) {
+      const q = lastWord.slice(1).toLowerCase();
+      setHashtagQuery(q);
+      setShowHashtagSuggestions(true);
+    } else {
+      setShowHashtagSuggestions(false);
+    }
+  };
+
+  // Draft auto-save
+  useEffect(() => {
+    if (!caption && !geoName && !selectedMood) return;
+    localStorage.setItem("wk_flash_draft", JSON.stringify({
+      caption, location: geoName, mood: selectedMood, savedAt: Date.now()
+    }));
+  }, [caption, geoName, selectedMood]);
+
+  // Draft restore check
+  useEffect(() => {
+    if (!open) return;
+    try {
+      const raw = localStorage.getItem("wk_flash_draft");
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      const age = Date.now() - draft.savedAt;
+      if (age < 2 * 60 * 60 * 1000 && (draft.caption || draft.location)) {
+        setHasDraft(true);
+      } else {
+        localStorage.removeItem("wk_flash_draft");
+      }
+    } catch {
+      localStorage.removeItem("wk_flash_draft");
+    }
+  }, [open]);
+
+  const restoreDraft = () => {
+    try {
+      const raw = localStorage.getItem("wk_flash_draft");
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.caption) setCaption(draft.caption);
+      if (draft.location) setGeoName(draft.location);
+      if (draft.mood) setSelectedMood(draft.mood);
+      setHasDraft(false);
+    } catch {}
+  };
+
+  const discardDraft = () => {
+    localStorage.removeItem("wk_flash_draft");
+    setHasDraft(false);
+  };
   const fileRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
