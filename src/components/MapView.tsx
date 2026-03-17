@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import heatLayer from "leaflet.heat";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
@@ -16,6 +17,7 @@ import VenuePreviewCard from "./map/VenuePreviewCard";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy";
 import HotPlacesDrawer from "./map/HotPlacesDrawer";
+import SoireeRadar from "./map/SoireeRadar";
 
 // Filter config for category matching
 const FILTER_CATEGORIES: Record<string, string[]> = {
