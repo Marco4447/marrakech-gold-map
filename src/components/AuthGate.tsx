@@ -57,18 +57,31 @@ export default function AuthGate() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name || email.split("@")[0] },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) {
-      setError(error.message);
-    } else {
-      setSuccess("Vérifiez votre boîte mail pour confirmer votre inscription.");
+    try {
+      const { data: signupData, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name || email.split("@")[0] },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        if (signupData?.user) {
+          const finalUsername = username || email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g, "").slice(0, 20);
+          await supabase.from("profiles").upsert({
+            user_id: signupData.user.id,
+            full_name: name || finalUsername,
+            email: email,
+            username: finalUsername,
+          } as any, { onConflict: "user_id" });
+        }
+        setSuccess("Vérifiez votre boîte mail pour confirmer votre inscription.");
+      }
+    } catch (e: any) {
+      setError(e?.message || "Erreur lors de l'inscription");
     }
     setLoading(false);
   };
