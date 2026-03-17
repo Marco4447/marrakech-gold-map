@@ -720,6 +720,16 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <MessageCircle className="w-[26px] h-[26px] text-foreground" />
                       </button>
                       <button
+                        onClick={() => handleSuperVibe(vibe.id)}
+                        disabled={!canSuperVibe || superVibeIds.has(vibe.id)}
+                      >
+                        <motion.div animate={superVibeAnimId === vibe.id ? { scale: [1, 1.5, 0.9, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}} transition={{ duration: 0.5, ease: "easeOut" }}>
+                          <Zap className={`w-[24px] h-[24px] transition-colors duration-200 ${
+                            superVibeIds.has(vibe.id) ? "fill-gold text-gold" : canSuperVibe ? "text-foreground" : "text-muted-foreground/40"
+                          }`} />
+                        </motion.div>
+                      </button>
+                      <button
                         onClick={() => {
                           setShareVibeId(vibe.id);
                           setShowDmPicker(true);
