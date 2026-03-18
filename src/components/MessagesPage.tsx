@@ -688,23 +688,28 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
 
   const openFromDetail = useCallback(
     async (detail?: OpenDmDetail) => {
-      if (!detail) return;
+      try {
+        if (!detail) return;
 
-      const { userId, userName, userAvatar } = detail;
+        const { userId, userName, userAvatar } = detail;
 
-      if (userId) {
-        await handleStartChat({
-          user_id: userId,
-          full_name: userName || "Utilisateur",
-          avatar_url: userAvatar || null,
-        });
-        return;
-      }
+        if (userId) {
+          await handleStartChat({
+            user_id: userId,
+            full_name: userName || "Utilisateur",
+            avatar_url: userAvatar || null,
+          });
+          return;
+        }
 
-      if (userName) {
-        setSearchQuery(userName);
-        handleSearch(userName);
-        setTimeout(() => document.getElementById("dm-search-input")?.focus(), 0);
+        if (userName) {
+          setSearchQuery(userName);
+          handleSearch(userName);
+          setTimeout(() => document.getElementById("dm-search-input")?.focus(), 0);
+        }
+      } catch (err) {
+        console.error("open dm detail error:", err);
+        toast.error("Impossible d'ouvrir cette conversation");
       }
     },
     [handleSearch, handleStartChat]
