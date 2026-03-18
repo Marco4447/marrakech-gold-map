@@ -301,18 +301,27 @@ export default function UserProfilePage() {
         )}
 
         {/* ── Action buttons (Instagram style) ── */}
-        {profile.user_id && !isMe && (
+        {!isMe && (
           <div className="flex gap-2 mt-4">
-            <div className="flex-1">
-              <FollowButton
-                targetUserId={profile.user_id}
-                size="lg"
-                variant="pill"
-                onFollowChange={(isNow) => {
-                  setFollowerCount((prev) => isNow ? prev + 1 : Math.max(0, prev - 1));
-                }}
-              />
-            </div>
+            {profile.user_id ? (
+              <div className="flex-1">
+                <FollowButton
+                  targetUserId={profile.user_id}
+                  size="lg"
+                  variant="pill"
+                  onFollowChange={(isNow) => {
+                    setFollowerCount((prev) => isNow ? prev + 1 : Math.max(0, prev - 1));
+                  }}
+                />
+              </div>
+            ) : (
+              <button
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-foreground text-background text-sm font-bold active:scale-[0.97] transition-all"
+                onClick={() => toast("Bientôt disponible")}
+              >
+                Suivre
+              </button>
+            )}
             <button
               onClick={handleSendMessage}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
