@@ -179,7 +179,7 @@ export default function UserProfilePage() {
               .neq("user_id", user.id)
               .limit(1)
               .maybeSingle();
-            const fallbackProfile = fallbackProfileRaw as { user_id: string } | null;
+            const fallbackProfile = fallbackProfileRaw as unknown as { user_id: string } | null;
             contactUserId = fallbackProfile?.user_id || null;
           }
 
