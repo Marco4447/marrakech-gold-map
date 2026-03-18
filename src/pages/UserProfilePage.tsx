@@ -213,12 +213,24 @@ export default function UserProfilePage() {
       return;
     }
 
-    const targetUserId = profile?.user_id || (isOfficialProfileRoute ? placeId : null);
+    // profile.user_id is a real auth user_id (or null)
+    const targetUserId = profile?.user_id;
     const targetName = profile?.full_name || "Utilisateur";
     const targetAvatar = profile?.avatar_url || null;
 
     if (!targetUserId) {
-      toast.error("Messagerie indisponible pour ce profil");
+      // No real user behind this profile — can't DM
+      if (isOfficialProfileRoute && placeId) {
+        navigate(`/place/${placeId}`);
+        toast("Retrouvez les infos de contact sur la fiche du lieu");
+      } else {
+        toast.error("Messagerie indisponible pour ce profil");
+      }
+      return;
+    }
+
+    if (targetUserId === user.id) {
+      toast("Tu ne peux pas t'envoyer un message à toi-même 😄");
       return;
     }
 
@@ -239,7 +251,7 @@ export default function UserProfilePage() {
           userAvatar: targetAvatar,
         }
       }));
-    }, 100);
+    }, 300);
   }, [user, profile, navigate, isOfficialProfileRoute, placeId]);
 
   if (loading) {
