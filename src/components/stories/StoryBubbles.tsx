@@ -35,70 +35,86 @@ export default function StoryBubbles({ stories, onStoryPress, onAddStory }: Stor
   });
 
   return (
-    <div
-      ref={scrollRef}
-      className="flex gap-4 overflow-x-auto no-scrollbar px-4 py-2.5 border-b border-border/30"
-    >
-      {/* Add story bubble */}
-      {onAddStory && (
-        <button
-          onClick={onAddStory}
-          className="flex flex-col items-center gap-1 shrink-0"
-        >
-          <div className="w-14 h-14 rounded-full border-2 border-dashed border-gold/40 bg-gold/5 flex items-center justify-center">
-            <Plus className="w-5 h-5 text-gold/60" />
-          </div>
-          <span className="text-[10px] text-muted-foreground">Ma story</span>
-        </button>
-      )}
-
-      {groups.map(({ story, index }, gi) => {
-        const name = story.author_name || "Anon";
-        const isViewed = story.viewed;
-        const hasImage = !!story.avatar_url;
-
-        return (
-          <motion.button
-            key={story.id}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: gi * 0.05, duration: 0.25 }}
-            onClick={() => onStoryPress(index)}
-            className="flex flex-col items-center gap-1 flex-shrink-0"
+    <div className="border-b border-border/30 bg-background">
+      <div
+        ref={scrollRef}
+        className="flex gap-3 overflow-x-auto no-scrollbar px-3 py-2 sm:px-4 sm:gap-4"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        {/* Add story — Instagram "Your Story" */}
+        {onAddStory && (
+          <button
+            onClick={onAddStory}
+            className="flex flex-col items-center gap-1 shrink-0 w-[66px] sm:w-[72px]"
           >
-            {/* Ring — Instagram size */}
-            <div
-              className={`w-[76px] h-[76px] rounded-full p-[3px] ${
-                isViewed
-                  ? "bg-muted-foreground/30"
-                  : "bg-gradient-to-tr from-[hsl(330,80%,55%)] via-[hsl(25,95%,55%)] to-[hsl(280,70%,55%)]"
-              }`}
-            >
-              <div className="w-full h-full rounded-full overflow-hidden border-[3px] border-background">
-                {hasImage ? (
-                  <img
-                    src={story.avatar_url!}
-                    alt={name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <span className="text-lg font-bold text-foreground/60">
-                      {name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
+            <div className="relative">
+              <div className="w-[56px] h-[56px] sm:w-[62px] sm:h-[62px] rounded-full bg-muted flex items-center justify-center">
+                <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground text-lg">
+                  📷
+                </div>
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-[hsl(210,100%,50%)] border-2 border-background flex items-center justify-center">
+                <Plus className="w-3 h-3 text-white" strokeWidth={3} />
               </div>
             </div>
-
-            {/* Name */}
-            <span className="text-[11px] font-normal text-foreground/70 truncate w-[76px] text-center leading-tight">
-              {name.length > 12 ? name.slice(0, 11) + "…" : name}
+            <span className="text-[11px] text-muted-foreground leading-tight truncate w-full text-center">
+              Ma story
             </span>
-          </motion.button>
-        );
-      })}
+          </button>
+        )}
+
+        {groups.map(({ story, index }, gi) => {
+          const name = story.author_name || "Anon";
+          const isViewed = story.viewed;
+          const hasImage = !!story.avatar_url;
+
+          return (
+            <motion.button
+              key={story.id}
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: gi * 0.03, duration: 0.2 }}
+              onClick={() => onStoryPress(index)}
+              className="flex flex-col items-center gap-1 shrink-0 w-[66px] sm:w-[72px]"
+            >
+              {/* Ring — exact Instagram style */}
+              <div
+                className={`w-[56px] h-[56px] sm:w-[62px] sm:h-[62px] rounded-full p-[2.5px] transition-all ${
+                  isViewed
+                    ? "bg-muted-foreground/25"
+                    : "bg-gradient-to-tr from-[hsl(45,100%,55%)] via-[hsl(330,80%,55%)] to-[hsl(280,70%,55%)]"
+                }`}
+              >
+                <div className="w-full h-full rounded-full overflow-hidden border-[2.5px] border-background">
+                  {hasImage ? (
+                    <img
+                      src={story.avatar_url!}
+                      alt={name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <span className="text-base font-semibold text-foreground/60">
+                        {name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Name — Instagram truncation */}
+              <span
+                className={`text-[11px] leading-tight truncate w-full text-center ${
+                  isViewed ? "text-muted-foreground" : "text-foreground/80"
+                }`}
+              >
+                {name.length > 10 ? name.slice(0, 10) + "…" : name}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
     </div>
   );
 }
