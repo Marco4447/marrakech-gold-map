@@ -436,8 +436,20 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
 
   // Listen for external "open DM" event (from vibe share or profile)
   useEffect(() => {
+    // Check for pending DM from sessionStorage (set before navigation)
+    const pending = sessionStorage.getItem("wk_pending_dm");
+    if (pending) {
+      sessionStorage.removeItem("wk_pending_dm");
+      try {
+        const { userId, userName, userAvatar } = JSON.parse(pending);
+        if (userId) {
+          handleStartChat(userId, { full_name: userName, avatar_url: userAvatar });
+        }
+      } catch {}
+    }
+
     const handler = (e: CustomEvent) => {
-      const { userId, userName, userAvatar, vibeUrl } = e.detail || {};
+      const { userId, userName, userAvatar } = e.detail || {};
       if (userId) {
         handleStartChat(userId, { full_name: userName, avatar_url: userAvatar });
       }

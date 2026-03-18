@@ -202,14 +202,24 @@ export default function UserProfilePage() {
       return;
     }
 
-    window.dispatchEvent(new CustomEvent("wk:open-dm", {
-      detail: {
-        userId: profile.user_id,
-        userName: profile.full_name,
-        userAvatar: profile.avatar_url,
-      }
+    // Store DM target so MessagesPage can pick it up after mount
+    sessionStorage.setItem("wk_pending_dm", JSON.stringify({
+      userId: profile.user_id,
+      userName: profile.full_name,
+      userAvatar: profile.avatar_url,
     }));
+
+    // Navigate first, then dispatch after a tick so MessagesPage is mounted
     navigate("/");
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("wk:open-dm", {
+        detail: {
+          userId: profile.user_id,
+          userName: profile.full_name,
+          userAvatar: profile.avatar_url,
+        }
+      }));
+    }, 100);
   }, [user, profile, navigate]);
 
   if (loading) {
@@ -361,28 +371,18 @@ export default function UserProfilePage() {
             )}
             <button
               onClick={() => {
-                if (isOfficialProfileRoute && placeId) {
-                  navigate(`/place/${placeId}`);
-                } else if (profile.user_id) {
+                if (profile.user_id) {
                   handleSendMessage();
+                } else if (isOfficialProfileRoute && placeId) {
+                  navigate(`/place/${placeId}`);
                 } else {
                   toast.error("Contact indisponible");
                 }
               }}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
             >
-              {isOfficialProfileRoute ? "Voir le lieu" : "Contacter"}
+              Contacter
             </button>
-            {isOfficialProfileRoute && placeInstagram && (
-              <a
-                href={`https://instagram.com/${placeInstagram.replace(/^@/, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
-              >
-                Contacter
-              </a>
-            )}
           </div>
         )}
 
