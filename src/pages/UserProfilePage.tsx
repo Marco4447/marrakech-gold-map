@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Crown, Heart, Image as ImageIcon, MessageCircle, Grid3X3, Play, Link2 } from "lucide-react";
+import { ArrowLeft, Crown, Heart, Image as ImageIcon, Grid3X3, Play, Link2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,7 +10,7 @@ import FollowButton from "@/components/FollowButton";
 import { toast } from "sonner";
 
 interface PublicProfile {
-  user_id: string;
+  user_id: string | null;
   full_name: string | null;
   username: string | null;
   avatar_url: string | null;
@@ -25,6 +25,8 @@ interface UserVibe {
   likes: number;
   created_at: string;
   media_type: string;
+  username?: string | null;
+  location?: string | null;
 }
 
 function getTier(vibeCount: number): { emoji: string; label: string; color: string } {
@@ -36,7 +38,7 @@ function getTier(vibeCount: number): { emoji: string; label: string; color: stri
 
 function parseBio(raw: string | null): { text: string; link: string | null } {
   if (!raw) return { text: "", link: null };
-  const match = raw.match(/\[link:(.*?)\]/);
+  const match = raw.match(/\[(?:link|LINK):(.*?)\]/);
   if (match) {
     return { text: raw.replace(match[0], "").trim(), link: match[1] };
   }
@@ -55,11 +57,76 @@ export default function UserProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const decodedProfileParam = decodeURIComponent(userId || "");
+  const isOfficialProfileRoute = decodedProfileParam.startsWith("official_");
+  const officialProfileName = isOfficialProfileRoute
+    ? decodedProfileParam.replace(/^official_/, "").trim()
+    : null;
+
   useEffect(() => {
     if (!userId) return;
+
     const load = async () => {
+      setLoading(true);
+
       try {
-        // Fetch full profile from profiles table (has bio, username)
+        if (isOfficialProfileRoute && officialProfileName) {
+          const [officialByUsernameRes, officialByLocationRes, placeRes] = await Promise.all([
+            supabase
+              .from("vibes")
+              .select("id, image_url, likes, caption, created_at, media_type, username, location")
+              .eq("is_official", true)
+              .eq("username", officialProfileName)
+              .order("created_at", { ascending: false })
+              .limit(30),
+            supabase
+              .from("vibes")
+              .select("id, image_url, likes, caption, created_at, media_type, username, location")
+              .eq("is_official", true)
+              .eq("location", officialProfileName)
+              .order("created_at", { ascending: false })
+              .limit(30),
+            supabase
+              .from("places")
+              .select("image_url")
+              .eq("name", officialProfileName)
+              .maybeSingle(),
+          ]);
+
+          const byUsername = (officialByUsernameRes.data || []) as UserVibe[];
+          const byLocation = (officialByLocationRes.data || []) as UserVibe[];
+          const mergedMap = new Map<string, UserVibe>();
+
+          [...byUsername, ...byLocation].forEach((v) => mergedMap.set(v.id, v));
+
+          const officialVibes = Array.from(mergedMap.values()).sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+
+          if (officialVibes.length === 0) {
+            setProfile(null);
+            setVibes([]);
+            setFollowerCount(0);
+            setFollowingCount(0);
+            return;
+          }
+
+          const primaryName = officialProfileName || officialVibes[0]?.username || officialVibes[0]?.location || "Profil officiel";
+
+          setProfile({
+            user_id: null,
+            full_name: primaryName,
+            username: primaryName.toLowerCase().replace(/\s+/g, "_"),
+            avatar_url: placeRes.data?.image_url || officialVibes[0]?.image_url || null,
+            bio: `Compte officiel · ${primaryName}`,
+            is_vip: true,
+          });
+          setVibes(officialVibes.slice(0, 30));
+          setFollowerCount(0);
+          setFollowingCount(0);
+          return;
+        }
+
         const [profileRes, vibesRes, fc, fwc] = await Promise.all([
           supabase
             .from("profiles_public" as any)
@@ -77,8 +144,18 @@ export default function UserProfilePage() {
           getFollowingCount(userId),
         ]);
 
-        if (profileRes.data) setProfile(profileRes.data as any);
-        if (vibesRes.data) setVibes(vibesRes.data as UserVibe[]);
+        if (profileRes.data) {
+          setProfile(profileRes.data as unknown as PublicProfile);
+        } else {
+          setProfile(null);
+        }
+
+        if (vibesRes.data) {
+          setVibes(vibesRes.data as UserVibe[]);
+        } else {
+          setVibes([]);
+        }
+
         setFollowerCount(fc);
         setFollowingCount(fwc);
       } catch {
@@ -87,15 +164,27 @@ export default function UserProfilePage() {
         setLoading(false);
       }
     };
+
     load();
-  }, [userId]);
+  }, [
+    userId,
+    isOfficialProfileRoute,
+    officialProfileName,
+    getFollowerCount,
+    getFollowingCount,
+  ]);
 
   const handleSendMessage = useCallback(() => {
     if (!user) {
       toast("Connecte-toi pour envoyer un message");
       return;
     }
-    if (!profile) return;
+
+    if (!profile || !profile.user_id) {
+      toast.error("Messagerie indisponible pour ce profil");
+      return;
+    }
+
     window.dispatchEvent(new CustomEvent("wk:open-dm", {
       detail: {
         userId: profile.user_id,
@@ -127,7 +216,7 @@ export default function UserProfilePage() {
   const username = profile.username || displayName.toLowerCase().replace(/\s+/g, "");
   const initial = displayName.charAt(0).toUpperCase();
   const tier = getTier(vibes.length);
-  const isMe = user?.id === userId;
+  const isMe = !!user && !!profile.user_id && user.id === profile.user_id;
   const { text: bioText, link: bioLink } = parseBio(profile.bio);
 
   return (
@@ -204,7 +293,7 @@ export default function UserProfilePage() {
             href={bioLink.startsWith("http") ? bioLink : `https://${bioLink}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-sm text-blue-400 font-medium mt-0.5 hover:underline"
+            className="flex items-center gap-1 text-sm text-gold font-medium mt-0.5 hover:underline"
           >
             <Link2 className="w-3.5 h-3.5" />
             {bioLink.replace(/^https?:\/\//, "")}
@@ -212,15 +301,15 @@ export default function UserProfilePage() {
         )}
 
         {/* ── Action buttons (Instagram style) ── */}
-        {!isMe && (
+        {profile.user_id && !isMe && (
           <div className="flex gap-2 mt-4">
             <div className="flex-1">
               <FollowButton
-                targetUserId={userId!}
+                targetUserId={profile.user_id}
                 size="lg"
                 variant="pill"
                 onFollowChange={(isNow) => {
-                  setFollowerCount(prev => isNow ? prev + 1 : Math.max(0, prev - 1));
+                  setFollowerCount((prev) => isNow ? prev + 1 : Math.max(0, prev - 1));
                 }}
               />
             </div>

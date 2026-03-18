@@ -659,7 +659,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   {/* Header — Instagram style */}
                   <div className="flex items-center justify-between px-3 py-2.5">
                     <Link
-                      to={vibe.user_id ? `/u/${vibe.user_id}` : "#"}
+                      to={vibe.user_id ? `/u/${vibe.user_id}` : `/u/official_${encodeURIComponent(getDisplayName(vibe))}`}
                       onClick={(e) => e.stopPropagation()}
                       className="flex items-center gap-3 min-w-0 flex-1"
                     >
