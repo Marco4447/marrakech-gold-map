@@ -77,12 +77,16 @@ export default function StoryBubbles({ stories, onStoryPress, onAddStory }: Stor
               onClick={() => onStoryPress(index)}
               className="flex flex-col items-center gap-1 shrink-0 w-[66px] sm:w-[72px]"
             >
-              {/* Ring — exact Instagram style */}
+              {/* Ring — color-coded by source type */}
               <div
                 className={`w-[56px] h-[56px] sm:w-[62px] sm:h-[62px] rounded-full p-[2.5px] transition-all ${
                   isViewed
                     ? "bg-muted-foreground/25"
-                    : "bg-gradient-to-tr from-[hsl(45,100%,55%)] via-[hsl(330,80%,55%)] to-[hsl(280,70%,55%)]"
+                    : story.source_type === "admin"
+                      ? "bg-gradient-to-tr from-[hsl(45,100%,50%)] via-[hsl(35,100%,55%)] to-[hsl(45,100%,60%)]"
+                      : story.source_type === "partner"
+                        ? "bg-gradient-to-tr from-[hsl(210,100%,55%)] via-[hsl(250,80%,60%)] to-[hsl(280,70%,55%)]"
+                        : "bg-gradient-to-tr from-[hsl(330,80%,55%)] via-[hsl(350,80%,55%)] to-[hsl(25,95%,55%)]"
                 }`}
               >
                 <div className="w-full h-full rounded-full overflow-hidden border-[2.5px] border-background">
