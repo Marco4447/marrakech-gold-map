@@ -147,7 +147,7 @@ export default function UserProfilePage() {
                 .in("user_id", publisherIds)
                 .limit(1)
                 .maybeSingle();
-              const publisherProfile = publisherProfileRaw as { user_id: string } | null;
+              const publisherProfile = publisherProfileRaw as unknown as { user_id: string } | null;
               contactUserId = publisherProfile?.user_id || null;
             }
           }
@@ -167,7 +167,7 @@ export default function UserProfilePage() {
                 .select("user_id")
                 .eq("user_id", adminRole.user_id)
                 .maybeSingle();
-              const adminProfile = adminProfileRaw as { user_id: string } | null;
+              const adminProfile = adminProfileRaw as unknown as { user_id: string } | null;
               contactUserId = adminProfile?.user_id || null;
             }
           }
@@ -179,7 +179,7 @@ export default function UserProfilePage() {
               .neq("user_id", user.id)
               .limit(1)
               .maybeSingle();
-            const fallbackProfile = fallbackProfileRaw as { user_id: string } | null;
+            const fallbackProfile = fallbackProfileRaw as unknown as { user_id: string } | null;
             contactUserId = fallbackProfile?.user_id || null;
           }
 
