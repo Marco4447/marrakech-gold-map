@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/i18n/LanguageContext";
-import { useAutoRefreshOnNewVersion } from "@/hooks/useAutoRefreshOnNewVersion";
 import { lazy, Suspense } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -52,53 +51,51 @@ const LazyFallback = () => (
 );
 
 const AppShell = () => {
-  useAutoRefreshOnNewVersion();
-
   return (
     <LanguageProvider>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<LazyFallback />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/business" element={<BusinessPage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              <Route path="/partner-dashboard" element={<PartnerDashboard />} />
-              <Route path="/vip-pass" element={<VipPass />} />
-              <Route path="/verify" element={<VerifyVip />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/payment-canceled" element={<PaymentCanceled />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/go" element={<GoPage />} />
-              <Route path="/GO" element={<Navigate to="/go" replace />} />
-              <Route path="/discover" element={<DiscoverPage />} />
-              <Route path="/place/:id" element={<PlacePage />} />
-              <Route path="/vibe/:id" element={<VibePage />} />
-              <Route path="/referral" element={<ReferralPage />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/poster" element={<PosterPage />} />
-              <Route path="/go/:slug" element={<VenueContextPage />} />
-              <Route path="/pass/:id" element={<VipPassPage />} />
-              <Route path="/scan" element={<ScanPage />} />
-              <Route path="/venue/:slug" element={<VenuePage />} />
-              <Route path="/partner-invite/:token" element={<PartnerInvitePage />} />
-              <Route path="/admin" element={<AdminRoute />} />
-              <Route path="/spot/:slug" element={<PlaceDetailPage />} />
-              <Route path="/demo" element={<DemoPartnerPage />} />
-              <Route path="/strategic" element={<StrategicDemoPage />} />
-              <Route path="/u/:userId" element={<UserProfilePage />} />
-              <Route path="/quartier/:slug" element={<NeighborhoodPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<LazyFallback />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/business" element={<BusinessPage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+                <Route path="/vip-pass" element={<VipPass />} />
+                <Route path="/verify" element={<VerifyVip />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-canceled" element={<PaymentCanceled />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/go" element={<GoPage />} />
+                <Route path="/GO" element={<Navigate to="/go" replace />} />
+                <Route path="/discover" element={<DiscoverPage />} />
+                <Route path="/place/:id" element={<PlacePage />} />
+                <Route path="/vibe/:id" element={<VibePage />} />
+                <Route path="/referral" element={<ReferralPage />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/poster" element={<PosterPage />} />
+                <Route path="/go/:slug" element={<VenueContextPage />} />
+                <Route path="/pass/:id" element={<VipPassPage />} />
+                <Route path="/scan" element={<ScanPage />} />
+                <Route path="/venue/:slug" element={<VenuePage />} />
+                <Route path="/partner-invite/:token" element={<PartnerInvitePage />} />
+                <Route path="/admin" element={<AdminRoute />} />
+                <Route path="/spot/:slug" element={<PlaceDetailPage />} />
+                <Route path="/demo" element={<DemoPartnerPage />} />
+                <Route path="/strategic" element={<StrategicDemoPage />} />
+                <Route path="/u/:userId" element={<UserProfilePage />} />
+                <Route path="/quartier/:slug" element={<NeighborhoodPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </LanguageProvider>
   );
 };
