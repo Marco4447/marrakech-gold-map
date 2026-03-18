@@ -162,8 +162,8 @@ const Index = () => {
             analytics.tabChange(tab);
             setActiveTab(tab);
           }}
-          onPost={() => { setShowMessages(false); setShowFlashPost(true); }}
-          onMessages={() => { /* already showing */ }}
+          onCreatePress={() => { setShowMessages(false); setShowFlashPost(true); }}
+          onMessagesPress={() => { /* already showing */ }}
           unreadMessages={unreadMessages}
         />
       </div>
