@@ -543,6 +543,16 @@ export default function UserProfilePage() {
           </div>
         )}
       </div>
+
+      {/* ── Follow list sheet ── */}
+      {profile.user_id && !isOfficialProfileRoute && (
+        <FollowListSheet
+          open={followSheet.open}
+          onClose={() => setFollowSheet((prev) => ({ ...prev, open: false }))}
+          userId={profile.user_id}
+          mode={followSheet.mode}
+        />
+      )}
     </div>
   );
 }
