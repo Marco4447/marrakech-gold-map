@@ -62,6 +62,7 @@ export default function UserProfilePage() {
   const [placeInstagram, setPlaceInstagram] = useState<string | null>(null);
   const [isFollowingPlace, setIsFollowingPlace] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [followSheet, setFollowSheet] = useState<{ open: boolean; mode: "followers" | "following" }>({ open: false, mode: "followers" });
 
   const decodedProfileParam = decodeURIComponent(userId || "");
   const isOfficialProfileRoute = decodedProfileParam.startsWith("official_");
