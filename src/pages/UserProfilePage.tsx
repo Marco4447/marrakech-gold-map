@@ -219,11 +219,18 @@ export default function UserProfilePage() {
     const targetAvatar = profile?.avatar_url || null;
 
     if (!targetUserId) {
+      // Official profiles can exist without a linked user account.
+      // Open in-app messages anyway and prefill search with profile name.
       sessionStorage.removeItem("wk_pending_dm");
+      sessionStorage.setItem("wk_open_messages", "1");
+      sessionStorage.setItem("wk_dm_prefill_name", targetName);
+      sessionStorage.removeItem("wk_flyto");
       navigate("/");
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("wk:open-dm"));
-      }, 250);
+        window.dispatchEvent(new CustomEvent("wk:open-dm", {
+          detail: { userName: targetName }
+        }));
+      }, 350);
       return;
     }
 
@@ -233,6 +240,8 @@ export default function UserProfilePage() {
     }
 
     // Store DM target so MessagesPage can pick it up after mount
+    sessionStorage.setItem("wk_open_messages", "1");
+    sessionStorage.removeItem("wk_flyto");
     sessionStorage.setItem("wk_pending_dm", JSON.stringify({
       userId: targetUserId,
       userName: targetName,
@@ -249,7 +258,7 @@ export default function UserProfilePage() {
           userAvatar: targetAvatar,
         }
       }));
-    }, 300);
+    }, 350);
   }, [user, profile, navigate, isOfficialProfileRoute, placeId]);
 
   if (loading) {
