@@ -60,15 +60,10 @@ export default function UserProfilePage() {
     const load = async () => {
       try {
         // Fetch full profile from profiles table (has bio, username)
-        const [profileRes, publicRes, vibesRes, fc, fwc] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("user_id, full_name, username, avatar_url, bio, is_vip")
-            .eq("user_id", userId)
-            .maybeSingle(),
+        const [profileRes, vibesRes, fc, fwc] = await Promise.all([
           supabase
             .from("profiles_public" as any)
-            .select("user_id, full_name, avatar_url, is_vip")
+            .select("user_id, full_name, username, avatar_url, bio, is_vip")
             .eq("user_id", userId)
             .maybeSingle(),
           supabase
@@ -82,9 +77,7 @@ export default function UserProfilePage() {
           getFollowingCount(userId),
         ]);
 
-        // Prefer profiles table (more fields), fallback to public view
-        const profileData = profileRes.data || publicRes.data;
-        if (profileData) setProfile(profileData as any);
+        if (profileRes.data) setProfile(profileRes.data as any);
         if (vibesRes.data) setVibes(vibesRes.data as UserVibe[]);
         setFollowerCount(fc);
         setFollowingCount(fwc);
