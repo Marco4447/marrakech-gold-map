@@ -167,7 +167,7 @@ export default function UserProfilePage() {
                 .select("user_id")
                 .eq("user_id", adminRole.user_id)
                 .maybeSingle();
-              const adminProfile = adminProfileRaw as { user_id: string } | null;
+              const adminProfile = adminProfileRaw as unknown as { user_id: string } | null;
               contactUserId = adminProfile?.user_id || null;
             }
           }
