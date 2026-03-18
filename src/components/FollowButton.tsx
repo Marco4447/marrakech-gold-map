@@ -93,7 +93,7 @@ export default function FollowButton({
       disabled={loading}
       whileTap={{ scale: 0.94 }}
       className={`
-        flex items-center justify-center font-bold rounded-full
+        w-full flex items-center justify-center font-bold rounded-lg
         transition-all duration-200 disabled:opacity-50
         ${sizeClasses[size]}
         ${variantClasses[variant]}
