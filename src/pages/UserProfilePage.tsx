@@ -101,7 +101,6 @@ export default function UserProfilePage() {
           const byUsername = (officialByUsernameRes.data || []) as UserVibe[];
           const byLocation = (officialByLocationRes.data || []) as UserVibe[];
           const mergedMap = new Map<string, UserVibe>();
-
           [...byUsername, ...byLocation].forEach((v) => mergedMap.set(v.id, v));
 
           const officialVibes = Array.from(mergedMap.values()).sort(
@@ -117,10 +116,26 @@ export default function UserProfilePage() {
           }
 
           const primaryName = officialProfileName || officialVibes[0]?.username || officialVibes[0]?.location || "Profil officiel";
-          const officialContactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
+          const fetchedPlaceId = placeRes.data?.id || null;
+
+          // Find a real user_id to DM: check partner_accounts for this place, then fallback to vibe publisher
+          let contactUserId: string | null = null;
+          if (fetchedPlaceId) {
+            const { data: partnerData } = await supabase
+              .from("partner_accounts")
+              .select("user_id")
+              .eq("place_id", fetchedPlaceId)
+              .eq("approved", true)
+              .limit(1)
+              .maybeSingle();
+            contactUserId = partnerData?.user_id || null;
+          }
+          if (!contactUserId) {
+            contactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
+          }
 
           setProfile({
-            user_id: officialContactUserId,
+            user_id: contactUserId,
             full_name: primaryName,
             username: primaryName.toLowerCase().replace(/\s+/g, "_"),
             avatar_url: placeRes.data?.image_url || officialVibes[0]?.image_url || null,
@@ -132,7 +147,6 @@ export default function UserProfilePage() {
           setFollowingCount(0);
 
           // Store place_id and check follow status
-          const fetchedPlaceId = placeRes.data?.id || null;
           setPlaceId(fetchedPlaceId);
           setPlaceInstagram(placeRes.data?.instagram_handle || null);
           if (fetchedPlaceId && user) {
