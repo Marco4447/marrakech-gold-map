@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFollows } from "@/hooks/useFollows";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import FollowButton from "@/components/FollowButton";
+import FollowListSheet from "@/components/FollowListSheet";
 import { toast } from "sonner";
 
 interface PublicProfile {
@@ -61,6 +62,7 @@ export default function UserProfilePage() {
   const [placeInstagram, setPlaceInstagram] = useState<string | null>(null);
   const [isFollowingPlace, setIsFollowingPlace] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [followSheet, setFollowSheet] = useState<{ open: boolean; mode: "followers" | "following" }>({ open: false, mode: "followers" });
 
   const decodedProfileParam = decodeURIComponent(userId || "");
   const isOfficialProfileRoute = decodedProfileParam.startsWith("official_");
@@ -375,11 +377,11 @@ export default function UserProfilePage() {
               <p className="text-lg font-bold text-foreground leading-tight">{vibes.length}</p>
               <p className="text-[11px] text-muted-foreground leading-tight">publications</p>
             </button>
-            <button className="text-center">
+            <button className="text-center" onClick={() => !isOfficialProfileRoute && setFollowSheet({ open: true, mode: "followers" })}>
               <p className="text-lg font-bold text-foreground leading-tight">{followerCount}</p>
               <p className="text-[11px] text-muted-foreground leading-tight">followers</p>
             </button>
-            <button className="text-center">
+            <button className="text-center" onClick={() => !isOfficialProfileRoute && setFollowSheet({ open: true, mode: "following" })}>
               <p className="text-lg font-bold text-foreground leading-tight">{followingCount}</p>
               <p className="text-[11px] text-muted-foreground leading-tight">suivi(e)s</p>
             </button>
@@ -541,6 +543,16 @@ export default function UserProfilePage() {
           </div>
         )}
       </div>
+
+      {/* ── Follow list sheet ── */}
+      {profile.user_id && !isOfficialProfileRoute && (
+        <FollowListSheet
+          open={followSheet.open}
+          onClose={() => setFollowSheet((prev) => ({ ...prev, open: false }))}
+          userId={profile.user_id}
+          mode={followSheet.mode}
+        />
+      )}
     </div>
   );
 }
