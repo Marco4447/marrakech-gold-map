@@ -56,6 +56,9 @@ export default function UserProfilePage() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [placeId, setPlaceId] = useState<string | null>(null);
+  const [isFollowingPlace, setIsFollowingPlace] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   const decodedProfileParam = decodeURIComponent(userId || "");
   const isOfficialProfileRoute = decodedProfileParam.startsWith("official_");
