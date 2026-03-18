@@ -57,6 +57,7 @@ export default function UserProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [placeId, setPlaceId] = useState<string | null>(null);
+  const [placeInstagram, setPlaceInstagram] = useState<string | null>(null);
   const [isFollowingPlace, setIsFollowingPlace] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
 
