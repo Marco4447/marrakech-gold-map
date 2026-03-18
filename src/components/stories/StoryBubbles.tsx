@@ -35,11 +35,35 @@ export default function StoryBubbles({ stories, onStoryPress, onAddStory }: Stor
   });
 
   return (
-    <div className="border-b border-border/30 bg-background">
+    <div className="border-b border-border/30 bg-background overflow-hidden">
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto no-scrollbar px-3 py-2 sm:px-4 sm:gap-4"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        className="flex gap-3 overflow-x-auto no-scrollbar px-3 py-2.5 sm:px-4 sm:gap-4 cursor-grab active:cursor-grabbing"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          scrollSnapType: "x proximity",
+          scrollBehavior: "smooth",
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
+        }}
+        onPointerDown={(e) => {
+          const el = scrollRef.current;
+          if (!el) return;
+          const startX = e.clientX;
+          const scrollLeft = el.scrollLeft;
+          let moved = false;
+          const onMove = (ev: PointerEvent) => {
+            const dx = ev.clientX - startX;
+            if (Math.abs(dx) > 3) moved = true;
+            el.scrollLeft = scrollLeft - dx;
+          };
+          const onUp = () => {
+            document.removeEventListener("pointermove", onMove);
+            document.removeEventListener("pointerup", onUp);
+          };
+          document.addEventListener("pointermove", onMove);
+          document.addEventListener("pointerup", onUp);
+        }}
       >
         {/* Add story — Instagram "Your Story" */}
         {onAddStory && (
