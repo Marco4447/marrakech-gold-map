@@ -147,7 +147,7 @@ export default function VibePage() {
 
   const handleShare = useCallback(async () => {
     if (!vibe) return;
-    const url = getShareUrl(`/vibe/${vibe.id}`);
+    const url = getShareUrl("vibe", vibe.id);
     try {
       if (navigator.share) {
         await navigator.share({ title: vibe.caption || "Vibe Marrakech", url });
