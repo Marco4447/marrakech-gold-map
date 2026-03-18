@@ -235,10 +235,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const [showStoryUpload, setShowStoryUpload] = useState(false);
-  const [nightOnly, setNightOnly] = useState(() => {
-    const h = new Date().getHours();
-    return h >= 20 || h < 6;
-  });
+  const nightOnly = false;
   const lastVisitRef = useRef<number>(parseInt(localStorage.getItem("wk_last_feed_visit") || "0"));
   const [newVibesCount, setNewVibesCount] = useState(0);
   const [showNewPill, setShowNewPill] = useState(false);
@@ -545,24 +542,6 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         />
       )}
 
-      {/* Night filter toggle */}
-      <div className="flex items-center gap-2 px-4 py-2">
-        <button
-          onClick={() => setNightOnly(n => !n)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-            nightOnly 
-              ? 'bg-card border-gold/40 text-gold' 
-              : 'bg-transparent border-border text-muted-foreground'
-          }`}
-        >
-          🌙 Cette nuit
-        </button>
-        {nightOnly && (
-          <span className="text-[11px] text-muted-foreground">
-            {nightVibeCount} moment{nightVibeCount !== 1 ? "s" : ""}
-          </span>
-        )}
-      </div>
 
       {fetchError ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">
