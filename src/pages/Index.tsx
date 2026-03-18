@@ -206,7 +206,18 @@ const Index = () => {
           {activeTab === "discover" && (
             <div className="h-full flex justify-center">
               <div className="w-full max-w-[630px] h-full">
-                <DiscoverTab onGoToMap={handleGoToMap} onStartChat={(userId) => setShowMessages(true)} />
+                <DiscoverTab
+                  onGoToMap={handleGoToMap}
+                  onStartChat={(userId) => {
+                    if (!userId) return;
+                    sessionStorage.setItem("wk_open_messages", "1");
+                    sessionStorage.setItem("wk_pending_dm", JSON.stringify({ userId }));
+                    setShowMessages(true);
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent("wk:open-dm", { detail: { userId } }));
+                    }, 0);
+                  }}
+                />
               </div>
             </div>
           )}
