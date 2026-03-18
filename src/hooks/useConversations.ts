@@ -130,7 +130,7 @@ export function useConversations() {
       .eq("user_id", targetId)
       .maybeSingle();
 
-    const targetProfile = targetProfileRaw as { user_id: string } | null;
+    const targetProfile = targetProfileRaw as unknown as { user_id: string } | null;
     if (!targetProfile?.user_id) return null;
 
     // Check if conversation exists (robust to duplicates)
