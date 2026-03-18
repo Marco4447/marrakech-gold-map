@@ -20,70 +20,83 @@ export function useConversations() {
 
   const fetchConversations = useCallback(async () => {
     if (!user) return;
-    
-    const { data: convos } = await supabase
-      .from("conversations")
-      .select("*")
-      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-      .order("last_message_at", { ascending: false });
+    setLoading(true);
 
-    if (!convos || convos.length === 0) {
-      setConversations([]);
-      setLoading(false);
-      return;
-    }
+    try {
+      // 1. Fetch all conversations for this user
+      const { data: convos, error } = await supabase
+        .from("conversations")
+        .select("*")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .order("last_message_at", { ascending: false });
 
-    const otherUserIds = convos.map((c: any) => 
-      c.user1_id === user.id ? c.user2_id : c.user1_id
-    );
+      if (error || !convos || convos.length === 0) {
+        setConversations([]);
+        setTotalUnread(0);
+        setLoading(false);
+        return;
+      }
 
-    const { data: profiles } = await supabase
-      .from("profiles_public" as any)
-      .select("user_id, full_name, avatar_url")
-      .in("user_id", otherUserIds);
+      // 2. Get all other user IDs in one shot
+      const otherUserIds = convos.map((c: any) =>
+        c.user1_id === user.id ? c.user2_id : c.user1_id
+      );
+      const convoIds = convos.map((c: any) => c.id);
 
-    const profileMap: Record<string, any> = {};
-    profiles?.forEach((p: any) => { profileMap[p.user_id] = p; });
+      // 3. Fetch all profiles in one query
+      const { data: profiles } = await supabase
+        .from("profiles_public" as any)
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", otherUserIds);
 
-    // Get last message + unread count for each conversation
-    let unreadTotal = 0;
-    const result: Conversation[] = [];
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p; });
 
-    for (const c of convos as any[]) {
-      const otherId = c.user1_id === user.id ? c.user2_id : c.user1_id;
-      const profile = profileMap[otherId];
-
-      const { data: lastMsg } = await supabase
+      // 4. Fetch all messages in batch (latest per conversation)
+      const { data: allMessages } = await supabase
         .from("messages")
-        .select("content, created_at")
-        .eq("conversation_id", c.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
+        .select("conversation_id, content, created_at, sender_id, is_read")
+        .in("conversation_id", convoIds)
+        .order("created_at", { ascending: false });
 
-      const { count: unread } = await supabase
-        .from("messages")
-        .select("id", { count: "exact", head: true })
-        .eq("conversation_id", c.id)
-        .neq("sender_id", user.id)
-        .eq("is_read", false);
-
-      const unreadCount = unread || 0;
-      unreadTotal += unreadCount;
-
-      result.push({
-        id: c.id,
-        otherUserId: otherId,
-        otherUserName: profile?.full_name || "Utilisateur",
-        otherUserAvatar: profile?.avatar_url || null,
-        lastMessage: lastMsg?.[0]?.content || null,
-        lastMessageAt: lastMsg?.[0]?.created_at || c.created_at,
-        unreadCount,
+      // Group messages by conversation — first = latest
+      const lastMsgMap: Record<string, any> = {};
+      const unreadMap: Record<string, number> = {};
+      (allMessages || []).forEach((msg: any) => {
+        if (!lastMsgMap[msg.conversation_id]) {
+          lastMsgMap[msg.conversation_id] = msg;
+        }
+        if (msg.sender_id !== user.id && !msg.is_read) {
+          unreadMap[msg.conversation_id] = (unreadMap[msg.conversation_id] || 0) + 1;
+        }
       });
-    }
 
-    setConversations(result);
-    setTotalUnread(unreadTotal);
-    setLoading(false);
+      // 5. Build result
+      const result: Conversation[] = convos.map((c: any) => {
+        const otherId = c.user1_id === user.id ? c.user2_id : c.user1_id;
+        const profile = profileMap[otherId];
+        const lastMsg = lastMsgMap[c.id];
+        const unreadCount = unreadMap[c.id] || 0;
+
+        return {
+          id: c.id,
+          otherUserId: otherId,
+          otherUserName: profile?.full_name || "Utilisateur",
+          otherUserAvatar: profile?.avatar_url || null,
+          lastMessage: lastMsg?.content || null,
+          lastMessageAt: lastMsg?.created_at || c.created_at,
+          unreadCount,
+        };
+      });
+
+      const totalUnreadCount = result.reduce((sum, c) => sum + c.unreadCount, 0);
+      setConversations(result);
+      setTotalUnread(totalUnreadCount);
+    } catch (err) {
+      console.error("fetchConversations error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
