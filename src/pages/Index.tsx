@@ -78,11 +78,14 @@ const Index = () => {
     };
   }, [markAllRead]);
 
-  // Auto-open messages if there's a pending DM from profile page navigation
+  // Auto-open messages if there's a pending DM or explicit open flag
   useEffect(() => {
+    if (!user) return;
     const pending = sessionStorage.getItem("wk_pending_dm");
-    if (pending && user) {
+    const forceOpen = sessionStorage.getItem("wk_open_messages") === "1";
+    if (pending || forceOpen) {
       setShowMessages(true);
+      if (forceOpen) sessionStorage.removeItem("wk_open_messages");
     }
   }, [user]);
 

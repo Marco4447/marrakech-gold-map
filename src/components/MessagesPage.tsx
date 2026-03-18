@@ -434,41 +434,60 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
     }
   };
 
-  // Listen for external "open DM" event (from vibe share or profile)
-  // Use a ref to track if pending DM was already processed
+  // Listen for external "open DM" event (from profile)
+  // Use refs to avoid duplicate processing
   const pendingProcessed = useRef(false);
+  const prefillProcessed = useRef(false);
 
   useEffect(() => {
-    if (pendingProcessed.current) return;
+    // Prefill search for official profiles with no direct user target
+    if (prefillProcessed.current) return;
+    const prefillName = sessionStorage.getItem("wk_dm_prefill_name");
+    if (prefillName) {
+      prefillProcessed.current = true;
+      sessionStorage.removeItem("wk_dm_prefill_name");
+      setSearchQuery(prefillName);
+      handleSearch(prefillName);
+      setTimeout(() => document.getElementById("dm-search")?.focus(), 0);
+    }
+  }, [handleSearch]);
+
+  useEffect(() => {
+    if (pendingProcessed.current || !user) return;
     // Check for pending DM from sessionStorage (set before navigation)
     const pending = sessionStorage.getItem("wk_pending_dm");
-    if (pending && user) {
+    if (pending) {
       pendingProcessed.current = true;
       sessionStorage.removeItem("wk_pending_dm");
       try {
         const { userId, userName, userAvatar } = JSON.parse(pending);
         if (userId && userId !== user.id) {
-          // Small delay to ensure hooks are ready
           setTimeout(() => {
             handleStartChat(userId, { full_name: userName, avatar_url: userAvatar });
-          }, 200);
+          }, 220);
         }
-      } catch {}
+      } catch {
+        // no-op
+      }
     }
-  }, [user, loading]);
+  }, [user, loading, handleStartChat]);
 
   useEffect(() => {
     const handler = (e: CustomEvent) => {
       const { userId, userName, userAvatar } = e.detail || {};
       if (userId) {
         handleStartChat(userId, { full_name: userName, avatar_url: userAvatar });
+      } else if (userName) {
+        setSearchQuery(userName);
+        handleSearch(userName);
+        setTimeout(() => document.getElementById("dm-search")?.focus(), 0);
       }
     };
     window.addEventListener("wk:open-dm", handler as EventListener);
     return () => {
       window.removeEventListener("wk:open-dm", handler as EventListener);
     };
-  }, [user]);
+  }, [handleSearch, handleStartChat]);
 
   if (activeConvo) {
     return (
