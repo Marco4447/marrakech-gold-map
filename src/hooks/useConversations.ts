@@ -234,7 +234,7 @@ export function useConversations() {
           .maybeSingle();
 
         if (targetError) throw targetError;
-        const targetProfile = targetProfileRaw as { user_id: string } | null;
+        const targetProfile = targetProfileRaw as unknown as { user_id: string } | null;
         if (!targetProfile?.user_id) return null;
 
         // Vérifier si existe déjà

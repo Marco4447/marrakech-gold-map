@@ -634,7 +634,7 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
           if (error) throw error;
 
           const filtered = (data || []).filter((profile: any) => profile.user_id !== user?.id);
-          setSearchResults(filtered as SearchProfile[]);
+          setSearchResults(filtered as unknown as SearchProfile[]);
         } catch (err) {
           console.error("search users error:", err);
           toast.error("Recherche impossible");
