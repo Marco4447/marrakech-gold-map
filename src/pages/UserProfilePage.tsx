@@ -127,6 +127,18 @@ export default function UserProfilePage() {
           setVibes(officialVibes.slice(0, 30));
           setFollowerCount(0);
           setFollowingCount(0);
+
+          // Store place_id and check follow status
+          const fetchedPlaceId = placeRes.data?.id || null;
+          setPlaceId(fetchedPlaceId);
+          if (fetchedPlaceId && user) {
+            const { count } = await supabase
+              .from("place_follows")
+              .select("id", { count: "exact", head: true })
+              .eq("place_id", fetchedPlaceId)
+              .eq("user_id", user.id);
+            setIsFollowingPlace((count || 0) > 0);
+          }
           return;
         }
 
