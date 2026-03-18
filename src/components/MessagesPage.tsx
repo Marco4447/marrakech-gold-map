@@ -435,38 +435,40 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
   };
 
   // Listen for external "open DM" event (from vibe share or profile)
+  // Use a ref to track if pending DM was already processed
+  const pendingProcessed = useRef(false);
+
   useEffect(() => {
+    if (pendingProcessed.current) return;
     // Check for pending DM from sessionStorage (set before navigation)
     const pending = sessionStorage.getItem("wk_pending_dm");
-    if (pending) {
+    if (pending && user) {
+      pendingProcessed.current = true;
       sessionStorage.removeItem("wk_pending_dm");
       try {
         const { userId, userName, userAvatar } = JSON.parse(pending);
-        if (userId) {
-          handleStartChat(userId, { full_name: userName, avatar_url: userAvatar });
+        if (userId && userId !== user.id) {
+          // Small delay to ensure hooks are ready
+          setTimeout(() => {
+            handleStartChat(userId, { full_name: userName, avatar_url: userAvatar });
+          }, 200);
         }
       } catch {}
     }
+  }, [user, loading]);
 
+  useEffect(() => {
     const handler = (e: CustomEvent) => {
       const { userId, userName, userAvatar } = e.detail || {};
       if (userId) {
         handleStartChat(userId, { full_name: userName, avatar_url: userAvatar });
       }
     };
-    const dmHandler = (e: CustomEvent) => {
-      // Legacy vibe share event
-      if (e.detail?.vibeUrl) {
-        // handled by existing flow
-      }
-    };
     window.addEventListener("wk:open-dm", handler as EventListener);
-    window.addEventListener("wk:share-vibe-dm", dmHandler as EventListener);
     return () => {
       window.removeEventListener("wk:open-dm", handler as EventListener);
-      window.removeEventListener("wk:share-vibe-dm", dmHandler as EventListener);
     };
-  }, []);
+  }, [user]);
 
   if (activeConvo) {
     return (
