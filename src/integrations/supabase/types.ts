@@ -136,6 +136,47 @@ export type Database = {
           },
         ]
       }
+      boosted_places: {
+        Row: {
+          boost_type: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          place_id: string
+          priority: number
+          starts_at: string
+        }
+        Insert: {
+          boost_type?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          place_id: string
+          priority?: number
+          starts_at?: string
+        }
+        Update: {
+          boost_type?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          place_id?: string
+          priority?: number
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boosted_places_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: true
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkins: {
         Row: {
           created_at: string
