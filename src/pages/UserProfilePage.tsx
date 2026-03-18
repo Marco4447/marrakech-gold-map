@@ -79,14 +79,14 @@ export default function UserProfilePage() {
           const [officialByUsernameRes, officialByLocationRes, placeRes] = await Promise.all([
             supabase
               .from("vibes")
-              .select("id, image_url, likes, caption, created_at, media_type, username, location")
+              .select("id, image_url, likes, caption, created_at, media_type, user_id, username, location")
               .eq("is_official", true)
               .eq("username", officialProfileName)
               .order("created_at", { ascending: false })
               .limit(30),
             supabase
               .from("vibes")
-              .select("id, image_url, likes, caption, created_at, media_type, username, location")
+              .select("id, image_url, likes, caption, created_at, media_type, user_id, username, location")
               .eq("is_official", true)
               .eq("location", officialProfileName)
               .order("created_at", { ascending: false })
@@ -117,9 +117,10 @@ export default function UserProfilePage() {
           }
 
           const primaryName = officialProfileName || officialVibes[0]?.username || officialVibes[0]?.location || "Profil officiel";
+          const officialContactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
 
           setProfile({
-            user_id: null,
+            user_id: officialContactUserId,
             full_name: primaryName,
             username: primaryName.toLowerCase().replace(/\s+/g, "_"),
             avatar_url: placeRes.data?.image_url || officialVibes[0]?.image_url || null,
