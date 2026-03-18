@@ -147,7 +147,7 @@ export default function UserProfilePage() {
                 .in("user_id", publisherIds)
                 .limit(1)
                 .maybeSingle();
-              const publisherProfile = publisherProfileRaw as { user_id: string } | null;
+              const publisherProfile = publisherProfileRaw as unknown as { user_id: string } | null;
               contactUserId = publisherProfile?.user_id || null;
             }
           }
