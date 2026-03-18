@@ -97,6 +97,11 @@ function ChatView({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const PAGE_SIZE = 30;
+  const markReadRef = useRef(markConversationRead);
+
+  useEffect(() => {
+    markReadRef.current = markConversationRead;
+  }, [markConversationRead]);
 
   const fetchMessages = useCallback(
     async (pageNum: number) => {
@@ -158,7 +163,7 @@ function ChatView({
       try {
         setPage(0);
         await fetchMessages(0);
-        await markConversationRead(conversation.id);
+        await markReadRef.current(conversation.id);
         setTimeout(() => inputRef.current?.focus(), 0);
       } catch (err) {
         console.error("initial chat load error:", err);
@@ -167,7 +172,7 @@ function ChatView({
     };
 
     void load();
-  }, [conversation.id, fetchMessages, markConversationRead]);
+  }, [conversation.id, fetchMessages]);
 
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
@@ -208,7 +213,7 @@ function ChatView({
                 .eq("id", message.id);
 
               if (markReadError) throw markReadError;
-              await markConversationRead(conversation.id);
+              await markReadRef.current(conversation.id);
             }
           } catch (err) {
             console.error("realtime insert message error:", err);
@@ -238,7 +243,7 @@ function ChatView({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversation.id, markConversationRead, user]);
+  }, [conversation.id, user]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user || sending) return;
@@ -287,7 +292,9 @@ function ChatView({
         .update({ last_message_at: new Date().toISOString() })
         .eq("id", conversation.id);
 
-      if (convoUpdateError) throw convoUpdateError;
+      if (convoUpdateError) {
+        console.error("update conversation timestamp error:", convoUpdateError);
+      }
 
       // Notification silencieuse (intentionnel)
       try {

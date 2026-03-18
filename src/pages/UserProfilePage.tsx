@@ -118,7 +118,7 @@ export default function UserProfilePage() {
           const primaryName = officialProfileName || officialVibes[0]?.username || officialVibes[0]?.location || "Profil officiel";
           const fetchedPlaceId = placeRes.data?.id || null;
 
-          // Find a real user_id to DM: partner_accounts → vibe publisher → admin fallback
+          // Find a real user_id to DM: partner_accounts → valid vibe publisher → admin → fallback user
           let contactUserId: string | null = null;
           if (fetchedPlaceId) {
             const { data: partnerData } = await supabase
@@ -130,19 +130,54 @@ export default function UserProfilePage() {
               .maybeSingle();
             contactUserId = partnerData?.user_id || null;
           }
+
           if (!contactUserId) {
-            contactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
+            const publisherIds = Array.from(
+              new Set(
+                officialVibes
+                  .map((v) => v.user_id)
+                  .filter((id): id is string => Boolean(id))
+              )
+            );
+
+            if (publisherIds.length > 0) {
+              const { data: publisherProfile } = await supabase
+                .from("profiles_public" as any)
+                .select("user_id")
+                .in("user_id", publisherIds)
+                .limit(1)
+                .maybeSingle();
+              contactUserId = publisherProfile?.user_id || null;
+            }
           }
-          // Fallback: find an admin user (not the current user) so messaging always works
+
           if (!contactUserId && user) {
-            const { data: adminRoles } = await supabase
+            const { data: adminRole } = await supabase
               .from("user_roles")
               .select("user_id")
               .eq("role", "admin")
               .neq("user_id", user.id)
               .limit(1)
               .maybeSingle();
-            contactUserId = adminRoles?.user_id || null;
+
+            if (adminRole?.user_id) {
+              const { data: adminProfile } = await supabase
+                .from("profiles_public" as any)
+                .select("user_id")
+                .eq("user_id", adminRole.user_id)
+                .maybeSingle();
+              contactUserId = adminProfile?.user_id || null;
+            }
+          }
+
+          if (!contactUserId && user) {
+            const { data: fallbackProfile } = await supabase
+              .from("profiles_public" as any)
+              .select("user_id")
+              .neq("user_id", user.id)
+              .limit(1)
+              .maybeSingle();
+            contactUserId = fallbackProfile?.user_id || null;
           }
 
           setProfile({
