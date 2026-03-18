@@ -227,13 +227,14 @@ export function useConversations() {
 
       try {
         // Vérifier que la cible existe bien dans les profils publics
-        const { data: targetProfile, error: targetError } = await supabase
+        const { data: targetProfileRaw, error: targetError } = await supabase
           .from("profiles_public" as any)
           .select("user_id")
           .eq("user_id", targetId)
           .maybeSingle();
 
         if (targetError) throw targetError;
+        const targetProfile = targetProfileRaw as { user_id: string } | null;
         if (!targetProfile?.user_id) return null;
 
         // Vérifier si existe déjà
