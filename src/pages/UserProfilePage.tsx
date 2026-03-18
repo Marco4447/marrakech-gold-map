@@ -275,7 +275,7 @@ export default function UserProfilePage() {
   const username = profile.username || displayName.toLowerCase().replace(/\s+/g, "");
   const initial = displayName.charAt(0).toUpperCase();
   const tier = getTier(vibes.length);
-  const isMe = !!user && !!profile.user_id && user.id === profile.user_id;
+  const isMe = !!user && !!profile.user_id && !isOfficialProfileRoute && user.id === profile.user_id;
   const { text: bioText, link: bioLink } = parseBio(profile.bio);
 
   return (
