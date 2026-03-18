@@ -101,7 +101,6 @@ export default function UserProfilePage() {
           const byUsername = (officialByUsernameRes.data || []) as UserVibe[];
           const byLocation = (officialByLocationRes.data || []) as UserVibe[];
           const mergedMap = new Map<string, UserVibe>();
-
           [...byUsername, ...byLocation].forEach((v) => mergedMap.set(v.id, v));
 
           const officialVibes = Array.from(mergedMap.values()).sort(
@@ -117,10 +116,26 @@ export default function UserProfilePage() {
           }
 
           const primaryName = officialProfileName || officialVibes[0]?.username || officialVibes[0]?.location || "Profil officiel";
-          const officialContactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
+          const fetchedPlaceId = placeRes.data?.id || null;
+
+          // Find a real user_id to DM: check partner_accounts for this place, then fallback to vibe publisher
+          let contactUserId: string | null = null;
+          if (fetchedPlaceId) {
+            const { data: partnerData } = await supabase
+              .from("partner_accounts")
+              .select("user_id")
+              .eq("place_id", fetchedPlaceId)
+              .eq("approved", true)
+              .limit(1)
+              .maybeSingle();
+            contactUserId = partnerData?.user_id || null;
+          }
+          if (!contactUserId) {
+            contactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
+          }
 
           setProfile({
-            user_id: officialContactUserId,
+            user_id: contactUserId,
             full_name: primaryName,
             username: primaryName.toLowerCase().replace(/\s+/g, "_"),
             avatar_url: placeRes.data?.image_url || officialVibes[0]?.image_url || null,
@@ -132,7 +147,6 @@ export default function UserProfilePage() {
           setFollowingCount(0);
 
           // Store place_id and check follow status
-          const fetchedPlaceId = placeRes.data?.id || null;
           setPlaceId(fetchedPlaceId);
           setPlaceInstagram(placeRes.data?.instagram_handle || null);
           if (fetchedPlaceId && user) {
@@ -199,12 +213,24 @@ export default function UserProfilePage() {
       return;
     }
 
-    const targetUserId = profile?.user_id || (isOfficialProfileRoute ? placeId : null);
+    // profile.user_id is a real auth user_id (or null)
+    const targetUserId = profile?.user_id;
     const targetName = profile?.full_name || "Utilisateur";
     const targetAvatar = profile?.avatar_url || null;
 
     if (!targetUserId) {
-      toast.error("Messagerie indisponible pour ce profil");
+      // No real user behind this profile — can't DM
+      if (isOfficialProfileRoute && placeId) {
+        navigate(`/place/${placeId}`);
+        toast("Retrouvez les infos de contact sur la fiche du lieu");
+      } else {
+        toast.error("Messagerie indisponible pour ce profil");
+      }
+      return;
+    }
+
+    if (targetUserId === user.id) {
+      toast("Tu ne peux pas t'envoyer un message à toi-même 😄");
       return;
     }
 
@@ -225,7 +251,7 @@ export default function UserProfilePage() {
           userAvatar: targetAvatar,
         }
       }));
-    }, 100);
+    }, 300);
   }, [user, profile, navigate, isOfficialProfileRoute, placeId]);
 
   if (loading) {
@@ -249,7 +275,7 @@ export default function UserProfilePage() {
   const username = profile.username || displayName.toLowerCase().replace(/\s+/g, "");
   const initial = displayName.charAt(0).toUpperCase();
   const tier = getTier(vibes.length);
-  const isMe = !!user && !!profile.user_id && user.id === profile.user_id;
+  const isMe = !!user && !!profile.user_id && !isOfficialProfileRoute && user.id === profile.user_id;
   const { text: bioText, link: bioLink } = parseBio(profile.bio);
 
   return (
@@ -336,18 +362,8 @@ export default function UserProfilePage() {
         {/* ── Action buttons (Instagram style) ── */}
         {!isMe && (
           <div className="flex gap-2 mt-4">
-            {profile.user_id ? (
-              <div className="flex-1">
-                <FollowButton
-                  targetUserId={profile.user_id}
-                  size="lg"
-                  variant="pill"
-                  onFollowChange={(isNow) => {
-                    setFollowerCount((prev) => isNow ? prev + 1 : Math.max(0, prev - 1));
-                  }}
-                />
-              </div>
-            ) : (
+            {/* Follow button: use place_follows for official profiles, user follows for regular */}
+            {isOfficialProfileRoute ? (
               <button
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold active:scale-[0.97] transition-all ${
                   isFollowingPlace
@@ -374,7 +390,18 @@ export default function UserProfilePage() {
               >
                 {isFollowingPlace ? "Suivi ✓" : "Suivre"}
               </button>
-            )}
+            ) : profile.user_id ? (
+              <div className="flex-1">
+                <FollowButton
+                  targetUserId={profile.user_id}
+                  size="lg"
+                  variant="pill"
+                  onFollowChange={(isNow) => {
+                    setFollowerCount((prev) => isNow ? prev + 1 : Math.max(0, prev - 1));
+                  }}
+                />
+              </div>
+            ) : null}
             <button
               onClick={handleSendMessage}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
