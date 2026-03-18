@@ -133,15 +133,16 @@ export default function UserProfilePage() {
           if (!contactUserId) {
             contactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
           }
-          // Fallback: find an admin user so messaging always works
-          if (!contactUserId) {
-            const { data: adminRole } = await supabase
+          // Fallback: find an admin user (not the current user) so messaging always works
+          if (!contactUserId && user) {
+            const { data: adminRoles } = await supabase
               .from("user_roles")
               .select("user_id")
               .eq("role", "admin")
+              .neq("user_id", user.id)
               .limit(1)
               .maybeSingle();
-            contactUserId = adminRole?.user_id || null;
+            contactUserId = adminRoles?.user_id || null;
           }
 
           setProfile({
