@@ -56,6 +56,9 @@ export default function UserProfilePage() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [placeId, setPlaceId] = useState<string | null>(null);
+  const [isFollowingPlace, setIsFollowingPlace] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   const decodedProfileParam = decodeURIComponent(userId || "");
   const isOfficialProfileRoute = decodedProfileParam.startsWith("official_");
@@ -88,7 +91,7 @@ export default function UserProfilePage() {
               .limit(30),
             supabase
               .from("places")
-              .select("image_url")
+              .select("id, image_url")
               .eq("name", officialProfileName)
               .maybeSingle(),
           ]);
@@ -124,6 +127,18 @@ export default function UserProfilePage() {
           setVibes(officialVibes.slice(0, 30));
           setFollowerCount(0);
           setFollowingCount(0);
+
+          // Store place_id and check follow status
+          const fetchedPlaceId = placeRes.data?.id || null;
+          setPlaceId(fetchedPlaceId);
+          if (fetchedPlaceId && user) {
+            const { count } = await supabase
+              .from("place_follows")
+              .select("id", { count: "exact", head: true })
+              .eq("place_id", fetchedPlaceId)
+              .eq("user_id", user.id);
+            setIsFollowingPlace((count || 0) > 0);
+          }
           return;
         }
 
@@ -316,17 +331,45 @@ export default function UserProfilePage() {
               </div>
             ) : (
               <button
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-foreground text-background text-sm font-bold active:scale-[0.97] transition-all"
-                onClick={() => toast("Bientôt disponible")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold active:scale-[0.97] transition-all ${
+                  isFollowingPlace
+                    ? "bg-card border border-border text-muted-foreground"
+                    : "bg-foreground text-background"
+                }`}
+                disabled={followLoading}
+                onClick={async () => {
+                  if (!user) { toast("Connecte-toi pour suivre"); return; }
+                  if (!placeId) { toast.error("Lieu introuvable"); return; }
+                  setFollowLoading(true);
+                  try {
+                    if (isFollowingPlace) {
+                      await supabase.from("place_follows").delete().eq("place_id", placeId).eq("user_id", user.id);
+                      setIsFollowingPlace(false);
+                    } else {
+                      await supabase.from("place_follows").insert({ place_id: placeId, user_id: user.id });
+                      setIsFollowingPlace(true);
+                      toast("✅ Lieu suivi !");
+                    }
+                  } catch { toast.error("Erreur"); }
+                  finally { setFollowLoading(false); }
+                }}
               >
-                Suivre
+                {isFollowingPlace ? "Suivi ✓" : "Suivre"}
               </button>
             )}
             <button
-              onClick={handleSendMessage}
+              onClick={() => {
+                if (isOfficialProfileRoute && placeId) {
+                  navigate(`/place/${placeId}`);
+                } else if (profile.user_id) {
+                  handleSendMessage();
+                } else {
+                  toast.error("Contact indisponible");
+                }
+              }}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
             >
-              Contacter
+              {isOfficialProfileRoute ? "Voir le lieu" : "Contacter"}
             </button>
           </div>
         )}
