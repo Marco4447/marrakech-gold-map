@@ -2,6 +2,9 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
+import { initErrorReporting } from "./lib/errorReporting";
+
+initErrorReporting();
 
 const isDynamicImportLoadError = (reason: unknown) => {
   if (!(reason instanceof Error)) return false;
