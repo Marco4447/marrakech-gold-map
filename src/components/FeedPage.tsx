@@ -680,7 +680,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       </div>
                     </Link>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && (
+                      {vibe.user_id && vibe.user_id !== userId && (
                         <FollowButton
                           targetUserId={vibe.user_id}
                           size="sm"

@@ -22,13 +22,18 @@ export default function FollowButton({
   const { isFollowing, toggleFollow } = useFollows();
   const [loading, setLoading] = useState(false);
 
-  if (!user || targetUserId === user.id) return null;
+  // Hide on own profile only
+  if (user && targetUserId === user.id) return null;
 
-  const followed = isFollowing(targetUserId);
+  const followed = user ? isFollowing(targetUserId) : false;
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    if (!user) {
+      toast("Connecte-toi pour suivre cet utilisateur", { duration: 2000 });
+      return;
+    }
     if (loading) return;
     setLoading(true);
     try {
