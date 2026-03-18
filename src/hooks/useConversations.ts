@@ -101,23 +101,25 @@ export function useConversations() {
         }
       });
 
-      // 4. Assembler le résultat
-      const result: Conversation[] = convos.map((c: any) => {
-        const otherId = c.user1_id === user.id ? c.user2_id : c.user1_id;
-        const profile = profileMap[otherId];
-        const lastMsg = lastMsgMap[c.id];
-        const unreadCount = unreadMap[c.id] || 0;
+      // 4. Assembler le résultat — filtrer les conversations sans profil valide
+      const result: Conversation[] = convos
+        .map((c: any) => {
+          const otherId = c.user1_id === user.id ? c.user2_id : c.user1_id;
+          const profile = profileMap[otherId];
+          const lastMsg = lastMsgMap[c.id];
+          const unreadCount = unreadMap[c.id] || 0;
 
-        return {
-          id: c.id,
-          otherUserId: otherId,
-          otherUserName: profile?.full_name || "Utilisateur",
-          otherUserAvatar: profile?.avatar_url || null,
-          lastMessage: lastMsg?.content || null,
-          lastMessageAt: lastMsg?.created_at || c.last_message_at || c.created_at,
-          unreadCount,
-        };
-      });
+          return {
+            id: c.id,
+            otherUserId: otherId,
+            otherUserName: profile?.full_name || null,
+            otherUserAvatar: profile?.avatar_url || null,
+            lastMessage: lastMsg?.content || null,
+            lastMessageAt: lastMsg?.created_at || c.last_message_at || c.created_at,
+            unreadCount,
+          };
+        })
+        .filter((c) => c.otherUserName !== null) as Conversation[];
 
       const totalUnreadCount = result.reduce((sum, convo) => sum + convo.unreadCount, 0);
 
