@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { toast } from "sonner";
 
 export interface Conversation {
   id: string;
@@ -17,51 +18,80 @@ export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalUnread, setTotalUnread] = useState(0);
+  const isMounted = useRef(true);
 
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // ─── FETCH OPTIMISÉ : 0 N+1 query ────────────────────────────────────────
   const fetchConversations = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
+    if (!user) {
+      if (isMounted.current) {
+        setConversations([]);
+        setTotalUnread(0);
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (isMounted.current) setLoading(true);
 
     try {
-      // 1. Fetch all conversations for this user
-      const { data: convos, error } = await supabase
+      // 1. Toutes les conversations de l'utilisateur
+      const { data: convos, error: convosError } = await supabase
         .from("conversations")
         .select("*")
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order("last_message_at", { ascending: false });
 
-      if (error || !convos || convos.length === 0) {
-        setConversations([]);
-        setTotalUnread(0);
-        setLoading(false);
+      if (convosError) throw convosError;
+
+      if (!convos || convos.length === 0) {
+        if (isMounted.current) {
+          setConversations([]);
+          setTotalUnread(0);
+          setLoading(false);
+        }
         return;
       }
 
-      // 2. Get all other user IDs in one shot
-      const otherUserIds = convos.map((c: any) =>
-        c.user1_id === user.id ? c.user2_id : c.user1_id
-      );
       const convoIds = convos.map((c: any) => c.id);
+      const otherUserIds = [
+        ...new Set(
+          convos.map((c: any) => (c.user1_id === user.id ? c.user2_id : c.user1_id))
+        ),
+      ];
 
-      // 3. Fetch all profiles in one query
-      const { data: profiles } = await supabase
+      // 2. Tous les profils en 1 seule requête
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles_public" as any)
         .select("user_id, full_name, avatar_url")
         .in("user_id", otherUserIds);
 
-      const profileMap: Record<string, any> = {};
-      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+      if (profilesError) throw profilesError;
 
-      // 4. Fetch all messages in batch (latest per conversation)
-      const { data: allMessages } = await supabase
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => {
+        if (p?.user_id) profileMap[p.user_id] = p;
+      });
+
+      // 3. Tous les messages récents en 1 seule requête
+      const { data: allMessages, error: messagesError } = await supabase
         .from("messages")
-        .select("conversation_id, content, created_at, sender_id, is_read")
+        .select("id, conversation_id, content, created_at, sender_id, is_read")
         .in("conversation_id", convoIds)
         .order("created_at", { ascending: false });
 
-      // Group messages by conversation — first = latest
+      if (messagesError) throw messagesError;
+
+      // Construire lastMsg + unread par conversation
       const lastMsgMap: Record<string, any> = {};
       const unreadMap: Record<string, number> = {};
+
       (allMessages || []).forEach((msg: any) => {
         if (!lastMsgMap[msg.conversation_id]) {
           lastMsgMap[msg.conversation_id] = msg;
@@ -71,105 +101,233 @@ export function useConversations() {
         }
       });
 
-      // 5. Build result (skip conversations pointing to non-user UUIDs)
-      const result: Conversation[] = convos
-        .map((c: any) => {
-          const otherId = c.user1_id === user.id ? c.user2_id : c.user1_id;
-          const profile = profileMap[otherId];
-          if (!profile?.user_id) return null;
+      // 4. Assembler le résultat
+      const result: Conversation[] = convos.map((c: any) => {
+        const otherId = c.user1_id === user.id ? c.user2_id : c.user1_id;
+        const profile = profileMap[otherId];
+        const lastMsg = lastMsgMap[c.id];
+        const unreadCount = unreadMap[c.id] || 0;
 
-          const lastMsg = lastMsgMap[c.id];
-          const unreadCount = unreadMap[c.id] || 0;
+        return {
+          id: c.id,
+          otherUserId: otherId,
+          otherUserName: profile?.full_name || "Utilisateur",
+          otherUserAvatar: profile?.avatar_url || null,
+          lastMessage: lastMsg?.content || null,
+          lastMessageAt: lastMsg?.created_at || c.last_message_at || c.created_at,
+          unreadCount,
+        };
+      });
 
-          return {
-            id: c.id,
-            otherUserId: otherId,
-            otherUserName: profile?.full_name || "Utilisateur",
-            otherUserAvatar: profile?.avatar_url || null,
-            lastMessage: lastMsg?.content || null,
-            lastMessageAt: lastMsg?.created_at || c.created_at,
-            unreadCount,
-          };
-        })
-        .filter((c): c is Conversation => c !== null);
+      const totalUnreadCount = result.reduce((sum, convo) => sum + convo.unreadCount, 0);
 
-      const totalUnreadCount = result.reduce((sum, c) => sum + c.unreadCount, 0);
-      setConversations(result);
-      setTotalUnread(totalUnreadCount);
+      if (isMounted.current) {
+        setConversations(result);
+        setTotalUnread(totalUnreadCount);
+        setLoading(false);
+      }
     } catch (err) {
       console.error("fetchConversations error:", err);
-    } finally {
-      setLoading(false);
+      toast.error("Impossible de charger les conversations");
+      if (isMounted.current) setLoading(false);
     }
   }, [user]);
 
-  useEffect(() => { fetchConversations(); }, [fetchConversations]);
+  useEffect(() => {
+    void fetchConversations();
+  }, [fetchConversations]);
 
-  // Realtime subscription
+  // ─── REALTIME : mise à jour légère sans refetch complet ──────────────────
   useEffect(() => {
     if (!user) return;
+
     const channel = supabase
-      .channel("dm-updates")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => {
-        fetchConversations();
-      })
+      .channel("dm-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const msg = payload.new as any;
+          let foundConversation = false;
+
+          setConversations((prev) => {
+            const next = prev
+              .map((conversation) => {
+                if (conversation.id !== msg.conversation_id) return conversation;
+                foundConversation = true;
+                const isFromOther = msg.sender_id !== user.id;
+                return {
+                  ...conversation,
+                  lastMessage: msg.content,
+                  lastMessageAt: msg.created_at,
+                  unreadCount: isFromOther
+                    ? conversation.unreadCount + 1
+                    : conversation.unreadCount,
+                };
+              })
+              .sort(
+                (a, b) =>
+                  new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+              );
+
+            return next;
+          });
+
+          if (!foundConversation) {
+            void fetchConversations();
+            return;
+          }
+
+          if (msg.sender_id !== user.id) {
+            setTotalUnread((prev) => prev + 1);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages" },
+        (payload) => {
+          const msg = payload.new as any;
+          if (msg?.is_read) {
+            setConversations((prev) =>
+              prev.map((conversation) => {
+                if (conversation.id !== msg.conversation_id) return conversation;
+                return {
+                  ...conversation,
+                  unreadCount: Math.max(
+                    0,
+                    msg.sender_id !== user.id
+                      ? conversation.unreadCount - 1
+                      : conversation.unreadCount
+                  ),
+                };
+              })
+            );
+
+            if (msg.sender_id !== user.id) {
+              setTotalUnread((prev) => Math.max(0, prev - 1));
+            }
+          }
+        }
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, fetchConversations]);
 
-  const startConversation = useCallback(async (otherUserId: string) => {
-    if (!user) return null;
+  // ─── DÉMARRER UNE CONVERSATION ───────────────────────────────────────────
+  const startConversation = useCallback(
+    async (otherUserId: string): Promise<string | null> => {
+      if (!user) return null;
 
-    const targetId = (otherUserId || "").trim();
-    if (!targetId || targetId === user.id) return null;
+      const targetId = (otherUserId || "").trim();
+      if (!targetId || targetId === user.id) return null;
 
-    // Ensure destination is a real app user profile
-    const { data: targetProfileRaw } = await supabase
-      .from("profiles_public" as any)
-      .select("user_id")
-      .eq("user_id", targetId)
-      .maybeSingle();
+      try {
+        // Vérifier que la cible existe bien dans les profils publics
+        const { data: targetProfileRaw, error: targetError } = await supabase
+          .from("profiles_public" as any)
+          .select("user_id")
+          .eq("user_id", targetId)
+          .maybeSingle();
 
-    const targetProfile = targetProfileRaw as unknown as { user_id: string } | null;
-    if (!targetProfile?.user_id) return null;
+        if (targetError) throw targetError;
+        const targetProfile = targetProfileRaw as unknown as { user_id: string } | null;
+        if (!targetProfile?.user_id) return null;
 
-    // Check if conversation exists (robust to duplicates)
-    const { data: existingRows, error: existingError } = await supabase
-      .from("conversations")
-      .select("id, created_at")
-      .or(`and(user1_id.eq.${user.id},user2_id.eq.${targetId}),and(user1_id.eq.${targetId},user2_id.eq.${user.id})`)
-      .order("created_at", { ascending: false })
-      .limit(1);
+        // Vérifier si existe déjà
+        const { data: existing, error: existingError } = await supabase
+          .from("conversations")
+          .select("id")
+          .or(
+            `and(user1_id.eq.${user.id},user2_id.eq.${targetId}),` +
+              `and(user1_id.eq.${targetId},user2_id.eq.${user.id})`
+          )
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-    if (existingError) throw existingError;
-    if (existingRows && existingRows.length > 0) return existingRows[0].id;
+        if (existingError) throw existingError;
+        if (existing?.id) return existing.id;
 
-    // Create new conversation (ensure user1_id < user2_id for deterministic pair ordering)
-    const [u1, u2] = user.id < targetId ? [user.id, targetId] : [targetId, user.id];
-    const { data: newConvo, error: insertError } = await supabase
-      .from("conversations")
-      .insert({ user1_id: u1, user2_id: u2 } as any)
-      .select("id")
-      .single();
+        // Créer (user1_id < user2_id pour unicité)
+        const [u1, u2] = user.id < targetId ? [user.id, targetId] : [targetId, user.id];
 
-    if (insertError) {
-      // Retry read in case of race
-      const { data: retryRows } = await supabase
-        .from("conversations")
-        .select("id")
-        .or(`and(user1_id.eq.${user.id},user2_id.eq.${targetId}),and(user1_id.eq.${targetId},user2_id.eq.${user.id})`)
-        .limit(1);
-      if (retryRows && retryRows.length > 0) return retryRows[0].id;
-      throw insertError;
-    }
+        const { data: newConvo, error: insertError } = await supabase
+          .from("conversations")
+          .insert({ user1_id: u1, user2_id: u2 } as any)
+          .select("id")
+          .maybeSingle();
 
-    if (newConvo) {
-      fetchConversations();
-      return newConvo.id;
-    }
+        if (insertError) {
+          // race condition fallback
+          const { data: retry, error: retryError } = await supabase
+            .from("conversations")
+            .select("id")
+            .or(
+              `and(user1_id.eq.${user.id},user2_id.eq.${targetId}),` +
+                `and(user1_id.eq.${targetId},user2_id.eq.${user.id})`
+            )
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-    return null;
-  }, [user, fetchConversations]);
+          if (retryError) throw retryError;
+          if (retry?.id) return retry.id;
+          throw insertError;
+        }
 
-  return { conversations, loading, totalUnread, fetchConversations, startConversation };
+        if (newConvo?.id) {
+          void fetchConversations();
+          return newConvo.id;
+        }
+
+        return null;
+      } catch (err) {
+        console.error("startConversation error:", err);
+        toast.error("Impossible de démarrer la conversation");
+        return null;
+      }
+    },
+    [user, fetchConversations]
+  );
+
+  // ─── MARQUER TOUT LU ─────────────────────────────────────────────────────
+  const markConversationRead = useCallback(
+    async (conversationId: string) => {
+      if (!user) return;
+      try {
+        const unreadBefore = conversations.find((c) => c.id === conversationId)?.unreadCount || 0;
+
+        const { error } = await supabase
+          .from("messages")
+          .update({ is_read: true })
+          .eq("conversation_id", conversationId)
+          .neq("sender_id", user.id)
+          .eq("is_read", false);
+
+        if (error) throw error;
+
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c))
+        );
+        setTotalUnread((prev) => Math.max(0, prev - unreadBefore));
+      } catch (err) {
+        console.error("markConversationRead error:", err);
+        toast.error("Impossible de marquer la conversation comme lue");
+      }
+    },
+    [user, conversations]
+  );
+
+  return {
+    conversations,
+    loading,
+    totalUnread,
+    fetchConversations,
+    startConversation,
+    markConversationRead,
+  };
 }
