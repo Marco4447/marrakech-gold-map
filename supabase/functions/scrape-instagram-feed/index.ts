@@ -115,7 +115,7 @@ async function scrapeWithFirecrawlSearch(handle: string, placeName: string, apiK
       const itemMarkdown = item.markdown || '';
 
       const imgRegex = /https:\/\/(?:scontent[^\s"')]+|cdninstagram[^\s"')]+)\.(?:jpg|jpeg|png|webp)(?:\?[^\s"')]*)?/g;
-      let match;
+      let match: RegExpExecArray | null;
       while ((match = imgRegex.exec(itemMarkdown)) !== null) {
         const imgUrl = match[0];
         if (!imgUrl.includes('150x150') && !imgUrl.includes('44x44')) {
