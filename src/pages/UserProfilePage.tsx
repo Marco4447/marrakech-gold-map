@@ -376,15 +376,7 @@ export default function UserProfilePage() {
               </button>
             )}
             <button
-              onClick={() => {
-                if (profile.user_id) {
-                  handleSendMessage();
-                } else if (isOfficialProfileRoute && placeId) {
-                  navigate(`/place/${placeId}`);
-                } else {
-                  toast.error("Contact indisponible");
-                }
-              }}
+              onClick={handleSendMessage}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
             >
               Contacter
