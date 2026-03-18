@@ -71,23 +71,27 @@ export function useConversations() {
         }
       });
 
-      // 5. Build result
-      const result: Conversation[] = convos.map((c: any) => {
-        const otherId = c.user1_id === user.id ? c.user2_id : c.user1_id;
-        const profile = profileMap[otherId];
-        const lastMsg = lastMsgMap[c.id];
-        const unreadCount = unreadMap[c.id] || 0;
+      // 5. Build result (skip conversations pointing to non-user UUIDs)
+      const result: Conversation[] = convos
+        .map((c: any) => {
+          const otherId = c.user1_id === user.id ? c.user2_id : c.user1_id;
+          const profile = profileMap[otherId];
+          if (!profile?.user_id) return null;
 
-        return {
-          id: c.id,
-          otherUserId: otherId,
-          otherUserName: profile?.full_name || "Utilisateur",
-          otherUserAvatar: profile?.avatar_url || null,
-          lastMessage: lastMsg?.content || null,
-          lastMessageAt: lastMsg?.created_at || c.created_at,
-          unreadCount,
-        };
-      });
+          const lastMsg = lastMsgMap[c.id];
+          const unreadCount = unreadMap[c.id] || 0;
+
+          return {
+            id: c.id,
+            otherUserId: otherId,
+            otherUserName: profile?.full_name || "Utilisateur",
+            otherUserAvatar: profile?.avatar_url || null,
+            lastMessage: lastMsg?.content || null,
+            lastMessageAt: lastMsg?.created_at || c.created_at,
+            unreadCount,
+          };
+        })
+        .filter((c): c is Conversation => c !== null);
 
       const totalUnreadCount = result.reduce((sum, c) => sum + c.unreadCount, 0);
       setConversations(result);
@@ -116,27 +120,53 @@ export function useConversations() {
   const startConversation = useCallback(async (otherUserId: string) => {
     if (!user) return null;
 
-    // Check if conversation exists
-    const { data: existing } = await supabase
-      .from("conversations")
-      .select("id")
-      .or(`and(user1_id.eq.${user.id},user2_id.eq.${otherUserId}),and(user1_id.eq.${otherUserId},user2_id.eq.${user.id})`)
+    const targetId = (otherUserId || "").trim();
+    if (!targetId || targetId === user.id) return null;
+
+    // Ensure destination is a real app user profile
+    const { data: targetProfile } = await supabase
+      .from("profiles_public" as any)
+      .select("user_id")
+      .eq("user_id", targetId)
       .maybeSingle();
 
-    if (existing) return existing.id;
+    if (!targetProfile?.user_id) return null;
 
-    // Create new conversation (ensure user1_id < user2_id for uniqueness)
-    const [u1, u2] = user.id < otherUserId ? [user.id, otherUserId] : [otherUserId, user.id];
-    const { data: newConvo } = await supabase
+    // Check if conversation exists (robust to duplicates)
+    const { data: existingRows, error: existingError } = await supabase
+      .from("conversations")
+      .select("id, created_at")
+      .or(`and(user1_id.eq.${user.id},user2_id.eq.${targetId}),and(user1_id.eq.${targetId},user2_id.eq.${user.id})`)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (existingError) throw existingError;
+    if (existingRows && existingRows.length > 0) return existingRows[0].id;
+
+    // Create new conversation (ensure user1_id < user2_id for deterministic pair ordering)
+    const [u1, u2] = user.id < targetId ? [user.id, targetId] : [targetId, user.id];
+    const { data: newConvo, error: insertError } = await supabase
       .from("conversations")
       .insert({ user1_id: u1, user2_id: u2 } as any)
       .select("id")
       .single();
 
+    if (insertError) {
+      // Retry read in case of race
+      const { data: retryRows } = await supabase
+        .from("conversations")
+        .select("id")
+        .or(`and(user1_id.eq.${user.id},user2_id.eq.${targetId}),and(user1_id.eq.${targetId},user2_id.eq.${user.id})`)
+        .limit(1);
+      if (retryRows && retryRows.length > 0) return retryRows[0].id;
+      throw insertError;
+    }
+
     if (newConvo) {
       fetchConversations();
       return newConvo.id;
     }
+
     return null;
   }, [user, fetchConversations]);
 

@@ -412,27 +412,40 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
     }, 300);
   }, [user]);
 
-  const handleStartChat = async (otherUserId: string, profile?: any) => {
+  const handleStartChat = useCallback(async (otherUserId: string, profile?: any) => {
+    if (!user) {
+      toast("Connecte-toi pour envoyer un message");
+      return;
+    }
+
+    if (!otherUserId || otherUserId === user.id) {
+      toast.error("Utilisateur invalide");
+      return;
+    }
+
     try {
       const convoId = await startConversation(otherUserId);
-      if (convoId) {
-        const p = profile || searchResults.find((r: any) => r.user_id === otherUserId);
-        setActiveConvo({
-          id: convoId,
-          otherUserId,
-          otherUserName: p?.full_name || "Utilisateur",
-          otherUserAvatar: p?.avatar_url || null,
-          lastMessage: null,
-          lastMessageAt: new Date().toISOString(),
-          unreadCount: 0,
-        });
-        setSearchQuery("");
-        setSearchResults([]);
+      if (!convoId) {
+        toast.error("Ce compte ne peut pas être contacté pour le moment");
+        return;
       }
+
+      const p = profile || searchResults.find((r: any) => r.user_id === otherUserId);
+      setActiveConvo({
+        id: convoId,
+        otherUserId,
+        otherUserName: p?.full_name || "Utilisateur",
+        otherUserAvatar: p?.avatar_url || null,
+        lastMessage: null,
+        lastMessageAt: new Date().toISOString(),
+        unreadCount: 0,
+      });
+      setSearchQuery("");
+      setSearchResults([]);
     } catch {
       toast.error("Impossible de démarrer la conversation");
     }
-  };
+  }, [user, startConversation, searchResults]);
 
   // Listen for external "open DM" event (from profile)
   // Use refs to avoid duplicate processing
