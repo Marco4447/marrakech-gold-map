@@ -25,6 +25,7 @@ interface UserVibe {
   likes: number;
   created_at: string;
   media_type: string;
+  user_id?: string | null;
   username?: string | null;
   location?: string | null;
 }
