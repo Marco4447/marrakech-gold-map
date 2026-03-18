@@ -472,7 +472,8 @@ export default function UserProfilePage() {
             <div className="px-5 mt-2">
               <BlockUserButton targetUserId={profile.user_id} targetName={profile.full_name || undefined} />
             </div>
-          )}
+           )}
+          </>
         )}
 
         {isMe && (
