@@ -148,16 +148,27 @@ const Index = () => {
     );
   }
 
-  // Messages overlay
-  if (showMessages && user) {
-    return (
-      <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-hidden">
-          <MessagesPage onBack={() => setShowMessages(false)} />
-        </div>
+  // Messages overlay — rendered as a layer on top, with BottomNav still accessible
+  const messagesOverlay = showMessages && user ? (
+    <div className="fixed inset-0 z-[2000] bg-background flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-hidden pb-16">
+        <MessagesPage onBack={() => setShowMessages(false)} />
       </div>
-    );
-  }
+      <div className="fixed bottom-0 left-0 right-0 z-[2001]">
+        <BottomNav
+          active={activeTab}
+          onChange={(tab) => {
+            setShowMessages(false);
+            analytics.tabChange(tab);
+            setActiveTab(tab);
+          }}
+          onCreatePress={() => { setShowMessages(false); setShowFlashPost(true); }}
+          onMessagesPress={() => { /* already showing */ }}
+          unreadMessages={unreadMessages}
+        />
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div className="h-[100dvh] w-full bg-background flex overflow-hidden">
@@ -314,6 +325,7 @@ const Index = () => {
           onGoToTab={(tab: string) => setActiveTab(tab as Tab)}
         />
       )}
+      {messagesOverlay}
     </div>
   );
 };
