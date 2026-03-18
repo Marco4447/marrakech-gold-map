@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Loader2, ExternalLink, Copy, Check, Mail, MapPin, Flame, Users, Star, Utensils, Moon, Gem, Compass } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +48,7 @@ export default function GoPage() {
   const [testimonialIdx, setTestimonialIdx] = useState(0);
   const [copied, setCopied] = useState(false);
   const { lang, t } = useLanguage();
+  const shouldReduceMotion = useReducedMotion();
 
   // Redirect authenticated users
   useEffect(() => {
@@ -116,9 +117,10 @@ export default function GoPage() {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => setTestimonialIdx((i) => (i + 1) % TESTIMONIALS.length), 3000);
+    if (shouldReduceMotion) return;
+    const interval = setInterval(() => setTestimonialIdx((i) => (i + 1) % TESTIMONIALS.length), 6000);
     return () => clearInterval(interval);
-  }, []);
+  }, [shouldReduceMotion]);
 
   const handleOpenInBrowser = () => { trackEvent("go_open_external_browser", { browser: isTikTok ? "tiktok" : "other" }); redirectToExternalBrowser(); };
   const handleCopyLink = async () => {
@@ -198,8 +200,8 @@ export default function GoPage() {
 
         {/* Rotating testimonial */}
         <div className="flex items-center justify-center gap-2 mt-4 min-h-[20px]">
-          <AnimatePresence mode="wait">
-            <motion.div key={testimonialIdx} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div key={testimonialIdx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
               className="flex items-center gap-1.5">
               <span className="text-sm">{TESTIMONIALS[testimonialIdx].flag}</span>
               <span className="text-[11px] text-muted-foreground italic">"{TESTIMONIALS[testimonialIdx].text[lang]}"</span>
