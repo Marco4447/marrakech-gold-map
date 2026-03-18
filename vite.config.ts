@@ -34,9 +34,11 @@ export default defineConfig(({ mode }) => ({
       manifest: false,
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        globPatterns: ["**/*.{js,css,html,ico,svg,webp}"],
-        globIgnores: ["**/*.{png,jpg,jpeg,mp4}"],
+        globPatterns: ["**/*.{js,css,ico,svg,webp}"],
+        globIgnores: ["**/*.{png,jpg,jpeg,mp4,html}"],
         navigationPreload: false,
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
           {
