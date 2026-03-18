@@ -246,12 +246,15 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const deviceId = getDeviceId();
   const userId = user?.id;
   const userLocation = useUserLocation();
-  const energyMap = computeEnergyScores(vibes);
+  const energyMap = useMemo(() => computeEnergyScores(vibes), [vibes]);
 
-  const userVibeCounts: Record<string, number> = {};
-  vibes.forEach((v) => {
-    if (v.user_id) userVibeCounts[v.user_id] = (userVibeCounts[v.user_id] || 0) + 1;
-  });
+  const userVibeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    vibes.forEach((v) => {
+      if (v.user_id) counts[v.user_id] = (counts[v.user_id] || 0) + 1;
+    });
+    return counts;
+  }, [vibes]);
 
   const handleDoubleTap = (vibeId: string) => {
     const now = Date.now();
@@ -403,7 +406,9 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   };
 
   // Feed ranking using the new algorithm
-  const top3Vibes = [...vibes].filter(v => !v.is_official && getScore(v) > 0).sort((a, b) => getScore(b) - getScore(a)).slice(0, 3);
+  const top3Vibes = useMemo(() =>
+    [...vibes].filter(v => !v.is_official && getScore(v) > 0).sort((a, b) => getScore(b) - getScore(a)).slice(0, 3),
+    [vibes]);
 
   // Create scoring context for the algorithm
   const scoringContext = useMemo(() => createScoringContext({

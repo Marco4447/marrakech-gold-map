@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MessageCircle, CheckCircle, XCircle, Loader2, Link2, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logAdminAction } from "@/lib/auditLog";
 
 type PartnerRequest = { id: string; business_name: string; category: string; offer_description: string; whatsapp_number: string; status: string; created_at: string; user_id: string | null };
 
@@ -71,6 +72,7 @@ export default function AdminRequestsTab({ partnerRequests, setPartnerRequests, 
       } else {
         toast.success(`${req.business_name} rejeté`);
       }
+      logAdminAction({ action: newStatus === "approved" ? "approve_partner" : "reject_partner", targetTable: "partner_requests", targetId: req.id, oldValue: { status: req.status }, newValue: { status: newStatus }, metadata: { business_name: req.business_name, place_id: requestPlaceIds[req.id] || null } });
       setPartnerRequests((prev) => prev.map((r) => (r.id === req.id ? { ...r, status: newStatus } : r)));
     } catch (err) {
       console.error("Status update error:", err);

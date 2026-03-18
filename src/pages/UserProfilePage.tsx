@@ -8,6 +8,7 @@ import { useFollows } from "@/hooks/useFollows";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import FollowButton from "@/components/FollowButton";
 import FollowListSheet from "@/components/FollowListSheet";
+import BlockUserButton from "@/components/BlockUserButton";
 import { toast } from "sonner";
 
 interface PublicProfile {
@@ -466,6 +467,11 @@ export default function UserProfilePage() {
               Contacter
             </button>
           </div>
+          {profile.user_id && user && user.id !== profile.user_id && (
+            <div className="px-5 mt-2">
+              <BlockUserButton targetUserId={profile.user_id} targetName={profile.full_name || undefined} />
+            </div>
+          )}
         )}
 
         {isMe && (

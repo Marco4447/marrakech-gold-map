@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Trash2, Star, Eye, EyeOff, Upload, Image, Video } from "lucide-react";
 import { timeAgo } from "@/lib/timeAgo";
+import { logAdminAction } from "@/lib/auditLog";
 
 interface AdminStory {
   id: string;
@@ -49,13 +50,17 @@ export default function AdminStoriesManager() {
   useEffect(() => { fetchAll(); }, []);
 
   const handleToggleHidden = async (story: AdminStory) => {
-    await supabase.from("stories" as any).update({ is_hidden: !story.is_hidden } as any).eq("id", story.id);
+    const newHidden = !story.is_hidden;
+    await supabase.from("stories" as any).update({ is_hidden: newHidden } as any).eq("id", story.id);
+    logAdminAction({ action: newHidden ? "hide_story" : "show_story", targetTable: "stories", targetId: story.id, oldValue: { is_hidden: story.is_hidden }, newValue: { is_hidden: newHidden } });
     toast.success(story.is_hidden ? "Story visible" : "Story masquée");
     fetchAll();
   };
 
   const handleToggleFeatured = async (story: AdminStory) => {
-    await supabase.from("stories" as any).update({ is_featured: !story.is_featured } as any).eq("id", story.id);
+    const newFeatured = !story.is_featured;
+    await supabase.from("stories" as any).update({ is_featured: newFeatured } as any).eq("id", story.id);
+    logAdminAction({ action: newFeatured ? "feature_story" : "unfeature_story", targetTable: "stories", targetId: story.id, oldValue: { is_featured: story.is_featured }, newValue: { is_featured: newFeatured } });
     toast.success(story.is_featured ? "Retirée de la une" : "Mise en avant !");
     fetchAll();
   };

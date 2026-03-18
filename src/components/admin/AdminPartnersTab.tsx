@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Users, CreditCard, ArrowLeft, MessageCircle, Pencil, Loader2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logAdminAction } from "@/lib/auditLog";
 import { downloadPartnerCsvTemplate } from "@/lib/downloadPartnerCsvTemplate";
 import { timeAgo } from "@/lib/timeAgo";
 
@@ -75,8 +76,10 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
                       setSavingCredits(true);
                       try {
                         const newCredits = parseInt(creditValue) || 0;
+                        const oldCredits = selectedPartner.credits;
                         const { error } = await supabase.from("partner_credits").update({ credits: newCredits } as any).eq("user_id", selectedPartner.user_id);
                         if (error) throw error;
+                        logAdminAction({ action: "update_credits", targetTable: "partner_credits", targetId: selectedPartner.user_id, oldValue: { credits: oldCredits }, newValue: { credits: newCredits }, metadata: { partner_name: selectedPartner.full_name } });
                         setSelectedPartner({ ...selectedPartner, credits: newCredits });
                         if (stats) {
                           setStats({ ...stats, partners: stats.partners.map(p => p.user_id === selectedPartner.user_id ? { ...p, credits: newCredits } : p) });

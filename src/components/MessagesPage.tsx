@@ -28,6 +28,8 @@ interface Message {
   content: string;
   created_at: string;
   is_read: boolean;
+  media_url?: string | null;
+  media_type?: string | null;
 }
 
 interface SearchProfile {
@@ -94,6 +96,10 @@ function ChatView({
   const [loadingMore, setLoadingMore] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const PAGE_SIZE = 30;
@@ -245,11 +251,36 @@ function ChatView({
     };
   }, [conversation.id, user]);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image trop lourde (max 5 Mo)"); return; }
+    setSelectedImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `dm/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("vibes_media").upload(path, file);
+    if (error) { console.error("Upload error:", error); return null; }
+    const { data: { publicUrl } } = supabase.storage.from("vibes_media").getPublicUrl(path);
+    return publicUrl;
+  };
+
   const handleSend = async () => {
-    if (!newMessage.trim() || !user || sending) return;
+    if ((!newMessage.trim() && !selectedImage) || !user || sending) return;
 
     const content = newMessage.trim();
+    const imageToUpload = selectedImage;
     setNewMessage("");
+    clearImage();
     setSending(true);
 
     const tempId = `temp-${Date.now()}`;
@@ -259,6 +290,8 @@ function ChatView({
       content,
       created_at: new Date().toISOString(),
       is_read: false,
+      media_url: imagePreview,
+      media_type: imageToUpload ? "image" : null,
     };
 
     setMessages((prev) => [...prev, tempMessage]);
@@ -269,12 +302,24 @@ function ChatView({
     }, 40);
 
     try {
+      let mediaUrl: string | null = null;
+      let mediaType: string | null = null;
+
+      if (imageToUpload) {
+        setUploading(true);
+        mediaUrl = await uploadImage(imageToUpload);
+        setUploading(false);
+        if (!mediaUrl) { toast.error("Erreur lors de l'upload de l'image"); }
+        mediaType = mediaUrl ? "image" : null;
+      }
+
       const { data: inserted, error: insertError } = await supabase
         .from("messages")
         .insert({
           conversation_id: conversation.id,
           sender_id: user.id,
-          content,
+          content: content || (mediaUrl ? "" : content),
+          ...(mediaUrl && { media_url: mediaUrl, media_type: mediaType }),
         } as any)
         .select("*")
         .maybeSingle();
@@ -463,6 +508,15 @@ function ChatView({
                         }`}
                         style={{ borderRadius: bubbleRadius }}
                       >
+                        {message.media_url && (
+                          <img
+                            src={message.media_url}
+                            alt=""
+                            className="max-w-[200px] rounded-lg mb-1 cursor-pointer"
+                            loading="lazy"
+                            onClick={() => window.open(message.media_url!, '_blank')}
+                          />
+                        )}
                         {message.content}
                       </div>
 
@@ -489,9 +543,33 @@ function ChatView({
         ))}
       </div>
 
+      {/* ════ IMAGE PREVIEW ════ */}
+      {imagePreview && (
+        <div className="px-4 py-2 border-t border-border">
+          <div className="relative inline-block">
+            <img src={imagePreview} alt="Preview" className="h-16 rounded-lg" />
+            <button onClick={clearImage} className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[10px]">✕</button>
+          </div>
+        </div>
+      )}
+
       {/* ════ INPUT ════ */}
       <div className="border-t border-border/60 bg-background px-3 py-2.5">
         <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageSelect}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-10 h-10 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors shrink-0"
+          >
+            <ImageIcon className="w-4 h-4 text-muted-foreground" />
+          </button>
+
           <button
             className="w-9 h-9 rounded-full border border-border/60 bg-card flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
             aria-label="Emoji"
@@ -515,7 +593,7 @@ function ChatView({
           />
 
           <AnimatePresence mode="wait" initial={false}>
-            {newMessage.trim() ? (
+            {(newMessage.trim() || selectedImage) ? (
               <motion.button
                 key="send"
                 initial={{ opacity: 0, scale: 0.8 }}

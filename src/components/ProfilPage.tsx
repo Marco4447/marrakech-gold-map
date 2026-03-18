@@ -559,16 +559,30 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     
     // Fetch places matching locations or checkin IDs
     if (uniqueLocations.size > 0 || checkinPlaceIds.length > 0) {
-      let query = supabase.from("places").select("name, image_url, slug");
-      if (uniqueLocations.size > 0 && checkinPlaceIds.length > 0) {
-        query = query.or(`name.in.(${Array.from(uniqueLocations).map(n => `"${n}"`).join(",")}),id.in.(${checkinPlaceIds.join(",")})`);
-      } else if (uniqueLocations.size > 0) {
-        query = query.in("name", Array.from(uniqueLocations));
-      } else {
-        query = query.in("id", checkinPlaceIds);
+      const placeResults: typeof visitedPlaces = [];
+
+      if (uniqueLocations.size > 0) {
+        const { data: byName } = await supabase
+          .from("places")
+          .select("name, image_url, slug")
+          .in("name", Array.from(uniqueLocations))
+          .limit(50);
+        if (byName) placeResults.push(...byName);
       }
-      const { data: places } = await query.limit(50);
-      if (places) setVisitedPlaces(places);
+
+      if (checkinPlaceIds.length > 0) {
+        const { data: byId } = await supabase
+          .from("places")
+          .select("name, image_url, slug")
+          .in("id", checkinPlaceIds)
+          .limit(50);
+        if (byId) {
+          const existingNames = new Set(placeResults.map(p => p.name));
+          placeResults.push(...byId.filter(p => !existingNames.has(p.name)));
+        }
+      }
+
+      setVisitedPlaces(placeResults);
     }
 
     setLoading(false);

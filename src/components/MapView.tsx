@@ -2,6 +2,9 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceSheet from "./PlaceSheet";
 import VibeSheet from "./VibeSheet";
@@ -270,7 +273,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     }));
     const energyMap = computeEnergyScores(vibesForEnergy);
 
-    const markers: L.Marker[] = [];
     const filteredPlaces = getFilteredPlaces();
 
     // Sort places so boosted ones render last (= on top visually)
@@ -280,6 +282,22 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       if (aB && !bB) return 1;
       if (!aB && bB) return -1;
       return 0;
+    });
+
+    // Marker clustering: group nearby pins at low zoom, expand at zoom 16+
+    const clusterGroup = (L as any).markerClusterGroup({
+      maxClusterRadius: 60,
+      disableClusteringAtZoom: 16,
+      spiderfyOnMaxZoom: false,
+      showCoverageOnHover: false,
+      iconCreateFunction: (cluster: any) => {
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html: `<div style="background:hsl(43,76%,52%);color:#1a1a1a;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.2)">${count}</div>`,
+          className: "place-cluster-icon",
+          iconSize: L.point(36, 36),
+        });
+      },
     });
 
     sortedPlaces.forEach((place) => {
@@ -304,7 +322,6 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       const boosted = isBoosted(place.name);
       const zOffset = boosted ? 3000 : place.is_partner ? 2000 : isTrending ? 1000 : 0;
       const marker = L.marker([place.latitude, place.longitude], { icon, zIndexOffset: zOffset })
-        .addTo(map)
         .on("click", () => {
           if (shouldBlur) {
             L.popup({ closeButton: false, className: "guest-lock-popup", offset: [0, -10] })
@@ -318,11 +335,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           focusPlaceOnMap(place, { withSheetOffset: false, duration: 0.6 });
         });
 
-      markers.push(marker);
+      clusterGroup.addLayer(marker);
     });
 
+    map.addLayer(clusterGroup);
+
     return () => {
-      markers.forEach((m) => m.remove());
+      map.removeLayer(clusterGroup);
     };
   }, [places, trendingLocations, activeFilter, isGuest, activeVipPlaceIds, tonightMode]);
 
