@@ -235,8 +235,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const [boostedVibeIds, setBoostedVibeIds] = useState<Set<string>>(new Set());
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const [showStoryUpload, setShowStoryUpload] = useState(false);
-  const [nightOnly] = useState(false);
-  });
+  const nightOnly = false;
   const lastVisitRef = useRef<number>(parseInt(localStorage.getItem("wk_last_feed_visit") || "0"));
   const [newVibesCount, setNewVibesCount] = useState(0);
   const [showNewPill, setShowNewPill] = useState(false);
