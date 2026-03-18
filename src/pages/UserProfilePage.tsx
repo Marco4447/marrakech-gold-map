@@ -118,7 +118,7 @@ export default function UserProfilePage() {
           const primaryName = officialProfileName || officialVibes[0]?.username || officialVibes[0]?.location || "Profil officiel";
           const fetchedPlaceId = placeRes.data?.id || null;
 
-          // Find a real user_id to DM: check partner_accounts for this place, then fallback to vibe publisher
+          // Find a real user_id to DM: partner_accounts → vibe publisher → admin fallback
           let contactUserId: string | null = null;
           if (fetchedPlaceId) {
             const { data: partnerData } = await supabase
@@ -132,6 +132,16 @@ export default function UserProfilePage() {
           }
           if (!contactUserId) {
             contactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
+          }
+          // Fallback: find an admin user so messaging always works
+          if (!contactUserId) {
+            const { data: adminRole } = await supabase
+              .from("user_roles")
+              .select("user_id")
+              .eq("role", "admin")
+              .limit(1)
+              .maybeSingle();
+            contactUserId = adminRole?.user_id || null;
           }
 
           setProfile({
