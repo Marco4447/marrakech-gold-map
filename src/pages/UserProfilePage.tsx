@@ -25,6 +25,7 @@ interface UserVibe {
   likes: number;
   created_at: string;
   media_type: string;
+  user_id?: string | null;
   username?: string | null;
   location?: string | null;
 }
@@ -78,14 +79,14 @@ export default function UserProfilePage() {
           const [officialByUsernameRes, officialByLocationRes, placeRes] = await Promise.all([
             supabase
               .from("vibes")
-              .select("id, image_url, likes, caption, created_at, media_type, username, location")
+              .select("id, image_url, likes, caption, created_at, media_type, user_id, username, location")
               .eq("is_official", true)
               .eq("username", officialProfileName)
               .order("created_at", { ascending: false })
               .limit(30),
             supabase
               .from("vibes")
-              .select("id, image_url, likes, caption, created_at, media_type, username, location")
+              .select("id, image_url, likes, caption, created_at, media_type, user_id, username, location")
               .eq("is_official", true)
               .eq("location", officialProfileName)
               .order("created_at", { ascending: false })
@@ -116,9 +117,10 @@ export default function UserProfilePage() {
           }
 
           const primaryName = officialProfileName || officialVibes[0]?.username || officialVibes[0]?.location || "Profil officiel";
+          const officialContactUserId = officialVibes.find((v) => !!v.user_id)?.user_id ?? null;
 
           setProfile({
-            user_id: null,
+            user_id: officialContactUserId,
             full_name: primaryName,
             username: primaryName.toLowerCase().replace(/\s+/g, "_"),
             avatar_url: placeRes.data?.image_url || officialVibes[0]?.image_url || null,
@@ -197,16 +199,20 @@ export default function UserProfilePage() {
       return;
     }
 
-    if (!profile || !profile.user_id) {
+    const targetUserId = profile?.user_id || (isOfficialProfileRoute ? placeId : null);
+    const targetName = profile?.full_name || "Utilisateur";
+    const targetAvatar = profile?.avatar_url || null;
+
+    if (!targetUserId) {
       toast.error("Messagerie indisponible pour ce profil");
       return;
     }
 
     // Store DM target so MessagesPage can pick it up after mount
     sessionStorage.setItem("wk_pending_dm", JSON.stringify({
-      userId: profile.user_id,
-      userName: profile.full_name,
-      userAvatar: profile.avatar_url,
+      userId: targetUserId,
+      userName: targetName,
+      userAvatar: targetAvatar,
     }));
 
     // Navigate first, then dispatch after a tick so MessagesPage is mounted
@@ -214,13 +220,13 @@ export default function UserProfilePage() {
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("wk:open-dm", {
         detail: {
-          userId: profile.user_id,
-          userName: profile.full_name,
-          userAvatar: profile.avatar_url,
+          userId: targetUserId,
+          userName: targetName,
+          userAvatar: targetAvatar,
         }
       }));
     }, 100);
-  }, [user, profile, navigate]);
+  }, [user, profile, navigate, isOfficialProfileRoute, placeId]);
 
   if (loading) {
     return (
@@ -370,15 +376,7 @@ export default function UserProfilePage() {
               </button>
             )}
             <button
-              onClick={() => {
-                if (profile.user_id) {
-                  handleSendMessage();
-                } else if (isOfficialProfileRoute && placeId) {
-                  navigate(`/place/${placeId}`);
-                } else {
-                  toast.error("Contact indisponible");
-                }
-              }}
+              onClick={handleSendMessage}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
             >
               Contacter
