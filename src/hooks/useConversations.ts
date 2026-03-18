@@ -124,12 +124,13 @@ export function useConversations() {
     if (!targetId || targetId === user.id) return null;
 
     // Ensure destination is a real app user profile
-    const { data: targetProfile } = await supabase
+    const { data: targetProfileRaw } = await supabase
       .from("profiles_public" as any)
       .select("user_id")
       .eq("user_id", targetId)
       .maybeSingle();
 
+    const targetProfile = targetProfileRaw as { user_id: string } | null;
     if (!targetProfile?.user_id) return null;
 
     // Check if conversation exists (robust to duplicates)
