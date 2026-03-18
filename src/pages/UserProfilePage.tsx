@@ -219,13 +219,7 @@ export default function UserProfilePage() {
     const targetAvatar = profile?.avatar_url || null;
 
     if (!targetUserId) {
-      // No real user behind this profile — can't DM
-      if (isOfficialProfileRoute && placeId) {
-        navigate(`/place/${placeId}`);
-        toast("Retrouvez les infos de contact sur la fiche du lieu");
-      } else {
-        toast.error("Messagerie indisponible pour ce profil");
-      }
+      toast.error("Messagerie indisponible pour ce profil");
       return;
     }
 
