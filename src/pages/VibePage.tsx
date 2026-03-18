@@ -359,7 +359,7 @@ export default function VibePage() {
       )}
       {showComments && (
         <div className="px-3 pb-3">
-          <VibeComments vibeId={vibe.id} />
+          <VibeComments vibeId={vibe.id} open={showComments} onOpenChange={setShowComments} />
         </div>
       )}
 
