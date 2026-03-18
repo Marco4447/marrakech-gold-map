@@ -419,6 +419,7 @@ export default function UserProfilePage() {
 
         {/* ── Action buttons (Instagram style) ── */}
         {!isMe && (
+          <>
           <div className="flex gap-2 mt-4">
             {/* Follow button: use place_follows for official profiles, user follows for regular */}
             {isOfficialProfileRoute ? (
@@ -471,7 +472,8 @@ export default function UserProfilePage() {
             <div className="px-5 mt-2">
               <BlockUserButton targetUserId={profile.user_id} targetName={profile.full_name || undefined} />
             </div>
-          )}
+           )}
+          </>
         )}
 
         {isMe && (

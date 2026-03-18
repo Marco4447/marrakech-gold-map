@@ -150,7 +150,7 @@ export default function GoPage() {
         animatedUsers={animatedUsers}
         animatedPlaces={animatedPlaces}
         lang={lang}
-        t={t}
+        t={t as (key: string) => string}
         onCtaClick={scrollToSignup}
         isInApp={isInApp}
         isTikTok={isTikTok}
@@ -218,12 +218,12 @@ export default function GoPage() {
       </section>
 
       {/* ===== SEO SECTIONS ===== */}
-      <GoSections lang={lang} t={t} onCtaClick={scrollToSignup} />
+      <GoSections lang={lang} t={t as (key: string) => string} onCtaClick={scrollToSignup} />
 
       {/* Signup form is now in the hero */}
 
       {/* ===== FAQ ===== */}
-      <GoFAQ lang={lang} t={t} />
+      <GoFAQ lang={lang} t={t as (key: string) => string} />
 
       {/* ===== BOTTOM CTA ===== */}
       <section className="px-5 py-10 max-w-lg mx-auto text-center">
