@@ -199,16 +199,20 @@ export default function UserProfilePage() {
       return;
     }
 
-    if (!profile || !profile.user_id) {
+    const targetUserId = profile?.user_id || (isOfficialProfileRoute ? placeId : null);
+    const targetName = profile?.full_name || "Utilisateur";
+    const targetAvatar = profile?.avatar_url || null;
+
+    if (!targetUserId) {
       toast.error("Messagerie indisponible pour ce profil");
       return;
     }
 
     // Store DM target so MessagesPage can pick it up after mount
     sessionStorage.setItem("wk_pending_dm", JSON.stringify({
-      userId: profile.user_id,
-      userName: profile.full_name,
-      userAvatar: profile.avatar_url,
+      userId: targetUserId,
+      userName: targetName,
+      userAvatar: targetAvatar,
     }));
 
     // Navigate first, then dispatch after a tick so MessagesPage is mounted
@@ -216,13 +220,13 @@ export default function UserProfilePage() {
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("wk:open-dm", {
         detail: {
-          userId: profile.user_id,
-          userName: profile.full_name,
-          userAvatar: profile.avatar_url,
+          userId: targetUserId,
+          userName: targetName,
+          userAvatar: targetAvatar,
         }
       }));
     }, 100);
-  }, [user, profile, navigate]);
+  }, [user, profile, navigate, isOfficialProfileRoute, placeId]);
 
   if (loading) {
     return (
