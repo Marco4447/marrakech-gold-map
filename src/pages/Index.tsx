@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { analytics } from "@/lib/analytics";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import AppSidebar from "@/components/AppSidebar";
@@ -9,7 +9,6 @@ import FeedPage from "@/components/FeedPage";
 import DiscoverTab from "@/components/DiscoverTab";
 import ProfilPage from "@/components/ProfilPage";
 import AdminPage from "@/components/AdminPage";
-import LandingPage from "@/components/LandingPage";
 import AuthGate from "@/components/AuthGate";
 import FlashPost from "@/components/FlashPost";
 import WelcomeModal from "@/components/WelcomeModal";
@@ -25,6 +24,22 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useProximityDetection } from "@/hooks/useProximityDetection";
 import { useConversations } from "@/hooks/useConversations";
 import { Bell } from "lucide-react";
+
+const safeStorageGet = (key: string) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const safeStorageSet = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage failures
+  }
+};
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("feed");
@@ -43,33 +58,54 @@ const Index = () => {
   const { nearbyPlace, dismiss: dismissAutoVibe, markPosted: markAutoVibePosted } = useProximityDetection(user?.id);
   const { totalUnread: unreadMessages } = useConversations();
 
-  const [showLanding, setShowLanding] = useState(() => !localStorage.getItem("wk_landed"));
-  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem("wk_welcome_seen"));
+  const [showLanding, setShowLanding] = useState(() => !safeStorageGet("wk_landed"));
+  const [showWelcome, setShowWelcome] = useState(() => !safeStorageGet("wk_welcome_seen"));
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    if (!loading) { setAuthStuck(false); return; }
+    if (!loading) {
+      setAuthStuck(false);
+      return;
+    }
     const timeout = setTimeout(() => setAuthStuck(true), 4000);
     return () => clearTimeout(timeout);
   }, [loading]);
 
-  useEffect(() => { if (user && localStorage.getItem("wk_landed")) setShowLanding(false); }, [user]);
   useEffect(() => {
-    if (user && !localStorage.getItem("wk_welcome_seen")) {
-      if (showLanding) { localStorage.setItem("wk_landed", "1"); setShowLanding(false); }
-      setShowWelcome(true);
-    }
+    if (user && safeStorageGet("wk_landed")) setShowLanding(false);
   }, [user]);
 
-  const handleEnter = () => { localStorage.setItem("wk_landed", "1"); setShowLanding(false); };
+  useEffect(() => {
+    if (user && !safeStorageGet("wk_welcome_seen")) {
+      if (showLanding) {
+        safeStorageSet("wk_landed", "1");
+        setShowLanding(false);
+      }
+      setShowWelcome(true);
+    }
+  }, [user, showLanding]);
+
+  useEffect(() => {
+    if (!user && showAdmin) setShowAdmin(false);
+  }, [user, showAdmin]);
+
+  const handleEnter = () => {
+    safeStorageSet("wk_landed", "1");
+    setShowLanding(false);
+  };
 
   // Listen for guest auth redirect events from child components
   useEffect(() => {
     const handler = () => setActiveTab("profil");
     window.addEventListener("wk:goto-auth", handler);
-    const notifHandler = () => { markAllRead(); setShowNotifications(true); };
+    const notifHandler = () => {
+      markAllRead();
+      setShowNotifications(true);
+    };
     window.addEventListener("wk:open-notifications", notifHandler);
-    const dmHandler = () => { setShowMessages(true); };
+    const dmHandler = () => {
+      setShowMessages(true);
+    };
     window.addEventListener("wk:open-dm", dmHandler as EventListener);
     return () => {
       window.removeEventListener("wk:goto-auth", handler);
@@ -101,19 +137,28 @@ const Index = () => {
           setActiveTab("map");
         }
         if (placeId) setDeepLinkPlaceId(placeId);
-      } catch {}
+      } catch {
+        // Ignore malformed data
+      }
     }
   }, []);
 
   const handleWelcomeComplete = (coords: { lat: number; lng: number } | null) => {
-    setShowWelcome(false); localStorage.setItem("wk_welcome_seen", "1");
+    setShowWelcome(false);
+    safeStorageSet("wk_welcome_seen", "1");
+
     if (coords) setFlyToCoords(coords);
-    if (!localStorage.getItem("wk_onboarding_done")) {
+
+    if (!safeStorageGet("wk_onboarding_done")) {
       setTimeout(() => setShowOnboarding(true), 800);
     }
   };
 
-  const handleGoToMap = useCallback((lat: number, lng: number, placeId?: string) => { setFlyToCoords({ lat, lng }); if (placeId) setDeepLinkPlaceId(placeId); setActiveTab("map"); }, []);
+  const handleGoToMap = useCallback((lat: number, lng: number, placeId?: string) => {
+    setFlyToCoords({ lat, lng });
+    if (placeId) setDeepLinkPlaceId(placeId);
+    setActiveTab("map");
+  }, []);
 
   const isGuest = !user;
 
@@ -131,10 +176,12 @@ const Index = () => {
     return <Navigate to="/go" replace />;
   }
 
-  if (!user && showAdmin) setShowAdmin(false);
-
   if (showAdmin && user) {
-    return (<div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden"><AdminPage onBack={() => setShowAdmin(false)} /></div>);
+    return (
+      <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
+        <AdminPage onBack={() => setShowAdmin(false)} />
+      </div>
+    );
   }
 
   // Notifications overlay
@@ -142,7 +189,9 @@ const Index = () => {
     return (
       <div className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 py-3 flex items-center gap-3">
-          <button onClick={() => setShowNotifications(false)} className="text-sm font-semibold text-foreground">← Retour</button>
+          <button onClick={() => setShowNotifications(false)} className="text-sm font-semibold text-foreground">
+            ← Retour
+          </button>
         </div>
         <div className="flex-1 overflow-hidden">
           <NotificationsPage />
@@ -165,8 +214,13 @@ const Index = () => {
             analytics.tabChange(tab);
             setActiveTab(tab);
           }}
-          onCreatePress={() => { setShowMessages(false); setShowFlashPost(true); }}
-          onMessagesPress={() => { /* already showing */ }}
+          onCreatePress={() => {
+            setShowMessages(false);
+            setShowFlashPost(true);
+          }}
+          onMessagesPress={() => {
+            // already showing
+          }}
           unreadMessages={unreadMessages}
         />
       </div>
@@ -184,7 +238,10 @@ const Index = () => {
             setActiveTab(tab);
           }}
           onCreatePress={() => setShowFlashPost(true)}
-          onNotificationsPress={() => { markAllRead(); setShowNotifications(true); }}
+          onNotificationsPress={() => {
+            markAllRead();
+            setShowNotifications(true);
+          }}
           onMessagesPress={() => setShowMessages(true)}
           unreadMessages={unreadMessages}
         />
@@ -201,7 +258,14 @@ const Index = () => {
               </div>
             </div>
           )}
-          {activeTab === "map" && <MapView refreshSignal={feedRefreshSignal} flyToCoords={flyToCoords} deepLinkPlaceId={deepLinkPlaceId} isGuest={isGuest} />}
+          {activeTab === "map" && (
+            <MapView
+              refreshSignal={feedRefreshSignal}
+              flyToCoords={flyToCoords}
+              deepLinkPlaceId={deepLinkPlaceId}
+              isGuest={isGuest}
+            />
+          )}
           {/* Discover: open to guests (read-only) */}
           {activeTab === "discover" && (
             <div className="h-full flex justify-center">
@@ -221,15 +285,16 @@ const Index = () => {
               </div>
             </div>
           )}
-          {activeTab === "profil" && (
-            isGuest ? <AuthGate /> : (
+          {activeTab === "profil" &&
+            (isGuest ? (
+              <AuthGate />
+            ) : (
               <div className="h-full flex justify-center">
                 <div className="w-full max-w-[630px] h-full">
                   <ProfilPage onClose={() => setActiveTab("feed")} />
                 </div>
               </div>
-            )
-          )}
+            ))}
         </div>
 
         {/* Guest signup banner — compact, non-blocking */}
@@ -245,7 +310,11 @@ const Index = () => {
                 <p className="text-sm font-bold text-foreground truncate">Crée ton compte gratuit</p>
                 <p className="text-[11px] text-muted-foreground">Poste, like, et débloque les avantages VIP</p>
               </div>
-              <button onClick={() => setActiveTab("profil")} className="shrink-0 px-4 py-2 rounded-xl font-bold text-xs text-primary-foreground active:scale-[0.97] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
+              <button
+                onClick={() => setActiveTab("profil")}
+                className="shrink-0 px-4 py-2 rounded-xl font-bold text-xs text-primary-foreground active:scale-[0.97] transition-transform"
+                style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+              >
                 S'inscrire
               </button>
             </div>
@@ -262,11 +331,17 @@ const Index = () => {
               setActiveTab(tab);
             }}
             onCreatePress={() => {
-              if (isGuest) { setActiveTab("profil"); return; }
+              if (isGuest) {
+                setActiveTab("profil");
+                return;
+              }
               setShowFlashPost(true);
             }}
             onMessagesPress={() => {
-              if (isGuest) { setActiveTab("profil"); return; }
+              if (isGuest) {
+                setActiveTab("profil");
+                return;
+              }
               setShowMessages(true);
             }}
             unreadMessages={unreadMessages}
@@ -277,7 +352,10 @@ const Index = () => {
       {!isGuest && (
         <FlashPost
           open={showFlashPost}
-          onClose={() => { setShowFlashPost(false); setAutoVibePlace(null); }}
+          onClose={() => {
+            setShowFlashPost(false);
+            setAutoVibePlace(null);
+          }}
           onPosted={() => {
             setFeedRefreshSignal((v) => v + 1);
             setActiveTab("feed");
@@ -306,7 +384,10 @@ const Index = () => {
       {!isGuest && (
         <div className="fixed top-4 right-4 z-[1999] flex items-center gap-2 md:hidden">
           <button
-            onClick={() => { markAllRead(); setShowNotifications(true); }}
+            onClick={() => {
+              markAllRead();
+              setShowNotifications(true);
+            }}
             className="relative w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95"
             aria-label="Notifications"
           >
@@ -318,7 +399,11 @@ const Index = () => {
             )}
           </button>
           <LanguageToggle variant="icon" />
-          <button onClick={() => setExplainerTab("insider")} className="w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95" aria-label="Info">
+          <button
+            onClick={() => setExplainerTab("insider")}
+            className="w-9 h-9 rounded-full bg-card/90 backdrop-blur-xl border border-border hover:border-gold/40 flex items-center justify-center shadow-lg shadow-black/20 transition-all active:scale-95"
+            aria-label="Info"
+          >
             <span className="text-sm">💡</span>
           </button>
         </div>
@@ -329,14 +414,18 @@ const Index = () => {
         </div>
       )}
 
-      <ExplainerSheet open={explainerTab !== null} onClose={() => setExplainerTab(null)} initialTab={explainerTab ?? "insider"} />
+      <ExplainerSheet
+        open={explainerTab !== null}
+        onClose={() => setExplainerTab(null)}
+        initialTab={explainerTab ?? "insider"}
+      />
       {!isGuest && <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />}
       {!isGuest && (
         <OnboardingTutorial
           open={showOnboarding}
           onComplete={() => setShowOnboarding(false)}
           onOpenFlashPost={() => setShowFlashPost(true)}
-          onGoToTab={(tab: string) => setActiveTab(tab as Tab)}
+          onGoToTab={(tab) => setActiveTab(tab)}
         />
       )}
       {messagesOverlay}
