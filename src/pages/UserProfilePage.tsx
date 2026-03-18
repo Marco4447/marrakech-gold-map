@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFollows } from "@/hooks/useFollows";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import FollowButton from "@/components/FollowButton";
+import FollowListSheet from "@/components/FollowListSheet";
 import { toast } from "sonner";
 
 interface PublicProfile {
