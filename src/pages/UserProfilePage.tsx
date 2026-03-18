@@ -219,7 +219,11 @@ export default function UserProfilePage() {
     const targetAvatar = profile?.avatar_url || null;
 
     if (!targetUserId) {
-      toast.error("Messagerie indisponible pour ce profil");
+      sessionStorage.removeItem("wk_pending_dm");
+      navigate("/");
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("wk:open-dm"));
+      }, 250);
       return;
     }
 
