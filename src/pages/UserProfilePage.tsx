@@ -91,7 +91,7 @@ export default function UserProfilePage() {
               .limit(30),
             supabase
               .from("places")
-              .select("image_url")
+              .select("id, image_url")
               .eq("name", officialProfileName)
               .maybeSingle(),
           ]);
