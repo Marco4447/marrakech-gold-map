@@ -91,7 +91,7 @@ export default function UserProfilePage() {
               .limit(30),
             supabase
               .from("places")
-              .select("id, image_url")
+              .select("id, image_url, instagram_handle")
               .eq("name", officialProfileName)
               .maybeSingle(),
           ]);
