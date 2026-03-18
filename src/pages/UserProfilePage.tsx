@@ -132,6 +132,7 @@ export default function UserProfilePage() {
           // Store place_id and check follow status
           const fetchedPlaceId = placeRes.data?.id || null;
           setPlaceId(fetchedPlaceId);
+          setPlaceInstagram(placeRes.data?.instagram_handle || null);
           if (fetchedPlaceId && user) {
             const { count } = await supabase
               .from("place_follows")
