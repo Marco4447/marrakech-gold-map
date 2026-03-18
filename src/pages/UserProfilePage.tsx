@@ -377,11 +377,11 @@ export default function UserProfilePage() {
               <p className="text-lg font-bold text-foreground leading-tight">{vibes.length}</p>
               <p className="text-[11px] text-muted-foreground leading-tight">publications</p>
             </button>
-            <button className="text-center">
+            <button className="text-center" onClick={() => !isOfficialProfileRoute && setFollowSheet({ open: true, mode: "followers" })}>
               <p className="text-lg font-bold text-foreground leading-tight">{followerCount}</p>
               <p className="text-[11px] text-muted-foreground leading-tight">followers</p>
             </button>
-            <button className="text-center">
+            <button className="text-center" onClick={() => !isOfficialProfileRoute && setFollowSheet({ open: true, mode: "following" })}>
               <p className="text-lg font-bold text-foreground leading-tight">{followingCount}</p>
               <p className="text-[11px] text-muted-foreground leading-tight">suivi(e)s</p>
             </button>
