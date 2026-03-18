@@ -57,6 +57,18 @@ export function useFollows() {
       } else {
         const { error } = await supabase.from("follows").insert({ follower_id: user.id, following_id: targetUserId });
         if (error) throw error;
+        // Insert in-app notification for the followed user
+        try {
+          await supabase.from("notifications" as any).insert({
+            user_id: targetUserId,
+            type: "follow",
+            title: "Nouvel abonné",
+            body: "Quelqu'un s'est abonné à toi sur Weshkech 👀",
+            vibe_id: null,
+          });
+        } catch {
+          // Silent fail — notification is not critical
+        }
       }
     } catch (err: unknown) {
       console.error("Follow toggle error:", err);

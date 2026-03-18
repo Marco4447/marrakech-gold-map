@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark, Sparkles, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import WeeklyChallenge from "./WeeklyChallenge";
 import { useFollows } from "@/hooks/useFollows";
+import FollowButton from "./FollowButton";
 import TikTokFeed from "./TikTokFeed";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { rankFeedVibes, createScoringContext, type FeedVibe } from "@/lib/feedAlgorithm";
@@ -656,7 +658,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                 >
                   {/* Header — Instagram style */}
                   <div className="flex items-center justify-between px-3 py-2.5">
-                    <div className="flex items-center gap-3 min-w-0">
+                    <Link
+                      to={vibe.user_id ? `/u/${vibe.user_id}` : "#"}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-3 min-w-0 flex-1"
+                    >
                       {getAvatarUrl(vibe) ? (
                         <img src={getAvatarUrl(vibe)!} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
                       ) : (
@@ -665,22 +671,21 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="text-[13px] font-semibold text-foreground truncate leading-tight">
+                        <p className="text-[13px] font-semibold text-foreground truncate leading-tight hover:underline">
                           {getDisplayName(vibe)}
                         </p>
                         {vibe.location && (
                           <p className="text-[11px] text-muted-foreground truncate leading-tight">{vibe.location}</p>
                         )}
                       </div>
-                    </div>
+                    </Link>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && !isFollowing(vibe.user_id) && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleFollow(vibe.user_id!); }}
-                          className="text-[13px] font-bold text-primary active:opacity-60 transition-opacity"
-                        >
-                          Suivre
-                        </button>
+                      {vibe.user_id && vibe.user_id !== userId && !vibe.is_official && (
+                        <FollowButton
+                          targetUserId={vibe.user_id}
+                          size="sm"
+                          variant="text"
+                        />
                       )}
                       <button className="p-1" onClick={(e) => {
                         e.stopPropagation();
