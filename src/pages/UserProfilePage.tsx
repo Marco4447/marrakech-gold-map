@@ -362,18 +362,8 @@ export default function UserProfilePage() {
         {/* ── Action buttons (Instagram style) ── */}
         {!isMe && (
           <div className="flex gap-2 mt-4">
-            {profile.user_id ? (
-              <div className="flex-1">
-                <FollowButton
-                  targetUserId={profile.user_id}
-                  size="lg"
-                  variant="pill"
-                  onFollowChange={(isNow) => {
-                    setFollowerCount((prev) => isNow ? prev + 1 : Math.max(0, prev - 1));
-                  }}
-                />
-              </div>
-            ) : (
+            {/* Follow button: use place_follows for official profiles, user follows for regular */}
+            {isOfficialProfileRoute ? (
               <button
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold active:scale-[0.97] transition-all ${
                   isFollowingPlace
@@ -400,7 +390,18 @@ export default function UserProfilePage() {
               >
                 {isFollowingPlace ? "Suivi ✓" : "Suivre"}
               </button>
-            )}
+            ) : profile.user_id ? (
+              <div className="flex-1">
+                <FollowButton
+                  targetUserId={profile.user_id}
+                  size="lg"
+                  variant="pill"
+                  onFollowChange={(isNow) => {
+                    setFollowerCount((prev) => isNow ? prev + 1 : Math.max(0, prev - 1));
+                  }}
+                />
+              </div>
+            ) : null}
             <button
               onClick={handleSendMessage}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
