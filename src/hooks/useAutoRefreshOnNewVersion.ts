@@ -25,6 +25,30 @@ const getCurrentModuleEntry = (): string | null => {
   }
 };
 
+const RELOAD_GUARD_KEY = "wk_reload_guard";
+const MAX_RELOADS = 2;
+const GUARD_WINDOW_MS = 30_000; // 30 seconds
+
+/** Returns true if we're allowed to reload, false if we've hit the loop limit. */
+function canReload(): boolean {
+  try {
+    const raw = sessionStorage.getItem(RELOAD_GUARD_KEY);
+    const now = Date.now();
+    if (raw) {
+      const { count, ts } = JSON.parse(raw);
+      if (now - ts < GUARD_WINDOW_MS) {
+        if (count >= MAX_RELOADS) return false;
+        sessionStorage.setItem(RELOAD_GUARD_KEY, JSON.stringify({ count: count + 1, ts }));
+        return true;
+      }
+    }
+    sessionStorage.setItem(RELOAD_GUARD_KEY, JSON.stringify({ count: 1, ts: now }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function useAutoRefreshOnNewVersion() {
   const reloadingRef = useRef(false);
 
@@ -50,6 +74,10 @@ export function useAutoRefreshOnNewVersion() {
         const currentEntry = getCurrentModuleEntry();
 
         if (latestEntry && currentEntry && latestEntry !== currentEntry) {
+          if (!canReload()) {
+            console.warn("[AutoRefresh] Reload loop detected, skipping.");
+            return;
+          }
           reloadingRef.current = true;
           window.location.reload();
         }
@@ -64,7 +92,11 @@ export function useAutoRefreshOnNewVersion() {
       }
     };
 
-    void checkForNewVersion();
+    // Delay initial check to avoid competing with SW activation
+    const initialTimeout = setTimeout(() => {
+      void checkForNewVersion();
+    }, 3000);
+
     intervalId = setInterval(() => {
       void checkForNewVersion();
     }, 45000);
@@ -72,6 +104,7 @@ export function useAutoRefreshOnNewVersion() {
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
+      clearTimeout(initialTimeout);
       if (intervalId) clearInterval(intervalId);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
