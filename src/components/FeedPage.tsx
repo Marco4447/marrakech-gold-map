@@ -659,8 +659,14 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   {/* Header — Instagram style */}
                   <div className="flex items-center justify-between px-3 py-2.5">
                     <Link
-                      to={vibe.user_id ? `/u/${vibe.user_id}` : `/u/official_${encodeURIComponent(getDisplayName(vibe))}`}
-                      onClick={(e) => e.stopPropagation()}
+                      to={vibe.is_official ? `/u/official_${encodeURIComponent(getDisplayName(vibe))}` : vibe.user_id ? `/u/${vibe.user_id}` : "#"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!vibe.is_official && !vibe.user_id) {
+                          e.preventDefault();
+                          toast.error("Profil indisponible pour cette publication");
+                        }
+                      }}
                       className="flex items-center gap-3 min-w-0 flex-1"
                     >
                       {getAvatarUrl(vibe) ? (
