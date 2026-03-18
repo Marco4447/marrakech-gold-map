@@ -219,18 +219,7 @@ export default function UserProfilePage() {
     const targetAvatar = profile?.avatar_url || null;
 
     if (!targetUserId) {
-      // Official profiles can exist without a linked user account.
-      // Open in-app messages anyway and prefill search with profile name.
-      sessionStorage.removeItem("wk_pending_dm");
-      sessionStorage.setItem("wk_open_messages", "1");
-      sessionStorage.setItem("wk_dm_prefill_name", targetName);
-      sessionStorage.removeItem("wk_flyto");
-      navigate("/");
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("wk:open-dm", {
-          detail: { userName: targetName }
-        }));
-      }, 350);
+      toast("Ce profil n'a pas encore de messagerie activée");
       return;
     }
 
