@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShieldOff, Shield, Flag } from "lucide-react";
+import { ShieldOff, Shield } from "lucide-react";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
