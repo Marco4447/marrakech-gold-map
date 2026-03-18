@@ -57,6 +57,7 @@ export default function UserProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [placeId, setPlaceId] = useState<string | null>(null);
+  const [placeInstagram, setPlaceInstagram] = useState<string | null>(null);
   const [isFollowingPlace, setIsFollowingPlace] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
 
@@ -91,7 +92,7 @@ export default function UserProfilePage() {
               .limit(30),
             supabase
               .from("places")
-              .select("id, image_url")
+              .select("id, image_url, instagram_handle")
               .eq("name", officialProfileName)
               .maybeSingle(),
           ]);
@@ -131,6 +132,7 @@ export default function UserProfilePage() {
           // Store place_id and check follow status
           const fetchedPlaceId = placeRes.data?.id || null;
           setPlaceId(fetchedPlaceId);
+          setPlaceInstagram(placeRes.data?.instagram_handle || null);
           if (fetchedPlaceId && user) {
             const { count } = await supabase
               .from("place_follows")
@@ -371,6 +373,16 @@ export default function UserProfilePage() {
             >
               {isOfficialProfileRoute ? "Voir le lieu" : "Contacter"}
             </button>
+            {isOfficialProfileRoute && placeInstagram && (
+              <a
+                href={`https://instagram.com/${placeInstagram.replace(/^@/, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
+              >
+                Contacter
+              </a>
+            )}
           </div>
         )}
 
