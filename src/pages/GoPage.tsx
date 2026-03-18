@@ -223,7 +223,7 @@ export default function GoPage() {
       {/* Signup form is now in the hero */}
 
       {/* ===== FAQ ===== */}
-      <GoFAQ lang={lang} t={t} />
+      <GoFAQ lang={lang} t={t as (key: string) => string} />
 
       {/* ===== BOTTOM CTA ===== */}
       <section className="px-5 py-10 max-w-lg mx-auto text-center">
