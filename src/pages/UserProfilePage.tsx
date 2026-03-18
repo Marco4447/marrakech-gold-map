@@ -372,6 +372,16 @@ export default function UserProfilePage() {
             >
               {isOfficialProfileRoute ? "Voir le lieu" : "Contacter"}
             </button>
+            {isOfficialProfileRoute && placeInstagram && (
+              <a
+                href={`https://instagram.com/${placeInstagram.replace(/^@/, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-card border border-border text-sm font-semibold text-foreground active:scale-[0.97] transition-all"
+              >
+                Contacter
+              </a>
+            )}
           </div>
         )}
 
