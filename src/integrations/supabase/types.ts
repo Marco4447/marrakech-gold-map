@@ -1713,21 +1713,27 @@ export type Database = {
       profiles_public: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           full_name: string | null
           is_vip: boolean | null
           user_id: string | null
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           full_name?: string | null
           is_vip?: boolean | null
           user_id?: string | null
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           full_name?: string | null
           is_vip?: boolean | null
           user_id?: string | null
+          username?: string | null
         }
         Relationships: []
       }
