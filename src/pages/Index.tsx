@@ -69,9 +69,12 @@ const Index = () => {
     window.addEventListener("wk:goto-auth", handler);
     const notifHandler = () => { markAllRead(); setShowNotifications(true); };
     window.addEventListener("wk:open-notifications", notifHandler);
+    const dmHandler = () => { setShowMessages(true); };
+    window.addEventListener("wk:open-dm", dmHandler as EventListener);
     return () => {
       window.removeEventListener("wk:goto-auth", handler);
       window.removeEventListener("wk:open-notifications", notifHandler);
+      window.removeEventListener("wk:open-dm", dmHandler as EventListener);
     };
   }, [markAllRead]);
 

@@ -202,14 +202,24 @@ export default function UserProfilePage() {
       return;
     }
 
-    window.dispatchEvent(new CustomEvent("wk:open-dm", {
-      detail: {
-        userId: profile.user_id,
-        userName: profile.full_name,
-        userAvatar: profile.avatar_url,
-      }
+    // Store DM target so MessagesPage can pick it up after mount
+    sessionStorage.setItem("wk_pending_dm", JSON.stringify({
+      userId: profile.user_id,
+      userName: profile.full_name,
+      userAvatar: profile.avatar_url,
     }));
+
+    // Navigate first, then dispatch after a tick so MessagesPage is mounted
     navigate("/");
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("wk:open-dm", {
+        detail: {
+          userId: profile.user_id,
+          userName: profile.full_name,
+          userAvatar: profile.avatar_url,
+        }
+      }));
+    }, 100);
   }, [user, profile, navigate]);
 
   if (loading) {
