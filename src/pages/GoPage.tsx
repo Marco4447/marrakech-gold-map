@@ -218,7 +218,7 @@ export default function GoPage() {
       </section>
 
       {/* ===== SEO SECTIONS ===== */}
-      <GoSections lang={lang} t={t} onCtaClick={scrollToSignup} />
+      <GoSections lang={lang} t={t as (key: string) => string} onCtaClick={scrollToSignup} />
 
       {/* Signup form is now in the hero */}
 
