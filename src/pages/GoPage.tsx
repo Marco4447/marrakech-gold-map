@@ -150,7 +150,7 @@ export default function GoPage() {
         animatedUsers={animatedUsers}
         animatedPlaces={animatedPlaces}
         lang={lang}
-        t={t}
+        t={t as (key: string) => string}
         onCtaClick={scrollToSignup}
         isInApp={isInApp}
         isTikTok={isTikTok}
