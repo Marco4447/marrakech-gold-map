@@ -141,12 +141,13 @@ export default function UserProfilePage() {
             );
 
             if (publisherIds.length > 0) {
-              const { data: publisherProfile } = await supabase
+              const { data: publisherProfileRaw } = await supabase
                 .from("profiles_public" as any)
                 .select("user_id")
                 .in("user_id", publisherIds)
                 .limit(1)
                 .maybeSingle();
+              const publisherProfile = publisherProfileRaw as { user_id: string } | null;
               contactUserId = publisherProfile?.user_id || null;
             }
           }
@@ -161,22 +162,24 @@ export default function UserProfilePage() {
               .maybeSingle();
 
             if (adminRole?.user_id) {
-              const { data: adminProfile } = await supabase
+              const { data: adminProfileRaw } = await supabase
                 .from("profiles_public" as any)
                 .select("user_id")
                 .eq("user_id", adminRole.user_id)
                 .maybeSingle();
+              const adminProfile = adminProfileRaw as { user_id: string } | null;
               contactUserId = adminProfile?.user_id || null;
             }
           }
 
           if (!contactUserId && user) {
-            const { data: fallbackProfile } = await supabase
+            const { data: fallbackProfileRaw } = await supabase
               .from("profiles_public" as any)
               .select("user_id")
               .neq("user_id", user.id)
               .limit(1)
               .maybeSingle();
+            const fallbackProfile = fallbackProfileRaw as { user_id: string } | null;
             contactUserId = fallbackProfile?.user_id || null;
           }
 
