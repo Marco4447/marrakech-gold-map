@@ -325,6 +325,7 @@ const Index = () => {
           onGoToTab={(tab: string) => setActiveTab(tab as Tab)}
         />
       )}
+      {messagesOverlay}
     </div>
   );
 };
