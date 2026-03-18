@@ -41,8 +41,6 @@ export default function StoryBubbles({ stories, onStoryPress, onAddStory }: Stor
         className="flex gap-3 overflow-x-auto no-scrollbar px-3 py-2.5 sm:px-4 sm:gap-4 cursor-grab active:cursor-grabbing"
         style={{
           WebkitOverflowScrolling: "touch",
-          scrollSnapType: "x proximity",
-          scrollBehavior: "smooth",
           msOverflowStyle: "none",
           scrollbarWidth: "none",
         }}
