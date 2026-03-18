@@ -48,12 +48,15 @@ if (import.meta.env.PROD) {
     void recoverFromStaleAssets();
   });
 
-  registerSW({
-    immediate: true,
-    onRegisterError(error) {
-      console.error("[PWA] service worker registration failed", error);
-    },
-  });
+  // Register SW after a delay so it never blocks initial page load
+  setTimeout(() => {
+    registerSW({
+      immediate: false,
+      onRegisterError(error) {
+        console.error("[PWA] service worker registration failed", error);
+      },
+    });
+  }, 5000);
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
