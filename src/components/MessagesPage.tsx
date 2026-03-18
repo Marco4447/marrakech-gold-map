@@ -323,7 +323,7 @@ function ChatView({
   const lastSentByMe = [...messages].reverse().find((m) => m.sender_id === user?.id);
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+    <div className="h-full bg-background flex flex-col">
       {/* ════ HEADER ════ */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/60 px-3 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0 flex-1">
