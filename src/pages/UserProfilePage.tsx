@@ -219,7 +219,17 @@ export default function UserProfilePage() {
     const targetAvatar = profile?.avatar_url || null;
 
     if (!targetUserId) {
-      toast("Ce profil n'a pas encore de messagerie activée");
+      // Official profiles without a linked user account — open messages with search prefilled
+      sessionStorage.removeItem("wk_pending_dm");
+      sessionStorage.setItem("wk_open_messages", "1");
+      sessionStorage.setItem("wk_dm_prefill_name", targetName);
+      sessionStorage.removeItem("wk_flyto");
+      navigate("/");
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("wk:open-dm", {
+          detail: { userName: targetName }
+        }));
+      }, 350);
       return;
     }
 
