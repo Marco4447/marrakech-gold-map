@@ -78,6 +78,14 @@ const Index = () => {
     };
   }, [markAllRead]);
 
+  // Auto-open messages if there's a pending DM from profile page navigation
+  useEffect(() => {
+    const pending = sessionStorage.getItem("wk_pending_dm");
+    if (pending && user) {
+      setShowMessages(true);
+    }
+  }, [user]);
+
   const [deepLinkPlaceId, setDeepLinkPlaceId] = useState<string | null>(null);
   useEffect(() => {
     const stored = sessionStorage.getItem("wk_flyto");
