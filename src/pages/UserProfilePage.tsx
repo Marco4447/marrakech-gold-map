@@ -145,7 +145,7 @@ export default function UserProfilePage() {
         ]);
 
         if (profileRes.data) {
-          setProfile(profileRes.data as PublicProfile);
+          setProfile(profileRes.data as unknown as PublicProfile);
         } else {
           setProfile(null);
         }
