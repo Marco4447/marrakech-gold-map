@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,svg,webp}"],
         globIgnores: ["**/*.{png,jpg,jpeg,mp4}"],
         navigationPreload: false,
+        navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/public\/.*/i,
