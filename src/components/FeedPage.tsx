@@ -20,6 +20,7 @@ import DoubleTapHeart from "./DoubleTapHeart";
 import VibeReactions, { FloatingReaction } from "./VibeReactions";
 import WeeklyChallenge from "./WeeklyChallenge";
 import { useFollows } from "@/hooks/useFollows";
+import FollowButton from "./FollowButton";
 import TikTokFeed from "./TikTokFeed";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { rankFeedVibes, createScoringContext, type FeedVibe } from "@/lib/feedAlgorithm";
