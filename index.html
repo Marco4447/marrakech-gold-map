@@ -161,21 +161,28 @@
   <body>
     <div id="root"></div>
     <script>
-      // If React hasn't mounted after 8s, show diagnostic info
+      // Collect all JS errors before React loads
+      var _bootErrors = [];
+      window.onerror = function(msg, src, line, col, err) {
+        _bootErrors.push(msg + ' at ' + src + ':' + line);
+      };
+      window.onunhandledrejection = function(e) {
+        _bootErrors.push('Promise: ' + (e.reason && e.reason.message || e.reason || 'unknown'));
+      };
+      // If React hasn't mounted after 6s, show errors
       setTimeout(function() {
         var root = document.getElementById('root');
-        if (!root || root.childElementCount === 0) {
+        if (root && root.childElementCount === 0) {
+          var errText = _bootErrors.length > 0
+            ? _bootErrors.join('\n')
+            : 'Aucune erreur JS détectée. Le module n\'a peut-être pas chargé.';
           root.innerHTML = '<div style="min-height:100dvh;width:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;font-family:system-ui;text-align:center">'
-            + '<p style="color:#D4AF37;font-size:18px;font-weight:bold">L\'app n\'a pas pu démarrer</p>'
-            + '<p style="color:#888;font-size:13px">Essayez de vider le cache ou ouvrir en navigation privée.</p>'
+            + '<p style="color:#D4AF37;font-size:18px;font-weight:bold">Erreur de démarrage</p>'
+            + '<pre style="color:#f87171;font-size:11px;max-width:90vw;overflow:auto;white-space:pre-wrap;background:#1a1a1a;padding:16px;border-radius:12px;max-height:40vh;text-align:left">' + errText.replace(/</g,'&lt;') + '</pre>'
             + '<button onclick="caches.keys().then(function(k){k.forEach(function(c){caches.delete(c)})});navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(s){s.unregister()})});localStorage.clear();sessionStorage.clear();setTimeout(function(){location.reload()},500)" style="background:linear-gradient(135deg,#BF953F,#FCF6BA,#B38728);color:#000;font-weight:bold;padding:12px 24px;border:none;border-radius:12px;cursor:pointer;font-size:14px;margin-top:8px">Nettoyer et recharger</button>'
-            + '<p id="diag" style="color:#555;font-size:10px;margin-top:12px"></p>'
             + '</div>';
-          // Show diagnostic info
-          var d = document.getElementById('diag');
-          if (d) d.textContent = 'URL: ' + location.href + ' | UA: ' + navigator.userAgent.slice(0,80);
         }
-      }, 8000);
+      }, 6000);
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
