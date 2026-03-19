@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark, Navigation, Archive, Link2, Loader2 } from "lucide-react";
+import { Settings, Heart, MapPin, LogOut, Trash2, AlertTriangle, Pencil, Check, X as XIcon, Star, ShoppingBag, Sparkles, Gift, Camera, ChevronLeft, BadgeCheck, Building2, Crown, Eye, TrendingUp, BarChart3, Bell, Users, Grid3X3, Bookmark, Navigation, Archive, Link2, Loader2, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -665,6 +665,34 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         onAvatarChanged={() => window.location.reload()}
         onProfileUpdated={refreshProfile}
       />
+
+      {/* Edit Profile + Share */}
+      <div className="flex items-center gap-2 px-5 pt-3">
+        <button
+          onClick={() => {
+            // Scroll to profile card edit area
+            const el = document.querySelector('[data-edit-profile]');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="flex-1 py-2 rounded-lg text-sm font-semibold bg-card border border-border text-foreground active:scale-[0.98] transition-transform"
+        >
+          Modifier le profil
+        </button>
+        <button
+          onClick={async () => {
+            const url = `https://weshkech.com/u/${user?.id}`;
+            if (navigator.share) {
+              try { await navigator.share({ title: 'Mon profil Weshkech', url }); } catch {}
+            } else {
+              await navigator.clipboard.writeText(url);
+              toast.success("Lien copié !");
+            }
+          }}
+          className="py-2 px-3 rounded-lg text-sm font-semibold bg-card border border-border text-foreground active:scale-[0.98] transition-transform"
+        >
+          <Share2 className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* Follow Stats */}
       <div className="flex items-center justify-center gap-8 px-5 py-3">

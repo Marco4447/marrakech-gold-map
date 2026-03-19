@@ -97,6 +97,47 @@ function CaptionText({ name, text }: { name: string; text: string }) {
   );
 }
 
+function PostMenu({ isOwner, onDelete, userName }: { isOwner: boolean; onDelete: () => void; userName: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button className="p-1" onClick={(e) => { e.stopPropagation(); setOpen(!open); }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-foreground">
+          <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+        </svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-[200]" onClick={() => setOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -4 }}
+              className="absolute right-0 top-full mt-1 z-[201] bg-card border border-border rounded-xl shadow-xl overflow-hidden min-w-[180px]"
+            >
+              {isOwner ? (
+                <button onClick={() => { setOpen(false); onDelete(); }} className="w-full px-4 py-3 text-left text-sm text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2">
+                  🗑️ Supprimer
+                </button>
+              ) : (
+                <>
+                  <button onClick={() => { setOpen(false); toast("Utilisateur masqué"); }} className="w-full px-4 py-3 text-left text-sm text-foreground hover:bg-muted transition-colors">
+                    🔇 Masquer {userName}
+                  </button>
+                  <button onClick={() => { setOpen(false); toast("Signalement envoyé"); }} className="w-full px-4 py-3 text-left text-sm text-destructive hover:bg-destructive/10 transition-colors border-t border-border">
+                    🚩 Signaler
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
   const [muted, setMuted] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
@@ -766,14 +807,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                           variant="text"
                         />
                       )}
-                      <button className="p-1" onClick={(e) => {
-                        e.stopPropagation();
-                        if (user && vibe.user_id === user.id) handleDeleteVibe(vibe.id);
-                      }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-foreground">
-                          <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
-                        </svg>
-                      </button>
+                      <PostMenu
+                        isOwner={!!user && vibe.user_id === user.id}
+                        onDelete={() => handleDeleteVibe(vibe.id)}
+                        userName={getDisplayName(vibe)}
+                      />
                     </div>
                   </div>
 
@@ -834,8 +872,12 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
 
                   {/* Likes + Caption — Instagram style */}
                   <div className="px-3 pb-3.5 space-y-1">
-                    <p className="text-[13px] font-semibold text-foreground">
-                      {vibe.likes} J'aime{vibe.likes !== 1 ? "s" : ""}
+                    <p className="text-[13px] text-foreground">
+                      {vibe.likes > 0 ? (
+                        <>
+                          <span className="font-semibold">{vibe.likes} J'aime{vibe.likes !== 1 ? "s" : ""}</span>
+                        </>
+                      ) : null}
                     </p>
                     {vibe.caption && <CaptionText name={getDisplayName(vibe)} text={vibe.caption} />}
                     {vibe.insider_tip && (

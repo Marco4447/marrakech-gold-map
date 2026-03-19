@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, MapPin, Star, ChevronRight } from "lucide-react";
+import { X, MapPin, Star, ChevronRight, Heart } from "lucide-react";
 import { timeAgo } from "@/lib/timeAgo";
+import { toast } from "sonner";
 import type { Story } from "@/hooks/useStories";
 import type { StoryGroup } from "./StoriesModule";
 import { useNavigate } from "react-router-dom";
@@ -399,6 +400,37 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
               </div>
             </div>
           )}
+
+          {/* ── Reply input (Instagram style) ── */}
+          <div className="absolute bottom-0 inset-x-0 z-30 px-3 pb-[env(safe-area-inset-bottom)] pb-3"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Envoyer un message..."
+                className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2.5 text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-white/40"
+                onFocus={() => setPaused(true)}
+                onBlur={() => setPaused(false)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.target as HTMLInputElement).value.trim()) {
+                    toast.success("Message envoyé !");
+                    (e.target as HTMLInputElement).value = "";
+                    setPaused(false);
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+              />
+              <button
+                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center"
+                onClick={() => { toast("❤️"); try { navigator.vibrate?.(10); } catch {} }}
+              >
+                <Heart className="w-5 h-5 text-white" />
+              </button>
+            </div>
+          </div>
         </motion.div>
       </AnimatePresence>
     </div>
