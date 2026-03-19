@@ -160,6 +160,29 @@
   <link rel="manifest" href="/manifest.json">
   <body>
     <div id="root"></div>
+    <script>
+      // One-time SW cleanup for users stuck with stale service workers.
+      // This runs BEFORE any module JS loads, so it works even with broken chunks.
+      (function() {
+        var KEY = 'wk_sw_purge_v7';
+        try {
+          if (localStorage.getItem(KEY)) return;
+          localStorage.setItem(KEY, '1');
+        } catch(e) { return; }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r) { r.unregister(); });
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            keys.forEach(function(k) { caches.delete(k); });
+          });
+        }
+        // Reload after cleanup — only once per version
+        setTimeout(function() { location.reload(); }, 100);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
