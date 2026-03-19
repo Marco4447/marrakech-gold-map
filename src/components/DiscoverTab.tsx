@@ -92,6 +92,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
   }, []);
 
   const handleVibeClick = useCallback((vibe: ExploreVibe) => {
+    try { navigator.vibrate?.(5); } catch {}
     if (vibe.place_id) {
       const matchById = placesById.get(vibe.place_id);
       if (matchById) {
@@ -156,10 +157,19 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
 
       {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-3 gap-[1px] px-[1px]">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="aspect-square skeleton-shimmer" />
-          ))}
+        <div>
+          {/* Skeleton pills */}
+          <div className="flex gap-2 px-4 py-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-8 w-20 rounded-full skeleton-shimmer" />
+            ))}
+          </div>
+          {/* Skeleton grid */}
+          <div className="grid grid-cols-3 gap-[1px] px-[1px]">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="aspect-square skeleton-shimmer" />
+            ))}
+          </div>
         </div>
       ) : vibes.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[50vh] text-center px-8">

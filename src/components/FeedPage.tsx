@@ -803,7 +803,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         <Share2 className="w-[24px] h-[24px] text-foreground" />
                       </button>
                     </div>
-                    <button onClick={() => toggleBookmark(vibe.id)}>
+                    <button onClick={() => { toggleBookmark(vibe.id); try { navigator.vibrate?.(5); } catch {} }}>
                       <Bookmark className={`w-[24px] h-[24px] transition-colors duration-200 ${isBookmarked(vibe.id) ? "fill-foreground text-foreground" : "text-foreground"}`} />
                     </button>
                   </div>

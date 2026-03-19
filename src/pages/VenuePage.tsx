@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { getShareUrl } from "@/lib/shareUrl";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import DealTunnel from "@/components/DealTunnel";
 import PremiumLock from "@/components/PremiumLock";
 import PartnerOfferCard from "@/components/PartnerOfferCard";
@@ -97,6 +98,13 @@ export default function VenuePage() {
 
   const [place, setPlace] = useState<PlaceData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  usePageMeta({
+    title: place ? `${place.name} — ${place.category || "Venue"}` : "Venue",
+    description: place ? `${place.name} à ${place.neighborhood || "Marrakech"}. ${place.description?.slice(0, 120) || "Découvre ce lieu sur Weshkech."}` : undefined,
+    image: place?.image_url || undefined,
+    url: slug ? `https://weshkech.com/venue/${slug}` : undefined,
+  });
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [isVip, setIsVip] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);

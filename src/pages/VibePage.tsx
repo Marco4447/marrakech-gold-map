@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { timeAgo } from "@/lib/timeAgo";
 import { getDeviceId } from "@/lib/deviceId";
 import { getShareUrl } from "@/lib/shareUrl";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import VibeComments from "@/components/VibeComments";
 import VibeExpiryBar from "@/components/VibeExpiryBar";
 import DoubleTapHeart from "@/components/DoubleTapHeart";
@@ -45,6 +46,13 @@ export default function VibePage() {
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
   const [vibe, setVibe] = useState<VibeDetail | null>(null);
+
+  usePageMeta({
+    title: vibe ? `${vibe.location || "Vibe"} par ${vibe.username || "Anonyme"}` : "Vibe",
+    description: vibe?.caption || vibe?.insider_tip || "Découvre cette vibe sur Weshkech — Marrakech en temps réel.",
+    image: vibe?.image_url || undefined,
+    url: vibe ? `https://weshkech.com/vibe/${vibe.id}` : undefined,
+  });
   const [profile, setProfile] = useState<VibeProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);

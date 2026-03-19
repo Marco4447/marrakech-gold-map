@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { analytics } from "@/lib/analytics";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import AppSidebar from "@/components/AppSidebar";
@@ -14,7 +14,7 @@ import FlashPost from "@/components/FlashPost";
 import WelcomeModal from "@/components/WelcomeModal";
 import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
-import OnboardingTutorial from "@/components/OnboardingTutorial";
+
 import NotificationsPage from "@/components/NotificationsPage";
 import AutoVibeCard from "@/components/AutoVibeCard";
 import MessagesPage from "@/components/MessagesPage";
@@ -60,7 +60,7 @@ const Index = () => {
 
   const [showLanding, setShowLanding] = useState(() => !safeStorageGet("wk_landed"));
   const [showWelcome, setShowWelcome] = useState(() => !safeStorageGet("wk_welcome_seen"));
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  // onboarding merged into WelcomeModal
 
   useEffect(() => {
     if (!loading) {
@@ -149,12 +149,7 @@ const Index = () => {
   const handleWelcomeComplete = (coords: { lat: number; lng: number } | null) => {
     setShowWelcome(false);
     safeStorageSet("wk_welcome_seen", "1");
-
     if (coords) setFlyToCoords(coords);
-
-    if (!safeStorageGet("wk_onboarding_done")) {
-      setTimeout(() => setShowOnboarding(true), 800);
-    }
   };
 
   const handleGoToMap = useCallback((lat: number, lng: number, placeId?: string) => {
@@ -214,7 +209,7 @@ const Index = () => {
           active={activeTab}
           onChange={(tab) => {
             setShowMessages(false);
-            analytics.tabChange(tab);
+            analytics.tabChange(tab); try { navigator.vibrate?.(3); } catch {}
             setActiveTab(tab);
           }}
           onCreatePress={() => {
@@ -237,7 +232,7 @@ const Index = () => {
         <AppSidebar
           active={activeTab}
           onChange={(tab) => {
-            analytics.tabChange(tab);
+            analytics.tabChange(tab); try { navigator.vibrate?.(3); } catch {}
             setActiveTab(tab);
           }}
           onCreatePress={() => setShowFlashPost(true)}
@@ -253,51 +248,58 @@ const Index = () => {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="flex-1 relative min-h-0 overflow-hidden">
-          {/* Feed: open to guests (read-only) */}
-          {activeTab === "feed" && (
-            <div className="h-full flex justify-center">
-              <div className="w-full max-w-[630px] h-full">
-                <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
-              </div>
-            </div>
-          )}
-          {activeTab === "map" && (
-            <MapView
-              refreshSignal={feedRefreshSignal}
-              flyToCoords={flyToCoords}
-              deepLinkPlaceId={deepLinkPlaceId}
-              isGuest={isGuest}
-            />
-          )}
-          {/* Discover: open to guests (read-only) */}
-          {activeTab === "discover" && (
-            <div className="h-full flex justify-center">
-              <div className="w-full max-w-[630px] h-full">
-                <DiscoverTab
-                  onGoToMap={handleGoToMap}
-                  onStartChat={(userId) => {
-                    if (!userId) return;
-                    sessionStorage.setItem("wk_open_messages", "1");
-                    sessionStorage.setItem("wk_pending_dm", JSON.stringify({ userId }));
-                    setShowMessages(true);
-                    setTimeout(() => {
-                      window.dispatchEvent(new CustomEvent("wk:open-dm", { detail: { userId } }));
-                    }, 0);
-                  }}
-                />
-              </div>
-            </div>
-          )}
-          {activeTab === "profil" &&
-            (isGuest ? (
-              <AuthGate />
-            ) : (
-              <div className="h-full flex justify-center">
+          <AnimatePresence mode="wait">
+            {/* Feed: open to guests (read-only) */}
+            {activeTab === "feed" && (
+              <motion.div key="feed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full flex justify-center">
                 <div className="w-full max-w-[630px] h-full">
-                  <ProfilPage onClose={() => setActiveTab("feed")} />
+                  <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
                 </div>
-              </div>
-            ))}
+              </motion.div>
+            )}
+            {activeTab === "map" && (
+              <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full">
+                <MapView
+                  refreshSignal={feedRefreshSignal}
+                  flyToCoords={flyToCoords}
+                  deepLinkPlaceId={deepLinkPlaceId}
+                  isGuest={isGuest}
+                />
+              </motion.div>
+            )}
+            {/* Discover: open to guests (read-only) */}
+            {activeTab === "discover" && (
+              <motion.div key="discover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full flex justify-center">
+                <div className="w-full max-w-[630px] h-full">
+                  <DiscoverTab
+                    onGoToMap={handleGoToMap}
+                    onStartChat={(userId) => {
+                      if (!userId) return;
+                      sessionStorage.setItem("wk_open_messages", "1");
+                      sessionStorage.setItem("wk_pending_dm", JSON.stringify({ userId }));
+                      setShowMessages(true);
+                      setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent("wk:open-dm", { detail: { userId } }));
+                      }, 0);
+                    }}
+                  />
+                </div>
+              </motion.div>
+            )}
+            {activeTab === "profil" && (
+              <motion.div key="profil" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full">
+                {isGuest ? (
+                  <AuthGate />
+                ) : (
+                  <div className="h-full flex justify-center">
+                    <div className="w-full max-w-[630px] h-full">
+                      <ProfilPage onClose={() => setActiveTab("feed")} />
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Guest signup banner — compact, non-blocking */}
@@ -335,7 +337,7 @@ const Index = () => {
             active={activeTab}
             onChange={(tab) => {
               if (tab === "create") return;
-              analytics.tabChange(tab);
+              analytics.tabChange(tab); try { navigator.vibrate?.(3); } catch {}
               setActiveTab(tab);
             }}
             onCreatePress={() => {
@@ -427,15 +429,7 @@ const Index = () => {
         onClose={() => setExplainerTab(null)}
         initialTab={explainerTab ?? "insider"}
       />
-      {!isGuest && <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />}
-      {!isGuest && (
-        <OnboardingTutorial
-          open={showOnboarding}
-          onComplete={() => setShowOnboarding(false)}
-          onOpenFlashPost={() => setShowFlashPost(true)}
-          onGoToTab={(tab) => setActiveTab(tab)}
-        />
-      )}
+      {!isGuest && <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} onOpenFlashPost={() => setShowFlashPost(true)} />}
       {messagesOverlay}
     </div>
   );

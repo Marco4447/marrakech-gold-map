@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { showLocalNotification, getNotificationStatus } from "@/lib/pushNotifications";
 
 interface Notification {
   id: string;
@@ -71,10 +72,12 @@ export function useNotifications() {
             return [n, ...prev].slice(0, 50);
           });
           setUnreadCount((c) => c + 1);
-          toast(n.title, {
-            description: n.body || undefined,
-            duration: 4000,
-          });
+          // In-app toast
+          toast(n.title, { description: n.body || undefined, duration: 4000 });
+          // System notification if app is in background
+          if (document.hidden && getNotificationStatus() === "granted") {
+            showLocalNotification(n.title, n.body || "");
+          }
         }
       )
       .subscribe();

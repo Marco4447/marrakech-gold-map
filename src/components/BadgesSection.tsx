@@ -95,19 +95,27 @@ export default function BadgesSection({ userId }: { userId: string }) {
     const seenSet: Set<string> = seenRaw ? new Set(JSON.parse(seenRaw)) : new Set();
 
     if (!hasInitialized.current) {
-      // First load: check for new badges since last visit
       hasInitialized.current = true;
       const newBadges = unlockedBadges.filter((b) => !seenSet.has(b.id));
       if (newBadges.length > 0 && seenRaw !== null) {
-        // Only toast if user had previously seen badges (not first ever visit)
         newBadges.forEach((badge, i) => {
           setTimeout(() => {
-            toast({
-              title: `${badge.emoji} Badge débloqué !`,
-              description: `${badge.label} — ${badge.desc}`,
-            });
+            toast({ title: `${badge.emoji} Badge débloqué !`, description: `${badge.label} — ${badge.desc}` });
+            try { navigator.vibrate?.([15, 30, 15]); } catch {}
           }, 800 + i * 1200);
         });
+
+        // Tier change notification
+        const prevUnlocked = seenSet.size;
+        const nowUnlocked = unlockedBadges.length;
+        const prevTier = getTier(prevUnlocked);
+        const newTier = getTier(nowUnlocked);
+        if (prevTier.label !== newTier.label) {
+          setTimeout(() => {
+            toast({ title: `${newTier.emoji} Nouveau rang : ${newTier.label} !`, description: "Continue comme ça, tu grimpes !" });
+            try { navigator.vibrate?.([20, 50, 20, 50, 20]); } catch {}
+          }, 800 + newBadges.length * 1200 + 500);
+        }
       }
     }
 

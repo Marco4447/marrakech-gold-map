@@ -5,6 +5,7 @@ import { Navigation, Share2, ExternalLink, Instagram } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getShareUrl } from "@/lib/shareUrl";
 import { toast } from "sonner";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import PlaceHero from "@/components/place/PlaceHero";
 import PlaceQuickTags from "@/components/place/PlaceQuickTags";
 import PlacePracticalInfo from "@/components/place/PlacePracticalInfo";
@@ -38,6 +39,13 @@ export default function PlaceDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [place, setPlace] = useState<PlaceData | null>(null);
+
+  usePageMeta({
+    title: place ? `${place.name} — ${place.category || "Spot"}` : "Spot",
+    description: place ? `${place.name} à ${place.neighborhood || "Marrakech"}. ${place.description?.slice(0, 120) || "Découvre ce spot sur Weshkech."}` : undefined,
+    image: place?.image_url || undefined,
+    url: place?.slug ? `https://weshkech.com/spot/${place.slug}` : undefined,
+  });
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
