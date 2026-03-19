@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence, type PanInfo } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { X, MapPin, Star, ChevronRight } from "lucide-react";
 import { timeAgo } from "@/lib/timeAgo";
 import type { Story } from "@/hooks/useStories";
@@ -17,8 +17,7 @@ const BADGE_COLORS: Record<string, string> = {
   INSIDER: "bg-gold",
 };
 
-const SEGMENT_DURATION = 5000; // 5s per segment — Instagram standard
-const TICK = 50;
+const SEGMENT_DURATION = 5000;
 
 interface StoryViewerProps {
   groups: StoryGroup[];
@@ -32,16 +31,16 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
   const [segmentIndex, setSegmentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [direction, setDirection] = useState(0); // -1 left, 1 right for animation
-  const [dragY, setDragY] = useState(0);
+  const [slideDirection, setSlideDirection] = useState(0);
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressRef = useRef(0);
+  const timerRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const lastTapTime = useRef(0);
-  const doubleTapRef = useRef(0);
-  const [doubleTapSignal, setDoubleTapSignal] = useState(0);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isLongPressing = useRef(false);
+
+  // Touch tracking — all gesture logic is manual for Instagram-exact behavior
+  const touchRef = useRef({ startX: 0, startY: 0, startTime: 0, moved: false });
+  const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isPaused = useRef(false);
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -50,189 +49,244 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
   const story = group?.stories[segmentIndex];
   const segmentCount = group?.stories.length ?? 0;
 
-  // Mark viewed
+  // ─── Mark viewed ───
   useEffect(() => {
     if (story) onViewed(story.id);
   }, [story?.id]);
 
-  // Auto-advance timer
-  useEffect(() => {
-    if (paused || !story) return;
+  // ─── Timer (requestAnimationFrame for smooth progress) ───
+  const startTimer = useCallback(() => {
+    progressRef.current = 0;
     setProgress(0);
-    let elapsed = 0;
-    timerRef.current = setInterval(() => {
-      elapsed += TICK;
-      setProgress(elapsed / SEGMENT_DURATION);
-      if (elapsed >= SEGMENT_DURATION) {
-        goNextSegment();
+    const start = performance.now();
+    const tick = () => {
+      if (isPaused.current) {
+        timerRef.current = requestAnimationFrame(tick);
+        return;
       }
-    }, TICK);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [groupIndex, segmentIndex, paused]);
+      const elapsed = performance.now() - start;
+      const p = Math.min(elapsed / SEGMENT_DURATION, 1);
+      progressRef.current = p;
+      setProgress(p);
+      if (p >= 1) {
+        nextSegment();
+      } else {
+        timerRef.current = requestAnimationFrame(tick);
+      }
+    };
+    timerRef.current = requestAnimationFrame(tick);
+  }, [groupIndex, segmentIndex]);
 
-  // Pause/play video in sync
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) cancelAnimationFrame(timerRef.current);
+  }, []);
+
+  useEffect(() => {
+    startTimer();
+    return stopTimer;
+  }, [groupIndex, segmentIndex, startTimer, stopTimer]);
+
+  // Sync paused ref
+  useEffect(() => { isPaused.current = paused; }, [paused]);
+
+  // Video sync
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (paused) v.pause();
-    else v.play().catch(() => {});
+    if (paused) v.pause(); else v.play().catch(() => {});
   }, [paused, story?.id]);
 
-  // Keyboard
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") goNextSegment();
-      else if (e.key === "ArrowLeft") goPrevSegment();
-      else if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [groupIndex, segmentIndex]);
-
-  // --- Navigation ---
-  const goNextSegment = useCallback(() => {
+  // ─── Navigation ───
+  const nextSegment = useCallback(() => {
     if (segmentIndex < segmentCount - 1) {
-      setSegmentIndex((i) => i + 1);
-    } else {
-      goNextGroup();
-    }
-  }, [segmentIndex, segmentCount, groupIndex, groups.length]);
-
-  const goPrevSegment = useCallback(() => {
-    if (segmentIndex > 0) {
-      setSegmentIndex((i) => i - 1);
-    } else {
-      goPrevGroup();
-    }
-  }, [segmentIndex, groupIndex]);
-
-  const goNextGroup = useCallback(() => {
-    if (groupIndex < groups.length - 1) {
-      setDirection(1);
-      setGroupIndex((i) => i + 1);
+      setSegmentIndex(i => i + 1);
+    } else if (groupIndex < groups.length - 1) {
+      setSlideDirection(1);
+      setGroupIndex(i => i + 1);
       setSegmentIndex(0);
-      setProgress(0);
+    } else {
+      onClose();
+    }
+  }, [segmentIndex, segmentCount, groupIndex, groups.length, onClose]);
+
+  const prevSegment = useCallback(() => {
+    // If we're past 20% of current segment, restart it (Instagram behavior)
+    if (progressRef.current > 0.2) {
+      stopTimer();
+      startTimer();
+      return;
+    }
+    if (segmentIndex > 0) {
+      setSegmentIndex(i => i - 1);
+    } else if (groupIndex > 0) {
+      setSlideDirection(-1);
+      setGroupIndex(i => i - 1);
+      setSegmentIndex(0);
+    }
+  }, [segmentIndex, groupIndex, stopTimer, startTimer]);
+
+  const nextGroup = useCallback(() => {
+    if (groupIndex < groups.length - 1) {
+      setSlideDirection(1);
+      setGroupIndex(i => i + 1);
+      setSegmentIndex(0);
     } else {
       onClose();
     }
   }, [groupIndex, groups.length, onClose]);
 
-  const goPrevGroup = useCallback(() => {
+  const prevGroup = useCallback(() => {
     if (groupIndex > 0) {
-      setDirection(-1);
-      setGroupIndex((i) => i - 1);
+      setSlideDirection(-1);
+      setGroupIndex(i => i - 1);
       setSegmentIndex(0);
-      setProgress(0);
     }
   }, [groupIndex]);
 
-  // --- Tap zones (left third / right third) with double-tap detection ---
-  const handleTap = (e: React.MouseEvent) => {
-    if (isLongPressing.current) return;
-    const now = Date.now();
-    if (now - lastTapTime.current < 300) {
-      e.stopPropagation();
-      doubleTapRef.current += 1;
-      setDoubleTapSignal(doubleTapRef.current);
-      lastTapTime.current = 0;
+  // ─── Touch handlers (Instagram-exact) ───
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchRef.current = { startX: t.clientX, startY: t.clientY, startTime: Date.now(), moved: false };
+
+    // Long press → pause after 500ms (Instagram uses ~500ms)
+    longPressRef.current = setTimeout(() => {
+      isPaused.current = true;
+      setPaused(true);
+      touchRef.current.moved = true; // prevent tap action
+    }, 500);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    const dx = Math.abs(t.clientX - touchRef.current.startX);
+    const dy = Math.abs(t.clientY - touchRef.current.startY);
+    if (dx > 10 || dy > 10) {
+      touchRef.current.moved = true;
+      // Cancel long press if finger moves
+      if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null; }
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Cancel long press timer
+    if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null; }
+
+    // If was paused by long press, just unpause
+    if (isPaused.current) {
+      isPaused.current = false;
+      setPaused(false);
       return;
     }
-    lastTapTime.current = now;
 
-    setTimeout(() => {
-      if (Date.now() - lastTapTime.current >= 280) {
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        if (x < rect.width / 3) goPrevSegment();
-        else goNextSegment();
-      }
-    }, 300);
-  };
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchRef.current.startX;
+    const dy = t.clientY - touchRef.current.startY;
+    const elapsed = Date.now() - touchRef.current.startTime;
 
-  // --- Long press → pause ---
-  const handlePointerDown = () => {
-    isLongPressing.current = false;
-    longPressTimer.current = setTimeout(() => {
-      isLongPressing.current = true;
-      setPaused(true);
-    }, 200);
-  };
-
-  const handlePointerUp = () => {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-    if (isLongPressing.current) {
-      setPaused(false);
-      isLongPressing.current = false;
-    }
-  };
-
-  // --- Swipe gestures (Framer Motion) ---
-  const handleDragEnd = (_: any, info: PanInfo) => {
-    const { offset, velocity } = info;
+    // Swipe detection
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
 
     // Swipe down → close
-    if (offset.y > 100 || (offset.y > 50 && velocity.y > 300)) {
+    if (dy > 80 && absDy > absDx * 1.5) {
       onClose();
       return;
     }
 
     // Swipe left → next group
-    if (offset.x < -60 || (offset.x < -30 && velocity.x < -300)) {
-      goNextGroup();
+    if (dx < -60 && absDx > absDy * 1.2) {
+      nextGroup();
       return;
     }
 
     // Swipe right → prev group
-    if (offset.x > 60 || (offset.x > 30 && velocity.x > 300)) {
-      goPrevGroup();
+    if (dx > 60 && absDx > absDy * 1.2) {
+      prevGroup();
       return;
     }
 
-    setDragY(0);
-  };
+    // Tap (no movement, short duration)
+    if (!touchRef.current.moved && elapsed < 500) {
+      const screenWidth = window.innerWidth;
+      const tapX = t.clientX;
+
+      // Left third → prev, rest → next (Instagram behavior)
+      if (tapX < screenWidth * 0.3) {
+        prevSegment();
+      } else {
+        nextSegment();
+      }
+    }
+  }, [nextSegment, prevSegment, nextGroup, prevGroup, onClose]);
+
+  // Keyboard (desktop)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") nextSegment();
+      else if (e.key === "ArrowLeft") prevSegment();
+      else if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [nextSegment, prevSegment, onClose]);
 
   if (!story || !group) return null;
 
   const badge = story.badge || (story.source_type === "admin" ? "HOT TONIGHT" : null);
 
+  // Instagram 3D cube-like slide for group transitions
+  const slideVariants = {
+    enter: (d: number) => ({
+      x: d > 0 ? "100%" : d < 0 ? "-100%" : 0,
+      scale: d === 0 ? 0.95 : 1,
+      opacity: d === 0 ? 0 : 1,
+      rotateY: d > 0 ? -15 : d < 0 ? 15 : 0,
+    }),
+    center: { x: 0, scale: 1, opacity: 1, rotateY: 0 },
+    exit: (d: number) => ({
+      x: d > 0 ? "-40%" : d < 0 ? "40%" : 0,
+      scale: 0.9,
+      opacity: 0.5,
+      rotateY: d > 0 ? 10 : d < 0 ? -10 : 0,
+    }),
+  };
+
   return (
-    <div className="fixed inset-0 z-[9999] bg-black select-none">
-      <AnimatePresence mode="popLayout">
+    <div
+      className="fixed inset-0 z-[9999] bg-black select-none overflow-hidden"
+      style={{ perspective: "1200px" }}
+    >
+      <AnimatePresence mode="popLayout" custom={slideDirection} initial={false}>
         <motion.div
-          key={`${groupIndex}-${segmentIndex}`}
-          initial={{
-            x: direction === 0 ? 0 : direction > 0 ? "100%" : "-100%",
-            opacity: direction === 0 ? 0 : 1,
-            scale: direction === 0 ? 0.95 : 1,
-          }}
-          animate={{ x: 0, opacity: 1, scale: 1 }}
-          exit={{
-            x: direction > 0 ? "-30%" : direction < 0 ? "30%" : 0,
-            opacity: 0,
-            scale: 0.95,
-          }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          key={groupIndex}
+          custom={slideDirection}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ type: "tween", duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
           className="absolute inset-0 flex flex-col bg-black"
-          drag
-          dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-          dragElastic={{ left: 0.15, right: 0.15, top: 0.3, bottom: 0.3 }}
-          onDrag={(_, info) => setDragY(info.offset.y)}
-          onDragEnd={handleDragEnd}
-          style={{ opacity: Math.max(0.4, 1 - Math.abs(dragY) / 400) }}
-          onClick={handleTap}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          // Desktop: click left/right half
+          onClick={(e) => {
+            if ("ontouchstart" in window) return; // mobile uses touch handlers
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            if (x < rect.width * 0.3) prevSegment();
+            else nextSegment();
+          }}
         >
-          {/* ── Segmented progress bars ── */}
+          {/* ── Progress bars ── */}
           <div className="flex gap-[3px] px-2 pt-[env(safe-area-inset-top)] mt-2 z-20 relative">
             {group.stories.map((_, i) => (
-              <div key={i} className="flex-1 h-[2.5px] bg-white/20 rounded-full overflow-hidden">
+              <div key={i} className="flex-1 h-[2px] bg-white/25 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-white rounded-full"
                   style={{
                     width: i < segmentIndex ? "100%" : i === segmentIndex ? `${progress * 100}%` : "0%",
-                    transition: i === segmentIndex ? "width 50ms linear" : "none",
+                    transition: i === segmentIndex ? "none" : "none",
                   }}
                 />
               </div>
@@ -240,20 +294,20 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
           </div>
 
           {/* ── Header ── */}
-          <div className="flex items-center justify-between px-3 py-2.5 z-20 relative">
+          <div className="flex items-center justify-between px-3 py-2 z-20 relative">
             <div className="flex items-center gap-2.5">
               {group.avatarUrl ? (
-                <img src={group.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover border border-white/20" />
+                <img src={group.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-white/20" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gold/30 flex items-center justify-center">
-                  <span className="text-xs font-bold text-gold">{group.name[0]}</span>
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">{group.name[0]}</span>
                 </div>
               )}
               <div>
                 <div className="flex items-center gap-1.5">
                   <p className="text-[13px] font-semibold text-white">{group.name}</p>
                   {badge && (
-                    <span className={`text-[8px] font-bold px-1.5 py-[1px] rounded-full text-white ${BADGE_COLORS[badge] || "bg-muted"}`}>
+                    <span className={`text-[8px] font-bold px-1.5 py-[1px] rounded-full text-white ${BADGE_COLORS[badge] || "bg-white/20"}`}>
                       {badge}
                     </span>
                   )}
@@ -263,20 +317,21 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); onClose(); }}
-              className="p-1.5 hover:bg-white/10 rounded-full transition-colors z-30"
+              onTouchEnd={(e) => { e.stopPropagation(); onClose(); }}
+              className="p-2 z-30"
             >
-              <X className="w-5 h-5 text-white" />
+              <X className="w-6 h-6 text-white" />
             </button>
           </div>
 
-          {/* ── Media (full screen) ── */}
+          {/* ── Media (full screen, cover like Instagram) ── */}
           <div className="flex-1 relative overflow-hidden">
             {story.media_type === "video" ? (
               <video
                 ref={videoRef}
                 key={story.id}
                 src={story.media_url}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
                 autoPlay
                 muted
                 playsInline
@@ -287,14 +342,18 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
                 key={story.id}
                 src={story.media_url}
                 alt={story.caption || ""}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             )}
 
-            {/* Caption overlay */}
+            {/* Gradient overlays */}
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-10" />
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 to-transparent pointer-events-none z-10" />
+
+            {/* Caption */}
             {story.caption && (
-              <div className="absolute bottom-24 left-4 right-16 text-center">
-                <p className="text-white text-sm font-medium drop-shadow-lg bg-black/30 backdrop-blur-sm px-4 py-2 rounded-xl inline-block max-w-full">
+              <div className="absolute bottom-20 left-4 right-16 z-20">
+                <p className="text-white text-[15px] font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-snug">
                   {story.caption}
                 </p>
               </div>
@@ -306,41 +365,21 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
               userId={user?.id}
               paused={paused}
               onPause={setPaused}
-              doubleTapSignal={doubleTapSignal}
             />
 
-            {/* Paused indicator */}
-            <AnimatePresence>
-              {paused && isLongPressing.current && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30"
-                >
-                  <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur flex items-center justify-center">
-                    <div className="w-5 h-5 border-l-[3px] border-r-[3px] border-white rounded-sm" />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Paused overlay */}
+            {paused && (
+              <div className="absolute inset-0 bg-black/10 pointer-events-none z-10" />
+            )}
           </div>
 
-          {/* ── Place info card ── */}
+          {/* ── Place card ── */}
           {story.place_id && story.place_name && (
             <div className="absolute bottom-4 left-3 right-3 z-20">
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-3 flex items-center gap-3 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (story.place_slug) {
-                    onClose();
-                    navigate(`/venue/${story.place_slug}`);
-                  }
-                }}
+              <div
+                className="bg-black/50 backdrop-blur-xl border border-white/10 rounded-2xl p-3 flex items-center gap-3"
+                onClick={(e) => { e.stopPropagation(); if (story.place_slug) { onClose(); navigate(`/venue/${story.place_slug}`); } }}
+                onTouchEnd={(e) => { e.stopPropagation(); if (story.place_slug) { onClose(); navigate(`/venue/${story.place_slug}`); } }}
               >
                 {story.avatar_url && (
                   <img src={story.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
@@ -348,41 +387,20 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white truncate">{story.place_name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    {story.place_category && (
-                      <span className="text-[10px] text-white/60 capitalize">{story.place_category}</span>
-                    )}
+                    {story.place_category && <span className="text-[10px] text-white/60 capitalize">{story.place_category}</span>}
                     {story.place_rating && (
                       <span className="flex items-center gap-0.5 text-[10px] text-gold">
                         <Star className="w-2.5 h-2.5 fill-gold" /> {story.place_rating}
                       </span>
                     )}
-                    {story.place_address && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-white/50 truncate">
-                        <MapPin className="w-2.5 h-2.5 shrink-0" /> {story.place_address.slice(0, 20)}
-                      </span>
-                    )}
                   </div>
                 </div>
-                <div className="flex-shrink-0 bg-gold rounded-full p-1.5">
-                  <ChevronRight className="w-4 h-4 text-primary-foreground" />
-                </div>
-              </motion.div>
+                <ChevronRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+              </div>
             </div>
           )}
         </motion.div>
       </AnimatePresence>
-
-      {/* Group navigation indicators (small dots) */}
-      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-30 flex gap-1">
-        {groups.length > 1 && groups.map((_, i) => (
-          <div
-            key={i}
-            className={`w-1.5 h-1.5 rounded-full transition-all ${
-              i === groupIndex ? "bg-white w-3" : "bg-white/30"
-            }`}
-          />
-        ))}
-      </div>
     </div>
   );
 }
