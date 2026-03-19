@@ -5,68 +5,37 @@ import { initErrorReporting } from "./lib/errorReporting";
 
 initErrorReporting();
 
-const BOOT_CACHE_CLEANUP_KEY = "wk_boot_cache_cleanup_v3";
+// Handle stale chunk errors gracefully (after deploys with new hashes)
+if (import.meta.env.PROD) {
+  const isDynamicImportLoadError = (reason: unknown) => {
+    if (!(reason instanceof Error)) return false;
+    const msg = reason.message.toLowerCase();
+    return (
+      msg.includes("failed to fetch dynamically imported module") ||
+      msg.includes("importing a module script failed") ||
+      msg.includes("loading chunk")
+    );
+  };
 
-const shouldRunCleanupOnce = () => {
-  try {
-    return localStorage.getItem(BOOT_CACHE_CLEANUP_KEY) !== "1";
-  } catch {
-    return false;
-  }
-};
+  const reloadOnce = () => {
+    const key = "wk_stale_reload";
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    window.location.reload();
+  };
 
-const markCleanupDone = () => {
-  try {
-    localStorage.setItem(BOOT_CACHE_CLEANUP_KEY, "1");
-  } catch {
-    // Ignore storage errors
-  }
-};
+  window.addEventListener("vite:preloadError", (e) => {
+    e.preventDefault();
+    reloadOnce();
+  });
 
-const cleanupStalePwaAssets = async (): Promise<boolean> => {
-  if (!import.meta.env.PROD) return false;
-  if (!shouldRunCleanupOnce()) return false;
-
-  markCleanupDone();
-
-  let didCleanup = false;
-
-  try {
-    if ("serviceWorker" in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      if (registrations.length > 0) {
-        didCleanup = true;
-        await Promise.all(registrations.map((registration) => registration.unregister()));
-      }
+  window.addEventListener("unhandledrejection", (e) => {
+    if (isDynamicImportLoadError(e.reason)) {
+      e.preventDefault();
+      reloadOnce();
     }
+  });
+}
 
-    if ("caches" in window) {
-      const cacheKeys = await caches.keys();
-      if (cacheKeys.length > 0) {
-        didCleanup = true;
-        await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)));
-      }
-    }
-  } catch (error) {
-    console.warn("[BootCleanup] Failed to clean stale assets", error);
-  }
-
-  return didCleanup;
-};
-
-const mountApp = () => {
-  createRoot(document.getElementById("root")!).render(<App />);
-};
-
-const bootstrap = async () => {
-  const cleaned = await cleanupStalePwaAssets();
-
-  if (cleaned) {
-    window.location.replace(window.location.href);
-    return;
-  }
-
-  mountApp();
-};
-
-void bootstrap();
+// Mount app immediately — no async bootstrap, no cache cleanup blocking render
+createRoot(document.getElementById("root")!).render(<App />);
