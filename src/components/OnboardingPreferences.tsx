@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Bell, ArrowRight, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,30 +24,70 @@ export default function OnboardingPreferences({ open, userId, onComplete }: Onbo
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [closed, setClosed] = useState(false);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (open) {
+      setClosed(false);
+      setStep(0);
+    }
+  }, [open]);
+
+  if (!open || closed) return null;
 
   const toggle = (key: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
 
   const finish = async () => {
     setLoading(true);
+    const prefs = Array.from(selected);
+
     try {
-      // Save preferences to profile
-      const prefs = Array.from(selected);
-      await supabase.from("profiles").update({
-        preferences: prefs,
-      } as any).eq("user_id", userId);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ preferences: prefs } as any)
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
       localStorage.setItem("wk_preferences", JSON.stringify(prefs));
       localStorage.setItem("wk_onboarding_prefs_done", "1");
-    } catch {}
-    setLoading(false);
-    onComplete();
+    } catch {
+      localStorage.setItem("wk_preferences", JSON.stringify(prefs));
+      localStorage.setItem("wk_onboarding_prefs_done", "1");
+      toast.info("Préférences sauvegardées localement.");
+    } finally {
+      setLoading(false);
+      setClosed(true);
+      onComplete();
+    }
+  };
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("La localisation n'est pas disponible sur cet appareil.");
+      return;
+    }
+
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        toast.success("Localisation activée !");
+        setLocationLoading(false);
+      },
+      () => {
+        toast.error("Localisation refusée. Tu peux continuer sans.");
+        setLocationLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
   };
 
   const steps = [
@@ -117,16 +157,12 @@ export default function OnboardingPreferences({ open, userId, onComplete }: Onbo
             <p className="text-[11px] text-muted-foreground">Sois alerté des événements et offres près de toi</p>
           </div>
         </button>
-        <button onClick={() => {
-          navigator.geolocation.getCurrentPosition(() => {
-            toast.success("Localisation activée !");
-          }, () => {}, { enableHighAccuracy: true });
-        }} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border hover:border-gold/30 transition-colors text-left">
+        <button onClick={requestLocation} disabled={locationLoading} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border hover:border-gold/30 transition-colors text-left disabled:opacity-60">
           <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
             <MapPin className="w-6 h-6 text-gold" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Localisation</p>
+            <p className="text-sm font-semibold text-foreground">{locationLoading ? "Activation..." : "Localisation"}</p>
             <p className="text-[11px] text-muted-foreground">Trouve les spots autour de toi sur la carte</p>
           </div>
         </button>
