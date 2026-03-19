@@ -194,7 +194,7 @@ serve(async (req) => {
       }
     }
 
-    await supabaseAdmin.rpc("cleanup_old_stripe_events").catch(() => {});
+    await supabaseAdmin.rpc("cleanup_old_stripe_events").then(() => {}, () => {});
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
