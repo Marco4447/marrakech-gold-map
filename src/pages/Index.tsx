@@ -14,6 +14,7 @@ import FlashPost from "@/components/FlashPost";
 import WelcomeModal from "@/components/WelcomeModal";
 import ExplainerSheet from "@/components/ExplainerSheet";
 import LanguageToggle from "@/components/LanguageToggle";
+import OnboardingPreferences from "@/components/OnboardingPreferences";
 
 import NotificationsPage from "@/components/NotificationsPage";
 import AutoVibeCard from "@/components/AutoVibeCard";
@@ -423,6 +424,9 @@ const Index = () => {
         initialTab={explainerTab ?? "insider"}
       />
       {!isGuest && <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} onOpenFlashPost={() => setShowFlashPost(true)} />}
+      {!isGuest && user && !safeStorageGet("wk_onboarding_prefs_done") && !showWelcome && (
+        <OnboardingPreferences open={true} userId={user.id} onComplete={() => { safeStorageSet("wk_onboarding_prefs_done", "1"); }} />
+      )}
       {messagesOverlay}
     </div>
   );

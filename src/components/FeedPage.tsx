@@ -28,6 +28,7 @@ import { rankFeedVibes, createScoringContext, type FeedVibe } from "@/lib/feedAl
 import FloatingVipOffer from "./feed/FloatingVipOffer";
 import UserStoryUpload from "./stories/UserStoryUpload";
 import VibeExpiryBar from "./VibeExpiryBar";
+import ShareToStory from "./ShareToStory";
 import MarrakechTonightWidget from "./MarrakechTonightWidget";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -894,7 +895,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         Voir les {commentCounts[vibe.id]} commentaire{(commentCounts[vibe.id] || 0) !== 1 ? "s" : ""}
                       </button>
                     )}
-                    <p className="text-[11px] text-muted-foreground">{timeAgo(vibe.created_at)}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-[11px] text-muted-foreground flex-1">{timeAgo(vibe.created_at)}</p>
+                      <ShareToStory imageUrl={vibe.image_url} placeName={vibe.location} caption={vibe.caption} vibeId={vibe.id} />
+                    </div>
                   </div>
 
                   {/* Expiry bar */}
