@@ -71,6 +71,26 @@ export default function AdminOverview({ stats, passStats }: { stats: AdminStats;
         )}
       </div>
 
+      {/* Seed Spots Button */}
+      <button
+        onClick={async () => {
+          setSeeding(true);
+          try {
+            await seedSpots();
+            toast.success("🎉 100 spots insérés avec succès !");
+          } catch (err: any) {
+            toast.error("Erreur seed: " + (err.message || "échec"));
+          } finally {
+            setSeeding(false);
+          }
+        }}
+        disabled={seeding}
+        className="w-full py-3 rounded-xl bg-gold/10 hover:bg-gold/20 border border-gold/20 text-gold text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+      >
+        {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+        {seeding ? "Seeding en cours..." : "🌱 Seed 100 Spots"}
+      </button>
+
       {/* Revenue chart */}
       {chartData.length > 0 && (
         <div>
