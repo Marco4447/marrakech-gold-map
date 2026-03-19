@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { analytics } from "@/lib/analytics";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import MapView from "@/components/MapView";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import AppSidebar from "@/components/AppSidebar";
@@ -248,58 +248,51 @@ const Index = () => {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="flex-1 relative min-h-0 overflow-hidden">
-          <AnimatePresence mode="wait">
-            {/* Feed: open to guests (read-only) */}
-            {activeTab === "feed" && (
-              <motion.div key="feed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full flex justify-center">
-                <div className="w-full max-w-[630px] h-full">
-                  <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
-                </div>
-              </motion.div>
-            )}
-            {activeTab === "map" && (
-              <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full">
-                <MapView
-                  refreshSignal={feedRefreshSignal}
-                  flyToCoords={flyToCoords}
-                  deepLinkPlaceId={deepLinkPlaceId}
-                  isGuest={isGuest}
+          {/* Feed: open to guests (read-only) */}
+          {activeTab === "feed" && (
+            <div className="h-full flex justify-center">
+              <div className="w-full max-w-[630px] h-full">
+                <FeedPage refreshSignal={feedRefreshSignal} onGoToMap={handleGoToMap} />
+              </div>
+            </div>
+          )}
+          {activeTab === "map" && (
+            <MapView
+              refreshSignal={feedRefreshSignal}
+              flyToCoords={flyToCoords}
+              deepLinkPlaceId={deepLinkPlaceId}
+              isGuest={isGuest}
+            />
+          )}
+          {/* Discover: open to guests (read-only) */}
+          {activeTab === "discover" && (
+            <div className="h-full flex justify-center">
+              <div className="w-full max-w-[630px] h-full">
+                <DiscoverTab
+                  onGoToMap={handleGoToMap}
+                  onStartChat={(userId) => {
+                    if (!userId) return;
+                    sessionStorage.setItem("wk_open_messages", "1");
+                    sessionStorage.setItem("wk_pending_dm", JSON.stringify({ userId }));
+                    setShowMessages(true);
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent("wk:open-dm", { detail: { userId } }));
+                    }, 0);
+                  }}
                 />
-              </motion.div>
-            )}
-            {/* Discover: open to guests (read-only) */}
-            {activeTab === "discover" && (
-              <motion.div key="discover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full flex justify-center">
+              </div>
+            </div>
+          )}
+          {activeTab === "profil" &&
+            (isGuest ? (
+              <AuthGate />
+            ) : (
+              <div className="h-full flex justify-center">
                 <div className="w-full max-w-[630px] h-full">
-                  <DiscoverTab
-                    onGoToMap={handleGoToMap}
-                    onStartChat={(userId) => {
-                      if (!userId) return;
-                      sessionStorage.setItem("wk_open_messages", "1");
-                      sessionStorage.setItem("wk_pending_dm", JSON.stringify({ userId }));
-                      setShowMessages(true);
-                      setTimeout(() => {
-                        window.dispatchEvent(new CustomEvent("wk:open-dm", { detail: { userId } }));
-                      }, 0);
-                    }}
-                  />
+                  <ProfilPage onClose={() => setActiveTab("feed")} />
                 </div>
-              </motion.div>
-            )}
-            {activeTab === "profil" && (
-              <motion.div key="profil" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full">
-                {isGuest ? (
-                  <AuthGate />
-                ) : (
-                  <div className="h-full flex justify-center">
-                    <div className="w-full max-w-[630px] h-full">
-                      <ProfilPage onClose={() => setActiveTab("feed")} />
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            ))}
         </div>
 
         {/* Guest signup banner — compact, non-blocking */}
