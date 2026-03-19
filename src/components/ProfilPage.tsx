@@ -537,7 +537,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     }
 
     if (uniqueLocations.size > 0) {
-      batch2.push(supabase.from("places").select("name, image_url, slug").in("name", Array.from(uniqueLocations)).limit(50).then(r => r));
+      batch2.push(Promise.resolve(supabase.from("places").select("name, image_url, slug").in("name", Array.from(uniqueLocations)).limit(50)));
     } else {
       batch2.push(Promise.resolve({ data: [] }));
     }
