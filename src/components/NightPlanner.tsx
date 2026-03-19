@@ -173,21 +173,20 @@ export default function NightPlanner({ open, onClose, places }: NightPlannerProp
                       : null;
 
                   return (
-                    <div key={stop.placeId}>
+                    <Reorder.Item
+                      key={stop.placeId}
+                      value={stop}
+                      className="border-b border-white/5"
+                    >
                       {/* Travel time indicator */}
                       {travelFromPrev !== null && (
                         <div className="flex items-center gap-2 py-2 pl-8">
                           <div className="h-5 w-px bg-[#D4AF37]/30" />
-                          <span className="text-xs text-white/40">
-                            ~{travelFromPrev} min de trajet
-                          </span>
+                          <span className="text-xs text-white/40">~{travelFromPrev} min de trajet</span>
                         </div>
                       )}
 
-                      <Reorder.Item
-                        value={stop}
-                        className="flex items-center gap-3 py-3 border-b border-white/5"
-                      >
+                      <div className="flex items-center gap-3 py-3">
                         <GripVertical className="w-4 h-4 text-white/20 cursor-grab shrink-0" />
 
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-xs font-bold shrink-0">
@@ -195,9 +194,7 @@ export default function NightPlanner({ open, onClose, places }: NightPlannerProp
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium truncate">
-                            {stop.placeName}
-                          </p>
+                          <p className="text-white text-sm font-medium truncate">{stop.placeName}</p>
                         </div>
 
                         <div className="flex items-center gap-1 shrink-0">
@@ -210,14 +207,11 @@ export default function NightPlanner({ open, onClose, places }: NightPlannerProp
                           />
                         </div>
 
-                        <button
-                          onClick={() => removeStop(stop.placeId)}
-                          className="p-1.5 rounded-full hover:bg-red-500/15 transition-colors shrink-0"
-                        >
+                        <button onClick={() => removeStop(stop.placeId)} className="p-1.5 rounded-full hover:bg-red-500/15 transition-colors shrink-0">
                           <Trash2 className="w-4 h-4 text-red-400/70" />
                         </button>
-                      </Reorder.Item>
-                    </div>
+                      </div>
+                    </Reorder.Item>
                   );
                 })}
               </Reorder.Group>

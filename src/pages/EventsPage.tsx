@@ -54,7 +54,7 @@ export default function EventsPage() {
   const [selectedDate, setSelectedDate] = useState(formatDateISO(days[0]));
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const db = supabase as any;
+  const db = supabase;
 
   useEffect(() => {
     async function fetchEvents() {

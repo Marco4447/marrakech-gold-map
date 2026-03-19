@@ -34,7 +34,7 @@ export default function VibeCheck({ placeId, placeName }: VibeCheckProps) {
   });
   const [userVote, setUserVote] = useState<MoodValue | null>(null);
   const [loading, setLoading] = useState(true);
-  const db = supabase as any;
+  const db = supabase;
 
   const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
   const dominantMood =

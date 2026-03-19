@@ -26,7 +26,7 @@ export default function EphemeralReviews({ placeId }: EphemeralReviewsProps) {
   const [rating, setRating] = useState(3);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const db = supabase as any;
+  const db = supabase;
 
   useEffect(() => {
     fetchReviews();

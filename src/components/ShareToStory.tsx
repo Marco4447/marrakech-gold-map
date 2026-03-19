@@ -29,7 +29,8 @@ export default function ShareToStory({ imageUrl, placeName, caption, vibeId }: S
       const canvas = document.createElement("canvas");
       canvas.width = 1080;
       canvas.height = 1920;
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas 2D not supported");
 
       // Black background
       ctx.fillStyle = "#0a0a0a";
@@ -39,8 +40,9 @@ export default function ShareToStory({ imageUrl, placeName, caption, vibeId }: S
       const img = new Image();
       img.crossOrigin = "anonymous";
       await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error("Image load failed"));
+        const timeout = setTimeout(() => reject(new Error("Image load timeout")), 10000);
+        img.onload = () => { clearTimeout(timeout); resolve(); };
+        img.onerror = () => { clearTimeout(timeout); reject(new Error("Image load failed")); };
         img.src = imageUrl;
       });
 
@@ -94,8 +96,9 @@ export default function ShareToStory({ imageUrl, placeName, caption, vibeId }: S
       ctx.fillText("Scanne pour d\u00e9couvrir ce spot \u2192", 540, 1900);
 
       // Convert to blob and share
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b!), "image/png", 1);
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error("toBlob timeout")), 5000);
+        canvas.toBlob((b) => { clearTimeout(t); b ? resolve(b) : reject(new Error("toBlob null")); }, "image/png", 1);
       });
       const file = new File([blob], `weshkech-${vibeId}.png`, { type: "image/png" });
 

@@ -30,7 +30,6 @@ export default function WelcomeModal({ open, onComplete, onOpenFlashPost }: Welc
 
   const finish = (coords: { lat: number; lng: number } | null) => {
     localStorage.setItem("wk_welcome_seen", "1");
-    localStorage.setItem("wk_onboarding_done", "1");
     onComplete(coords);
   };
 
