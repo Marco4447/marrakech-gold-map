@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Users, Zap, Eye, TrendingUp, Crown, Calendar } from "lucide-react";
+import { Users, Zap, Eye, TrendingUp, Crown, Calendar, MapPin, Loader2 } from "lucide-react";
+import { seedSpots } from "@/lib/seedSpots";
+import { toast } from "sonner";
 
 type PassStat = { place_name: string; count: number };
 type RevenueDay = { date: string; amount: number };
