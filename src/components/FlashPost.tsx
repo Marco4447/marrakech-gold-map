@@ -871,7 +871,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                     <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">
                       Choisis ton mood
                     </p>
-                    <div className="grid grid-cols-4 gap-2 mb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                       {MOODS.map((mood) => (
                         <button
                           key={mood.key}

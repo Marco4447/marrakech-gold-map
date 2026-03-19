@@ -158,13 +158,20 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
       {loading ? (
         <div className="grid grid-cols-3 gap-[1px] px-[1px]">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-card animate-pulse" />
+            <div key={i} className="aspect-square skeleton-shimmer" />
           ))}
         </div>
       ) : vibes.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[50vh] text-center px-8">
           <Search className="w-12 h-12 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">Aucune vibe pour le moment</p>
+          <p className="text-sm text-muted-foreground mb-4">Aucune vibe pour le moment</p>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("wk:open-flash-post"))}
+            className="px-5 py-2.5 rounded-xl font-bold text-sm text-primary-foreground active:scale-[0.97] transition-transform"
+            style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+          >
+            Poste la première !
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-[2px]">

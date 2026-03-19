@@ -143,23 +143,23 @@ function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
 
 function VibeSkeleton() {
   return (
-    <div className="animate-pulse border-b border-border/20">
+    <div className="border-b border-border/20">
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-9 h-9 rounded-full bg-muted/40 shrink-0" />
+        <div className="w-9 h-9 rounded-full skeleton-shimmer shrink-0" />
         <div className="flex-1 space-y-1.5">
-          <div className="h-3 w-28 bg-muted/40 rounded-full" />
-          <div className="h-2 w-16 bg-muted/25 rounded-full" />
+          <div className="h-3 w-28 skeleton-shimmer rounded-full" />
+          <div className="h-2 w-16 skeleton-shimmer rounded-full" />
         </div>
       </div>
-      <div className="aspect-[4/5] bg-muted/25" />
+      <div className="aspect-[4/5] skeleton-shimmer" />
       <div className="flex gap-5 px-4 py-3">
-        <div className="h-4 w-10 bg-muted/30 rounded-full" />
-        <div className="h-4 w-10 bg-muted/30 rounded-full" />
-        <div className="h-4 w-10 bg-muted/30 rounded-full" />
+        <div className="h-4 w-10 skeleton-shimmer rounded-full" />
+        <div className="h-4 w-10 skeleton-shimmer rounded-full" />
+        <div className="h-4 w-10 skeleton-shimmer rounded-full" />
       </div>
       <div className="px-4 pb-3 space-y-1.5">
-        <div className="h-2.5 w-3/4 bg-muted/25 rounded-full" />
-        <div className="h-2.5 w-1/2 bg-muted/25 rounded-full" />
+        <div className="h-2.5 w-3/4 skeleton-shimmer rounded-full" />
+        <div className="h-2.5 w-1/2 skeleton-shimmer rounded-full" />
       </div>
     </div>
   );
@@ -242,6 +242,10 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const feedScrollRef = useRef<HTMLDivElement>(null);
   const [shareVibeId, setShareVibeId] = useState<string | null>(null);
   const [showDmPicker, setShowDmPicker] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const pullStartY = useRef(0);
+  const isPulling = useRef(false);
 
   const deviceId = getDeviceId();
   const userId = user?.id;
@@ -367,6 +371,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     const alreadyLiked = likedIds.has(vibeId);
     setAnimatingId(vibeId);
     setTimeout(() => setAnimatingId(null), 400);
+    try { navigator.vibrate?.(10); } catch {}
 
     if (alreadyLiked) {
       setLikedIds((prev) => { const next = new Set(prev); next.delete(vibeId); return next; });
@@ -387,6 +392,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     if (!canSuperVibe || superVibeIds.has(vibeId)) return;
     setSuperVibeAnimId(vibeId);
     setTimeout(() => setSuperVibeAnimId(null), 700);
+    try { navigator.vibrate?.([15, 30, 15]); } catch {}
     setSuperVibeIds((prev) => new Set(prev).add(vibeId));
     setCanSuperVibe(false);
     setVibes((prev) => prev.map((v) => (v.id === vibeId ? { ...v, super_vibes: (v.super_vibes || 0) + 1 } : v)));
@@ -476,11 +482,60 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   useEffect(() => { setVisibleCount(10); }, [activeTab, nightOnly]);
   const visibleFeed = filteredFeed.slice(0, visibleCount);
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (feedScrollRef.current && feedScrollRef.current.scrollTop <= 0 && !refreshing) {
+      pullStartY.current = e.touches[0].clientY;
+      isPulling.current = true;
+    }
+  }, [refreshing]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isPulling.current || refreshing) return;
+    const dy = Math.max(0, e.touches[0].clientY - pullStartY.current);
+    setPullDistance(Math.min(dy * 0.4, 80));
+  }, [refreshing]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isPulling.current) return;
+    isPulling.current = false;
+    if (pullDistance > 50) {
+      setRefreshing(true);
+      try { navigator.vibrate?.(10); } catch {}
+      fetchVibes().finally(() => {
+        setRefreshing(false);
+        setPullDistance(0);
+      });
+    } else {
+      setPullDistance(0);
+    }
+  }, [pullDistance, fetchVibes]);
+
   return (
-    <div ref={feedScrollRef} className="h-full overflow-y-auto no-scrollbar pb-20 relative" onScroll={(e) => {
-      if ((e.target as HTMLDivElement).scrollTop < 100) setShowNewPill(false);
-    }}>
+    <div
+      ref={feedScrollRef}
+      className="h-full overflow-y-auto no-scrollbar pb-20 relative"
+      onScroll={(e) => {
+        if ((e.target as HTMLDivElement).scrollTop < 100) setShowNewPill(false);
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || refreshing) && (
+        <div
+          className="flex items-center justify-center transition-all"
+          style={{ height: refreshing ? 48 : pullDistance }}
+        >
+          <div className={`w-6 h-6 border-2 border-gold border-t-transparent rounded-full ${refreshing ? "animate-spin" : ""}`}
+            style={{ opacity: Math.min(1, pullDistance / 50), transform: `rotate(${pullDistance * 4}deg)` }}
+          />
+        </div>
+      )}
       {/* New vibes pill */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {showNewPill && newVibesCount > 0 && `${newVibesCount} nouvelles vibes`}
+      </div>
       <AnimatePresence>
         {showNewPill && newVibesCount > 0 && (
           <motion.button
@@ -493,6 +548,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
               setShowNewPill(false);
             }}
             className="fixed top-14 left-1/2 -translate-x-1/2 z-[1500] flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl shadow-black/30 whitespace-nowrap"
+            aria-label={`${newVibesCount} nouvelles vibes, cliquer pour remonter`}
           >
             ↑ {newVibesCount} nouvelle{newVibesCount > 1 ? "s" : ""} vibe{newVibesCount > 1 ? "s" : ""}
           </motion.button>
@@ -508,6 +564,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
               setActiveTab(tabs[(idx + 1) % tabs.length]);
             }}
             className="flex items-center gap-1 active:opacity-70 transition-opacity"
+            aria-label={`Onglet ${activeTab === "foryou" ? "Pour toi" : activeTab === "following" ? "Suivis" : "Récents"}, appuyer pour changer`}
           >
             <h1 className="text-[26px] font-bold text-foreground tracking-tight font-display">
               {activeTab === "foryou" ? "Pour toi" : activeTab === "following" ? "Suivis" : "Récents"}
@@ -520,11 +577,13 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             <button
               onClick={() => setShowReels(true)}
               className="active:scale-90 transition-transform"
+              aria-label="Voir les reels"
             >
               <Film className="w-[26px] h-[26px] text-foreground" />
             </button>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("wk:open-notifications"))}
+              aria-label="Notifications"
               className="active:scale-90 transition-transform relative"
             >
               <Heart className="w-[26px] h-[26px] text-foreground" />
@@ -566,7 +625,14 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             <Camera className="w-7 h-7 text-muted-foreground" />
           </div>
           <h2 className="text-base font-semibold text-foreground mb-1.5">Aucune vibe live</h2>
-          <p className="text-[13px] text-muted-foreground">Sois le premier à partager ton vibe !</p>
+          <p className="text-[13px] text-muted-foreground mb-4">Sois le premier à partager ton vibe !</p>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("wk:open-flash-post"))}
+            className="px-5 py-2.5 rounded-xl font-bold text-sm text-primary-foreground active:scale-[0.97] transition-transform"
+            style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+          >
+            Poster une vibe
+          </button>
         </div>
       ) : activeTab === "following" && sortedFeed.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[60vh] px-8 text-center">

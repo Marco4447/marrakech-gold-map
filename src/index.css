@@ -216,6 +216,34 @@
   100% { transform: translateX(250%) skewX(-20deg); }
 }
 
+/* Skeleton shimmer effect (Instagram-style gradient sweep) */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: hsl(0 0% 10%);
+}
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, hsl(0 0% 16%) 40%, hsl(0 0% 20%) 50%, hsl(0 0% 16%) 60%, transparent 100%);
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Reduced motion: disable all non-essential animations */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after,
+  .gold-marker,
+  .live-badge-blink,
+  .marker-pop-in {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
 /* LIVE badge blinking animation */
 @keyframes live-blink {
   0%, 100% { opacity: 1; }
