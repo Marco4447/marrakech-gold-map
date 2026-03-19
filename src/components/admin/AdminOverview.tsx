@@ -30,6 +30,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "text-gold" }: { icon
 
 export default function AdminOverview({ stats, passStats }: { stats: AdminStats; passStats: PassStat[] }) {
   const [revenuePeriod, setRevenuePeriod] = useState<RevenuePeriod>("day");
+  const [seeding, setSeeding] = useState(false);
 
   const chartData = useMemo(() => {
     const raw = stats?.stripe?.revenue_by_day;
