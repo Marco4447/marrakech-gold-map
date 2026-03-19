@@ -5,37 +5,110 @@ import { initErrorReporting } from "./lib/errorReporting";
 
 initErrorReporting();
 
-// Handle stale chunk errors gracefully (after deploys with new hashes)
-if (import.meta.env.PROD) {
-  const isDynamicImportLoadError = (reason: unknown) => {
-    if (!(reason instanceof Error)) return false;
-    const msg = reason.message.toLowerCase();
-    return (
-      msg.includes("failed to fetch dynamically imported module") ||
-      msg.includes("importing a module script failed") ||
-      msg.includes("loading chunk")
-    );
-  };
+const STALE_RELOAD_KEY = "wk_stale_reload";
+const BLACK_SCREEN_RECOVERY_KEY = "wk_boot_recovery_v4";
+const ROOT_WATCHDOG_DELAY_MS = 2500;
 
-  const reloadOnce = () => {
-    const key = "wk_stale_reload";
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
-    window.location.reload();
-  };
+const isDynamicImportLoadError = (reason: unknown) => {
+  if (!(reason instanceof Error)) return false;
+  const msg = reason.message.toLowerCase();
+  return (
+    msg.includes("failed to fetch dynamically imported module") ||
+    msg.includes("importing a module script failed") ||
+    msg.includes("loading chunk")
+  );
+};
 
-  window.addEventListener("vite:preloadError", (e) => {
-    e.preventDefault();
+const reloadOnce = (key = STALE_RELOAD_KEY) => {
+  if (sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, "1");
+  window.location.reload();
+};
+
+async function clearClientRuntimeCaches() {
+  let cleaned = false;
+
+  try {
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      if (registrations.length > 0) {
+        cleaned = true;
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      }
+    }
+
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      if (keys.length > 0) {
+        cleaned = true;
+        await Promise.all(keys.map((key) => caches.delete(key)));
+      }
+    }
+  } catch (error) {
+    console.warn("[BootRecovery] Cache cleanup failed", error);
+  }
+
+  return cleaned;
+}
+
+async function recoverFromBlackScreenOnce() {
+  if (!import.meta.env.PROD) return;
+
+  try {
+    if (localStorage.getItem(BLACK_SCREEN_RECOVERY_KEY) === "1") return;
+    localStorage.setItem(BLACK_SCREEN_RECOVERY_KEY, "1");
+  } catch {
+    return;
+  }
+
+  await clearClientRuntimeCaches();
+  reloadOnce("wk_black_screen_recovery_reload");
+}
+
+function installChunkErrorRecovery() {
+  if (!import.meta.env.PROD) return;
+
+  window.addEventListener("vite:preloadError", (event) => {
+    event.preventDefault();
     reloadOnce();
   });
 
-  window.addEventListener("unhandledrejection", (e) => {
-    if (isDynamicImportLoadError(e.reason)) {
-      e.preventDefault();
+  window.addEventListener("unhandledrejection", (event) => {
+    if (isDynamicImportLoadError(event.reason)) {
+      event.preventDefault();
       reloadOnce();
     }
   });
 }
 
-// Mount app immediately — no async bootstrap, no cache cleanup blocking render
-createRoot(document.getElementById("root")!).render(<App />);
+function mountApp() {
+  const rootElement = document.getElementById("root");
+  if (!rootElement) {
+    console.error("[Boot] #root introuvable");
+    void recoverFromBlackScreenOnce();
+    return;
+  }
+
+  createRoot(rootElement).render(<App />);
+}
+
+function scheduleRootWatchdog() {
+  if (!import.meta.env.PROD) return;
+
+  const rootElement = document.getElementById("root");
+  if (!rootElement) return;
+
+  window.setTimeout(() => {
+    const hasContent =
+      rootElement.childElementCount > 0 || ((rootElement.textContent?.trim().length ?? 0) > 0);
+
+    if (!hasContent) {
+      console.warn("[BootWatchdog] Root vide détecté, récupération en cours");
+      void recoverFromBlackScreenOnce();
+    }
+  }, ROOT_WATCHDOG_DELAY_MS);
+}
+
+installChunkErrorRecovery();
+mountApp();
+scheduleRootWatchdog();
