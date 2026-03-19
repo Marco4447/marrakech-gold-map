@@ -51,7 +51,7 @@ serve(async (req) => {
     }
 
     // Also clean old processed stripe events
-    await supabaseAdmin.rpc("cleanup_old_stripe_events").catch(() => {});
+    await supabaseAdmin.rpc("cleanup_old_stripe_events").then(() => {}, () => {});
 
     return new Response(
       JSON.stringify({ success: true, cleaned: expiredVibes?.length ?? 0 }),
