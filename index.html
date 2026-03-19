@@ -132,57 +132,34 @@
       ]
     }
     </script>
-</head>
 
-  <!-- Google Analytics 4 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-MCCSKH7QGD"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-MCCSKH7QGD');
-  </script>
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MCCSKH7QGD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-MCCSKH7QGD');
+    </script>
 
-  <!-- TikTok Pixel Code Start -->
-  <script>
-  !function (w, d, t) {
-    w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-    var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
-    ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
-    ttq.load('D6K52QJC77U9T6VFJO7G');
-    ttq.page();
-  }(window, document, 'ttq');
-  </script>
-  <!-- TikTok Pixel Code End -->
+    <!-- TikTok Pixel Code Start -->
+    <script>
+    !function (w, d, t) {
+      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+      var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+      ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+      ttq.load('D6K52QJC77U9T6VFJO7G');
+      ttq.page();
+    }(window, document, 'ttq');
+    </script>
+    <!-- TikTok Pixel Code End -->
 
-  <link rel="icon" href="/logo_72.png" type="image/png">
-  <link rel="apple-touch-icon" href="/logo_72.png">
-  <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/logo_72.png" type="image/png">
+    <link rel="apple-touch-icon" href="/logo_72.png">
+    <link rel="manifest" href="/manifest.json">
+  </head>
   <body>
     <div id="root"></div>
-    <script>
-      // One-time SW cleanup for users stuck with stale service workers.
-      // This runs BEFORE any module JS loads, so it works even with broken chunks.
-      (function() {
-        var KEY = 'wk_sw_purge_v7';
-        try {
-          if (localStorage.getItem(KEY)) return;
-          localStorage.setItem(KEY, '1');
-        } catch(e) { return; }
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(regs) {
-            regs.forEach(function(r) { r.unregister(); });
-          });
-        }
-        if ('caches' in window) {
-          caches.keys().then(function(keys) {
-            keys.forEach(function(k) { caches.delete(k); });
-          });
-        }
-        // Reload after cleanup — only once per version
-        setTimeout(function() { location.reload(); }, 100);
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
