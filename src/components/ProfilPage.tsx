@@ -530,7 +530,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
 
     if (allNeededIds.length > 0) {
       batch2.push(
-        supabase.from("vibes").select(VIBE_COLUMNS).in("id", allNeededIds).order("created_at", { ascending: false }).then(r => r)
+        Promise.resolve(supabase.from("vibes").select(VIBE_COLUMNS).in("id", allNeededIds).order("created_at", { ascending: false }))
       );
     } else {
       batch2.push(Promise.resolve({ data: [] }));
