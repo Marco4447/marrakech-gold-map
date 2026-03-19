@@ -37,40 +37,44 @@ export default function UnifiedSearch({ onSelectPlace, onSelectUser }: UnifiedSe
 
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
-      const [placesRes, usersRes] = await Promise.all([
-        supabase
-          .from("places")
-          .select("id, name, category, neighborhood, image_url, latitude, longitude")
-          .or(`name.ilike.%${q}%,category.ilike.%${q}%,neighborhood.ilike.%${q}%`)
-          .limit(5),
-        supabase
-          .from("profiles_public" as any)
-          .select("user_id, full_name, avatar_url, is_vip")
-          .ilike("full_name", `%${q}%`)
-          .limit(5),
-      ]);
+      try {
+        const [placesRes, usersRes] = await Promise.all([
+          supabase
+            .from("places")
+            .select("id, name, category, neighborhood, image_url, latitude, longitude")
+            .or(`name.ilike.%${q}%,category.ilike.%${q}%,neighborhood.ilike.%${q}%`)
+            .limit(5),
+          supabase
+            .from("profiles_public" as any)
+            .select("user_id, full_name, avatar_url, is_vip")
+            .ilike("full_name", `%${q}%`)
+            .limit(5),
+        ]);
 
-      const placeResults: SearchResult[] = (placesRes.data || []).map((p: any) => ({
-        type: "place" as const,
-        id: p.id,
-        name: p.name,
-        subtitle: [p.category, p.neighborhood].filter(Boolean).join(" · "),
-        imageUrl: p.image_url,
-        latitude: p.latitude,
-        longitude: p.longitude,
-      }));
-
-      const userResults: SearchResult[] = (usersRes.data || [])
-        .filter((u: any) => u.user_id !== user?.id)
-        .map((u: any) => ({
-          type: "user" as const,
-          id: u.user_id,
-          name: u.full_name || "Utilisateur",
-          imageUrl: u.avatar_url,
-          isVip: u.is_vip,
+        const placeResults: SearchResult[] = (placesRes.data || []).map((p: any) => ({
+          type: "place" as const,
+          id: p.id,
+          name: p.name,
+          subtitle: [p.category, p.neighborhood].filter(Boolean).join(" · "),
+          imageUrl: p.image_url,
+          latitude: p.latitude,
+          longitude: p.longitude,
         }));
 
-      setResults([...placeResults, ...userResults]);
+        const userResults: SearchResult[] = (usersRes.data || [])
+          .filter((u: any) => u.user_id !== user?.id)
+          .map((u: any) => ({
+            type: "user" as const,
+            id: u.user_id,
+            name: u.full_name || "Utilisateur",
+            imageUrl: u.avatar_url,
+            isVip: u.is_vip,
+          }));
+
+        setResults([...placeResults, ...userResults]);
+      } catch {
+        setResults([]);
+      }
       setLoading(false);
     }, 250);
   };
@@ -113,7 +117,7 @@ export default function UnifiedSearch({ onSelectPlace, onSelectUser }: UnifiedSe
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="absolute top-full mt-1.5 left-0 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-[2000] max-h-[50dvh] overflow-y-auto"
+            className="absolute top-full mt-1.5 left-0 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-[250] max-h-[50dvh] overflow-y-auto"
           >
             {results.map((r) => (
               <button

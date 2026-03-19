@@ -66,8 +66,11 @@ export function useNotifications() {
         },
         (payload) => {
           const n = payload.new as any;
+          setNotifications((prev) => {
+            if (prev.some((existing) => existing.id === n.id)) return prev;
+            return [n, ...prev].slice(0, 50);
+          });
           setUnreadCount((c) => c + 1);
-          setNotifications((prev) => [n, ...prev].slice(0, 50));
           toast(n.title, {
             description: n.body || undefined,
             duration: 4000,

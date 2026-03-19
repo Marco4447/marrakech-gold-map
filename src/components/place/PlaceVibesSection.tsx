@@ -33,7 +33,8 @@ export default function PlaceVibesSection({ placeName }: Props) {
       .ilike("location", `%${placeName.split(" ")[0]}%`)
       .order("created_at", { ascending: false })
       .limit(6)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) { console.error("PlaceVibesSection fetch error:", error); return; }
         if (data) setVibes(data);
       });
   }, [placeName]);

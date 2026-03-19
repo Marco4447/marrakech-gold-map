@@ -80,7 +80,15 @@ interface HistoryVibe {
 }
 
 function VibeHistory({ vibes }: { vibes: HistoryVibe[] }) {
-  if (vibes.length === 0) return <p className="text-xs text-muted-foreground text-center py-10">Aucune vibe publiée.</p>;
+  if (vibes.length === 0) return (
+    <div className="text-center py-10 space-y-3">
+      <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center mx-auto">
+        <Camera className="w-6 h-6 text-gold/50" />
+      </div>
+      <p className="text-sm text-muted-foreground">Aucune vibe publiée</p>
+      <p className="text-xs text-muted-foreground max-w-xs mx-auto">Publiez votre première Vibe Officielle pour apparaître sur la carte et dans le flux Live !</p>
+    </div>
+  );
   return (
     <div className="grid grid-cols-2 gap-3">
       {vibes.map((v) => (
@@ -267,12 +275,20 @@ export default function PartnerDashboard() {
       <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center gap-4 px-6 text-center">
         <Sparkles className="w-12 h-12 text-gold/40" />
         <h2 className="font-display text-lg font-bold text-foreground">Accès réservé aux Partenaires</h2>
-        <p className="text-sm text-muted-foreground max-w-xs">Achète un pack de crédits ou souscris un plan partenaire pour débloquer le Partner Studio.</p>
-        <button onClick={() => navigate("/shop")}
+        <p className="text-sm text-muted-foreground max-w-xs">
+          Candidatez pour devenir partenaire ou achetez des crédits pour débloquer le Partner Studio.
+        </p>
+        <button onClick={() => navigate("/business")}
           className="px-6 py-2.5 rounded-xl font-semibold text-sm text-primary-foreground active:scale-95 transition-transform"
           style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)), hsl(var(--gold-dark)))" }}
+        >Candidater comme Partenaire</button>
+        <button onClick={() => navigate("/shop")}
+          className="px-6 py-2 rounded-xl font-medium text-sm text-gold border border-gold/30 hover:bg-gold/5 transition-colors"
         >Acheter des Crédits</button>
-        <button onClick={() => navigate("/")} className="text-muted-foreground text-xs underline mt-2">Retour</button>
+        <button onClick={() => navigate("/demo")} className="text-muted-foreground text-xs underline mt-1">
+          Voir le dashboard démo →
+        </button>
+        <button onClick={() => navigate("/")} className="text-muted-foreground text-xs underline">Retour</button>
       </div>
     );
   }
