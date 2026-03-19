@@ -13,6 +13,11 @@ import {
   ChevronLeft,
   Smile,
   Image as ImageIcon,
+  Mic,
+  Square,
+  Heart,
+  Play,
+  Pause,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +85,46 @@ function groupMessagesByDate(messages: Message[]): { date: string; messages: Mes
   }));
 }
 
+function VoiceMessagePlayer({ src, isMine }: { src: string; isMine: boolean }) {
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio(src);
+    audioRef.current = audio;
+    audio.addEventListener("loadedmetadata", () => setDuration(audio.duration));
+    audio.addEventListener("timeupdate", () => setProgress(audio.currentTime / (audio.duration || 1)));
+    audio.addEventListener("ended", () => { setPlaying(false); setProgress(0); });
+    return () => { audio.pause(); audio.src = ""; };
+  }, [src]);
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) { audio.pause(); setPlaying(false); }
+    else { audio.play().catch(() => {}); setPlaying(true); }
+  };
+
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
+
+  return (
+    <div className="flex items-center gap-2 min-w-[160px]">
+      <button onClick={toggle} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+        {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+      </button>
+      <div className="flex-1 space-y-1">
+        <div className="h-1 bg-white/20 rounded-full overflow-hidden">
+          <div className="h-full bg-current rounded-full transition-all" style={{ width: `${progress * 100}%` }} />
+        </div>
+        <span className="text-[9px] opacity-60">{duration > 0 ? fmt(playing ? progress * duration : duration) : "..."}</span>
+      </div>
+    </div>
+  );
+}
+
 function ChatView({
   conversation,
   onBack,
@@ -99,6 +144,13 @@ function ChatView({
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [reactedMessages, setReactedMessages] = useState<Set<string>>(new Set());
+  const [recording, setRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastMsgTapRef = useRef<{ id: string; time: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -480,10 +532,23 @@ function ChatView({
                   ? `${isFirstInGroup ? "18px" : "8px"} 4px 4px ${isLastInGroup ? "18px" : "8px"}`
                   : `4px ${isFirstInGroup ? "18px" : "8px"} ${isLastInGroup ? "18px" : "8px"} 4px`;
 
+                const hasReaction = reactedMessages.has(message.id);
+                const handleMsgDoubleTap = () => {
+                  const now = Date.now();
+                  if (lastMsgTapRef.current && lastMsgTapRef.current.id === message.id && now - lastMsgTapRef.current.time < 300) {
+                    setReactedMessages(prev => { const n = new Set(prev); if (n.has(message.id)) n.delete(message.id); else n.add(message.id); return n; });
+                    try { navigator.vibrate?.(10); } catch {}
+                    lastMsgTapRef.current = null;
+                  } else {
+                    lastMsgTapRef.current = { id: message.id, time: now };
+                  }
+                };
+
                 return (
                   <div
                     key={message.id}
                     className={`flex items-end gap-1.5 ${isMine ? "justify-end" : "justify-start"}`}
+                    onClick={handleMsgDoubleTap}
                   >
                     {!isMine && (
                       <div className="w-6">
@@ -508,7 +573,9 @@ function ChatView({
                         }`}
                         style={{ borderRadius: bubbleRadius }}
                       >
-                        {message.media_url && (
+                        {message.media_url && message.media_type === "audio" ? (
+                          <VoiceMessagePlayer src={message.media_url} isMine={isMine} />
+                        ) : message.media_url ? (
                           <img
                             src={message.media_url}
                             alt=""
@@ -516,9 +583,16 @@ function ChatView({
                             loading="lazy"
                             onClick={() => window.open(message.media_url!, '_blank')}
                           />
-                        )}
-                        {message.content}
+                        ) : null}
+                        {message.media_type !== "audio" && message.content}
                       </div>
+
+                      {/* Reaction heart */}
+                      {hasReaction && (
+                        <div className={`-mt-1 ${isMine ? "self-start -ml-1" : "self-end -mr-1"}`}>
+                          <span className="text-xs">❤️</span>
+                        </div>
+                      )}
 
                       {isLastInGroup && (
                         <div className={`mt-0.5 px-1 flex items-center gap-1 ${isMine ? "justify-end" : "justify-start"}`}>
@@ -552,6 +626,22 @@ function ChatView({
           </div>
         </div>
       )}
+
+      {/* ════ RECORDING INDICATOR ════ */}
+      <AnimatePresence>
+        {recording && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-destructive/30 bg-destructive/5 px-4 py-2 flex items-center gap-3"
+          >
+            <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+            <span className="text-xs font-semibold text-destructive">Enregistrement...</span>
+            <span className="text-xs text-muted-foreground ml-auto">{Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, "0")}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ════ INPUT ════ */}
       <div className="border-t border-border/60 bg-background px-3 py-2.5">
@@ -599,25 +689,79 @@ function ChatView({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                onClick={() => {
-                  void handleSend();
-                }}
+                onClick={() => { void handleSend(); }}
                 disabled={sending}
                 className="w-9 h-9 rounded-full bg-foreground text-background flex items-center justify-center active:scale-95 transition-transform disabled:opacity-40"
                 aria-label="Envoyer"
               >
                 <Send className="w-4 h-4" />
               </motion.button>
-            ) : (
+            ) : recording ? (
               <motion.button
-                key="image"
+                key="stop-rec"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                className="w-9 h-9 rounded-full border border-border/60 bg-card flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
-                aria-label="Photo"
+                onClick={() => {
+                  // Stop recording
+                  if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                    mediaRecorderRef.current.stop();
+                  }
+                  if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+                  setRecording(false);
+                  setRecordingTime(0);
+                }}
+                className="w-9 h-9 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center active:scale-95 transition-transform"
+                aria-label="Arrêter"
               >
-                <ImageIcon className="w-4 h-4 text-foreground" />
+                <Square className="w-4 h-4" />
+              </motion.button>
+            ) : (
+              <motion.button
+                key="mic"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                onClick={async () => {
+                  try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const recorder = new MediaRecorder(stream);
+                    audioChunksRef.current = [];
+                    recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+                    recorder.onstop = async () => {
+                      stream.getTracks().forEach(t => t.stop());
+                      const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+                      // Upload voice message
+                      const filename = `voice_${Date.now()}.webm`;
+                      const path = `${user?.id}/${filename}`;
+                      const { error: upErr } = await supabase.storage.from("vibes_media").upload(path, blob);
+                      if (upErr) { toast.error("Erreur d'envoi audio"); return; }
+                      const { data: urlData } = supabase.storage.from("vibes_media").getPublicUrl(path);
+                      // Send as message with media
+                      await supabase.from("messages").insert({
+                        conversation_id: conversation.id,
+                        sender_id: user?.id,
+                        content: "🎤 Message vocal",
+                        media_url: urlData.publicUrl,
+                        media_type: "audio",
+                      });
+                      toast.success("Vocal envoyé !");
+                      try { navigator.vibrate?.(10); } catch {}
+                    };
+                    recorder.start();
+                    mediaRecorderRef.current = recorder;
+                    setRecording(true);
+                    setRecordingTime(0);
+                    recordingTimerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
+                    try { navigator.vibrate?.(15); } catch {}
+                  } catch {
+                    toast.error("Micro non disponible");
+                  }
+                }}
+                className="w-9 h-9 rounded-full border border-border/60 bg-card flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+                aria-label="Message vocal"
+              >
+                <Mic className="w-4 h-4 text-foreground" />
               </motion.button>
             )}
           </AnimatePresence>
