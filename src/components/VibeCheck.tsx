@@ -34,6 +34,7 @@ export default function VibeCheck({ placeId, placeName }: VibeCheckProps) {
   });
   const [userVote, setUserVote] = useState<MoodValue | null>(null);
   const [loading, setLoading] = useState(true);
+  const db = supabase as any;
 
   const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
   const dominantMood =
@@ -54,7 +55,7 @@ export default function VibeCheck({ placeId, placeName }: VibeCheckProps) {
         Date.now() - 2 * 60 * 60 * 1000
       ).toISOString();
 
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("vibe_checks")
         .select("mood, device_id")
         .eq("place_id", placeId)
@@ -102,7 +103,7 @@ export default function VibeCheck({ placeId, placeName }: VibeCheckProps) {
     try {
       const deviceId = getDeviceId();
 
-      const { error } = await supabase.from("vibe_checks").insert({
+      const { error } = await db.from("vibe_checks").insert({
         place_id: placeId,
         mood,
         device_id: deviceId,
