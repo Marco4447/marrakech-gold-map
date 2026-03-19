@@ -6,7 +6,7 @@ import { initErrorReporting } from "./lib/errorReporting";
 initErrorReporting();
 
 const STALE_RELOAD_KEY = "wk_stale_reload";
-const BLACK_SCREEN_RECOVERY_KEY = "wk_boot_recovery_v4";
+const BLACK_SCREEN_RECOVERY_KEY = "wk_boot_recovery_v5";
 const ROOT_WATCHDOG_DELAY_MS = 2500;
 
 const isDynamicImportLoadError = (reason: unknown) => {
