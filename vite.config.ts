@@ -72,17 +72,7 @@ export default defineConfig(({ mode }) => ({
     }),
   ].filter(Boolean),
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          motion: ["framer-motion"],
-          supabase: ["@supabase/supabase-js"],
-          ui: ["sonner", "lucide-react"],
-          map: ["leaflet", "react-leaflet"],
-        },
-      },
-    },
+    // Let Vite handle chunk splitting automatically
   },
   resolve: {
     alias: {
