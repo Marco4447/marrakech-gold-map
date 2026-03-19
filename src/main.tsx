@@ -17,6 +17,28 @@ const isDynamicImportLoadError = (reason: unknown) => {
   );
 };
 
+const extractModuleEntry = (html: string): string | null => {
+  const match = html.match(/<script\s+type=["']module["'][^>]*src=["']([^"']+)["'][^>]*>/i);
+  if (!match?.[1]) return null;
+
+  try {
+    return new URL(match[1], window.location.origin).pathname;
+  } catch {
+    return null;
+  }
+};
+
+const getCurrentModuleEntry = (): string | null => {
+  const script = document.querySelector("script[type='module'][src]");
+  if (!script) return null;
+
+  try {
+    return new URL(script.getAttribute("src") || "", window.location.origin).pathname;
+  } catch {
+    return null;
+  }
+};
+
 if (import.meta.env.PROD) {
   const RECOVERY_KEY = "wk_boot_recovery_attempted";
 
@@ -39,6 +61,28 @@ if (import.meta.env.PROD) {
     }
   };
 
+  const checkForStaleEntryOnBoot = async () => {
+    try {
+      const response = await fetch(`${window.location.origin}/?v=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "cache-control": "no-cache",
+          pragma: "no-cache",
+        },
+      });
+
+      const latestHtml = await response.text();
+      const latestEntry = extractModuleEntry(latestHtml);
+      const currentEntry = getCurrentModuleEntry();
+
+      if (latestEntry && currentEntry && latestEntry !== currentEntry) {
+        void recoverFromStaleAssets();
+      }
+    } catch {
+      // Ignore transient network issues
+    }
+  };
+
   window.addEventListener("vite:preloadError", (event) => {
     event.preventDefault();
     void recoverFromStaleAssets();
@@ -50,6 +94,11 @@ if (import.meta.env.PROD) {
     event.preventDefault();
     void recoverFromStaleAssets();
   });
+
+  // Early stale-entry check before SW registration.
+  setTimeout(() => {
+    void checkForStaleEntryOnBoot();
+  }, 1200);
 
   // Register SW after a delay so it never blocks initial page load
   setTimeout(() => {
