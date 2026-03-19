@@ -130,7 +130,7 @@ async function scrapeWithFirecrawlSearch(handle: string, placeName: string, apiK
 
       const mdImgRegex = /!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
       while ((match = mdImgRegex.exec(itemMarkdown)) !== null) {
-        if (!posts.some(p => p.image_url === match[2])) {
+        if (match && !posts.some(p => p.image_url === match![2])) {
           posts.push({
             image_url: match[2],
             caption: (item.title || match[1] || `📸 @${cleanHandle}`).slice(0, 120),

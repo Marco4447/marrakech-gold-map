@@ -543,7 +543,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     }
 
     if (checkinPlaceIds.length > 0) {
-      batch2.push(supabase.from("places").select("name, image_url, slug").in("id", checkinPlaceIds).limit(50));
+      batch2.push(supabase.from("places").select("name, image_url, slug").in("id", checkinPlaceIds).limit(50).then(r => r));
     } else {
       batch2.push(Promise.resolve({ data: [] }));
     }

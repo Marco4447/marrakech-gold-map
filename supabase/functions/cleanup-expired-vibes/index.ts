@@ -57,10 +57,11 @@ serve(async (req) => {
       JSON.stringify({ success: true, cleaned: expiredVibes?.length ?? 0 }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
-  } catch (error) {
-    console.error("[CLEANUP] Error:", error.message);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[CLEANUP] Error:", msg);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: msg }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
