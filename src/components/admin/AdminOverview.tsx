@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Users, Zap, Eye, TrendingUp, Crown, Calendar } from "lucide-react";
+import { Users, Zap, Eye, TrendingUp, Crown, Calendar, MapPin, Loader2 } from "lucide-react";
+import { seedSpots } from "@/lib/seedSpots";
+import { toast } from "sonner";
 
 type PassStat = { place_name: string; count: number };
 type RevenueDay = { date: string; amount: number };
@@ -28,6 +30,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "text-gold" }: { icon
 
 export default function AdminOverview({ stats, passStats }: { stats: AdminStats; passStats: PassStat[] }) {
   const [revenuePeriod, setRevenuePeriod] = useState<RevenuePeriod>("day");
+  const [seeding, setSeeding] = useState(false);
 
   const chartData = useMemo(() => {
     const raw = stats?.stripe?.revenue_by_day;
@@ -67,6 +70,26 @@ export default function AdminOverview({ stats, passStats }: { stats: AdminStats;
           </>
         )}
       </div>
+
+      {/* Seed Spots Button */}
+      <button
+        onClick={async () => {
+          setSeeding(true);
+          try {
+            await seedSpots();
+            toast.success("🎉 100 spots insérés avec succès !");
+          } catch (err: any) {
+            toast.error("Erreur seed: " + (err.message || "échec"));
+          } finally {
+            setSeeding(false);
+          }
+        }}
+        disabled={seeding}
+        className="w-full py-3 rounded-xl bg-gold/10 hover:bg-gold/20 border border-gold/20 text-gold text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+      >
+        {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+        {seeding ? "Seeding en cours..." : "🌱 Seed 100 Spots"}
+      </button>
 
       {/* Revenue chart */}
       {chartData.length > 0 && (
