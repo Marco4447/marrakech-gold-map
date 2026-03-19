@@ -29,10 +29,11 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "images/weshkech-logo.png"],
       manifest: false,
       workbox: {
+        cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,ico,svg,webp}"],
         globIgnores: ["**/*.{png,jpg,jpeg,mp4,html}"],
