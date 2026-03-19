@@ -187,7 +187,7 @@ export default function VibeComments({ vibeId, open, onOpenChange }: VibeComment
                         deviceId={deviceId}
                         currentUserId={user?.id}
                         getDisplayName={getDisplayName}
-                        onReply={() => { setReplyTo(c); inputRef.current?.focus(); }}
+                        onReply={() => { setReplyTo(c); inputRef.current?.focus(); try { navigator.vibrate?.(10); } catch {} }}
                       />
                       {/* Replies */}
                       {repliesMap.get(c.id)?.map((reply) => (
@@ -197,7 +197,7 @@ export default function VibeComments({ vibeId, open, onOpenChange }: VibeComment
                             deviceId={deviceId}
                             currentUserId={user?.id}
                             getDisplayName={getDisplayName}
-                            onReply={() => { setReplyTo(c); inputRef.current?.focus(); }}
+                            onReply={() => { setReplyTo(c); inputRef.current?.focus(); try { navigator.vibrate?.(10); } catch {} }}
                             isReply
                           />
                         </div>
@@ -229,12 +229,12 @@ export default function VibeComments({ vibeId, open, onOpenChange }: VibeComment
                   placeholder={replyTo ? "Votre réponse…" : "Votre commentaire…"}
                   maxLength={500}
                   className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSend(); if (e.key === "Escape") onOpenChange(false); }}
                 />
                 <button
                   onClick={handleSend}
                   disabled={!text.trim() || sending}
-                  className="w-10 h-10 rounded-xl bg-gold hover:bg-gold-light disabled:opacity-40 flex items-center justify-center transition-colors shrink-0"
+                  className="w-10 h-10 rounded-xl bg-gold hover:bg-gold-light disabled:opacity-40 flex items-center justify-center transition-all active:scale-90 shrink-0"
                 >
                   <Send className="w-4 h-4 text-primary-foreground" />
                 </button>

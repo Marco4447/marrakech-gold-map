@@ -81,6 +81,22 @@ function renderCaption(text: string | null) {
   );
 }
 
+function CaptionText({ name, text }: { name: string; text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > 100;
+  return (
+    <p className="text-[13px] text-foreground leading-[18px]">
+      <span className="font-semibold mr-1">{name}</span>
+      {isLong && !expanded ? (
+        <>
+          {renderCaption(text.slice(0, 100))}
+          <button onClick={() => setExpanded(true)} className="text-muted-foreground ml-0.5">...plus</button>
+        </>
+      ) : renderCaption(text)}
+    </p>
+  );
+}
+
 function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
   const [muted, setMuted] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
@@ -226,6 +242,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const sentinelRef = useRef<HTMLDivElement>(null);
   const commentCounts = useCommentCounts(vibes.map((v) => v.id));
   const [doubleTapId, setDoubleTapId] = useState<string | null>(null);
+  const [tapPos, setTapPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const lastTapRef = useRef<{ id: string; time: number } | null>(null);
   const [reactionsVibeId, setReactionsVibeId] = useState<string | null>(null);
   const [floatingReaction, setFloatingReaction] = useState<{ id: string; emoji: string } | null>(null);
@@ -260,12 +277,14 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
     return counts;
   }, [vibes]);
 
-  const handleDoubleTap = (vibeId: string) => {
+  const handleDoubleTap = (vibeId: string, x?: number, y?: number) => {
     const now = Date.now();
     if (lastTapRef.current && lastTapRef.current.id === vibeId && now - lastTapRef.current.time < 300) {
       if (!likedIds.has(vibeId)) handleLike(vibeId);
+      try { navigator.vibrate?.(10); } catch {}
+      if (x != null && y != null) setTapPos({ x, y });
       setDoubleTapId(vibeId);
-      setTimeout(() => setDoubleTapId(null), 800);
+      setTimeout(() => setDoubleTapId(null), 600);
       lastTapRef.current = null;
     } else {
       lastTapRef.current = { id: vibeId, time: now };
@@ -473,8 +492,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   useEffect(() => {
     if (!sentinelRef.current) return;
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setVisibleCount((prev) => prev + 10);
-    }, { rootMargin: "200px" });
+      if (entry.isIntersecting) setVisibleCount((prev) => prev + 12);
+    }, { rootMargin: "300px" });
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
   }, [filteredFeed.length]);
@@ -492,7 +511,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isPulling.current || refreshing) return;
     const dy = Math.max(0, e.touches[0].clientY - pullStartY.current);
-    setPullDistance(Math.min(dy * 0.4, 80));
+    setPullDistance(Math.min(dy * 0.33, 80));
   }, [refreshing]);
 
   const handleTouchEnd = useCallback(() => {
@@ -759,30 +778,35 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   </div>
 
                   {/* Media — full bleed */}
-                  <div className="relative aspect-[4/5] bg-black" onClick={() => handleDoubleTap(vibe.id)}>
+                  <div className="relative aspect-[4/5] bg-black" onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    handleDoubleTap(vibe.id, x, y);
+                  }}>
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
-                    <DoubleTapHeart show={doubleTapId === vibe.id} />
+                    <DoubleTapHeart show={doubleTapId === vibe.id} x={tapPos.x} y={tapPos.y} />
                   </div>
 
                   {/* Action bar — Instagram style */}
                   <div className="flex items-center justify-between px-3 pt-3 pb-1">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <div className="relative">
                         <VibeReactions show={reactionsVibeId === vibe.id} onReact={(emoji) => handleReaction(vibe.id, emoji)} onClose={() => setReactionsVibeId(null)} />
                         <button
                           onClick={() => handleLike(vibe.id)}
                           onContextMenu={(e) => { e.preventDefault(); setReactionsVibeId(vibe.id); }}
-                          onTouchStart={() => { const timer = setTimeout(() => setReactionsVibeId(vibe.id), 500); (window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer = timer; }}
+                          onTouchStart={() => { const timer = setTimeout(() => { setReactionsVibeId(vibe.id); try { navigator.vibrate?.(20); } catch {} }, 500); (window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer = timer; }}
                           onTouchEnd={() => clearTimeout((window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer)}
                         >
-                          <motion.div animate={isAnimating ? { scale: [1, 1.4, 0.9, 1.15, 1] } : {}} transition={{ duration: 0.4, ease: "easeOut" }}>
-                            <Heart className={`w-[26px] h-[26px] transition-colors duration-200 ${liked ? "fill-destructive text-destructive" : "text-foreground"}`} />
+                          <motion.div animate={isAnimating ? { scale: [1, 1.3, 1] } : {}} transition={{ type: "spring", stiffness: 150, damping: 15 }}>
+                            <Heart className={`w-[24px] h-[24px] transition-colors duration-200 ${liked ? "fill-destructive text-destructive" : "text-foreground"}`} />
                           </motion.div>
                         </button>
                         <FloatingReaction emoji={floatingReaction?.id === vibe.id ? floatingReaction.emoji : null} show={floatingReaction?.id === vibe.id} />
                       </div>
                       <button onClick={() => setCommentVibeId(vibe.id)}>
-                        <MessageCircle className="w-[26px] h-[26px] text-foreground" />
+                        <MessageCircle className="w-[24px] h-[24px] text-foreground" />
                       </button>
                       <button
                         onClick={() => handleSuperVibe(vibe.id)}
@@ -813,11 +837,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     <p className="text-[13px] font-semibold text-foreground">
                       {vibe.likes} J'aime{vibe.likes !== 1 ? "s" : ""}
                     </p>
-                    {vibe.caption && (
-                      <p className="text-[13px] text-foreground leading-[18px]">
-                        <span className="font-semibold mr-1">{getDisplayName(vibe)}</span>{renderCaption(vibe.caption)}
-                      </p>
-                    )}
+                    {vibe.caption && <CaptionText name={getDisplayName(vibe)} text={vibe.caption} />}
                     {vibe.insider_tip && (
                       <div className="mx-0 mt-1 px-2.5 py-2 rounded-xl bg-gold/[0.08] border border-gold/[0.15] flex gap-2 items-start">
                         <span className="text-sm shrink-0">💡</span>
@@ -828,11 +848,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       </div>
                     )}
                     {(commentCounts[vibe.id] || 0) > 0 && (
-                      <button onClick={() => setCommentVibeId(vibe.id)} className="text-[13px] text-muted-foreground">
+                      <button onClick={() => setCommentVibeId(vibe.id)} className="text-[13px] text-muted-foreground active:opacity-70 transition-opacity">
                         Voir les {commentCounts[vibe.id]} commentaire{(commentCounts[vibe.id] || 0) !== 1 ? "s" : ""}
                       </button>
                     )}
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{timeAgo(vibe.created_at)}</p>
+                    <p className="text-[11px] text-muted-foreground">{timeAgo(vibe.created_at)}</p>
                   </div>
 
                   {/* Expiry bar */}
