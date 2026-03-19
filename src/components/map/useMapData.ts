@@ -37,7 +37,7 @@ export function useMapData(refreshSignal: number) {
         const controller = new AbortController();
         timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        const response = await fetch(`${baseUrl}/rest/v1/places?select=*`, {
+        const response = await fetch(`${baseUrl}/rest/v1/places?select=id,name,slug,category,latitude,longitude,image_url,is_partner,has_active_offer,listing_tier,neighborhood`, {
           method: "GET",
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           signal: controller.signal,
@@ -104,7 +104,9 @@ export function useMapData(refreshSignal: number) {
     const fetchVibeData = async () => {
       const { data } = await supabase
         .from("vibes")
-        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at, media_type, is_official");
+        .select("id, location, likes, super_vibes, image_url, mood, latitude, longitude, created_at, media_type, is_official")
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (data) {
         const scored = (data as any[])
           .filter((v) => v.location)

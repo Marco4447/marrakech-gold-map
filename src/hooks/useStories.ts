@@ -45,7 +45,7 @@ export function useStories(userId?: string | null) {
     // Fetch real stories
     const { data: rawStories } = await supabase
       .from("stories" as any)
-      .select("*")
+      .select("id, source_type, user_id, place_id, media_url, media_type, badge, caption, is_featured, latitude, longitude, created_at, expires_at")
       .eq("is_hidden", false)
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
@@ -63,7 +63,7 @@ export function useStories(userId?: string | null) {
       const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
       const { data: vibes } = await supabase
         .from("vibes")
-        .select("*")
+        .select("id, image_url, caption, location, likes, user_id, created_at, mood, is_official, latitude, longitude")
         .or(`created_at.gt.${sixHoursAgo},and(is_official.eq.true,created_at.gt.${sevenDaysAgo})`)
         .order("created_at", { ascending: false })
         .limit(20);

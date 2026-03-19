@@ -500,90 +500,71 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     }
   };
 
+  const VIBE_COLUMNS = "id, image_url, caption, location, likes, super_vibes, username, user_id, created_at, media_type, mood, is_official";
+
   const fetchFavorites = useCallback(async () => {
     if (!user) { setLoading(false); return; }
 
-    // Fetch user's own vibes
-    const { data: userVibes } = await supabase
-      .from("vibes")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-    if (userVibes) setMyVibes(userVibes);
+    // Parallel batch 1: fetch vibes, likes IDs, bookmark IDs, checkins simultaneously
+    const [vibesRes, likesRes, bookmarksRes, checkinsRes] = await Promise.all([
+      supabase.from("vibes").select(VIBE_COLUMNS).eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("vibe_likes").select("vibe_id").eq("device_id", deviceId),
+      supabase.from("bookmarks").select("vibe_id").eq("user_id", user.id),
+      supabase.from("checkins").select("place_id").eq("user_id", user.id),
+    ]);
 
-    // Fetch liked vibes
-    const { data: likes } = await supabase
-      .from("vibe_likes")
-      .select("vibe_id")
-      .eq("device_id", deviceId);
+    const userVibes = vibesRes.data || [];
+    setMyVibes(userVibes);
 
-    if (likes && likes.length > 0) {
-      const ids = likes.map((l: any) => l.vibe_id);
-      const { data: vibes } = await supabase
-        .from("vibes")
-        .select("*")
-        .in("id", ids)
-        .order("created_at", { ascending: false });
-      if (vibes) setFavorites(vibes);
-    }
+    // Collect all vibe IDs we need to fetch (likes + bookmarks), deduplicated
+    const likeIds = (likesRes.data || []).map((l: any) => l.vibe_id);
+    const bookmarkIds = (bookmarksRes.data || []).map((b: any) => b.vibe_id);
+    const allNeededIds = [...new Set([...likeIds, ...bookmarkIds])];
 
-    // Fetch saved/bookmarked vibes
-    const { data: bookmarks } = await supabase
-      .from("bookmarks")
-      .select("vibe_id")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (bookmarks && bookmarks.length > 0) {
-      const bIds = bookmarks.map((b: any) => b.vibe_id);
-      const { data: savedData } = await supabase
-        .from("vibes")
-        .select("*")
-        .in("id", bIds)
-        .order("created_at", { ascending: false });
-      if (savedData) setSavedVibes(savedData);
-    }
-
-    // Fetch visited places (unique locations from user's vibes + checkins)
+    // Parallel batch 2: fetch liked+bookmarked vibes in ONE query + places
     const uniqueLocations = new Set<string>();
-    if (userVibes) {
-      userVibes.forEach((v: any) => { if (v.location) uniqueLocations.add(v.location); });
+    userVibes.forEach((v: any) => { if (v.location) uniqueLocations.add(v.location); });
+    const checkinPlaceIds = (checkinsRes.data || []).map((c: any) => c.place_id);
+
+    const batch2: Promise<any>[] = [];
+
+    if (allNeededIds.length > 0) {
+      batch2.push(
+        supabase.from("vibes").select(VIBE_COLUMNS).in("id", allNeededIds).order("created_at", { ascending: false })
+      );
+    } else {
+      batch2.push(Promise.resolve({ data: [] }));
     }
-    // Also from checkins
-    const { data: checkins } = await supabase
-      .from("checkins")
-      .select("place_id")
-      .eq("user_id", user.id);
-    
-    const checkinPlaceIds = checkins?.map((c: any) => c.place_id) || [];
-    
-    // Fetch places matching locations or checkin IDs
-    if (uniqueLocations.size > 0 || checkinPlaceIds.length > 0) {
-      const placeResults: typeof visitedPlaces = [];
 
-      if (uniqueLocations.size > 0) {
-        const { data: byName } = await supabase
-          .from("places")
-          .select("name, image_url, slug")
-          .in("name", Array.from(uniqueLocations))
-          .limit(50);
-        if (byName) placeResults.push(...byName);
-      }
-
-      if (checkinPlaceIds.length > 0) {
-        const { data: byId } = await supabase
-          .from("places")
-          .select("name, image_url, slug")
-          .in("id", checkinPlaceIds)
-          .limit(50);
-        if (byId) {
-          const existingNames = new Set(placeResults.map(p => p.name));
-          placeResults.push(...byId.filter(p => !existingNames.has(p.name)));
-        }
-      }
-
-      setVisitedPlaces(placeResults);
+    if (uniqueLocations.size > 0) {
+      batch2.push(supabase.from("places").select("name, image_url, slug").in("name", Array.from(uniqueLocations)).limit(50));
+    } else {
+      batch2.push(Promise.resolve({ data: [] }));
     }
+
+    if (checkinPlaceIds.length > 0) {
+      batch2.push(supabase.from("places").select("name, image_url, slug").in("id", checkinPlaceIds).limit(50));
+    } else {
+      batch2.push(Promise.resolve({ data: [] }));
+    }
+
+    const [allVibesRes, placesByNameRes, placesByIdRes] = await Promise.all(batch2);
+
+    // Split fetched vibes into liked vs bookmarked
+    const allFetchedVibes = allVibesRes.data || [];
+    const likeSet = new Set(likeIds);
+    const bookmarkSet = new Set(bookmarkIds);
+    setFavorites(allFetchedVibes.filter((v: any) => likeSet.has(v.id)));
+    setSavedVibes(allFetchedVibes.filter((v: any) => bookmarkSet.has(v.id)));
+
+    // Merge places from both sources, deduplicated by name
+    const placeResults: typeof visitedPlaces = [];
+    if (placesByNameRes.data) placeResults.push(...placesByNameRes.data);
+    if (placesByIdRes.data) {
+      const existingNames = new Set(placeResults.map(p => p.name));
+      placeResults.push(...placesByIdRes.data.filter((p: any) => !existingNames.has(p.name)));
+    }
+    setVisitedPlaces(placeResults);
 
     setLoading(false);
   }, [deviceId, user]);

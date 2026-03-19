@@ -282,7 +282,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
   const fetchVibes = useCallback(async () => {
     setFetchError(null);
     try {
-      const { data, error } = await supabase.from("vibes").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("vibes").select("id, image_url, caption, insider_tip, location, latitude, longitude, likes, super_vibes, username, user_id, created_at, media_type, mood, is_official").order("created_at", { ascending: false });
       if (error) throw error;
       if (data) {
         const userIds = [...new Set(data.filter(v => v.user_id).map(v => v.user_id))] as string[];

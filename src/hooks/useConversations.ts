@@ -44,9 +44,10 @@ export function useConversations() {
       // 1. Toutes les conversations de l'utilisateur
       const { data: convos, error: convosError } = await supabase
         .from("conversations")
-        .select("*")
+        .select("id, user1_id, user2_id, last_message_at, created_at")
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .order("last_message_at", { ascending: false });
+        .order("last_message_at", { ascending: false })
+        .limit(50);
 
       if (convosError) throw convosError;
 
