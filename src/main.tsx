@@ -61,7 +61,45 @@ if (import.meta.env.PROD) {
     }
   };
 
-  const checkForStaleEntryOnBoot = async () => {
+  const CACHE_RESET_VERSION = "v2";
+  const CACHE_RESET_KEY = `wk_cache_reset_${CACHE_RESET_VERSION}`;
+
+  const shouldForceResetCachesOnce = () => {
+    try {
+      return localStorage.getItem(CACHE_RESET_KEY) !== "1";
+    } catch {
+      return false;
+    }
+  };
+
+  const markForcedResetDone = () => {
+    try {
+      localStorage.setItem(CACHE_RESET_KEY, "1");
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const forceResetCachesOnce = async () => {
+    if (!shouldForceResetCachesOnce()) return;
+    markForcedResetDone();
+
+    try {
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      }
+
+      if ("caches" in window) {
+        const cacheKeys = await caches.keys();
+        await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)));
+      }
+    } finally {
+      window.location.reload();
+    }
+  };
+
+  const checkForNewEntryOnBoot = async () => {
     try {
       const response = await fetch(`${window.location.origin}/?v=${Date.now()}`, {
         cache: "no-store",
@@ -95,9 +133,14 @@ if (import.meta.env.PROD) {
     void recoverFromStaleAssets();
   });
 
+  // One-time hard reset for clients stuck with stale service-worker caches.
+  setTimeout(() => {
+    void forceResetCachesOnce();
+  }, 300);
+
   // Early stale-entry check before SW registration.
   setTimeout(() => {
-    void checkForStaleEntryOnBoot();
+    void checkForNewEntryOnBoot();
   }, 1200);
 
   // Register SW after a delay so it never blocks initial page load
