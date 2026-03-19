@@ -83,9 +83,24 @@ const B2BFinalCTA = forwardRef<HTMLDivElement>((_, ref) => {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Notre équipe vous contacte sur WhatsApp sous 24h pour activer vos 15 crédits gratuits.
               </p>
-              <Link to="/" className="inline-block mt-2 text-sm font-medium text-gold hover:text-gold-light transition-colors">
-                ← Retour à l'app
-              </Link>
+              <div className="flex flex-col gap-2 mt-3">
+                <Link
+                  to="/demo"
+                  className="w-full py-2.5 rounded-xl text-sm font-bold text-primary-foreground text-center"
+                  style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+                >
+                  Voir le dashboard démo →
+                </Link>
+                <Link
+                  to="/pricing"
+                  className="w-full py-2.5 rounded-xl text-sm font-medium text-gold border border-gold/30 hover:bg-gold/5 transition-colors text-center"
+                >
+                  Explorer les tarifs
+                </Link>
+                <Link to="/" className="inline-block mt-1 text-xs text-muted-foreground hover:text-foreground transition-colors text-center">
+                  ← Retour à l'app
+                </Link>
+              </div>
             </motion.div>
           ) : (
             <motion.div

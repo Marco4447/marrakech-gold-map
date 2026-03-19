@@ -988,7 +988,15 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                     <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3">
                       <Grid3X3 className="w-6 h-6 text-gold/50" />
                     </div>
-                    <p className="text-sm text-muted-foreground">Partage ta première vibe !</p>
+                    <p className="text-sm text-muted-foreground mb-3">Ta première vibe apparaîtra ici !</p>
+                    <button
+                      onClick={() => window.dispatchEvent(new CustomEvent("wk:open-flash-post"))}
+                      className="px-5 py-2.5 rounded-xl font-bold text-sm text-primary-foreground active:scale-[0.97] transition-transform"
+                      style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+                    >
+                      <Camera className="w-4 h-4 inline mr-1.5" />
+                      Poster ma première vibe
+                    </button>
                   </div>
                 ) : (
                   <>
@@ -1047,7 +1055,13 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                     {profileTab === "likes" ? <Heart className="w-6 h-6 text-gold/50" /> :
                      <Bookmark className="w-6 h-6 text-gold/50" />}
                   </div>
-                  <p className="text-sm text-muted-foreground">{emptyMsg}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{emptyMsg}</p>
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent("wk:goto-feed"))}
+                    className="px-4 py-2 rounded-xl bg-foreground text-background text-sm font-semibold active:scale-95 transition-transform"
+                  >
+                    Explorer le feed
+                  </button>
                 </div>
               );
             }

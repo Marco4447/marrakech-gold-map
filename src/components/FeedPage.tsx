@@ -547,7 +547,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
               feedScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
               setShowNewPill(false);
             }}
-            className="fixed top-14 left-1/2 -translate-x-1/2 z-[1500] flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl shadow-black/30 whitespace-nowrap"
+            className="fixed top-14 left-1/2 -translate-x-1/2 z-[400] flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl shadow-black/30 whitespace-nowrap"
             aria-label={`${newVibesCount} nouvelles vibes, cliquer pour remonter`}
           >
             ↑ {newVibesCount} nouvelle{newVibesCount > 1 ? "s" : ""} vibe{newVibesCount > 1 ? "s" : ""}
@@ -627,11 +627,17 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <h2 className="text-base font-semibold text-foreground mb-1.5">Aucune vibe live</h2>
           <p className="text-[13px] text-muted-foreground mb-4">Sois le premier à partager ton vibe !</p>
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent("wk:open-flash-post"))}
+            onClick={() => {
+              if (!userId) {
+                toast("Crée ton compte pour poster 📸", { action: { label: "S'inscrire", onClick: () => window.dispatchEvent(new CustomEvent("wk:goto-auth")) } });
+                return;
+              }
+              window.dispatchEvent(new CustomEvent("wk:open-flash-post"));
+            }}
             className="px-5 py-2.5 rounded-xl font-bold text-sm text-primary-foreground active:scale-[0.97] transition-transform"
             style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
           >
-            Poster une vibe
+            {userId ? "Poster une vibe" : "Créer un compte"}
           </button>
         </div>
       ) : activeTab === "following" && sortedFeed.length === 0 ? (
@@ -866,7 +872,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       {/* Share DM Picker */}
       <AnimatePresence>
         {showDmPicker && shareVibeId && (
-          <div className="fixed inset-0 z-[3000] flex flex-col justify-end" onClick={() => setShowDmPicker(false)}>
+          <div className="fixed inset-0 z-[300] flex flex-col justify-end" onClick={() => setShowDmPicker(false)}>
             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
             <motion.div
               initial={{ y: "100%" }}

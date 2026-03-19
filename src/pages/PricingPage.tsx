@@ -555,8 +555,14 @@ export default function PricingPage() {
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 <Link
+                  to="/demo"
+                  className="block w-full py-3 rounded-xl text-sm font-medium text-center text-foreground border border-border hover:border-gold/30 transition-colors"
+                >
+                  Voir le dashboard démo →
+                </Link>
+                <Link
                   to="/business"
-                  className="block w-full py-3 rounded-xl text-sm font-medium text-center text-gold border border-gold/30 hover:bg-gold/5 transition-colors"
+                  className="block w-full py-2.5 rounded-xl text-sm font-medium text-center text-gold hover:text-gold-light transition-colors"
                 >
                   Pas encore partenaire ? Candidater →
                 </Link>
@@ -614,7 +620,7 @@ export default function PricingPage() {
           <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           <p className="text-xs text-muted-foreground pt-2">
             Des questions ? Contactez-nous sur{" "}
-            <a href="https://wa.me/" className="text-gold hover:underline">WhatsApp</a>
+            <a href="https://wa.me/+212600000000" className="text-gold hover:underline">WhatsApp</a>
           </p>
           <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
             <Link to="/privacy" className="hover:text-foreground transition-colors">Confidentialité</Link>

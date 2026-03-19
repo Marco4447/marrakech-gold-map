@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Camera, Heart, AlertCircle, Loader2, Flame } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,10 +72,13 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     setTimeout(() => setFloatingReaction(null), 900);
   };
 
-  const userVibeCounts: Record<string, number> = {};
-  vibes.forEach((v) => {
-    if (v.user_id) userVibeCounts[v.user_id] = (userVibeCounts[v.user_id] || 0) + 1;
-  });
+  const userVibeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    vibes.forEach((v) => {
+      if (v.user_id) counts[v.user_id] = (counts[v.user_id] || 0) + 1;
+    });
+    return counts;
+  }, [vibes]);
 
   const deviceId = getDeviceId();
 
@@ -84,8 +87,9 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
     try {
       const { data, error } = await supabase
         .from("vibes")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("id, image_url, caption, insider_tip, location, latitude, longitude, likes, super_vibes, username, user_id, created_at, media_type, mood, is_official")
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (error) throw error;
       if (data) {
         const userIds = [...new Set(data.filter(v => v.user_id).map(v => v.user_id))] as string[];

@@ -168,13 +168,13 @@ export default function TikTokFeed({ open, onClose }: { open: boolean; onClose: 
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-[env(safe-area-inset-top)] mt-3 right-4 z-[10001] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center"
+        className="absolute top-[env(safe-area-inset-top)] mt-3 right-4 z-[350] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center"
       >
         <X className="w-6 h-6 text-white" />
       </button>
 
       {/* Progress dots */}
-      <div className="absolute top-[env(safe-area-inset-top)] mt-4 left-1/2 -translate-x-1/2 z-[10001] flex gap-1">
+      <div className="absolute top-[env(safe-area-inset-top)] mt-4 left-1/2 -translate-x-1/2 z-[350] flex gap-1">
         {vibes.slice(Math.max(0, currentIndex - 3), currentIndex + 4).map((v, i) => {
           const actualIndex = Math.max(0, currentIndex - 3) + i;
           return (

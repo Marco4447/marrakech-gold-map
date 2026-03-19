@@ -98,6 +98,8 @@ const Index = () => {
   useEffect(() => {
     const handler = () => setActiveTab("profil");
     window.addEventListener("wk:goto-auth", handler);
+    const feedHandler = () => setActiveTab("feed");
+    window.addEventListener("wk:goto-feed", feedHandler);
     const notifHandler = () => {
       markAllRead();
       setShowNotifications(true);
@@ -109,6 +111,7 @@ const Index = () => {
     window.addEventListener("wk:open-dm", dmHandler as EventListener);
     return () => {
       window.removeEventListener("wk:goto-auth", handler);
+      window.removeEventListener("wk:goto-feed", feedHandler);
       window.removeEventListener("wk:open-notifications", notifHandler);
       window.removeEventListener("wk:open-dm", dmHandler as EventListener);
     };
@@ -202,11 +205,11 @@ const Index = () => {
 
   // Messages overlay — rendered as a layer on top, with BottomNav still accessible
   const messagesOverlay = showMessages && user ? (
-    <div className="fixed inset-0 z-[2000] bg-background flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-background flex flex-col overflow-hidden">
       <div className="flex-1 overflow-hidden pb-16">
         <MessagesPage onBack={() => setShowMessages(false)} />
       </div>
-      <div className="fixed bottom-0 left-0 right-0 z-[2001]">
+      <div className="fixed bottom-0 left-0 right-0 z-[201]">
         <BottomNav
           active={activeTab}
           onChange={(tab) => {
@@ -303,20 +306,25 @@ const Index = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 3, duration: 0.5 }}
-            className="fixed bottom-20 left-3 right-3 z-[1999] md:left-auto md:right-4 md:bottom-4 md:max-w-sm"
+            className="fixed bottom-20 left-3 right-3 z-[100] md:left-auto md:right-4 md:bottom-4 md:max-w-sm"
           >
             <div className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-4 py-3 shadow-2xl shadow-gold/10 flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground truncate">Crée ton compte gratuit</p>
                 <p className="text-[11px] text-muted-foreground">Poste, like, et débloque les avantages VIP</p>
               </div>
-              <button
-                onClick={() => setActiveTab("profil")}
-                className="shrink-0 px-4 py-2 rounded-xl font-bold text-xs text-primary-foreground active:scale-[0.97] transition-transform"
-                style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
-              >
-                S'inscrire
-              </button>
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <button
+                  onClick={() => setActiveTab("profil")}
+                  className="px-4 py-2 rounded-xl font-bold text-xs text-primary-foreground active:scale-[0.97] transition-transform"
+                  style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
+                >
+                  S'inscrire
+                </button>
+                <a href="/business" className="text-[10px] text-gold text-center font-medium">
+                  Pour les pros →
+                </a>
+              </div>
             </div>
           </motion.div>
         )}
@@ -382,7 +390,7 @@ const Index = () => {
 
       {/* Header: Language toggle + notifications bell + info (mobile only) */}
       {!isGuest && (
-        <div className="fixed top-4 right-4 z-[1999] flex items-center gap-2 md:hidden">
+        <div className="fixed top-4 right-4 z-[100] flex items-center gap-2 md:hidden">
           <button
             onClick={() => {
               markAllRead();
@@ -409,7 +417,7 @@ const Index = () => {
         </div>
       )}
       {isGuest && (
-        <div className="fixed top-4 right-4 z-[1999] md:hidden">
+        <div className="fixed top-4 right-4 z-[100] md:hidden">
           <LanguageToggle variant="icon" />
         </div>
       )}

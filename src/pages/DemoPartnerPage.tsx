@@ -258,10 +258,16 @@ export default function DemoPartnerPage() {
             className="w-full py-3 rounded-xl text-sm font-bold text-primary-foreground shadow-lg shadow-gold/20 flex items-center justify-center gap-2"
             style={{ background: "linear-gradient(135deg, hsl(43 76% 52%), hsl(43 70% 62%))" }}
           >
-            Commencer gratuitement <ArrowRight className="w-4 h-4" />
+            Candidater maintenant <ArrowRight className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => navigate("/pricing")}
+            className="w-full py-2.5 rounded-xl text-sm font-medium text-gold border border-gold/30 hover:bg-gold/5 transition-colors"
+          >
+            Voir les tarifs →
           </button>
           <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-1"><Check className="w-3 h-3 text-gold" /> Gratuit 30 jours</span>
+            <span className="flex items-center gap-1"><Check className="w-3 h-3 text-gold" /> 15 crédits offerts</span>
             <span className="flex items-center gap-1"><Check className="w-3 h-3 text-gold" /> Setup en 2 min</span>
           </div>
         </motion.div>
