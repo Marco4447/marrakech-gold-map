@@ -10,25 +10,28 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return result === "granted";
 }
 
+type NotificationOptionsWithVibrate = NotificationOptions & {
+  vibrate?: number[];
+};
+
 export function showLocalNotification(title: string, body: string, icon?: string) {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+  const options: NotificationOptionsWithVibrate = {
+    body,
+    icon: icon || "/images/weshkech-logo.png",
+    badge: "/images/weshkech-logo.png",
+    tag: `wk-${Date.now()}`,
+    vibrate: [100, 50, 100],
+  };
 
   // Use service worker notification if available (works when app is in background)
   if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
     navigator.serviceWorker.ready.then((reg) => {
-      reg.showNotification(title, {
-        body,
-        icon: icon || "/images/weshkech-logo.png",
-        badge: "/images/weshkech-logo.png",
-        vibrate: [100, 50, 100],
-        tag: `wk-${Date.now()}`,
-      });
+      reg.showNotification(title, options);
     });
   } else {
-    new Notification(title, {
-      body,
-      icon: icon || "/images/weshkech-logo.png",
-    });
+    new Notification(title, options);
   }
 }
 

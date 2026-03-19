@@ -197,21 +197,20 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black select-none">
-      <AnimatePresence mode="popLayout" custom={direction}>
+      <AnimatePresence mode="popLayout">
         <motion.div
           key={`${groupIndex}-${segmentIndex}`}
-          custom={direction}
-          initial={(d: number) => ({
-            x: d === 0 ? 0 : d > 0 ? "100%" : "-100%",
-            opacity: d === 0 ? 0 : 1,
-            scale: d === 0 ? 0.95 : 1,
-          })}
+          initial={{
+            x: direction === 0 ? 0 : direction > 0 ? "100%" : "-100%",
+            opacity: direction === 0 ? 0 : 1,
+            scale: direction === 0 ? 0.95 : 1,
+          }}
           animate={{ x: 0, opacity: 1, scale: 1 }}
-          exit={(d: number) => ({
-            x: d > 0 ? "-30%" : d < 0 ? "30%" : 0,
+          exit={{
+            x: direction > 0 ? "-30%" : direction < 0 ? "30%" : 0,
             opacity: 0,
             scale: 0.95,
-          })}
+          }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="absolute inset-0 flex flex-col bg-black"
           drag
