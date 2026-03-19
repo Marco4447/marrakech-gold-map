@@ -11,6 +11,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 // Eagerly loaded (critical path)
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import GoPage from "./pages/GoPage";
 
 // Lazy loaded (non-critical routes)
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -23,7 +24,6 @@ const VerifyVip = lazy(() => import("./pages/VerifyVip"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCanceled = lazy(() => import("./pages/PaymentCanceled"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
-const GoPage = lazy(() => import("./pages/GoPage"));
 const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
 const PlacePage = lazy(() => import("./pages/PlacePage"));
 const VibePage = lazy(() => import("./pages/VibePage"));
