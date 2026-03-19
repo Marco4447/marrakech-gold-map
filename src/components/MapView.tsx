@@ -21,6 +21,8 @@ import { isBoosted } from "@/lib/boostedPlaces";
 import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy";
 import HotPlacesDrawer from "./map/HotPlacesDrawer";
 import SoireeRadar from "./map/SoireeRadar";
+import TonightModeButton from "./map/TonightModeButton";
+import NightPlanner from "./NightPlanner";
 
 // Filter config for category matching
 const FILTER_CATEGORIES: Record<string, string[]> = {
@@ -95,11 +97,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
   const [selectedVibe, setSelectedVibe] = useState<VibePin | null>(null);
   const [vibeSheetOpen, setVibeSheetOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  // Auto tonight mode: 8pm–6am
-  const [tonightMode] = useState(() => {
+  // Tonight mode: auto-on 8pm–6am, user can toggle
+  const [tonightMode, setTonightMode] = useState(() => {
     const h = new Date().getHours();
     return h >= 20 || h < 6;
   });
+  const [showNightPlanner, setShowNightPlanner] = useState(false);
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
   const lastFocusedPlaceRef = useRef<Place | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -672,15 +675,30 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Tonight mode subtle indicator (auto) */}
-      {tonightMode && !sheetOpen && !vibeSheetOpen && (
-        <div className="absolute bottom-[88px] left-3 z-[999]">
-          <div className="flex items-center gap-1 bg-card/70 backdrop-blur-md border border-border/40 rounded-full px-2.5 py-1 shadow-sm">
-            <span className="text-[10px]">🌙</span>
-            <span className="text-[9px] font-medium text-muted-foreground">Night · {getFilteredPlaces().length} spots</span>
-          </div>
+      {/* Tonight mode toggle + Night planner */}
+      {!sheetOpen && !vibeSheetOpen && (
+        <div className="absolute bottom-[88px] left-3 z-[999] flex flex-col gap-2">
+          <TonightModeButton
+            active={tonightMode}
+            count={tonightMode ? getFilteredPlaces().length : 0}
+            onToggle={() => setTonightMode((v) => !v)}
+          />
+          <button
+            onClick={() => setShowNightPlanner(true)}
+            className="flex items-center gap-1.5 bg-card/80 backdrop-blur-md border border-border/40 rounded-full px-3 py-1.5 shadow-md active:scale-95 transition-transform"
+          >
+            <span className="text-xs">🌙</span>
+            <span className="text-[10px] font-semibold text-foreground">Ma soirée</span>
+          </button>
         </div>
       )}
+
+      {/* Night Planner */}
+      <NightPlanner
+        open={showNightPlanner}
+        onClose={() => setShowNightPlanner(false)}
+        places={places.map(p => ({ id: p.id, name: p.name, latitude: p.latitude, longitude: p.longitude, image_url: p.image_url, category: p.category }))}
+      />
 
       {/* Onboarding tooltips */}
       <AnimatePresence>

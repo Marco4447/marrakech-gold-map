@@ -15,6 +15,8 @@ import PlacePhotoGallery from "./place/PlacePhotoGallery";
 import PlaceInfoCards from "./place/PlaceInfoCards";
 import PlaceVipSection from "./place/PlaceVipSection";
 import PlaceVibesSection from "./place/PlaceVibesSection";
+import VibeCheck from "./VibeCheck";
+import EphemeralReviews from "./EphemeralReviews";
 
 interface Place {
   id: string;
@@ -186,8 +188,14 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                        {/* Description */}
                        {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
 
+                       {/* Vibe Check — live ambiance vote */}
+                       <VibeCheck placeId={place.id} placeName={place.name} />
+
                        {/* Recent Vibes from this place */}
                        <PlaceVibesSection placeName={place.name} />
+
+                       {/* Ephemeral Reviews (48h) */}
+                       <EphemeralReviews placeId={place.id} />
 
                        {/* Info Cards (horaires, prix, musique, dress code) */}
                       <PlaceInfoCards details={placeDetails} />

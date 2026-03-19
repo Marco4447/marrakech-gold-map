@@ -14,6 +14,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useFollows } from "@/hooks/useFollows";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { getUserMayorTerritories } from "@/lib/mayorSystem";
+import GeoNotificationSettings from "./GeoNotificationSettings";
 
 interface ProfilPageProps {
   onOpenAdmin?: () => void;
@@ -1094,6 +1095,9 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
           })()
         )}
       </div>
+
+      {/* Geo Notification Settings */}
+      {user && <GeoNotificationSettings userId={user.id} />}
 
       {/* RGPD Section */}
       <div className="px-5 pt-6 pb-4 space-y-3">

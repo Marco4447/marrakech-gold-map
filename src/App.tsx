@@ -42,6 +42,7 @@ const StrategicDemoPage = lazy(() => import("./pages/StrategicDemoPage"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const NeighborhoodPage = lazy(() => import("./pages/NeighborhoodPage"));
 const SavedVibesPage = lazy(() => import("./pages/SavedVibesPage"));
+const EventsPage = lazy(() => import("./pages/EventsPage"));
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const AppShell = () => {
                 <Route path="/u/:userId" element={<UserProfilePage />} />
                 <Route path="/quartier/:slug" element={<NeighborhoodPage />} />
                 <Route path="/saved" element={<SavedVibesPage />} />
+                <Route path="/events" element={<EventsPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
