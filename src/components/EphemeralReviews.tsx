@@ -26,6 +26,7 @@ export default function EphemeralReviews({ placeId }: EphemeralReviewsProps) {
   const [rating, setRating] = useState(3);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const db = supabase as any;
 
   useEffect(() => {
     fetchReviews();
@@ -38,7 +39,7 @@ export default function EphemeralReviews({ placeId }: EphemeralReviewsProps) {
         Date.now() - 48 * 60 * 60 * 1000
       ).toISOString();
 
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("ephemeral_reviews")
         .select("id, user_id, text, rating, created_at")
         .eq("place_id", placeId)
@@ -73,7 +74,7 @@ export default function EphemeralReviews({ placeId }: EphemeralReviewsProps) {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("ephemeral_reviews")
         .insert({
           place_id: placeId,

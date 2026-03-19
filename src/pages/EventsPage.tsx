@@ -54,13 +54,14 @@ export default function EventsPage() {
   const [selectedDate, setSelectedDate] = useState(formatDateISO(days[0]));
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const db = supabase as any;
 
   useEffect(() => {
     async function fetchEvents() {
       setLoading(true);
       try {
         const todayStr = formatDateISO(new Date());
-        const { data, error } = await supabase
+        const { data, error } = await db
           .from("events")
           .select("id, title, place_id, date, time, description, image_url, type, places(name)")
           .gte("date", todayStr)

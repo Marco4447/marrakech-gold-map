@@ -6,7 +6,9 @@ import { initErrorReporting } from "./lib/errorReporting";
 initErrorReporting();
 
 const STALE_RELOAD_KEY = "wk_stale_reload";
-const BLACK_SCREEN_RECOVERY_KEY = "wk_boot_recovery_v5";
+const BLACK_SCREEN_RECOVERY_KEY = "wk_boot_recovery_v6";
+const FORCED_RUNTIME_RESET_KEY = "wk_force_runtime_reset_v6";
+const FORCED_RUNTIME_RESET_RELOAD_KEY = "wk_force_runtime_reset_reload_v6";
 const ROOT_WATCHDOG_DELAY_MS = 2500;
 
 const isDynamicImportLoadError = (reason: unknown) => {
@@ -20,8 +22,12 @@ const isDynamicImportLoadError = (reason: unknown) => {
 };
 
 const reloadOnce = (key = STALE_RELOAD_KEY) => {
-  if (sessionStorage.getItem(key)) return;
-  sessionStorage.setItem(key, "1");
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+  } catch {
+    // ignore storage issues and force reload anyway
+  }
   window.location.reload();
 };
 
@@ -51,6 +57,21 @@ async function clearClientRuntimeCaches() {
   return cleaned;
 }
 
+async function forceRuntimeResetOncePerVersion() {
+  if (!import.meta.env.PROD) return false;
+
+  try {
+    if (localStorage.getItem(FORCED_RUNTIME_RESET_KEY) === "1") return false;
+    localStorage.setItem(FORCED_RUNTIME_RESET_KEY, "1");
+  } catch {
+    return false;
+  }
+
+  await clearClientRuntimeCaches();
+  reloadOnce(FORCED_RUNTIME_RESET_RELOAD_KEY);
+  return true;
+}
+
 async function recoverFromBlackScreenOnce() {
   if (!import.meta.env.PROD) return;
 
@@ -62,7 +83,7 @@ async function recoverFromBlackScreenOnce() {
   }
 
   await clearClientRuntimeCaches();
-  reloadOnce("wk_black_screen_recovery_reload");
+  reloadOnce("wk_black_screen_recovery_reload_v6");
 }
 
 function installChunkErrorRecovery() {
@@ -109,6 +130,14 @@ function scheduleRootWatchdog() {
   }, ROOT_WATCHDOG_DELAY_MS);
 }
 
-installChunkErrorRecovery();
-mountApp();
-scheduleRootWatchdog();
+async function bootstrap() {
+  installChunkErrorRecovery();
+
+  const didForceReset = await forceRuntimeResetOncePerVersion();
+  if (didForceReset) return;
+
+  mountApp();
+  scheduleRootWatchdog();
+}
+
+void bootstrap();
