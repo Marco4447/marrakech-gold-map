@@ -22,12 +22,34 @@ export default function AuthGate() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (error) {
-      setError("Erreur Google. Essaie par email.");
-      setLoading(false);
+    try {
+      // Try Lovable OAuth first
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        // Fallback: direct Supabase OAuth
+        console.warn("Lovable OAuth failed, trying Supabase direct:", result.error);
+        const { error: sbError } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: window.location.origin },
+        });
+        if (sbError) {
+          setError("Erreur Google. Essaie par email.");
+          setLoading(false);
+        }
+      }
+    } catch (err) {
+      console.error("Google auth error:", err);
+      // Last resort fallback
+      const { error: sbError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
+      });
+      if (sbError) {
+        setError("Erreur Google. Essaie par email.");
+        setLoading(false);
+      }
     }
   };
 
