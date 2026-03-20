@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, MapPin, Sparkles, Mail, ArrowRight, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
-import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { isInAppBrowser } from "@/lib/openInExternalBrowser";
@@ -51,28 +50,22 @@ export default function AuthGate() {
     setLoading(true);
     setError(null);
 
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: {
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: {
           prompt: "select_account",
         },
-      });
+      },
+    });
 
-      if (result.error) {
-        console.error("Google auth error:", result.error);
-        const message = String((result.error as Error)?.message ?? result.error);
-        if (/missing oauth secret|unsupported provider/i.test(message)) {
-          setGoogleDisabled(true);
-        }
-        setError("Google indisponible pour le moment. Essaie par email (code à 6 chiffres).");
-      }
-    } catch (err) {
-      console.error("Google auth exception:", err);
-      setError("Google indisponible pour le moment. Essaie par email (code à 6 chiffres).");
-    } finally {
-      setLoading(false);
+    if (oauthError) {
+      console.error("Google OAuth error:", oauthError.message);
+      setError(`Erreur Google : ${oauthError.message}`);
     }
+
+    setLoading(false);
   };
 
   const handleSendOtp = async () => {

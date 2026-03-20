@@ -2,7 +2,7 @@ import { forwardRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Loader2, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+// lovable OAuth removed — using supabase.auth.signInWithOAuth directly
 import { trackEvent } from "@/lib/analytics";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -39,7 +39,17 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   const handleGoogleSignup = async () => {
     setLoading(true);
     trackEvent("landing_google_signup_click");
-    await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: { prompt: "select_account" },
+      },
+    });
+    if (oauthError) {
+      console.error("Google OAuth error:", oauthError.message);
+      setError(`Erreur Google : ${oauthError.message}`);
+    }
     setLoading(false);
   };
 
