@@ -550,52 +550,34 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
       {/* Distance rings removed — cleaner map */}
 
-      {/* ===== UNIFIED HEADER ===== */}
+      {/* ===== HEADER: Search + Filters + Weather ===== */}
       <AnimatePresence>
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
-            key="unified-header"
-            className="absolute top-0 left-0 right-0 z-[1000] pointer-events-none"
+            key="map-header"
+            className="absolute top-0 left-0 right-0 z-[100] pointer-events-none"
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             <div className="px-3 pt-10 pb-1 bg-gradient-to-b from-background via-background/80 to-transparent">
-              {/* Row 1: Logo + Search */}
+              {/* Row 1: Search + Weather badge */}
               <div className="flex items-center gap-2 pointer-events-auto">
-                <motion.div
-                  className="flex items-center gap-1 shrink-0"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
-                >
-                  <img src="/logo_72.png" alt="Weshkech" className="w-6 h-6 rounded-md" />
-                  <span className="font-display text-base font-bold tracking-tight">
-                    <span className="text-gold">W</span>
-                    <span className="text-foreground/90">K</span>
-                  </span>
-                </motion.div>
                 <div className="flex-1 min-w-0">
                   <MapSearchBar
                     places={places}
                     onSelect={(searchPlace) => {
                       const fullPlace = places.find((p) => p.id === searchPlace.id);
-                      if (fullPlace) {
-                        handleOpenSheet(fullPlace);
-                      }
+                      if (fullPlace) handleOpenSheet(fullPlace);
                     }}
                   />
                 </div>
-                {isNight && (
-                  <div className="flex items-center gap-1 bg-card/60 backdrop-blur-md border border-border rounded-full px-2 py-0.5 shrink-0">
-                    <span className="text-[9px]">🌙</span>
-                    <span className="text-foreground text-[9px] font-medium">Night</span>
-                  </div>
-                )}
+                {/* Weather badge — compact, top right */}
+                <WeatherWidget tonightMode={tonightMode} />
               </div>
 
-              {/* Row 2: Category filters only — clean horizontal scroll */}
+              {/* Row 2: Filters */}
               <div className="mt-1.5 pointer-events-auto">
                 <MapFiltersBar
                   activeFilter={activeFilter}
@@ -636,65 +618,39 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         }}
       />
 
-      {/* Controls — simplified */}
+      {/* ===== BOTTOM RIGHT: Map controls (geolocate, heatmap, radar) ===== */}
       <AnimatePresence>
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
             key="map-controls"
-            className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-1.5"
+            className="absolute bottom-24 right-3 z-[50] flex flex-col gap-1.5"
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 12 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
-            <button
-              onClick={handleGeolocate}
-              className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md flex items-center justify-center active:scale-95 transition-transform"
-              title="Ma position"
-            >
+            <button onClick={handleGeolocate} className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md flex items-center justify-center active:scale-95 transition-transform" title="Ma position">
               <Navigation className="w-4 h-4 text-gold" />
             </button>
-            <button
-              onClick={() => setShowHeatmap(h => !h)}
-              className={`w-10 h-10 rounded-xl backdrop-blur-md border flex items-center justify-center transition-all shadow-lg ${
-                showHeatmap
-                  ? "bg-orange-500/20 border-orange-500/50 text-orange-400"
-                  : "bg-card/80 border-border text-muted-foreground"
-              }`}
-              title="Heatmap live"
-            >
+            <button onClick={() => setShowHeatmap(h => !h)} className={`w-10 h-10 rounded-xl backdrop-blur-md border flex items-center justify-center transition-all shadow-lg ${showHeatmap ? "bg-orange-500/20 border-orange-500/50 text-orange-400" : "bg-card/80 border-border text-muted-foreground"}`} title="Heatmap">
               <span className="text-lg">🔥</span>
             </button>
-            <button
-              onClick={() => setShowRadar(true)}
-              className="w-10 h-10 rounded-xl bg-card/80 backdrop-blur-md border border-border flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-              title="Radar soirée"
-            >
+            <button onClick={() => setShowRadar(true)} className="w-10 h-10 rounded-xl bg-card/80 backdrop-blur-md border border-border flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Radar">
               <span className="text-lg">📡</span>
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Weather widget (top left) */}
+      {/* ===== BOTTOM LEFT: Tonight mode + Night planner ===== */}
       {!sheetOpen && !vibeSheetOpen && (
-        <div className="absolute top-16 left-3 z-[999]">
-          <WeatherWidget tonightMode={tonightMode} />
-        </div>
-      )}
-
-      {/* Tonight mode toggle + Night planner */}
-      {!sheetOpen && !vibeSheetOpen && (
-        <div className="absolute bottom-[88px] left-3 z-[999] flex flex-col gap-2">
+        <div className="absolute bottom-24 left-3 z-[50] flex flex-col gap-1.5 items-start">
           <TonightModeButton
             active={tonightMode}
             count={tonightMode ? getFilteredPlaces().length : 0}
             onToggle={() => setTonightMode((v) => !v)}
           />
-          <button
-            onClick={() => setShowNightPlanner(true)}
-            className="flex items-center gap-1.5 bg-card/80 backdrop-blur-md border border-border/40 rounded-full px-3 py-1.5 shadow-md active:scale-95 transition-transform"
-          >
+          <button onClick={() => setShowNightPlanner(true)} className="flex items-center gap-1.5 bg-card/80 backdrop-blur-md border border-border/40 rounded-full px-3 py-1.5 shadow-md active:scale-95 transition-transform">
             <span className="text-xs">🌙</span>
             <span className="text-[10px] font-semibold text-foreground">Ma soirée</span>
           </button>
