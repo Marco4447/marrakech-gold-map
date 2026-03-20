@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { QrCode, CheckCircle2, XCircle, AlertTriangle, Loader2, ArrowLeft, Camera, KeyboardIcon } from "lucide-react";
 import QrScanner from "qr-scanner";
+import GoldConfetti from "@/components/GoldConfetti";
 
 type ScanResult = {
   status: "valid" | "already_used" | "expired" | "invalid" | "max_reached" | "error";
@@ -165,7 +166,10 @@ export default function ScanPage() {
   const statusUI = getStatusUI();
 
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col">
+    <div className="min-h-[100dvh] bg-background flex flex-col relative">
+      {/* Confetti on valid scan */}
+      {result?.status === "valid" && <GoldConfetti />}
+
       {/* Header */}
       <div className="px-5 pt-12 pb-4 flex items-center gap-3 border-b border-border">
         <button onClick={() => { if (cameraMode) { setCameraMode(false); } else { navigate("/"); } }}
