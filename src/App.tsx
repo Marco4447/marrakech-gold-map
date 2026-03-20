@@ -71,7 +71,7 @@ const AppShell = () => {
                 <Route path="/verify" element={<VerifyVip />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-canceled" element={<PaymentCanceled />} />
-                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/pricing" element={<Navigate to="/business#pricing" replace />} />
                 <Route path="/go" element={<GoPage />} />
                 <Route path="/GO" element={<Navigate to="/go" replace />} />
                 <Route path="/discover" element={<DiscoverPage />} />
@@ -95,7 +95,7 @@ const AppShell = () => {
                 <Route path="/quartier/:slug" element={<NeighborhoodPage />} />
                 <Route path="/saved" element={<SavedVibesPage />} />
                 <Route path="/events" element={<EventsPage />} />
-                <Route path="/partner-pitch" element={<PartnerPitchPage />} />
+                <Route path="/partner-pitch" element={<Navigate to="/business" replace />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
