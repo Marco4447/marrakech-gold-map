@@ -19,10 +19,10 @@ import MapFiltersBar from "./map/MapFiltersBar";
 import VenuePreviewCard from "./map/VenuePreviewCard";
 import { isBoosted } from "@/lib/boostedPlaces";
 import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy";
-import HotPlacesDrawer from "./map/HotPlacesDrawer";
 import SoireeRadar from "./map/SoireeRadar";
 import TonightModeButton from "./map/TonightModeButton";
 import WeatherWidget from "./map/WeatherWidget";
+import HotRankingBar from "./map/HotRankingBar";
 import NightPlanner from "./NightPlanner";
 
 // Filter config for category matching
@@ -606,53 +606,57 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         )}
       </AnimatePresence>
 
-      {/* Hot Places bottom drawer */}
-      <HotPlacesDrawer
-        visible={!sheetOpen && !vibeSheetOpen}
-        onPlaceClick={(name) => {
-          const place = places.find(p => p.name === name);
-          if (place) {
-            focusPlaceOnMap(place, { withSheetOffset: false });
-            setPreviewPlace(place);
-          }
-        }}
-      />
+      {/* Hot ranking bar — only when "hot" filter active */}
+      <AnimatePresence>
+        {activeFilter === "hot" && !sheetOpen && !vibeSheetOpen && (
+          <HotRankingBar
+            topPlaces={[...trendingLocations].slice(0, 3).map(name => ({
+              name: places.find(p => p.name.toLowerCase() === name)?.name || name,
+              score: 0,
+            }))}
+            onPlaceClick={(name) => {
+              const place = places.find(p => p.name === name);
+              if (place) {
+                focusPlaceOnMap(place, { withSheetOffset: false });
+                setPreviewPlace(place);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* ===== BOTTOM RIGHT: Map controls (geolocate, heatmap, radar) ===== */}
+      {/* ===== BOTTOM RIGHT: Tonight FAB + geolocate ===== */}
       <AnimatePresence>
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
-            key="map-controls"
-            className="absolute bottom-24 right-3 z-[50] flex flex-col gap-1.5"
+            key="map-controls-right"
+            className="absolute bottom-24 right-3 z-[50] flex flex-col gap-1.5 items-end"
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 12 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
+            <TonightModeButton
+              active={tonightMode}
+              count={tonightMode ? getFilteredPlaces().length : 0}
+              onToggle={() => setTonightMode((v) => !v)}
+            />
             <button onClick={handleGeolocate} className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md flex items-center justify-center active:scale-95 transition-transform" title="Ma position">
               <Navigation className="w-4 h-4 text-gold" />
-            </button>
-            <button onClick={() => setShowHeatmap(h => !h)} className={`w-10 h-10 rounded-xl backdrop-blur-md border flex items-center justify-center transition-all shadow-lg ${showHeatmap ? "bg-orange-500/20 border-orange-500/50 text-orange-400" : "bg-card/80 border-border text-muted-foreground"}`} title="Heatmap">
-              <span className="text-lg">🔥</span>
-            </button>
-            <button onClick={() => setShowRadar(true)} className="w-10 h-10 rounded-xl bg-card/80 backdrop-blur-md border border-border flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Radar">
-              <span className="text-lg">📡</span>
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ===== BOTTOM LEFT: Tonight mode + Night planner ===== */}
+      {/* ===== BOTTOM LEFT: Mon parcours ===== */}
       {!sheetOpen && !vibeSheetOpen && (
-        <div className="absolute bottom-24 left-3 z-[50] flex flex-col gap-1.5 items-start">
-          <TonightModeButton
-            active={tonightMode}
-            count={tonightMode ? getFilteredPlaces().length : 0}
-            onToggle={() => setTonightMode((v) => !v)}
-          />
-          <button onClick={() => setShowNightPlanner(true)} className="flex items-center gap-1.5 bg-card/80 backdrop-blur-md border border-border/40 rounded-full px-3 py-1.5 shadow-md active:scale-95 transition-transform">
-            <span className="text-xs">🌙</span>
-            <span className="text-[10px] font-semibold text-foreground">Ma soirée</span>
+        <div className="absolute bottom-24 left-3 z-[50]">
+          <button
+            onClick={() => setShowNightPlanner(true)}
+            className="flex items-center gap-1.5 bg-card/80 backdrop-blur-md border border-border/40 rounded-full px-3 py-2 shadow-md active:scale-95 transition-transform"
+          >
+            <span className="text-xs">🗺️</span>
+            <span className="text-[10px] font-semibold text-foreground">Mon parcours</span>
           </button>
         </div>
       )}

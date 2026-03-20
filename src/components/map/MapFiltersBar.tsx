@@ -5,15 +5,14 @@ interface FilterDef {
 }
 
 const QUICK_FILTERS: FilterDef[] = [
+  { key: "hot", emoji: "🔥", label: "Hot" },
   { key: "rooftop", emoji: "🌅", label: "Rooftops" },
   { key: "party", emoji: "💃", label: "Clubs" },
   { key: "food", emoji: "🍽️", label: "Restos" },
   { key: "cafe", emoji: "☕", label: "Cafés" },
-  { key: "street_food", emoji: "🧆", label: "Street Food" },
-  { key: "attraction", emoji: "📸", label: "Attractions" },
-  { key: "hot", emoji: "🔥", label: "Trending" },
   { key: "offers", emoji: "✨", label: "Offres" },
   { key: "near", emoji: "📍", label: "Près de moi" },
+  { key: "attraction", emoji: "📸", label: "Lieux" },
 ];
 
 interface MapFiltersBarProps {
@@ -21,13 +20,9 @@ interface MapFiltersBarProps {
   onFilterChange: (key: string | null) => void;
 }
 
-export default function MapFiltersBar({
-  activeFilter,
-  onFilterChange,
-}: MapFiltersBarProps) {
+export default function MapFiltersBar({ activeFilter, onFilterChange }: MapFiltersBarProps) {
   return (
     <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-      {/* All filter */}
       <button
         onClick={() => onFilterChange(null)}
         className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
@@ -38,8 +33,6 @@ export default function MapFiltersBar({
       >
         Tous
       </button>
-
-      {/* Category filters */}
       {QUICK_FILTERS.map((f) => (
         <button
           key={f.key}
