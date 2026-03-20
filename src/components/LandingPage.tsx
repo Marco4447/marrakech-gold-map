@@ -39,16 +39,14 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   const handleGoogleSignup = async () => {
     setLoading(true);
     trackEvent("landing_google_signup_click");
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin,
-        queryParams: { prompt: "select_account" },
-      },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+      extraParams: { prompt: "select_account" },
     });
-    if (oauthError) {
-      console.error("Google OAuth error:", oauthError.message);
-      setError(`Erreur Google : ${oauthError.message}`);
+    if (result?.error) {
+      const msg = result.error instanceof Error ? result.error.message : String(result.error);
+      console.error("Google OAuth error:", msg);
+      setError(`Erreur Google : ${msg}`);
     }
     setLoading(false);
   };
