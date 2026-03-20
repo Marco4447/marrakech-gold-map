@@ -283,6 +283,7 @@ const Index = () => {
 
   return (
     <Suspense fallback={lazyFallback}>
+    <AuthDebugBadge />
     <div className="h-[100dvh] w-full bg-background flex overflow-hidden">
       {/* Desktop/Tablet sidebar */}
       {!isGuest && (
