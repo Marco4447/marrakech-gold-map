@@ -587,7 +587,7 @@ export default function PricingPage() {
             {[
               {
                 q: "Comment fonctionne l'Insider Pass ?",
-                a: "C'est un abonnement mensuel à 14,90 €/mois. Dès l'activation, tu reçois un QR Code unique à présenter chez nos partenaires pour profiter d'avantages exclusifs (réductions, accès prioritaire, surprises). Tu peux résilier à tout moment depuis ton espace client.",
+                a: "L'Insider Pass est 100% gratuit ! Dès l'activation, tu reçois un QR Code unique à présenter chez nos partenaires pour profiter d'avantages exclusifs (réductions, accès prioritaire, surprises). Aucun paiement requis.",
               },
               {
                 q: "Qu'est-ce qu'un Vibe Credit ?",

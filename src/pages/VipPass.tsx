@@ -1,115 +1,64 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Crown, Sparkles, Wine, Bell, Shield, Loader2, Check, Settings } from "lucide-react";
+import { ArrowLeft, Crown, Sparkles, Wine, Bell, Shield, Loader2, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ttqTrack } from "@/lib/ttq";
 import LanguageToggle from "@/components/LanguageToggle";
 
-const VIP_PRICE_ID = "price_1T6lnGJ8RyilXHbfsZBKku0a";
-
 const BENEFITS = [
-  { icon: Crown, label: "Badge VIP 👑", desc: "Ton nom brille avec une couronne dorée sur tout le feed" },
+  { icon: Crown, label: "Badge Insider 👑", desc: "Ton nom brille avec une couronne dorée sur tout le feed" },
   { icon: Sparkles, label: "Vibes en lumière", desc: "Tes publications sont mises en avant avec un contour gold" },
   { icon: Bell, label: "Stats perso", desc: "Accède à tes statistiques : likes reçus, vibes postées, spots" },
-  { icon: Wine, label: "Perks Partenaires", desc: "Drinks offerts et accès prioritaire chez nos futurs partenaires" },
+  { icon: Wine, label: "Perks Partenaires", desc: "Drinks offerts et accès prioritaire chez les établissements partenaires" },
 ];
 
 export default function VipPass() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [isVip, setIsVip] = useState(false);
-  const [vipExpiresAt, setVipExpiresAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [purchasing, setPurchasing] = useState(false);
-  const [openingPortal, setOpeningPortal] = useState(false);
+  const [activating, setActivating] = useState(false);
 
   useEffect(() => {
     if (authLoading || !user) { setLoading(false); return; }
     const check = async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("is_vip, vip_expires_at")
+        .select("is_vip")
         .eq("user_id", user.id)
         .single();
-      if (data) {
-        const active = data.is_vip && data.vip_expires_at && new Date(data.vip_expires_at) > new Date();
-        setIsVip(!!active);
-        setVipExpiresAt(data.vip_expires_at);
-      }
+      if (data) setIsVip(!!data.is_vip);
       setLoading(false);
     };
     check();
   }, [user, authLoading]);
 
-  // Success return handler
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("vip_success") === "true") {
-      toast.success("Bienvenue dans le club VIP ! 🥂");
-      window.history.replaceState({}, "", "/vip-pass");
-      if (user) {
-        supabase
-          .from("profiles")
-          .select("is_vip, vip_expires_at")
-          .eq("user_id", user.id)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              const active = data.is_vip && data.vip_expires_at && new Date(data.vip_expires_at) > new Date();
-              setIsVip(!!active);
-              setVipExpiresAt(data.vip_expires_at);
-            }
-          });
-      }
+  const handleActivate = async () => {
+    if (!user) {
+      toast.error("Connecte-toi d'abord");
+      window.dispatchEvent(new CustomEvent("wk:goto-auth"));
+      return;
     }
-  }, [user]);
-
-  const handlePurchase = async () => {
-    if (!user) { toast.error("Connecte-toi d'abord"); return; }
-    ttqTrack("InitiateCheckout", { content_name: "insider_pass", value: 4.90, currency: "EUR" });
-    setPurchasing(true);
+    setActivating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
-        body: {
-          priceId: VIP_PRICE_ID,
-          productType: "b2c_vip",
-        },
-      });
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_vip: true } as any)
+        .eq("user_id", user.id);
       if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      setIsVip(true);
+      toast.success("Bienvenue dans le club Insider ! 🥂");
+      try { navigator.vibrate?.([15, 30, 15]); } catch {}
     } catch (err) {
       console.error(err);
-      toast.error("Erreur de paiement");
+      toast.error("Erreur lors de l'activation");
     } finally {
-      setPurchasing(false);
+      setActivating(false);
     }
   };
-
-  const handleManageSubscription = async () => {
-    setOpeningPortal(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Impossible d'ouvrir la gestion d'abonnement");
-    } finally {
-      setOpeningPortal(false);
-    }
-  };
-
-  const daysLeft = vipExpiresAt
-    ? Math.max(0, Math.ceil((new Date(vipExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
 
   if (authLoading || loading) {
     return (
@@ -124,24 +73,19 @@ export default function VipPass() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-5 pt-12 pb-4">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/")}
-            className="w-9 h-9 rounded-full bg-surface flex items-center justify-center active:scale-95 transition-transform"
-          >
+          <button onClick={() => navigate("/")} className="w-9 h-9 rounded-full bg-surface flex items-center justify-center active:scale-95 transition-transform">
             <ArrowLeft className="w-4 h-4 text-foreground" />
           </button>
           <div>
             <h1 className="font-display text-lg font-bold text-foreground">Insider Pass</h1>
-            <p className="text-[11px] text-muted-foreground">L'expérience VIP Marrakech</p>
+            <p className="text-[11px] text-muted-foreground">100% gratuit · Avantages exclusifs</p>
           </div>
-          <div className="ml-auto">
-            <LanguageToggle />
-          </div>
+          <div className="ml-auto"><LanguageToggle /></div>
         </div>
       </div>
 
       {isVip ? (
-        /* ===== ACTIVE VIP VIEW ===== */
+        /* ===== ACTIVE INSIDER VIEW ===== */
         <div className="px-5 pt-6 space-y-6">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
@@ -152,11 +96,11 @@ export default function VipPass() {
             <div className="relative z-10">
               <div className="inline-flex items-center gap-2 bg-gold/20 px-4 py-1.5 rounded-full mb-4">
                 <Shield className="w-4 h-4 text-gold" />
-                <span className="text-sm font-bold text-gold tracking-wide">VIP ACTIF</span>
+                <span className="text-sm font-bold text-gold tracking-wide">INSIDER ACTIF</span>
               </div>
 
               <div className="bg-white rounded-2xl p-4 inline-block mb-4">
-                 <QRCodeSVG
+                <QRCodeSVG
                   value={`https://weshkech.com/verify?user_id=${user?.id}`}
                   size={180}
                   level="H"
@@ -167,9 +111,6 @@ export default function VipPass() {
 
               <p className="text-sm text-foreground font-semibold">
                 {user?.user_metadata?.full_name || user?.email?.split("@")[0]}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Expire dans <span className="text-gold font-bold">{daysLeft} jour{daysLeft !== 1 ? "s" : ""}</span>
               </p>
               <p className="text-[10px] text-muted-foreground mt-3">
                 Présente ce QR code à l'entrée des établissements partenaires
@@ -182,13 +123,8 @@ export default function VipPass() {
               <Check className="w-4 h-4 text-gold" /> Tes avantages actifs
             </h2>
             {BENEFITS.map((b, i) => (
-              <motion.div
-                key={i}
-                initial={{ x: -10, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: i * 0.08 }}
-                className="flex items-center gap-3 bg-card border border-gold/10 rounded-xl p-3"
-              >
+              <motion.div key={i} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.08 }}
+                className="flex items-center gap-3 bg-card border border-gold/10 rounded-xl p-3">
                 <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
                   <b.icon className="w-5 h-5 text-gold" />
                 </div>
@@ -199,53 +135,25 @@ export default function VipPass() {
               </motion.div>
             ))}
           </div>
-
-          {/* Manage Subscription */}
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            onClick={handleManageSubscription}
-            disabled={openingPortal}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border bg-surface text-sm font-medium text-muted-foreground hover:text-foreground hover:border-gold/30 transition-all active:scale-[0.98]"
-          >
-            {openingPortal ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Settings className="w-4 h-4" />
-            )}
-            Gérer mon abonnement
-          </motion.button>
         </div>
       ) : (
-        /* ===== PURCHASE VIEW ===== */
+        /* ===== ACTIVATION VIEW (FREE) ===== */
         <div className="px-5 pt-6 space-y-6">
-          {/* Hero */}
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="text-center"
-          >
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-center">
             <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-4 relative">
               <Crown className="w-10 h-10 text-gold" />
               <div className="absolute inset-0 rounded-full bg-gold/5 animate-ping" style={{ animationDuration: "2s" }} />
             </div>
             <h2 className="font-display text-xl font-bold text-foreground">Deviens Insider</h2>
             <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
-              Accès exclusif aux meilleurs spots de Marrakech, chaque mois renouvelé.
+              Active ton pass gratuit et profite d'avantages exclusifs chez tous nos partenaires à Marrakech.
             </p>
           </motion.div>
 
-          {/* Benefits */}
           <div className="space-y-3">
             {BENEFITS.map((b, i) => (
-              <motion.div
-                key={i}
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.15 + i * 0.1 }}
-                className="flex items-center gap-3 bg-card/80 backdrop-blur-xl border border-border rounded-xl p-3"
-              >
+              <motion.div key={i} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.15 + i * 0.1 }}
+                className="flex items-center gap-3 bg-card/80 backdrop-blur-xl border border-border rounded-xl p-3">
                 <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
                   <b.icon className="w-5 h-5 text-gold" />
                 </div>
@@ -257,16 +165,9 @@ export default function VipPass() {
             ))}
           </div>
 
-          {/* Pricing Card */}
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="relative overflow-hidden rounded-3xl border-2 border-gold/30 bg-card/80 backdrop-blur-xl p-6 text-center"
-          >
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}
+            className="relative overflow-hidden rounded-3xl border-2 border-gold/30 bg-card/80 backdrop-blur-xl p-6 text-center">
             <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gold/5 blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 w-28 h-28 rounded-full bg-gold/5 blur-2xl" />
-
             <div className="relative z-10">
               <div className="inline-flex items-center gap-1.5 bg-gold/15 px-3 py-1 rounded-full mb-3">
                 <Crown className="w-3.5 h-3.5 text-gold" />
@@ -274,30 +175,28 @@ export default function VipPass() {
               </div>
 
               <div className="flex items-baseline justify-center gap-1 mt-2">
-                <span className="text-4xl font-display font-black text-gold">14,90€</span>
-                <span className="text-sm text-muted-foreground">/mois</span>
+                <span className="text-4xl font-display font-black text-gold">Gratuit</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Résiliable à tout moment</p>
+              <p className="text-xs text-muted-foreground mt-1">Pour toujours · Sans engagement</p>
 
               <button
-                onClick={handlePurchase}
-                disabled={purchasing || !user}
+                onClick={handleActivate}
+                disabled={activating || !user}
                 className="mt-5 w-full py-3.5 rounded-xl text-sm font-bold text-primary-foreground disabled:opacity-50 transition-all active:scale-[0.98]"
                 style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
               >
-                {purchasing ? (
+                {activating ? (
                   <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Redirection…
+                    <Loader2 className="w-4 h-4 animate-spin" /> Activation…
                   </span>
                 ) : (
-                  "Devenir VIP Insider 👑"
+                  "Activer mon Pass Insider 👑"
                 )}
               </button>
 
               {!user && (
                 <p className="text-[10px] text-muted-foreground mt-2">
-                  Connecte-toi pour t'abonner
+                  Connecte-toi pour activer ton pass
                 </p>
               )}
             </div>
