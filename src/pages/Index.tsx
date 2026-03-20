@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback, lazy, Suspense } from "react";
-import { Navigate } from "react-router-dom";
 import { analytics } from "@/lib/analytics";
 import { motion } from "framer-motion";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import AuthGate from "@/components/AuthGate";
 import LanguageToggle from "@/components/LanguageToggle";
+import LandingPage from "@/pages/LandingPage";
 
 // Lazy load heavy components — reduces initial bundle by ~40%
 const MapView = lazy(() => import("@/components/MapView"));
@@ -171,9 +171,9 @@ const Index = () => {
     );
   }
 
-  // Redirect unauthenticated new visitors to the /go acquisition page
+  // Show immersive landing page for first-time visitors
   if (!user && showLanding) {
-    return <Navigate to="/go" replace />;
+    return <LandingPage onEnterApp={handleEnter} />;
   }
 
   if (showAdmin && user) {
@@ -300,15 +300,19 @@ const Index = () => {
             ))}
         </div>
 
-        {/* Guest signup banner — compact, non-blocking */}
-        {isGuest && (
+        {/* Guest signup banner — compact, dismissible */}
+        {isGuest && !safeStorageGet("wk_guest_banner_dismissed") && (
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 3, duration: 0.5 }}
             className="fixed bottom-20 left-3 right-3 z-[100] md:left-auto md:right-4 md:bottom-4 md:max-w-sm"
           >
-            <div className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-4 py-3 shadow-2xl shadow-gold/10 flex items-center gap-3">
+            <div className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-4 py-3 shadow-2xl shadow-gold/10 flex items-center gap-3 relative">
+              <button
+                onClick={() => { safeStorageSet("wk_guest_banner_dismissed", "1"); }}
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground text-xs"
+              >✕</button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground truncate">Crée ton compte gratuit</p>
                 <p className="text-[11px] text-muted-foreground">Poste, like, et débloque les avantages VIP</p>
@@ -322,7 +326,7 @@ const Index = () => {
                   S'inscrire
                 </button>
                 <a href="/business" className="text-[10px] text-gold text-center font-medium">
-                  Pour les pros →
+                  Établissement →
                 </a>
               </div>
             </div>
