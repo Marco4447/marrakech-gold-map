@@ -2,7 +2,6 @@ import { forwardRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Loader2, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { trackEvent } from "@/lib/analytics";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -39,15 +38,29 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   const handleGoogleSignup = async () => {
     setLoading(true);
     trackEvent("landing_google_signup_click");
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-      extraParams: { prompt: "select_account" },
+
+    const redirectTo =
+      window.location.hostname === "weshkech.com" || window.location.hostname.endsWith(".weshkech.com")
+        ? window.location.origin
+        : "https://weshkech.com";
+
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+        queryParams: { prompt: "select_account" },
+      },
     });
-    if (result?.error) {
-      const msg = result.error instanceof Error ? result.error.message : String(result.error);
-      console.error("Google OAuth error:", msg);
-      setError(`Erreur Google : ${msg}`);
+
+    if (oauthError) {
+      console.error("Google OAuth error:", oauthError.message, {
+        provider: "google",
+        origin: window.location.origin,
+        redirectTo,
+      });
+      setError(`Erreur Google : ${oauthError.message}`);
     }
+
     setLoading(false);
   };
 
