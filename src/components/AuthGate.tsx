@@ -67,8 +67,11 @@ export default function AuthGate() {
     });
     if (verifyError) {
       setError("Code invalide ou expiré. Réessaie.");
+      setLoading(false);
+    } else {
+      // Session is set — reload to show the app
+      setTimeout(() => window.location.reload(), 100);
     }
-    setLoading(false);
   };
 
   const handleResend = async () => {

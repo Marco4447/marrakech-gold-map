@@ -75,6 +75,9 @@ export default function GoAuthForm({ lang, t, isInApp, isTikTok, utmSource, utmC
       trackEvent("go_otp_verify_success", { source: utmSource, campaign: utmCampaign, is_inapp: isInApp });
       ttqTrack("CompleteRegistration", { content_name: "magic_link", content_id: "otp_verify", content_category: "signup", value: 1, currency: "MAD" });
       supabase.from("acquisition_events").insert({ event_type: "signup_magic_link", source: utmSource, campaign: utmCampaign, is_inapp: isInApp, is_tiktok: isTikTok }).then(() => {});
+      // Session is set — redirect to app
+      setTimeout(() => { window.location.href = "/"; }, 300);
+      return;
     }
     setLoading(false);
   };
