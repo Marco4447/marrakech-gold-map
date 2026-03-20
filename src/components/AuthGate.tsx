@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, MapPin, Sparkles, Mail, ArrowRight } from "lucide-react";
+import { Loader2, MapPin, Sparkles, Mail, ArrowRight, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,23 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { isInAppBrowser } from "@/lib/openInExternalBrowser";
 import heroImage from "@/assets/marrakech-hero.jpg";
 
-type AuthStep = "email" | "otp";
+type AuthStep = "email" | "otp" | "oauth-error";
+
+function parseOAuthErrorFromHash(): { error: string; description: string } | null {
+  try {
+    const hash = window.location.hash;
+    if (!hash.includes("error=")) return null;
+    const params = new URLSearchParams(hash.replace("#", ""));
+    const err = params.get("error");
+    const desc = params.get("error_description") || params.get("error_code") || "";
+    if (err) {
+      // Clean URL hash
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      return { error: err, description: desc };
+    }
+  } catch {}
+  return null;
+}
 
 export default function AuthGate() {
   const [loading, setLoading] = useState(false);
@@ -17,8 +33,19 @@ export default function AuthGate() {
   const [otpToken, setOtpToken] = useState("");
   const [step, setStep] = useState<AuthStep>("email");
   const [error, setError] = useState<string | null>(null);
+  const [oauthErrorDetail, setOauthErrorDetail] = useState<string | null>(null);
 
   const inApp = isInAppBrowser();
+
+  // Detect OAuth redirect errors in URL hash
+  useEffect(() => {
+    const oauthErr = parseOAuthErrorFromHash();
+    if (oauthErr) {
+      setStep("oauth-error");
+      setOauthErrorDetail(oauthErr.description || oauthErr.error);
+      setGoogleDisabled(true);
+    }
+  }, []);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
