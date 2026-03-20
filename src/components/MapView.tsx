@@ -22,6 +22,7 @@ import { computeEnergyScores, getEnergy, getDistanceMeters } from "@/lib/energy"
 import HotPlacesDrawer from "./map/HotPlacesDrawer";
 import SoireeRadar from "./map/SoireeRadar";
 import TonightModeButton from "./map/TonightModeButton";
+import WeatherWidget from "./map/WeatherWidget";
 import NightPlanner from "./NightPlanner";
 
 // Filter config for category matching
@@ -674,6 +675,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Weather widget (top left) */}
+      {!sheetOpen && !vibeSheetOpen && (
+        <div className="absolute top-16 left-3 z-[999]">
+          <WeatherWidget tonightMode={tonightMode} />
+        </div>
+      )}
 
       {/* Tonight mode toggle + Night planner */}
       {!sheetOpen && !vibeSheetOpen && (
