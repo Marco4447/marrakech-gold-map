@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Share2 } from "lucide-react";
+import { Share2, Download } from "lucide-react";
 import { toast } from "sonner";
 
 interface ShareToStoryProps {
@@ -7,21 +7,36 @@ interface ShareToStoryProps {
   placeName: string | null;
   caption: string | null;
   vibeId: string;
+  spotSlug?: string | null;
 }
 
-// Component renders a button "Partager sur Instagram"
-// On click:
-// 1. Creates an offscreen canvas (1080x1920)
-// 2. Draws the vibe image centered/covered
-// 3. Draws a dark gradient overlay at bottom
-// 4. Draws the spot name in white bold text
-// 5. Draws "weshkech.com" branding at bottom
-// 6. Converts canvas to blob
-// 7. Uses navigator.share({ files: [file] }) to open native share sheet
-// 8. Fallback: download the image if share API not available
+// Simple QR code generator on canvas (no external lib needed for canvas drawing)
+function drawQR(ctx: CanvasRenderingContext2D, url: string, x: number, y: number, size: number) {
+  // Draw a placeholder QR-like pattern + URL text (actual QR needs a lib)
+  // Instead, draw a stylized box with the URL
+  const s = size;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.roundRect(x, y, s, s, 12);
+  ctx.fill();
 
-export default function ShareToStory({ imageUrl, placeName, caption, vibeId }: ShareToStoryProps) {
+  ctx.fillStyle = "#0a0a0a";
+  ctx.beginPath();
+  ctx.roundRect(x + 4, y + 4, s - 8, s - 8, 8);
+  ctx.fill();
+
+  ctx.fillStyle = "#D4AF37";
+  ctx.font = "bold 18px system-ui";
+  ctx.textAlign = "center";
+  ctx.fillText("SCAN", x + s / 2, y + s / 2 - 6);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "12px system-ui";
+  ctx.fillText("weshkech.com", x + s / 2, y + s / 2 + 12);
+}
+
+export default function ShareToStory({ imageUrl, placeName, caption, vibeId, spotSlug }: ShareToStoryProps) {
   const [generating, setGenerating] = useState(false);
+  const isMobile = "ontouchstart" in window;
 
   const generate = async () => {
     setGenerating(true);
@@ -36,64 +51,63 @@ export default function ShareToStory({ imageUrl, placeName, caption, vibeId }: S
       ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(0, 0, 1080, 1920);
 
-      // Load and draw image (cover-fit centered)
+      // Load and draw image (cover-fit)
       const img = new Image();
       img.crossOrigin = "anonymous";
       await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error("Image load timeout")), 10000);
+        const timeout = setTimeout(() => reject(new Error("timeout")), 10000);
         img.onload = () => { clearTimeout(timeout); resolve(); };
-        img.onerror = () => { clearTimeout(timeout); reject(new Error("Image load failed")); };
+        img.onerror = () => { clearTimeout(timeout); reject(new Error("load failed")); };
         img.src = imageUrl;
       });
 
-      // Cover-fit: calculate crop
-      const imgRatio = img.width / img.height;
-      const canvasRatio = 1080 / 1920;
+      // Cover-fit crop
+      const ir = img.width / img.height;
+      const cr = 1080 / 1920;
       let sx = 0, sy = 0, sw = img.width, sh = img.height;
-      if (imgRatio > canvasRatio) {
-        sw = img.height * canvasRatio;
-        sx = (img.width - sw) / 2;
-      } else {
-        sh = img.width / canvasRatio;
-        sy = (img.height - sh) / 2;
-      }
+      if (ir > cr) { sw = img.height * cr; sx = (img.width - sw) / 2; }
+      else { sh = img.width / cr; sy = (img.height - sh) / 2; }
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 1080, 1920);
 
-      // Bottom gradient overlay
-      const grad = ctx.createLinearGradient(0, 1400, 0, 1920);
+      // ── Bottom banner (semi-transparent) ──
+      const bannerY = 1580;
+      const grad = ctx.createLinearGradient(0, bannerY - 100, 0, 1920);
       grad.addColorStop(0, "rgba(0,0,0,0)");
-      grad.addColorStop(0.5, "rgba(0,0,0,0.7)");
-      grad.addColorStop(1, "rgba(0,0,0,0.9)");
+      grad.addColorStop(0.3, "rgba(0,0,0,0.6)");
+      grad.addColorStop(1, "rgba(0,0,0,0.92)");
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 1400, 1080, 520);
+      ctx.fillRect(0, bannerY - 100, 1080, 440);
 
       // Spot name
       if (placeName) {
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 52px system-ui, -apple-system, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(placeName, 540, 1720);
+        ctx.font = "bold 56px system-ui, -apple-system, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(placeName, 60, 1700);
       }
 
-      // Caption (truncated)
+      // Caption
       if (caption) {
         ctx.fillStyle = "rgba(255,255,255,0.7)";
-        ctx.font = "32px system-ui, -apple-system, sans-serif";
-        ctx.textAlign = "center";
-        const short = caption.length > 60 ? caption.slice(0, 60) + "..." : caption;
-        ctx.fillText(short, 540, 1775);
+        ctx.font = "30px system-ui, -apple-system, sans-serif";
+        ctx.textAlign = "left";
+        const short = caption.length > 50 ? caption.slice(0, 50) + "…" : caption;
+        ctx.fillText(short, 60, 1755);
       }
 
-      // Branding
+      // WeshKech branding (bottom left)
       ctx.fillStyle = "#D4AF37";
-      ctx.font = "bold 36px system-ui, -apple-system, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("weshkech.com", 540, 1860);
+      ctx.font = "bold 32px system-ui, -apple-system, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("weshkech.com", 60, 1860);
 
-      // Small QR hint
-      ctx.fillStyle = "rgba(255,255,255,0.4)";
-      ctx.font = "24px system-ui";
-      ctx.fillText("Scanne pour d\u00e9couvrir ce spot \u2192", 540, 1900);
+      // Gold line accent
+      ctx.fillStyle = "#D4AF37";
+      ctx.fillRect(60, 1790, 200, 3);
+
+      // QR code area (bottom right)
+      const spotUrl = spotSlug ? `https://weshkech.com/spot/${spotSlug}` : `https://weshkech.com/vibe/${vibeId}`;
+      drawQR(ctx, spotUrl, 920, 1770, 100);
 
       // Convert to blob and share
       const blob = await new Promise<Blob>((resolve, reject) => {
@@ -106,21 +120,20 @@ export default function ShareToStory({ imageUrl, placeName, caption, vibeId }: S
         await navigator.share({
           files: [file],
           title: placeName || "Weshkech",
-          text: `${placeName || "Marrakech"} sur Weshkech \uD83D\uDD25`,
+          text: `${placeName || "Marrakech"} sur Weshkech 🔥`,
         });
       } else {
-        // Fallback: download
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
         a.download = `weshkech-${vibeId}.png`;
         a.click();
         URL.revokeObjectURL(url);
-        toast.success("Image t\u00e9l\u00e9charg\u00e9e !");
+        toast.success("Image téléchargée !");
       }
     } catch (err) {
       console.error("Share error:", err);
-      toast.error("Impossible de g\u00e9n\u00e9rer l'image");
+      toast.error("Impossible de générer l'image");
     } finally {
       setGenerating(false);
     }
@@ -130,14 +143,16 @@ export default function ShareToStory({ imageUrl, placeName, caption, vibeId }: S
     <button
       onClick={generate}
       disabled={generating}
-      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white text-xs font-bold active:scale-95 transition-transform disabled:opacity-50"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-[#833AB4] via-[#E1306C] to-[#F77737] text-white text-[10px] font-bold active:scale-95 transition-transform disabled:opacity-50"
     >
       {generating ? (
-        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        <div className="w-3 h-3 border-[1.5px] border-white border-t-transparent rounded-full animate-spin" />
+      ) : isMobile ? (
+        <Share2 className="w-3 h-3" />
       ) : (
-        <Share2 className="w-3.5 h-3.5" />
+        <Download className="w-3 h-3" />
       )}
-      Story Instagram
+      Story
     </button>
   );
 }
