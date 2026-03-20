@@ -152,6 +152,13 @@
   50% { opacity: 1; transform: scale(1.08); }
 }
 
+@keyframes pin-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.photo-pin { background: none !important; border: none !important; }
+
 @keyframes boosted-glow {
   0%, 100% { box-shadow: 0 0 12px hsl(43, 76%, 52%, 0.5), 0 0 24px hsl(43, 76%, 52%, 0.2); }
   50% { box-shadow: 0 0 20px hsl(43, 76%, 52%, 0.8), 0 0 40px hsl(43, 76%, 52%, 0.35); }
