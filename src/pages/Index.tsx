@@ -94,12 +94,14 @@ const Index = () => {
     let active = true;
     setCheckingOnboarding(true);
 
-    supabase
-      .from("profiles")
-      .select("onboarding_completed")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
         if (!active) return;
 
         if (!error) {
@@ -115,10 +117,10 @@ const Index = () => {
         } else {
           setOnboardingDone(Boolean(safeStorageGet("wk_onboarding_prefs_done")));
         }
-      })
-      .finally(() => {
+      } finally {
         if (active) setCheckingOnboarding(false);
-      });
+      }
+    })();
 
     return () => {
       active = false;
