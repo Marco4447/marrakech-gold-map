@@ -27,6 +27,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useProximityDetection } from "@/hooks/useProximityDetection";
 import { useConversations } from "@/hooks/useConversations";
 import { Bell } from "lucide-react";
+import AuthDebugBadge from "@/components/AuthDebugBadge";
 
 const safeStorageGet = (key: string) => {
   try {
@@ -215,6 +216,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="h-[100dvh] w-full bg-background flex flex-col items-center justify-center gap-3 px-6 text-center">
+        <AuthDebugBadge />
         <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
         {authStuck && <p className="text-xs text-muted-foreground max-w-xs">{t("guest_reconnecting")}</p>}
       </div>
@@ -281,6 +283,7 @@ const Index = () => {
 
   return (
     <Suspense fallback={lazyFallback}>
+    <AuthDebugBadge />
     <div className="h-[100dvh] w-full bg-background flex overflow-hidden">
       {/* Desktop/Tablet sidebar */}
       {!isGuest && (
