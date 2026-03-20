@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, MapPin, Sparkles, Mail, ArrowRight, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { isInAppBrowser } from "@/lib/openInExternalBrowser";
 import heroImage from "@/assets/marrakech-hero.jpg";
