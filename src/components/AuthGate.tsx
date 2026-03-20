@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, MapPin, Sparkles, Mail, ArrowRight, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { isInAppBrowser } from "@/lib/openInExternalBrowser";
 import heroImage from "@/assets/marrakech-hero.jpg";
@@ -50,29 +51,24 @@ export default function AuthGate() {
     setLoading(true);
     setError(null);
 
-    const redirectTo =
-      window.location.hostname === "weshkech.com" || window.location.hostname.endsWith(".weshkech.com")
-        ? window.location.origin
-        : "https://weshkech.com";
-
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo,
-        queryParams: { prompt: "select_account" },
-      },
-    });
-
-    if (oauthError) {
-      console.error("Google OAuth error:", oauthError.message, {
-        provider: "google",
-        origin: window.location.origin,
-        redirectTo,
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: "select_account" },
       });
-      setError(`Erreur Google : ${oauthError.message}`);
-    }
 
-    setLoading(false);
+      if (result?.error) {
+        const errMsg = result.error instanceof Error ? result.error.message : String(result.error);
+        console.error("Google OAuth error:", errMsg, { origin: window.location.origin });
+        setError(`Erreur Google : ${errMsg}`);
+        setLoading(false);
+      }
+      // If redirected, page will navigate away — don't setLoading(false)
+    } catch (e) {
+      console.error("Google OAuth exception:", e);
+      setError(`Erreur Google : ${e instanceof Error ? e.message : String(e)}`);
+      setLoading(false);
+    }
   };
 
   const handleSendOtp = async () => {
