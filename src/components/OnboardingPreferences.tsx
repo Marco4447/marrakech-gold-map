@@ -45,6 +45,16 @@ export default function OnboardingPreferences({ open, userId, onComplete }: Onbo
     });
   };
 
+  const persistLocalOnboarding = (prefs: string[]) => {
+    try {
+      localStorage.setItem("wk_preferences", JSON.stringify(prefs));
+      localStorage.setItem("wk_onboarding_prefs_done", "1");
+      localStorage.setItem("wk_welcome_seen", "1");
+    } catch {
+      // Ignore storage failures, backend flag is source of truth
+    }
+  };
+
   const finish = async () => {
     setLoading(true);
     const prefs = Array.from(selected);
@@ -52,16 +62,12 @@ export default function OnboardingPreferences({ open, userId, onComplete }: Onbo
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ preferences: prefs } as any)
-        .eq("user_id", userId);
+        .upsert({ user_id: userId, preferences: prefs, onboarding_completed: true } as any, { onConflict: "user_id" });
 
       if (error) throw error;
-
-      localStorage.setItem("wk_preferences", JSON.stringify(prefs));
-      localStorage.setItem("wk_onboarding_prefs_done", "1");
+      persistLocalOnboarding(prefs);
     } catch {
-      localStorage.setItem("wk_preferences", JSON.stringify(prefs));
-      localStorage.setItem("wk_onboarding_prefs_done", "1");
+      persistLocalOnboarding(prefs);
       toast.info("Préférences sauvegardées localement.");
     } finally {
       setLoading(false);
