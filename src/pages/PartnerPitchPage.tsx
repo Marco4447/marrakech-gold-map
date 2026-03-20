@@ -212,7 +212,7 @@ export default function PartnerPitchPage() {
         <div className="text-center space-y-3 pt-4">
           <div className="h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
           <p className="text-xs text-muted-foreground">
-            Questions ? <a href="https://wa.me/+212600000000" className="text-gold hover:underline">WhatsApp</a>
+            Questions ? <a href="https://wa.me/+33607564453" className="text-gold hover:underline">WhatsApp</a>
           </p>
         </div>
       </div>

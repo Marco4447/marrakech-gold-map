@@ -5,7 +5,7 @@ import { Send, Building2, MessageCircle, Camera, BarChart3, Gift, Shield, Zap, C
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const WA_NUMBER = "+212600000000"; // Pierre's WhatsApp
+const WA_NUMBER = "+33607564453"; // Pierre's WhatsApp
 const WA_MSG = encodeURIComponent("Bonjour, je suis intéressé par le partenariat WeshKech pour mon établissement.");
 
 // ── Animated counter ──
