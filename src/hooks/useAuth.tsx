@@ -96,6 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     let initialSessionHandled = false;
+    const bootTimeout = window.setTimeout(() => {
+      if (!mounted || initialSessionHandled) return;
+      initialSessionHandled = true;
+      console.warn("[auth] bootstrap timeout, continuing in guest mode");
+      setLoading(false);
+    }, 8000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -104,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (event === "INITIAL_SESSION") {
           initialSessionHandled = true;
+          clearTimeout(bootTimeout);
         }
 
         setUser(currentUser);
@@ -148,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted || initialSessionHandled) return;
       initialSessionHandled = true;
+      clearTimeout(bootTimeout);
       const currentUser = data?.session?.user ?? null;
       setUser(currentUser);
       setLoading(false);
@@ -156,11 +164,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }).catch((err) => {
       console.error("getSession failed:", err);
-      if (mounted && !initialSessionHandled) setLoading(false);
+      if (mounted && !initialSessionHandled) {
+        initialSessionHandled = true;
+        clearTimeout(bootTimeout);
+        setLoading(false);
+      }
     });
 
     return () => {
       mounted = false;
+      clearTimeout(bootTimeout);
       subscription.unsubscribe();
     };
   }, [fetchProfile]);

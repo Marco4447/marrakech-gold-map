@@ -12,6 +12,7 @@ type AuthStep = "email" | "otp";
 
 export default function AuthGate() {
   const [loading, setLoading] = useState(false);
+  const [googleDisabled, setGoogleDisabled] = useState(false);
   const [email, setEmail] = useState("");
   const [otpToken, setOtpToken] = useState("");
   const [step, setStep] = useState<AuthStep>("email");
@@ -26,10 +27,17 @@ export default function AuthGate() {
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
+        extraParams: {
+          prompt: "select_account",
+        },
       });
 
       if (result.error) {
         console.error("Google auth error:", result.error);
+        const message = String((result.error as Error)?.message ?? result.error);
+        if (/missing oauth secret|unsupported provider/i.test(message)) {
+          setGoogleDisabled(true);
+        }
         setError("Google indisponible pour le moment. Essaie par email (code à 6 chiffres).");
       }
     } catch (err) {
@@ -148,8 +156,8 @@ export default function AuthGate() {
                 <>
                   <button
                     onClick={handleGoogleSignIn}
-                    disabled={loading}
-                    className="w-full flex items-center justify-center gap-3 bg-card border border-border text-foreground font-bold py-4 rounded-2xl transition-all disabled:opacity-70 text-[15px] active:scale-[0.98] shadow-sm"
+                    disabled={loading || googleDisabled}
+                    className="w-full flex items-center justify-center gap-3 bg-card border border-border text-foreground font-bold py-4 rounded-2xl transition-all disabled:opacity-60 text-[15px] active:scale-[0.98] shadow-sm"
                   >
                     {loading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -165,6 +173,12 @@ export default function AuthGate() {
                       </>
                     )}
                   </button>
+
+                  {googleDisabled && (
+                    <p className="text-[11px] text-muted-foreground text-center -mt-1">
+                      Google est temporairement indisponible, continue par email.
+                    </p>
+                  )}
 
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-border" />
