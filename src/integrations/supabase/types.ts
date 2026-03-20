@@ -982,11 +982,13 @@ export type Database = {
           description: string | null
           dress_code: string | null
           drinks_menu_url: string | null
+          energy_score: number | null
           has_active_offer: boolean
           id: string
           image_url: string | null
           instagram_handle: string | null
           is_founder: boolean
+          is_outdoor: boolean | null
           is_partner: boolean
           is_premium: boolean
           latitude: number
@@ -997,9 +999,11 @@ export type Database = {
           name: string
           neighborhood: string | null
           opening_hours: string | null
+          phone: string | null
           price_range: string | null
           rating: number | null
           slug: string | null
+          tags: string[] | null
           updated_at: string
           vip_perk_description: string | null
         }
@@ -1010,11 +1014,13 @@ export type Database = {
           description?: string | null
           dress_code?: string | null
           drinks_menu_url?: string | null
+          energy_score?: number | null
           has_active_offer?: boolean
           id?: string
           image_url?: string | null
           instagram_handle?: string | null
           is_founder?: boolean
+          is_outdoor?: boolean | null
           is_partner?: boolean
           is_premium?: boolean
           latitude: number
@@ -1025,9 +1031,11 @@ export type Database = {
           name: string
           neighborhood?: string | null
           opening_hours?: string | null
+          phone?: string | null
           price_range?: string | null
           rating?: number | null
           slug?: string | null
+          tags?: string[] | null
           updated_at?: string
           vip_perk_description?: string | null
         }
@@ -1038,11 +1046,13 @@ export type Database = {
           description?: string | null
           dress_code?: string | null
           drinks_menu_url?: string | null
+          energy_score?: number | null
           has_active_offer?: boolean
           id?: string
           image_url?: string | null
           instagram_handle?: string | null
           is_founder?: boolean
+          is_outdoor?: boolean | null
           is_partner?: boolean
           is_premium?: boolean
           latitude?: number
@@ -1053,9 +1063,11 @@ export type Database = {
           name?: string
           neighborhood?: string | null
           opening_hours?: string | null
+          phone?: string | null
           price_range?: string | null
           rating?: number | null
           slug?: string | null
+          tags?: string[] | null
           updated_at?: string
           vip_perk_description?: string | null
         }

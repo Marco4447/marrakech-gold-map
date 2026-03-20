@@ -628,8 +628,8 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
         description: "Visible dans Live Vibes pendant 6h.",
         action: { label: "📸 Partager en Story", onClick: () => {
           // Open native share with the image
-          if (navigator.share && mediaPreviewUrl) {
-            fetch(mediaPreviewUrl).then(r => r.blob()).then(blob => {
+          if (navigator.share && preview) {
+            fetch(preview).then(r => r.blob()).then(blob => {
               const file = new File([blob], "weshkech-vibe.jpg", { type: "image/jpeg" });
               if (navigator.canShare?.({ files: [file] })) {
                 navigator.share({ files: [file], title: "Ma vibe Weshkech", text: `${location || "Marrakech"} sur Weshkech 🔥` });
