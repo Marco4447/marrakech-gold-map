@@ -27,7 +27,7 @@ envContent.split("\n").forEach((line) => {
 
 const SUPABASE_URL = env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const GOOGLE_API_KEY = env.GOOGLE_PLACES_API_KEY || "AIzaSyDr2GxBwBQT5GhhvkIjGQeB99JfvZ6Isv4";
+const GOOGLE_API_KEY = env.GOOGLE_PLACES_API_KEY || ""; // Set in .env to run
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error("Missing SUPABASE env vars");
