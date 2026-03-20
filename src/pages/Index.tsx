@@ -74,7 +74,11 @@ const Index = () => {
   }, [loading]);
 
   useEffect(() => {
-    if (user && safeStorageGet("wk_landed")) setShowLanding(false);
+    if (user) {
+      // Authenticated user should never see landing page
+      safeStorageSet("wk_landed", "1");
+      setShowLanding(false);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -171,7 +175,7 @@ const Index = () => {
     );
   }
 
-  // Show immersive landing page for first-time visitors
+  // Show landing for first-time NON-authenticated visitors only
   if (!user && showLanding) {
     return <LandingPage onEnterApp={handleEnter} />;
   }
