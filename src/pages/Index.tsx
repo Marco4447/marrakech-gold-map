@@ -27,6 +27,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useProximityDetection } from "@/hooks/useProximityDetection";
 import { useConversations } from "@/hooks/useConversations";
 import { Bell } from "lucide-react";
+import AuthDebugBadge from "@/components/AuthDebugBadge";
 
 const safeStorageGet = (key: string) => {
   try {
