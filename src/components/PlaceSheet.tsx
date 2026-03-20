@@ -16,6 +16,7 @@ import PlaceInfoCards from "./place/PlaceInfoCards";
 import PlaceVipSection from "./place/PlaceVipSection";
 import PlaceVibesSection from "./place/PlaceVibesSection";
 import VibeCheck from "./VibeCheck";
+import PlaceCheckin from "./place/PlaceCheckin";
 import EphemeralReviews from "./EphemeralReviews";
 
 interface Place {
@@ -187,6 +188,9 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                     <>
                        {/* Description */}
                        {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
+
+                       {/* Check-in social */}
+                       <PlaceCheckin placeId={place.id} placeName={place.name} />
 
                        {/* Vibe Check — live ambiance vote */}
                        <VibeCheck placeId={place.id} placeName={place.name} />
