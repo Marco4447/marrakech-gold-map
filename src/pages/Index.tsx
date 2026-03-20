@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { analytics } from "@/lib/analytics";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import BottomNav, { type Tab } from "@/components/BottomNav";
 import AuthGate from "@/components/AuthGate";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -62,6 +63,8 @@ const Index = () => {
 
   const [showLanding, setShowLanding] = useState(() => !safeStorageGet("wk_landed"));
   const [showWelcome, setShowWelcome] = useState(() => !safeStorageGet("wk_welcome_seen"));
+  const [onboardingDone, setOnboardingDone] = useState(() => Boolean(safeStorageGet("wk_onboarding_prefs_done")));
+  const [checkingOnboarding, setCheckingOnboarding] = useState(false);
   // onboarding merged into WelcomeModal
 
   useEffect(() => {
@@ -79,6 +82,47 @@ const Index = () => {
       safeStorageSet("wk_landed", "1");
       setShowLanding(false);
     }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setOnboardingDone(Boolean(safeStorageGet("wk_onboarding_prefs_done")));
+      setCheckingOnboarding(false);
+      return;
+    }
+
+    let active = true;
+    setCheckingOnboarding(true);
+
+    supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+
+        if (!error) {
+          const doneFromProfile = Boolean((data as { onboarding_completed?: boolean } | null)?.onboarding_completed);
+          if (doneFromProfile) {
+            safeStorageSet("wk_welcome_seen", "1");
+            safeStorageSet("wk_onboarding_prefs_done", "1");
+            setShowWelcome(false);
+            setOnboardingDone(true);
+          } else {
+            setOnboardingDone(Boolean(safeStorageGet("wk_onboarding_prefs_done")));
+          }
+        } else {
+          setOnboardingDone(Boolean(safeStorageGet("wk_onboarding_prefs_done")));
+        }
+      })
+      .finally(() => {
+        if (active) setCheckingOnboarding(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   useEffect(() => {
@@ -436,8 +480,15 @@ const Index = () => {
         initialTab={explainerTab ?? "insider"}
       />
       {!isGuest && <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} onOpenFlashPost={() => setShowFlashPost(true)} />}
-      {!isGuest && user && !showWelcome && safeStorageGet("wk_welcome_seen") && !safeStorageGet("wk_onboarding_prefs_done") && (
-        <OnboardingPreferences open={true} userId={user.id} onComplete={() => { safeStorageSet("wk_onboarding_prefs_done", "1"); }} />
+      {!isGuest && user && !checkingOnboarding && !showWelcome && safeStorageGet("wk_welcome_seen") && !onboardingDone && (
+        <OnboardingPreferences
+          open={true}
+          userId={user.id}
+          onComplete={() => {
+            safeStorageSet("wk_onboarding_prefs_done", "1");
+            setOnboardingDone(true);
+          }}
+        />
       )}
       {messagesOverlay}
     </div>
