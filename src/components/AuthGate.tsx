@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, MapPin, Sparkles, Mail, ArrowRight } from "lucide-react";
+import { Loader2, MapPin, Sparkles, Mail, ArrowRight, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,23 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { isInAppBrowser } from "@/lib/openInExternalBrowser";
 import heroImage from "@/assets/marrakech-hero.jpg";
 
-type AuthStep = "email" | "otp";
+type AuthStep = "email" | "otp" | "oauth-error";
+
+function parseOAuthErrorFromHash(): { error: string; description: string } | null {
+  try {
+    const hash = window.location.hash;
+    if (!hash.includes("error=")) return null;
+    const params = new URLSearchParams(hash.replace("#", ""));
+    const err = params.get("error");
+    const desc = params.get("error_description") || params.get("error_code") || "";
+    if (err) {
+      // Clean URL hash
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      return { error: err, description: desc };
+    }
+  } catch {}
+  return null;
+}
 
 export default function AuthGate() {
   const [loading, setLoading] = useState(false);
@@ -17,8 +33,19 @@ export default function AuthGate() {
   const [otpToken, setOtpToken] = useState("");
   const [step, setStep] = useState<AuthStep>("email");
   const [error, setError] = useState<string | null>(null);
+  const [oauthErrorDetail, setOauthErrorDetail] = useState<string | null>(null);
 
   const inApp = isInAppBrowser();
+
+  // Detect OAuth redirect errors in URL hash
+  useEffect(() => {
+    const oauthErr = parseOAuthErrorFromHash();
+    if (oauthErr) {
+      setStep("oauth-error");
+      setOauthErrorDetail(oauthErr.description || oauthErr.error);
+      setGoogleDisabled(true);
+    }
+  }, []);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -143,7 +170,45 @@ export default function AuthGate() {
         </div>
 
         <AnimatePresence mode="wait">
-          {step === "email" ? (
+          {step === "oauth-error" ? (
+            <motion.div
+              key="oauth-error"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full space-y-4"
+            >
+              <div className="rounded-2xl bg-destructive/10 border border-destructive/20 p-5 space-y-3">
+                <div className="flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-destructive/15 flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-destructive" />
+                  </div>
+                </div>
+                <h3 className="text-[15px] font-bold text-foreground text-center">
+                  Connexion Google impossible
+                </h3>
+                <p className="text-[13px] text-muted-foreground text-center leading-relaxed">
+                  La connexion via Google n'a pas abouti. Pas de panique, inscris-toi par email — c'est tout aussi rapide !
+                </p>
+                {oauthErrorDetail && (
+                  <p className="text-[10px] text-muted-foreground/60 text-center font-mono break-all">
+                    Détail : {oauthErrorDetail}
+                  </p>
+                )}
+              </div>
+
+              <button
+                onClick={() => { setStep("email"); setError(null); }}
+                className="w-full flex items-center justify-center gap-2 bg-foreground text-background font-bold py-4 rounded-2xl transition-all text-[15px] active:scale-[0.98] shadow-lg"
+              >
+                <Mail className="w-4 h-4" />
+                Continuer par email
+              </button>
+              <p className="text-[10px] text-muted-foreground text-center">
+                ⚡ On t'envoie un code à 6 chiffres. Pas de mot de passe.
+              </p>
+            </motion.div>
+          ) : step === "email" ? (
             <motion.div
               key="email"
               initial={{ opacity: 0, x: -20 }}
@@ -152,11 +217,11 @@ export default function AuthGate() {
               className="w-full space-y-3"
             >
               {/* Google CTA — hidden in WebViews */}
-              {!inApp && (
+              {!inApp && !googleDisabled && (
                 <>
                   <button
                     onClick={handleGoogleSignIn}
-                    disabled={loading || googleDisabled}
+                    disabled={loading}
                     className="w-full flex items-center justify-center gap-3 bg-card border border-border text-foreground font-bold py-4 rounded-2xl transition-all disabled:opacity-60 text-[15px] active:scale-[0.98] shadow-sm"
                   >
                     {loading ? (
@@ -174,18 +239,18 @@ export default function AuthGate() {
                     )}
                   </button>
 
-                  {googleDisabled && (
-                    <p className="text-[11px] text-muted-foreground text-center -mt-1">
-                      Google est temporairement indisponible, continue par email.
-                    </p>
-                  )}
-
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-border" />
                     <span className="text-[11px] text-muted-foreground">ou par email</span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
                 </>
+              )}
+
+              {googleDisabled && (
+                <p className="text-[11px] text-destructive/70 text-center bg-destructive/5 rounded-xl py-2 px-3 border border-destructive/10">
+                  ⚠️ Google indisponible — continue par email ci-dessous
+                </p>
               )}
 
               {/* Magic link email input */}
