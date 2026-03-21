@@ -243,7 +243,9 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
     // Category / special filters
     if (activeFilter) {
-      if (activeFilter === "hot") {
+      if (activeFilter === "partners") {
+        filtered = filtered.filter(p => p.is_partner);
+      } else if (activeFilter === "hot") {
         filtered = filtered.filter(p => trendingLocations.has(p.name.toLowerCase()));
       } else if (activeFilter === "offers") {
         filtered = filtered.filter(p => p.is_partner && p.has_active_offer);

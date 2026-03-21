@@ -53,13 +53,14 @@ export const createCategoryIcon = (category: string | null, options: { trending?
   const { isPartner = false, hasOffer = false, blurred = false, placeName, imageUrl, hasActiveVipOffer = false, energyScore = 50 } = options;
   const boosted = isBoosted(placeName);
 
-  // ── SIZE based on energy score ──
-  const size = energyScore > 70 ? 50 : energyScore > 40 ? 40 : 32;
-  const borderColor = (boosted || isPartner || hasActiveVipOffer) ? "#D4AF37" : "rgba(255,255,255,0.15)";
-  const glow = energyScore > 70
-    ? "0 0 12px rgba(212,175,55,0.5)"
-    : boosted || isPartner ? "0 0 8px rgba(212,175,55,0.3)" : "0 2px 6px rgba(0,0,0,0.5)";
-  const pulse = hasActiveVipOffer ? "animation:pin-pulse 2s ease-in-out infinite;" : "";
+  // ── SIZE: partners bigger, then by energy ──
+  const isPartnerSpot = isPartner || boosted;
+  const size = isPartnerSpot ? 36 : energyScore > 70 ? 50 : energyScore > 40 ? 40 : 28;
+  const borderColor = isPartnerSpot ? "#C44A2A" : (hasActiveVipOffer ? "#C8821E" : "rgba(255,255,255,0.12)");
+  const glow = isPartnerSpot
+    ? "0 0 10px rgba(196,74,42,0.4)"
+    : energyScore > 70 ? "0 0 10px rgba(200,130,30,0.4)" : "0 2px 4px rgba(0,0,0,0.4)";
+  const pulse = isPartnerSpot || hasActiveVipOffer ? "animation:pin-pulse 2s ease-in-out infinite;" : "";
 
   // ── PHOTO or EMOJI fallback ──
   const hasPhoto = imageUrl && !blurred;
@@ -67,12 +68,13 @@ export const createCategoryIcon = (category: string | null, options: { trending?
     ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><span style="display:none;align-items:center;justify-content:center;width:100%;height:100%;font-size:${size * 0.4}px">${cat.emoji}</span>`
     : `<span style="font-size:${size * 0.4}px;line-height:1">${cat.emoji}</span>`;
 
-  // ── BADGE (offer or partner) ──
+  // ── STAR + BADGE ──
+  const partnerStar = isPartnerSpot
+    ? `<div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);color:#E8C86E;font-size:11px;font-weight:bold;text-shadow:0 1px 3px rgba(0,0,0,0.6)">★</div>`
+    : "";
   const badge = hasActiveVipOffer
-    ? `<div style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#D4AF37;display:flex;align-items:center;justify-content:center;font-size:8px;box-shadow:0 1px 4px rgba(212,175,55,0.6)">🎁</div>`
-    : (isPartner || boosted)
-      ? `<div style="position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#D4AF37;display:flex;align-items:center;justify-content:center;font-size:7px">⭐</div>`
-      : "";
+    ? `<div style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#C44A2A;display:flex;align-items:center;justify-content:center;font-size:8px;box-shadow:0 1px 4px rgba(196,74,42,0.6)">🎁</div>`
+    : "";
 
   // ── NAME label ──
   const name = placeName || "";
@@ -97,6 +99,7 @@ export const createCategoryIcon = (category: string | null, options: { trending?
         ">
           ${photo}
         </div>
+        ${partnerStar}
         ${badge}
         ${nameLabel}
       </div>
