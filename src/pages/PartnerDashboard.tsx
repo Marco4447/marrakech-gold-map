@@ -499,10 +499,12 @@ export default function PartnerDashboard() {
         {/* QR & VIP Tab */}
         {activeTab === "qr" && (
           <div className="space-y-6">
+            <VipRedemptionsBadge placeId={placeId} />
             <PartnerQRCode userId={user.id} placeId={placeId} />
             <div className="border-t border-border pt-5">
               <VipOfferManager placeId={placeId} />
             </div>
+            <VipRedemptionsTable placeId={placeId} />
           </div>
         )}
 
@@ -530,6 +532,79 @@ export default function PartnerDashboard() {
           <PartnerBilling userId={user.id} currentPlan={planType} />
         )}
       </div>
+    </div>
+  );
+}
+
+// ── VIP Redemptions Badge ──
+function VipRedemptionsBadge({ placeId }: { placeId: string | null }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!placeId) return;
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+    supabase
+      .from("acquisition_events" as any)
+      .select("id", { count: "exact", head: true })
+      .eq("event_type", "vip_offer_viewed")
+      .eq("source", placeId)
+      .gte("created_at", monthStart)
+      .then(({ count: c }) => setCount(c ?? 0));
+  }, [placeId]);
+
+  if (count === 0) return null;
+
+  return (
+    <div className="bg-[rgba(196,74,42,0.15)] border border-[rgba(196,74,42,0.35)] rounded-lg px-4 py-2 flex items-center gap-2">
+      <Gift className="w-4 h-4 text-[var(--terracotta)]" />
+      <span className="text-sm font-bold text-[var(--terracotta)]">{count} offre{count > 1 ? "s" : ""} utilisée{count > 1 ? "s" : ""} ce mois</span>
+    </div>
+  );
+}
+
+// ── VIP Redemptions Table ──
+function VipRedemptionsTable({ placeId }: { placeId: string | null }) {
+  const [rows, setRows] = useState<Array<{ id: string; created_at: string }>>([]);
+
+  useEffect(() => {
+    if (!placeId) return;
+    supabase
+      .from("acquisition_events" as any)
+      .select("id, created_at")
+      .eq("event_type", "vip_offer_viewed")
+      .eq("source", placeId)
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .then(({ data }) => { if (data) setRows(data as any); });
+  }, [placeId]);
+
+  if (rows.length === 0) return null;
+
+  return (
+    <div className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
+        <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] font-semibold">Dernières utilisations</p>
+      </div>
+      {/* Header */}
+      <div className="grid grid-cols-3 px-4 py-2 text-xs uppercase tracking-wide text-[var(--text-muted)]">
+        <span>Date</span>
+        <span>Client</span>
+        <span className="text-right">Statut</span>
+      </div>
+      {/* Rows */}
+      {rows.map((r) => (
+        <div key={r.id} className="grid grid-cols-3 px-4 py-2.5 border-t border-[var(--border-subtle)] text-sm text-[var(--text-primary)]">
+          <span className="text-xs">
+            {new Date(r.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}
+            {" "}
+            <span className="text-[var(--text-muted)]">{new Date(r.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
+          </span>
+          <span className="text-xs">Membre WeshKech</span>
+          <span className="text-right">
+            <span className="inline-flex items-center bg-emerald-500/15 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded">Utilisée</span>
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
