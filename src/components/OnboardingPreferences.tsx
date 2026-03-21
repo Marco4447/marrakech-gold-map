@@ -109,6 +109,7 @@ export default function OnboardingPreferences({ open, userId, onComplete }: Onbo
         style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
         C'est parti <ArrowRight className="w-4 h-4" />
       </button>
+      <button onClick={finish} className="w-full text-xs text-muted-foreground text-center py-1">Passer</button>
     </motion.div>,
 
     // Step 1: Interests

@@ -63,6 +63,7 @@ export default function WelcomeModal({ open, onComplete, onOpenFlashPost }: Welc
             style={{ background: "linear-gradient(to bottom right, #BF953F, #FCF6BA, #B38728)" }}>
             {t("continue")} <ArrowRight className="w-4 h-4" />
           </button>
+          <button onClick={() => finish(null)} className="w-full text-xs text-muted-foreground text-center py-1">{t("later")}</button>
         </motion.div>
       ),
     },
