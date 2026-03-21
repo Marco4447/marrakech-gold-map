@@ -57,17 +57,16 @@ function useViewerCount(placeId: string | undefined) {
   return Math.max(1, count);
 }
 
-// ── Truncated description with "Lire plus" ──
 function TruncatedDescription({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = text.length > 150;
   return (
     <div>
-      <p className={`text-sm text-muted-foreground leading-relaxed ${!expanded && isLong ? "line-clamp-3" : ""}`}>
+      <p className={`text-sm text-[rgba(245,237,216,0.4)] leading-relaxed ${!expanded && isLong ? "line-clamp-3" : ""}`}>
         {text}
       </p>
       {isLong && !expanded && (
-        <button onClick={() => setExpanded(true)} className="text-xs text-gold font-semibold mt-0.5 active:opacity-70">
+        <button onClick={() => setExpanded(true)} className="text-xs text-[#C8821E] font-semibold mt-0.5 active:opacity-70">
           Lire plus
         </button>
       )}
@@ -85,11 +84,9 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   const [vipOffers, setVipOffers] = useState<Array<{ id: string; title: string; description: string; perk_type: string; start_time: string | null; end_time: string | null }>>([]);
   const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string; drinks_menu_url?: string; is_founder?: boolean; listing_tier?: string } | null>(null);
   const [placePhotos, setPlacePhotos] = useState<{ id: string; photo_url: string; caption: string | null }[]>([]);
-  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
     if (!place?.id || !open) return;
-    setPhotoIndex(0);
     supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url, is_founder, listing_tier").eq("id", place.id).single().then(({ data }) => {
       if (data) setPlaceDetails(data);
     });
@@ -161,73 +158,97 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
     <AnimatePresence>
       {open && (
         <>
-          <motion.div className="absolute inset-0 bg-background/40 backdrop-blur-sm z-[1001]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => onOpenChange(false)} />
-          <motion.div className="absolute bottom-0 left-0 right-0 z-[1002] px-4 pb-20 max-h-[85vh] flex flex-col" initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} transition={{ type: "spring", damping: 28, stiffness: 300 }}
+          <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[1001]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => onOpenChange(false)} />
+          <motion.div className="absolute bottom-0 left-0 right-0 z-[1002] px-3 pb-20 max-h-[85vh] flex flex-col" initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} transition={{ type: "spring", damping: 28, stiffness: 300 }}
             drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={0.3} onDragEnd={(_, info) => { if (info.offset.y > 100 || info.velocity.y > 300) onOpenChange(false); }}>
-            <div className={`bg-card rounded-2xl overflow-hidden border shadow-2xl flex flex-col max-h-full ${isPartner ? "border-gold/40 shadow-gold/10" : "border-border shadow-gold/5"}`}>
-              {/* Drag handle + close button */}
+            <div className="bg-[#1A0E06] rounded-2xl overflow-hidden border border-[rgba(200,130,30,0.2)] shadow-2xl shadow-black/50 flex flex-col max-h-full">
+              {/* Drag handle + close */}
               <div className="flex items-center justify-between px-4 pt-3 pb-1 flex-shrink-0">
                 <div className="w-8" />
-                <button onClick={() => onOpenChange(false)} className="w-10 h-2 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
-                <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors">
-                  <X className="w-4 h-4 text-muted-foreground" />
+                <div className="w-10 h-[3px] rounded-full bg-[#C8821E]/30" />
+                <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-[#1A0E06] border border-[rgba(200,130,30,0.2)] hover:border-[#C8821E]/50 flex items-center justify-center transition-colors">
+                  <X className="w-4 h-4 text-[rgba(245,237,216,0.4)]" />
                 </button>
               </div>
 
               {/* Scrollable content */}
               <div className="overflow-y-auto no-scrollbar flex-1">
-                {/* ── Photo Gallery with counter ── */}
+                {/* Photo Gallery with counter */}
                 <div className="relative">
                   <PlacePhotoGallery images={allImages} placeName={place.name} isPartner={isPartner} viewerCount={viewerCount} onClose={() => onOpenChange(false)} />
-                  {/* [4] Photo counter overlay */}
                   {allImages.length > 1 && (
-                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full z-10">
-                      <span className="text-[11px] font-semibold text-white">1/{allImages.length}</span>
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-md z-10">
+                      <span className="text-[11px] font-semibold text-[#F5EDD8]">1/{allImages.length}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="p-5 space-y-3">
-                  {/* ── Header: Name + Rating ── */}
+                <div className="p-5 space-y-4">
+                  {/* ── HEADER ── */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
+                      {/* Category label */}
+                      {place.category && (
+                        <p className="text-xs text-[#C8821E] font-semibold uppercase tracking-[0.15em] mb-1">{place.category}</p>
+                      )}
+                      {/* Spot name */}
                       <Link to={`/venue/${place.id}`} onClick={() => onOpenChange(false)}
-                        className="font-display text-xl font-semibold text-foreground hover:text-gold transition-colors">
+                        className="font-display text-2xl font-black tracking-tight text-[#F5EDD8] hover:text-[#C8821E] transition-colors block">
                         {place.name}
                       </Link>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {/* Badges */}
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         {placeDetails?.is_founder && (
-                          <span className="flex items-center gap-1 bg-gold/15 px-2 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 bg-[#C8821E]/10 border border-[rgba(200,130,30,0.2)] px-2 py-0.5 rounded-md">
                             <span className="text-[10px]">🛡️</span>
-                            <span className="text-[9px] font-bold text-gold uppercase tracking-wider">Fondateur</span>
+                            <span className="text-[9px] font-bold text-[#C8821E] uppercase tracking-wider">Fondateur</span>
                           </span>
                         )}
                         {placeDetails?.listing_tier === "featured" && (
-                          <span className="flex items-center gap-1 bg-accent/15 px-2 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 bg-[#C44A2A]/10 border border-[#C44A2A]/20 px-2 py-0.5 rounded-md">
                             <span className="text-[10px]">⚡</span>
-                            <span className="text-[9px] font-bold text-accent uppercase tracking-wider">Featured</span>
+                            <span className="text-[9px] font-bold text-[#C44A2A] uppercase tracking-wider">Featured</span>
                           </span>
                         )}
-                        {place.category && (<div className="flex items-center gap-1"><Tag className="w-3 h-3 text-gold" /><span className="text-xs text-gold font-medium uppercase tracking-wider">{place.category}</span></div>)}
-                        {place.neighborhood && (<span className="text-[10px] text-muted-foreground">· {place.neighborhood}</span>)}
+                        {place.neighborhood && (
+                          <span className="text-[10px] text-[rgba(245,237,216,0.4)]">📍 {place.neighborhood}</span>
+                        )}
                       </div>
                     </div>
-                    {/* [6] Bigger rating badge */}
+                    {/* Rating */}
                     {place.rating && (
-                      <div className="flex flex-col items-center bg-gold/10 px-3 py-1.5 rounded-xl shrink-0">
+                      <div className="flex flex-col items-center bg-[#1A0E06] border border-[rgba(200,130,30,0.2)] px-3 py-2 rounded-xl shrink-0">
                         <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-gold fill-gold" />
-                          <span className="text-lg font-bold text-gold">{place.rating}</span>
+                          <Star className="w-4 h-4 text-[#C8821E] fill-[#C8821E]" />
+                          <span className="text-lg font-bold text-[#C8821E]">{place.rating}</span>
                         </div>
-                        <span className="text-[9px] text-muted-foreground">{viewerCount} avis</span>
+                        <span className="text-[9px] text-[rgba(245,237,216,0.4)]">{viewerCount} avis</span>
                       </div>
                     )}
                   </div>
 
-                  {/* [2] VIP Offers — MOVED UP (before description) */}
+                  {/* ── META CHIPS ── */}
+                  <div className="flex gap-2 flex-wrap">
+                    {placeDetails?.opening_hours && (
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-[rgba(200,130,30,0.2)] text-xs text-[rgba(245,237,216,0.4)]">
+                        <Clock className="w-3 h-3 text-[#C8821E]" /> {placeDetails.opening_hours.split(",")[0]}
+                      </span>
+                    )}
+                    {placeDetails?.price_range && (
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-[rgba(200,130,30,0.2)] text-xs text-[rgba(245,237,216,0.4)]">
+                        <DollarSign className="w-3 h-3 text-[#C8821E]" /> {placeDetails.price_range}
+                      </span>
+                    )}
+                    {placeDetails?.music_style && (
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-[rgba(200,130,30,0.2)] text-xs text-[rgba(245,237,216,0.4)]">
+                        <Music className="w-3 h-3 text-[#C8821E]" /> {placeDetails.music_style}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* ── VIP OFFERS (top position) ── */}
                   <PlaceVipSection isPartner={isPartner} hasOffer={hasOffer} vipOffers={vipOffers} placeName={place.name} />
 
-                  {/* Partner Offers */}
                   {offers.length > 0 && (
                     <div className="space-y-2">
                       {offers.map((offer) => (
@@ -236,88 +257,83 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                     </div>
                   )}
 
-                  {false /* B2C free: PremiumLock disabled */ ? (
+                  {false /* B2C free */ ? (
                     <PremiumLock placeName={place.name} />
                   ) : (
                     <>
-                       {/* [3] Description — truncated */}
+                       {/* Description */}
                        {place.description && <TruncatedDescription text={place.description} />}
 
-                       {/* Check-in social */}
+                       {/* Check-in */}
                        <PlaceCheckin placeId={place.id} placeName={place.name} />
 
-                       {/* Vibe Check — live ambiance vote */}
+                       {/* Vibe Check */}
                        <VibeCheck placeId={place.id} placeName={place.name} />
 
-                       {/* Recent Vibes from this place */}
+                       {/* Recent Vibes */}
                        <PlaceVibesSection placeName={place.name} />
 
-                       {/* Ephemeral Reviews (48h) */}
+                       {/* Ephemeral Reviews */}
                        <EphemeralReviews placeId={place.id} />
 
-                       {/* Info Cards (horaires, prix, musique, dress code) */}
-                      <PlaceInfoCards details={placeDetails} />
-
-                      {/* Menu / Carte link */}
+                      {/* Menu link */}
                       {placeDetails?.menu_url && (
                         <a href={placeDetails.menu_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-3 bg-muted/50 hover:bg-muted rounded-xl px-4 py-3 transition-colors group">
-                          <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
-                            <UtensilsCrossed className="w-4 h-4 text-gold" />
+                          className="flex items-center gap-3 bg-[#1A0E06] border border-[rgba(200,130,30,0.15)] hover:border-[#C8821E]/40 rounded-xl px-4 py-3 transition-colors group">
+                          <div className="w-8 h-8 rounded-lg bg-[#C8821E]/10 border border-[rgba(200,130,30,0.2)] flex items-center justify-center shrink-0">
+                            <UtensilsCrossed className="w-4 h-4 text-[#C8821E]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">
+                            <p className="text-xs font-semibold text-[#F5EDD8] group-hover:text-[#C8821E] transition-colors">
                               {lang === "fr" ? "Voir la carte / menu" : "View menu"}
                             </p>
-                            <p className="text-[10px] text-muted-foreground truncate">{lang === "fr" ? "Plats & tarifs" : "Food & prices"}</p>
+                            <p className="text-[10px] text-[rgba(245,237,216,0.4)] truncate">{lang === "fr" ? "Plats & tarifs" : "Food & prices"}</p>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+                          <ChevronRight className="w-4 h-4 text-[rgba(245,237,216,0.4)] group-hover:text-[#C8821E] transition-colors" />
                         </a>
                       )}
 
-                      {/* Drinks menu link */}
+                      {/* Drinks menu */}
                       {placeDetails?.drinks_menu_url && (
                         <a href={placeDetails.drinks_menu_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-3 bg-muted/50 hover:bg-muted rounded-xl px-4 py-3 transition-colors group">
-                          <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                          className="flex items-center gap-3 bg-[#1A0E06] border border-[rgba(200,130,30,0.15)] hover:border-[#C8821E]/40 rounded-xl px-4 py-3 transition-colors group">
+                          <div className="w-8 h-8 rounded-lg bg-[#C8821E]/10 border border-[rgba(200,130,30,0.2)] flex items-center justify-center shrink-0">
                             <span className="text-sm">🍸</span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">
+                            <p className="text-xs font-semibold text-[#F5EDD8] group-hover:text-[#C8821E] transition-colors">
                               {lang === "fr" ? "Carte des boissons" : "Drinks menu"}
                             </p>
-                            <p className="text-[10px] text-muted-foreground truncate">{lang === "fr" ? "Cocktails, vins, softs" : "Cocktails, wines, softs"}</p>
+                            <p className="text-[10px] text-[rgba(245,237,216,0.4)] truncate">{lang === "fr" ? "Cocktails, vins, softs" : "Cocktails, wines, softs"}</p>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
+                          <ChevronRight className="w-4 h-4 text-[rgba(245,237,216,0.4)] group-hover:text-[#C8821E] transition-colors" />
                         </a>
                       )}
 
-                      {/* Post & Unlock Banner */}
                       <PostUnlockBanner placeId={place.id} placeName={place.name} onPostClick={() => {}} />
 
-                      {/* [5] Address with Copy button */}
+                      {/* Address + Copy */}
                       {place.address && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" />
-                          <span className="text-xs flex-1">{place.address}</span>
-                          <button onClick={handleCopyAddress} className="p-1.5 rounded-lg hover:bg-muted active:scale-90 transition-all" title="Copier l'adresse">
-                            <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-[#C8821E]/60 shrink-0" />
+                          <span className="text-xs text-[rgba(245,237,216,0.4)] flex-1">{place.address}</span>
+                          <button onClick={handleCopyAddress} className="p-1.5 rounded-lg hover:bg-[#C8821E]/10 active:scale-90 transition-all" title="Copier l'adresse">
+                            <Copy className="w-3.5 h-3.5 text-[rgba(245,237,216,0.4)]" />
                           </button>
                         </div>
                       )}
 
-                      {/* "Are you the manager?" CTA */}
+                      {/* Manager CTA */}
                       {!isPartner && (
-                        <Link to="/business" className="flex items-center gap-3 rounded-xl px-4 py-4 transition-all group border-2 border-gold/30 hover:border-gold/60 shadow-md shadow-gold/10 hover:shadow-gold/20"
-                          style={{ background: "linear-gradient(135deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.15))" }}>
-                          <div className="w-10 h-10 rounded-xl bg-gold/20 border border-gold/30 flex items-center justify-center shrink-0">
-                            <Building2 className="w-5 h-5 text-gold" />
+                        <Link to="/business" className="flex items-center gap-3 rounded-xl px-4 py-4 transition-all group bg-[#1A0E06] border border-[rgba(200,130,30,0.3)] hover:border-[#C8821E]/60">
+                          <div className="w-10 h-10 rounded-xl bg-[#C8821E]/10 border border-[rgba(200,130,30,0.2)] flex items-center justify-center shrink-0">
+                            <Building2 className="w-5 h-5 text-[#C8821E]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gold">{t("place_areYouManager")}</p>
-                            <p className="text-[11px] text-foreground/70">{t("place_joinWeshkech")}</p>
+                            <p className="text-sm font-bold text-[#C8821E]">{t("place_areYouManager")}</p>
+                            <p className="text-[11px] text-[rgba(245,237,216,0.4)]">{t("place_joinWeshkech")}</p>
                           </div>
-                          <ChevronRight className="w-5 h-5 text-gold" />
+                          <ChevronRight className="w-5 h-5 text-[#C8821E]" />
                         </Link>
                       )}
                     </>
@@ -325,21 +341,22 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                 </div>
               </div>
 
-              {/* [1] ── STICKY BOTTOM BAR ── */}
-              <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3 flex gap-2">
-                <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20 active:scale-[0.97]">
+              {/* ── STICKY BOTTOM BAR ── */}
+              <div className="flex-shrink-0 border-t border-[rgba(200,130,30,0.2)] bg-[#1A0E06] px-4 py-3 flex gap-2">
+                <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#C8821E] text-[#0E0904] font-black uppercase tracking-wide text-sm py-3 rounded-xl transition-colors shadow-lg shadow-[#C8821E]/20 active:scale-[0.97]">
                   <Navigation className="w-4 h-4" /> {t("place_goThere")}
                 </a>
                 {hasVipOffers && (
                   <button onClick={() => {
                     const el = document.querySelector('[data-vip-section]');
                     el?.scrollIntoView({ behavior: 'smooth' });
-                  }} className="flex items-center justify-center gap-1.5 px-4 py-3 bg-gold/10 border border-gold/30 text-gold font-semibold rounded-xl hover:bg-gold/20 transition-colors active:scale-[0.97]">
+                  }} className="flex items-center justify-center gap-1.5 px-4 py-3 bg-transparent border border-[rgba(200,130,30,0.3)] text-[#C8821E] font-semibold rounded-xl hover:bg-[#C8821E]/10 transition-colors active:scale-[0.97]">
                     <Gift className="w-4 h-4" /> VIP
                   </button>
                 )}
-                <button onClick={handleShare} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors active:scale-95">
-                  <Share2 className="w-4 h-4 text-foreground" />
+                <button onClick={handleShare} className="w-12 flex items-center justify-center bg-transparent border border-[rgba(200,130,30,0.2)] rounded-xl transition-colors active:scale-95 hover:border-[#C8821E]/40">
+                  <Share2 className="w-4 h-4 text-[rgba(245,237,216,0.4)]" />
                 </button>
               </div>
             </div>
