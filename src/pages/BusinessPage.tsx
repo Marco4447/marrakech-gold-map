@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Send, Building2, MessageCircle, Camera, BarChart3, Gift, Shield, Zap, Check, X, Users, Eye, TrendingUp, Star, ChevronRight, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -61,6 +61,7 @@ const TYPES = ["Rooftop", "Restaurant", "Bar / Club", "Café", "Riad / Hôtel", 
 const QUARTIERS = ["Médina", "Guéliz", "Hivernage", "Palmeraie", "Kasbah", "Autre"];
 
 export default function BusinessPage() {
+  const navigate = useNavigate();
   const formRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState({ name: "", type: "", quartier: "", contact: "", whatsapp: "", email: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -103,6 +104,10 @@ export default function BusinessPage() {
 
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden">
+      {/* Close button */}
+      <button onClick={() => navigate("/")} className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-[rgba(248,238,224,0.07)] border border-[rgba(212,146,30,0.2)] flex items-center justify-center active:scale-90 transition-transform">
+        <X className="w-5 h-5 text-[rgba(248,238,224,0.5)]" />
+      </button>
       {/* ── STICKY HEADER ── */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3">
