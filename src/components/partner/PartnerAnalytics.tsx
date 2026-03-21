@@ -8,6 +8,7 @@ import { toast } from "sonner";
 interface Props {
   userId: string;
   placeId: string | null;
+  placeName?: string;
 }
 
 interface DayPoint {
@@ -16,11 +17,12 @@ interface DayPoint {
   views: number;
 }
 
-export default function PartnerAnalytics({ userId, placeId }: Props) {
+export default function PartnerAnalytics({ userId, placeId, placeName }: Props) {
   const [viewsToday, setViewsToday] = useState(0);
   const [viewsMonth, setViewsMonth] = useState(0);
   const [redemptions, setRedemptions] = useState(0);
   const [chartData, setChartData] = useState<DayPoint[]>([]);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -174,6 +176,74 @@ export default function PartnerAnalytics({ userId, placeId }: Props) {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* ── RAPPORT PDF ── */}
+      <button
+        onClick={() => {
+          setGenerating(true);
+          const now = new Date();
+          const monthName = now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+          const spotName = placeName || "Mon spot";
+          const slug = spotName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+          const html = `<!DOCTYPE html><html><head>
+            <title>weshkech-rapport-${slug}-${now.toISOString().slice(0, 7)}</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #1a1a1a; padding: 40px; max-width: 600px; margin: 0 auto; }
+              .header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 2px solid #D4921E; }
+              .logo { width: 40px; height: 40px; background: #D4921E; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 18px; }
+              .title { font-size: 22px; font-weight: 900; }
+              .subtitle { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; }
+              .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+              .metric { border: 1px solid #eee; border-radius: 12px; padding: 16px; }
+              .metric-value { font-size: 28px; font-weight: 900; color: #D4921E; }
+              .metric-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+              .table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+              .table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #888; padding: 8px 0; border-bottom: 1px solid #eee; }
+              .table td { padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+              .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; text-align: center; font-size: 10px; color: #aaa; }
+              @media print { body { padding: 20px; } }
+            </style>
+          </head><body>
+            <div class="header">
+              <div class="logo">W</div>
+              <div>
+                <div class="title">${spotName}</div>
+                <div class="subtitle">Rapport mensuel — ${monthName}</div>
+              </div>
+            </div>
+            <div class="metrics">
+              <div class="metric"><div class="metric-value">${viewsToday}</div><div class="metric-label">Vues aujourd'hui</div></div>
+              <div class="metric"><div class="metric-value">${viewsMonth}</div><div class="metric-label">Vues ce mois</div></div>
+              <div class="metric"><div class="metric-value">${redemptions}</div><div class="metric-label">Offres utilisées</div></div>
+              <div class="metric"><div class="metric-value">${conversionRate}%</div><div class="metric-label">Taux conversion</div></div>
+            </div>
+            <h3 style="font-size:14px;font-weight:700;margin:24px 0 12px">Vues — 7 derniers jours</h3>
+            <table class="table">
+              <tr><th>Jour</th><th style="text-align:right">Vues</th></tr>
+              ${chartData.map(d => `<tr><td>${d.label}</td><td style="text-align:right;font-weight:600">${d.views}</td></tr>`).join("")}
+            </table>
+            <div class="footer">Généré par WeshKech · weshkech.com · ${now.toLocaleDateString("fr-FR")}</div>
+          </body></html>`;
+
+          const iframe = document.createElement("iframe");
+          iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:700px;height:900px";
+          document.body.appendChild(iframe);
+          iframe.contentDocument?.open();
+          iframe.contentDocument?.write(html);
+          iframe.contentDocument?.close();
+          setTimeout(() => {
+            iframe.contentWindow?.print();
+            setTimeout(() => { document.body.removeChild(iframe); setGenerating(false); }, 1000);
+          }, 300);
+        }}
+        disabled={generating}
+        className="w-full flex items-center justify-center gap-2 bg-[var(--ochre)] text-[#0E0904] font-black uppercase text-sm rounded-xl px-6 py-3 active:scale-[0.97] transition-transform disabled:opacity-50"
+      >
+        <Download className="w-4 h-4" />
+        {generating ? "Génération..." : `Rapport PDF — ${new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`}
+      </button>
 
       {/* ── INFO ── */}
       <p className="text-[10px] text-[var(--text-muted)] text-center">
