@@ -97,10 +97,10 @@ function PartnerOffersRow() {
   if (partners.length === 0) return null;
 
   return (
-    <div className="border-b border-[rgba(200,130,30,0.1)] pb-3">
+    <div className="border-b border-[rgba(200,130,30,0.3)] pb-3">
       <div className="px-4 pt-3 pb-2">
         <p className="text-sm font-bold uppercase tracking-widest text-[#C8821E]">Offres partenaires</p>
-        <p className="text-xs text-[rgba(245,237,216,0.3)]">Avantages exclusifs membres</p>
+        <p className="text-xs text-[rgba(245,237,216,0.5)]">Avantages exclusifs membres</p>
       </div>
       <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-2">
         {partners.map((p) => (
@@ -110,12 +110,12 @@ function PartnerOffersRow() {
               sessionStorage.setItem("wk_flyto", JSON.stringify({ lat: 0, lng: 0, placeId: p.id }));
               window.dispatchEvent(new CustomEvent("wk:goto-map"));
             }}
-            className="w-48 flex-shrink-0 bg-[#1A0E06] border border-[rgba(196,74,42,0.3)] rounded-xl p-3 text-left active:scale-[0.97] transition-transform"
+            className="w-48 flex-shrink-0 bg-[#221408] border border-[rgba(196,74,42,0.3)] rounded-xl p-3 text-left active:scale-[0.97] transition-transform"
           >
             <span className="inline-block bg-[#C44A2A] text-[9px] text-white font-bold rounded px-2 py-0.5 mb-2 uppercase tracking-wide">★ Partenaire</span>
             <p className="text-sm font-bold text-[#F5EDD8] truncate">{p.name}</p>
             {p.category && <p className="text-[10px] text-[#C8821E] uppercase tracking-wide mt-0.5">{p.category}</p>}
-            {p.description && <p className="text-[10px] text-[rgba(245,237,216,0.4)] mt-1 line-clamp-1">{p.description}</p>}
+            {p.description && <p className="text-[10px] text-[rgba(245,237,216,0.6)] mt-1 line-clamp-1">{p.description}</p>}
           </button>
         ))}
       </div>

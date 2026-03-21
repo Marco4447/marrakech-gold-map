@@ -28,8 +28,8 @@ export default function MapFiltersBar({ activeFilter, onFilterChange }: MapFilte
         onClick={() => onFilterChange(null)}
         className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
           activeFilter === null
-            ? "bg-[#C8821E] text-[#0E0904] shadow-md shadow-[#C8821E]/30"
-            : "bg-card/90 backdrop-blur-md text-[rgba(245,237,216,0.4)] border border-[rgba(200,130,30,0.2)]"
+            ? "bg-[#C8821E] text-[#120B05] shadow-md shadow-[#C8821E]/30"
+            : "bg-card/90 backdrop-blur-md text-[rgba(245,237,216,0.6)] border border-[rgba(200,130,30,0.3)]"
         }`}
       >
         Tous
@@ -42,8 +42,8 @@ export default function MapFiltersBar({ activeFilter, onFilterChange }: MapFilte
             activeFilter === f.key
               ? f.key === "partners"
                 ? "bg-[#C44A2A] text-[#F5EDD8] font-bold shadow-md shadow-[#C44A2A]/30"
-                : "bg-[#C8821E] text-[#0E0904] shadow-md shadow-[#C8821E]/30"
-              : "bg-card/90 backdrop-blur-md text-[rgba(245,237,216,0.4)] border border-[rgba(200,130,30,0.2)]"
+                : "bg-[#C8821E] text-[#120B05] shadow-md shadow-[#C8821E]/30"
+              : "bg-card/90 backdrop-blur-md text-[rgba(245,237,216,0.6)] border border-[rgba(200,130,30,0.3)]"
           }`}
         >
           <span className="text-xs leading-none">{f.emoji}</span>
