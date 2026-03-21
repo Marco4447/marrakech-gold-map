@@ -6,6 +6,19 @@
 
 @layer base {
   :root {
+    /* WeshKech design tokens */
+    --bg-primary: #1C1209;
+    --bg-card: #281508;
+    --bg-surface: #221008;
+    --text-primary: #F8EEE0;
+    --text-secondary: rgba(248,238,224,0.65);
+    --text-muted: rgba(248,238,224,0.45);
+    --border-default: rgba(212,146,30,0.28);
+    --border-subtle: rgba(212,146,30,0.18);
+    --ochre: #D4921E;
+    --ochre-light: #EFD080;
+    --terracotta: #C44A2A;
+
     --background: 0 0% 5%;
     --foreground: 40 20% 92%;
 
