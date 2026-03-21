@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
 import { MapPin, Camera, Gift, ChevronDown, MessageCircle, Star } from "lucide-react";
@@ -33,6 +33,27 @@ interface LandingPageProps {
 
 export default function LandingPage({ onEnterApp }: LandingPageProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Schema.org Organization
+  useEffect(() => {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "WeshKech",
+      "url": "https://weshkech.com",
+      "description": "Guide local Marrakech — spots authentiques vérifiés par des locaux",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Marrakech",
+        "addressCountry": "MA",
+      },
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
 
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden">
