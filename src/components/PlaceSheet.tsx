@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, MapPin, Tag, Gift, Navigation, Share2, Heart, ChevronRight, Building2, Clock, DollarSign, Music, Phone, UtensilsCrossed, Copy } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -72,6 +73,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string; drinks_menu_url?: string; is_founder?: boolean; listing_tier?: string; phone?: string } | null>(null);
   const [placePhotos, setPlacePhotos] = useState<{ id: string; photo_url: string; caption: string | null }[]>([]);
   const [saved, setSaved] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   useEffect(() => {
     if (!place?.id || !open) return;
@@ -233,7 +235,46 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                   {/* ── ZONE 3: OFFRE VIP ── */}
                   {isPartner && (
                     <>
-                      <PlaceVipSection isPartner={isPartner} hasOffer={hasOffer} vipOffers={vipOffers} placeName={place.name} />
+                      <div className="bg-[rgba(196,74,42,0.12)] border border-[rgba(196,74,42,0.25)] rounded-xl p-4 space-y-3">
+                        {/* Offer details */}
+                        {vipOffers.length > 0 ? (
+                          vipOffers.map((vip) => {
+                            const perkEmoji = vip.perk_type === "drink" ? "🍸" : vip.perk_type === "food" ? "🍽️" : vip.perk_type === "entry" ? "🎫" : vip.perk_type === "discount" ? "💰" : "🎁";
+                            return (
+                              <div key={vip.id}>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-base">{perkEmoji}</span>
+                                  <span className="text-sm font-bold text-[#F5EDD8]">{vip.title}</span>
+                                </div>
+                                <p className="text-xs text-[rgba(245,237,216,0.5)] leading-relaxed">{vip.description}</p>
+                              </div>
+                            );
+                          })
+                        ) : hasOffer ? (
+                          <div className="flex items-center gap-2">
+                            <Gift className="w-4 h-4 text-[#C44A2A]" />
+                            <span className="text-sm font-semibold text-[#F5EDD8]">Offre exclusive disponible</span>
+                          </div>
+                        ) : null}
+
+                        {/* CTA button */}
+                        {user ? (
+                          <button
+                            onClick={() => {
+                              setShowQrModal(true);
+                              try { navigator.vibrate?.(10); } catch {}
+                            }}
+                            className="w-full py-2.5 rounded-xl bg-[#C44A2A] text-[#F5EDD8] text-sm font-black uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
+                          >
+                            <Gift className="w-4 h-4" /> Récupérer l'offre
+                          </button>
+                        ) : (
+                          <p className="text-xs text-[rgba(245,237,216,0.35)] text-center py-1">
+                            Connecte-toi pour accéder aux offres partenaires
+                          </p>
+                        )}
+                      </div>
+
                       {offers.length > 0 && (
                         <div className="space-y-2 mt-2">
                           {offers.map((offer) => (
@@ -396,8 +437,86 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
             </div>
           </motion.div>
           <DealTunnel open={dealOpen} onOpenChange={setDealOpen} placeName={place.name} />
+
+          {/* ═══════════ QR OFFER MODAL ═══════════ */}
+          <AnimatePresence>
+            {showQrModal && user && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[3000] bg-[#0E0904] flex flex-col items-center justify-center px-8"
+                onClick={() => setShowQrModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  className="flex flex-col items-center text-center max-w-sm w-full"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Logo */}
+                  <img src="/logo_72.png" alt="WeshKech" className="w-12 h-12 rounded-xl mb-6 opacity-80" />
+
+                  {/* QR Code */}
+                  <div className="border-2 border-[#C8821E] rounded-xl p-4 bg-white mb-6">
+                    <QRCodeSVG
+                      value={JSON.stringify({
+                        userId: user.id,
+                        placeId: place.id,
+                        date: new Date().toISOString().split("T")[0],
+                        offer: vipOffers[0]?.title || "Offre VIP",
+                      })}
+                      size={260}
+                      level="M"
+                      fgColor="#1A0E06"
+                      bgColor="#ffffff"
+                    />
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-xl font-black text-[#F5EDD8] mb-2">Montre ce QR au staff</h3>
+
+                  {/* Spot + offer */}
+                  <p className="text-sm text-[rgba(245,237,216,0.5)] mb-4">
+                    {place.name} {vipOffers[0]?.title ? `· ${vipOffers[0].title}` : ""}
+                  </p>
+
+                  {/* Date badge */}
+                  <div className="bg-[rgba(200,130,30,0.15)] border border-[rgba(200,130,30,0.3)] text-[#C8821E] text-xs font-semibold rounded-md px-3 py-1 mb-8">
+                    Valable aujourd'hui · {new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                  </div>
+
+                  {/* Close button */}
+                  <button
+                    onClick={() => setShowQrModal(false)}
+                    className="w-full h-11 bg-[rgba(245,237,216,0.07)] border border-[rgba(200,130,30,0.2)] text-[#F5EDD8] font-semibold rounded-xl active:scale-[0.97] transition-transform"
+                  >
+                    Fermer
+                  </button>
+                </motion.div>
+
+                {/* Track event on mount */}
+                <QrModalTracker userId={user.id} placeId={place.id} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </AnimatePresence>
   );
+}
+
+// Tracks vip_offer_viewed event once when QR modal opens
+function QrModalTracker({ userId, placeId }: { userId: string; placeId: string }) {
+  useEffect(() => {
+    supabase.from("acquisition_events").insert({
+      event_type: "vip_offer_viewed",
+      user_id: userId,
+      source: placeId,
+      campaign: new Date().toISOString().split("T")[0],
+    } as any).then(() => {});
+  }, []);
+  return null;
 }
