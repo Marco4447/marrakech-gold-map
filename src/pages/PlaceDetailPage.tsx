@@ -41,11 +41,50 @@ export default function PlaceDetailPage() {
   const [place, setPlace] = useState<PlaceData | null>(null);
 
   usePageMeta({
-    title: place ? `${place.name} — ${place.category || "Spot"}` : "Spot",
-    description: place ? `${place.name} à ${place.neighborhood || "Marrakech"}. ${place.description?.slice(0, 120) || "Découvre ce spot sur Weshkech."}` : undefined,
+    title: place ? `${place.name} — ${place.category || "Spot"} à Marrakech` : "Spot",
+    description: place ? `${place.name} à ${place.neighborhood || "Marrakech"}. ${place.description?.slice(0, 155) || "Découvre ce spot sur Weshkech."}` : undefined,
     image: place?.image_url || undefined,
     url: place?.slug ? `https://weshkech.com/spot/${place.slug}` : undefined,
   });
+
+  // Schema.org LocalBusiness markup
+  useEffect(() => {
+    if (!place) return;
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": place.name,
+      "description": place.description || `${place.name} à Marrakech`,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": place.address || "",
+        "addressLocality": "Marrakech",
+        "addressCountry": "MA",
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": place.latitude,
+        "longitude": place.longitude,
+      },
+      ...(place.rating ? {
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": place.rating,
+          "bestRating": 5,
+          "reviewCount": Math.max(1, Math.round(place.rating * 3)),
+        },
+      } : {}),
+      ...(place.opening_hours ? { "openingHours": place.opening_hours } : {}),
+      ...(place.price_range ? { "priceRange": place.price_range } : {}),
+      ...(place.image_url ? { "image": place.image_url } : {}),
+      "url": `https://weshkech.com/spot/${place.slug || slug}`,
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, [place]);
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
