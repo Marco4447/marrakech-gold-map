@@ -152,7 +152,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
           <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[1001]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => onOpenChange(false)} />
           <motion.div className="absolute bottom-0 left-0 right-0 z-[1002] px-3 pb-16 max-h-[88vh] flex flex-col" initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} transition={{ type: "spring", damping: 28, stiffness: 300 }}
             drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={0.3} onDragEnd={(_, info) => { if (info.offset.y > 100 || info.velocity.y > 300) onOpenChange(false); }}>
-            <div className="bg-[#1A0E06] rounded-2xl overflow-hidden border border-[rgba(200,130,30,0.2)] shadow-2xl shadow-black/50 flex flex-col max-h-full">
+            <div className={`bg-[#1A0E06] rounded-2xl overflow-hidden border shadow-2xl shadow-black/50 flex flex-col max-h-full ${isPartner ? "border-[rgba(200,130,30,0.35)]" : "border-[rgba(200,130,30,0.2)]"}`}>
               {/* Drag handle */}
               <div className="flex items-center justify-center pt-3 pb-1 flex-shrink-0">
                 <div className="w-10 h-[3px] rounded-full bg-[#C8821E]/30" />
@@ -166,9 +166,8 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                   <PlacePhotoGallery images={allImages} placeName={place.name} isPartner={isPartner} viewerCount={viewerCount} onClose={() => onOpenChange(false)} />
                   {/* Partner badge */}
                   {isPartner && (
-                    <div className="absolute top-3 left-3 bg-[#C8821E] px-2.5 py-1 rounded-md z-10 flex items-center gap-1">
-                      <Star className="w-3 h-3 text-[#0E0904] fill-[#0E0904]" />
-                      <span className="text-[10px] font-black text-[#0E0904] uppercase tracking-wider">Partenaire</span>
+                    <div className="absolute top-3 left-3 bg-[#C44A2A] px-2 py-1 rounded z-10 flex items-center gap-1">
+                      <span className="text-[9px] font-bold text-[#F5EDD8] uppercase tracking-wide">★ Partenaire</span>
                     </div>
                   )}
                   {/* Photo counter */}
@@ -198,10 +197,17 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                     {place.category && (
                       <p className="text-xs text-[#C8821E] font-semibold uppercase tracking-[0.15em] mb-1">{place.category}</p>
                     )}
-                    <Link to={`/venue/${place.id}`} onClick={() => onOpenChange(false)}
-                      className="font-display text-2xl font-black tracking-tight text-[#F5EDD8] hover:text-[#C8821E] transition-colors block">
-                      {place.name}
-                    </Link>
+                    <div className="flex items-center flex-wrap gap-y-1">
+                      <Link to={`/venue/${place.id}`} onClick={() => onOpenChange(false)}
+                        className="font-display text-2xl font-black tracking-tight text-[#F5EDD8] hover:text-[#C8821E] transition-colors">
+                        {place.name}
+                      </Link>
+                      {isPartner && (
+                        <span className="inline-flex items-center bg-[rgba(196,74,42,0.15)] border border-[rgba(196,74,42,0.4)] text-[#C44A2A] text-[9px] font-bold px-2 py-0.5 rounded ml-2">
+                          Partenaire
+                        </span>
+                      )}
+                    </div>
                     {/* Chips */}
                     <div className="flex gap-2 mt-2 flex-wrap">
                       {placeDetails?.opening_hours && (
