@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, MapPin, Tag, Zap, Gift, Navigation, Share2, Users, ChevronLeft, ChevronRight, Building2, Clock, DollarSign, Music, Shirt, UtensilsCrossed, Image as ImageIcon } from "lucide-react";
+import { X, Star, MapPin, Tag, Zap, Gift, Navigation, Share2, Users, ChevronLeft, ChevronRight, Building2, Clock, DollarSign, Music, Shirt, UtensilsCrossed, Image as ImageIcon, Copy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -57,6 +57,24 @@ function useViewerCount(placeId: string | undefined) {
   return Math.max(1, count);
 }
 
+// ── Truncated description with "Lire plus" ──
+function TruncatedDescription({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > 150;
+  return (
+    <div>
+      <p className={`text-sm text-muted-foreground leading-relaxed ${!expanded && isLong ? "line-clamp-3" : ""}`}>
+        {text}
+      </p>
+      {isLong && !expanded && (
+        <button onClick={() => setExpanded(true)} className="text-xs text-gold font-semibold mt-0.5 active:opacity-70">
+          Lire plus
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: PlaceSheetProps) {
   const [dealOpen, setDealOpen] = useState(false);
   const viewerCount = useViewerCount(place?.id);
@@ -67,13 +85,14 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
   const [vipOffers, setVipOffers] = useState<Array<{ id: string; title: string; description: string; perk_type: string; start_time: string | null; end_time: string | null }>>([]);
   const [placeDetails, setPlaceDetails] = useState<{ opening_hours?: string; price_range?: string; music_style?: string; dress_code?: string; menu_url?: string; drinks_menu_url?: string; is_founder?: boolean; listing_tier?: string } | null>(null);
   const [placePhotos, setPlacePhotos] = useState<{ id: string; photo_url: string; caption: string | null }[]>([]);
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
     if (!place?.id || !open) return;
+    setPhotoIndex(0);
     supabase.from("places").select("opening_hours, price_range, music_style, dress_code, menu_url, drinks_menu_url, is_founder, listing_tier").eq("id", place.id).single().then(({ data }) => {
       if (data) setPlaceDetails(data);
     });
-    // Fetch place photos
     supabase.from("place_photos").select("id, photo_url, caption").eq("place_id", place.id).order("sort_order", { ascending: true }).then(({ data }) => {
       if (data) setPlacePhotos(data);
     });
@@ -114,11 +133,11 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
 
   const isPartner = place.is_partner ?? false;
   const hasOffer = place.has_active_offer ?? false;
-  // Build gallery: place_photos first, fallback to place.image_url
   const allImages = placePhotos.length > 0
     ? placePhotos.map(p => p.photo_url)
     : (place.image_url ? [place.image_url] : []);
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
+  const hasVipOffers = vipOffers.length > 0 || hasOffer;
 
   const handleShare = async () => {
     const deepLinkUrl = getShareUrl("place", place.id);
@@ -129,6 +148,13 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
       await navigator.clipboard.writeText(deepLinkUrl);
       toast.success(lang === "fr" ? "Lien copié !" : "Link copied!");
     }
+  };
+
+  const handleCopyAddress = async () => {
+    if (!place.address) return;
+    await navigator.clipboard.writeText(place.address);
+    toast.success("Adresse copiée !");
+    try { navigator.vibrate?.(5); } catch {}
   };
 
   return (
@@ -142,18 +168,27 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
               {/* Drag handle + close button */}
               <div className="flex items-center justify-between px-4 pt-3 pb-1 flex-shrink-0">
                 <div className="w-8" />
-                <button onClick={() => onOpenChange(false)} className="w-10 h-1.5 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
+                <button onClick={() => onOpenChange(false)} className="w-10 h-2 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
                 <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
 
+              {/* Scrollable content */}
               <div className="overflow-y-auto no-scrollbar flex-1">
-                {/* Photo Gallery */}
-                <PlacePhotoGallery images={allImages} placeName={place.name} isPartner={isPartner} viewerCount={viewerCount} onClose={() => onOpenChange(false)} />
+                {/* ── Photo Gallery with counter ── */}
+                <div className="relative">
+                  <PlacePhotoGallery images={allImages} placeName={place.name} isPartner={isPartner} viewerCount={viewerCount} onClose={() => onOpenChange(false)} />
+                  {/* [4] Photo counter overlay */}
+                  {allImages.length > 1 && (
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full z-10">
+                      <span className="text-[11px] font-semibold text-white">1/{allImages.length}</span>
+                    </div>
+                  )}
+                </div>
 
                 <div className="p-5 space-y-3">
-                  {/* Header: Name + Rating */}
+                  {/* ── Header: Name + Rating ── */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <Link to={`/venue/${place.id}`} onClick={() => onOpenChange(false)}
@@ -177,17 +212,36 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                         {place.neighborhood && (<span className="text-[10px] text-muted-foreground">· {place.neighborhood}</span>)}
                       </div>
                     </div>
+                    {/* [6] Bigger rating badge */}
                     {place.rating && (
-                      <div className="flex items-center gap-1 bg-gold/10 px-2.5 py-1 rounded-full shrink-0"><Star className="w-3.5 h-3.5 text-gold fill-gold" /><span className="text-sm font-semibold text-gold">{place.rating}</span></div>
+                      <div className="flex flex-col items-center bg-gold/10 px-3 py-1.5 rounded-xl shrink-0">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-gold fill-gold" />
+                          <span className="text-lg font-bold text-gold">{place.rating}</span>
+                        </div>
+                        <span className="text-[9px] text-muted-foreground">{viewerCount} avis</span>
+                      </div>
                     )}
                   </div>
+
+                  {/* [2] VIP Offers — MOVED UP (before description) */}
+                  <PlaceVipSection isPartner={isPartner} hasOffer={hasOffer} vipOffers={vipOffers} placeName={place.name} />
+
+                  {/* Partner Offers */}
+                  {offers.length > 0 && (
+                    <div className="space-y-2">
+                      {offers.map((offer) => (
+                        <PartnerOfferCard key={offer.id} offer={offer} isVip={isVip} />
+                      ))}
+                    </div>
+                  )}
 
                   {false /* B2C free: PremiumLock disabled */ ? (
                     <PremiumLock placeName={place.name} />
                   ) : (
                     <>
-                       {/* Description */}
-                       {place.description && <p className="text-sm text-muted-foreground leading-relaxed">{place.description}</p>}
+                       {/* [3] Description — truncated */}
+                       {place.description && <TruncatedDescription text={place.description} />}
 
                        {/* Check-in social */}
                        <PlaceCheckin placeId={place.id} placeName={place.name} />
@@ -241,38 +295,18 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                       {/* Post & Unlock Banner */}
                       <PostUnlockBanner placeId={place.id} placeName={place.name} onPostClick={() => {}} />
 
-                      {/* VIP Offers */}
-                      <PlaceVipSection isPartner={isPartner} hasOffer={hasOffer} vipOffers={vipOffers} placeName={place.name} />
-
-                      {/* Partner Offers */}
-                      {offers.length > 0 && (
-                        <div className="space-y-2">
-                          {offers.map((offer) => (
-                            <PartnerOfferCard key={offer.id} offer={offer} isVip={isVip} />
-                          ))}
+                      {/* [5] Address with Copy button */}
+                      {place.address && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" />
+                          <span className="text-xs flex-1">{place.address}</span>
+                          <button onClick={handleCopyAddress} className="p-1.5 rounded-lg hover:bg-muted active:scale-90 transition-all" title="Copier l'adresse">
+                            <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                          </button>
                         </div>
                       )}
 
-                      {/* Address */}
-                      {place.address && (
-                        <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="w-3.5 h-3.5 text-gold/60 shrink-0" /><span className="text-xs">{place.address}</span></div>
-                      )}
-
-                      {/* Action buttons */}
-                      <div className="flex gap-2 pt-1">
-                        <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20">
-                          <Navigation className="w-4 h-4" /> {t("place_goThere")}
-                        </a>
-                        {onRecenter && (
-                          <button onClick={onRecenter} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors active:scale-95" title={lang === "fr" ? "Recentrer" : "Recenter"}>
-                            <MapPin className="w-4 h-4 text-gold" />
-                          </button>
-                        )}
-                        <button onClick={handleShare} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors"><Share2 className="w-4 h-4 text-foreground" /></button>
-                      </div>
-
-                      {/* B2C free: pass button disabled */}
-
+                      {/* "Are you the manager?" CTA */}
                       {!isPartner && (
                         <Link to="/business" className="flex items-center gap-3 rounded-xl px-4 py-4 transition-all group border-2 border-gold/30 hover:border-gold/60 shadow-md shadow-gold/10 hover:shadow-gold/20"
                           style={{ background: "linear-gradient(135deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.15))" }}>
@@ -289,6 +323,24 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                     </>
                   )}
                 </div>
+              </div>
+
+              {/* [1] ── STICKY BOTTOM BAR ── */}
+              <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3 flex gap-2">
+                <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gold hover:bg-gold-light text-primary-foreground font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-gold/20 active:scale-[0.97]">
+                  <Navigation className="w-4 h-4" /> {t("place_goThere")}
+                </a>
+                {hasVipOffers && (
+                  <button onClick={() => {
+                    const el = document.querySelector('[data-vip-section]');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }} className="flex items-center justify-center gap-1.5 px-4 py-3 bg-gold/10 border border-gold/30 text-gold font-semibold rounded-xl hover:bg-gold/20 transition-colors active:scale-[0.97]">
+                    <Gift className="w-4 h-4" /> VIP
+                  </button>
+                )}
+                <button onClick={handleShare} className="w-12 flex items-center justify-center bg-card border border-border hover:border-gold/40 rounded-xl transition-colors active:scale-95">
+                  <Share2 className="w-4 h-4 text-foreground" />
+                </button>
               </div>
             </div>
           </motion.div>
