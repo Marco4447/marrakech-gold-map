@@ -104,9 +104,9 @@ export default function BusinessPage() {
 
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden">
-      {/* Close button */}
-      <button onClick={() => navigate("/")} className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-[rgba(248,238,224,0.07)] border border-[rgba(212,146,30,0.2)] flex items-center justify-center active:scale-90 transition-transform">
-        <X className="w-5 h-5 text-[rgba(248,238,224,0.5)]" />
+      {/* Close button — above sticky header */}
+      <button onClick={() => navigate("/")} className="fixed top-3 right-3 z-[60] w-9 h-9 rounded-full bg-[rgba(248,238,224,0.1)] border border-[rgba(212,146,30,0.25)] flex items-center justify-center active:scale-90 transition-transform backdrop-blur-md">
+        <X className="w-4 h-4 text-[rgba(248,238,224,0.6)]" />
       </button>
       {/* ── STICKY HEADER ── */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
