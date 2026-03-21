@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Eye, Heart, MapPin, TrendingUp, Target, Download } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Eye, Gift, TrendingUp, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -10,118 +10,97 @@ interface Props {
   placeId: string | null;
 }
 
-interface DailyData {
+interface DayPoint {
+  label: string;
   date: string;
-  rawDate: string;
   views: number;
-  likes: number;
-}
-
-function pctChange(current: number, previous: number): { label: string; color: string } {
-  if (previous === 0 && current === 0) return { label: "→", color: "text-muted-foreground" };
-  if (previous === 0) return { label: "▲ +∞%", color: "text-emerald-400" };
-  const pct = Math.round(((current - previous) / Math.max(1, previous)) * 100);
-  if (pct > 0) return { label: `▲ +${pct}%`, color: "text-emerald-400" };
-  if (pct < 0) return { label: `▼ ${pct}%`, color: "text-destructive" };
-  return { label: "→", color: "text-muted-foreground" };
 }
 
 export default function PartnerAnalytics({ userId, placeId }: Props) {
-  const [dailyData, setDailyData] = useState<DailyData[]>([]);
-  const [totals, setTotals] = useState({ views: 0, likes: 0, clicks: 0 });
-  const [prevTotals, setPrevTotals] = useState({ views: 0, likes: 0, clicks: 0 });
+  const [viewsToday, setViewsToday] = useState(0);
+  const [viewsMonth, setViewsMonth] = useState(0);
+  const [redemptions, setRedemptions] = useState(0);
+  const [chartData, setChartData] = useState<DayPoint[]>([]);
 
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
       try {
-        const now = Date.now();
-        const since14 = new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString();
-        const since28 = new Date(now - 28 * 24 * 60 * 60 * 1000).toISOString();
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-        // Current 14 days
-        const { data: vibes } = await supabase
-          .from("vibes")
-          .select("created_at, likes")
-          .eq("user_id", userId)
-          .eq("is_official", true)
-          .gte("created_at", since14)
-          .order("created_at", { ascending: true });
+        // Views today
+        const { count: todayCount } = await supabase
+          .from("acquisition_events" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("event_type", "place_view")
+          .eq("source", placeId || userId)
+          .gte("created_at", todayStart);
+        setViewsToday(todayCount ?? 0);
 
-        // Previous 14 days (days 28 to 15 ago)
-        const { data: prevVibes } = await supabase
-          .from("vibes")
-          .select("created_at, likes")
-          .eq("user_id", userId)
-          .eq("is_official", true)
-          .gte("created_at", since28)
-          .lt("created_at", since14);
+        // Views this month
+        const { count: monthCount } = await supabase
+          .from("acquisition_events" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("event_type", "place_view")
+          .eq("source", placeId || userId)
+          .gte("created_at", monthStart);
+        setViewsMonth(monthCount ?? 0);
 
-        // Group by day
-        const byDay: Record<string, { views: number; likes: number }> = {};
-        for (let i = 0; i < 14; i++) {
-          const d = new Date(now - (13 - i) * 24 * 60 * 60 * 1000);
-          const key = d.toISOString().slice(0, 10);
-          byDay[key] = { views: 0, likes: 0 };
+        // VIP redemptions this month
+        const { count: redeemCount } = await supabase
+          .from("acquisition_events" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("event_type", "vip_offer_viewed")
+          .eq("source", placeId || userId)
+          .gte("created_at", monthStart);
+        setRedemptions(redeemCount ?? 0);
+
+        // Chart: last 7 days views
+        const { data: events } = await supabase
+          .from("acquisition_events" as any)
+          .select("created_at")
+          .eq("event_type", "place_view")
+          .eq("source", placeId || userId)
+          .gte("created_at", sevenDaysAgo);
+
+        const byDay: Record<string, number> = {};
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+          byDay[d.toISOString().slice(0, 10)] = 0;
         }
-
-        (vibes || []).forEach((v) => {
-          const day = v.created_at.slice(0, 10);
-          if (byDay[day]) {
-            byDay[day].views += 1;
-            byDay[day].likes += v.likes || 0;
-          }
+        (events || []).forEach((e: any) => {
+          const day = e.created_at?.slice(0, 10);
+          if (day && byDay[day] !== undefined) byDay[day]++;
         });
 
-        const chart = Object.entries(byDay).map(([date, d]) => ({
-          date: new Date(date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
-          rawDate: date,
-          views: d.views,
-          likes: d.likes,
-        }));
-        setDailyData(chart);
-
-        const totalViews = (vibes || []).length;
-        const totalLikes = (vibes || []).reduce((s, v) => s + (v.likes || 0), 0);
-        const prevViews = (prevVibes || []).length;
-        const prevLikes = (prevVibes || []).reduce((s, v) => s + (v.likes || 0), 0);
-
-        let clicks = 0;
-        let prevClicks = 0;
-        if (placeId) {
-          const { count } = await supabase
-            .from("venue_analytics")
-            .select("id", { count: "exact", head: true })
-            .eq("place_id", placeId)
-            .gte("created_at", since14);
-          clicks = count ?? 0;
-
-          const { count: pc } = await supabase
-            .from("venue_analytics")
-            .select("id", { count: "exact", head: true })
-            .eq("place_id", placeId)
-            .gte("created_at", since28)
-            .lt("created_at", since14);
-          prevClicks = pc ?? 0;
-        }
-
-        setTotals({ views: totalViews, likes: totalLikes, clicks });
-        setPrevTotals({ views: prevViews, likes: prevLikes, clicks: prevClicks });
+        setChartData(Object.entries(byDay).map(([date, views]) => ({
+          date,
+          label: new Date(date).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" }),
+          views,
+        })));
       } catch (err) {
         console.error("Analytics load error:", err);
-        toast.error("Erreur chargement analytics");
       }
     };
     load();
   }, [userId, placeId]);
 
-  const conversionRate = Math.round((totals.clicks / Math.max(1, totals.views)) * 100);
+  const conversionRate = viewsMonth > 0 ? Math.round((redemptions / viewsMonth) * 100) : 0;
+
+  const stats = [
+    { icon: Eye, label: "Vues aujourd'hui", value: viewsToday },
+    { icon: TrendingUp, label: "Vues ce mois", value: viewsMonth },
+    { icon: Gift, label: "Offres utilisées", value: redemptions },
+    { icon: TrendingUp, label: "Taux conversion", value: `${conversionRate}%` },
+  ];
 
   const handleExportCsv = () => {
-    const header = "date,vibes,likes";
-    const rows = dailyData.map(d => `${d.rawDate},${d.views},${d.likes}`);
-    const csvString = [header, ...rows].join("\n");
-    const blob = new Blob([csvString], { type: "text/csv" });
+    const header = "date,views";
+    const rows = chartData.map(d => `${d.date},${d.views}`);
+    const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -130,69 +109,76 @@ export default function PartnerAnalytics({ userId, placeId }: Props) {
     URL.revokeObjectURL(url);
   };
 
-  const stats = [
-    { icon: Eye, label: "Vibes", value: totals.views, prev: prevTotals.views },
-    { icon: Heart, label: "Likes", value: totals.likes, prev: prevTotals.likes },
-    { icon: MapPin, label: "Clics", value: totals.clicks, prev: prevTotals.clicks },
-    { icon: Target, label: "Taux clics", value: `${conversionRate}%`, prev: null },
-  ];
-
   return (
     <div className="space-y-5">
+      {/* ── METRICS GRID ── */}
       <div className="grid grid-cols-2 gap-2">
-        {stats.map((s, i) => {
-          const change = s.prev !== null ? pctChange(typeof s.value === "number" ? s.value : 0, s.prev) : null;
-          return (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
-              className="bg-gold/5 border border-gold/15 rounded-xl py-3 text-center"
-            >
-              <s.icon className="w-4 h-4 text-gold mx-auto mb-1" />
-              <p className="text-lg font-black text-gold">{s.value}</p>
-              <p className="text-[10px] text-muted-foreground">{s.label} (14j)</p>
-              {change && (
-                <p className={`text-[9px] font-semibold mt-0.5 ${change.color}`}>{change.label}</p>
-              )}
-            </motion.div>
-          );
-        })}
+        {stats.map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.05 }}
+            className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4"
+          >
+            <s.icon className="w-4 h-4 text-[var(--ochre)] mb-2" />
+            <p className="text-3xl font-black text-[var(--ochre)]">{s.value}</p>
+            <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] mt-1">{s.label}</p>
+          </motion.div>
+        ))}
       </div>
 
-      <div className="bg-card/80 border border-border rounded-2xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-gold" />
-          <h3 className="text-sm font-semibold text-foreground">Performance 14 jours</h3>
+      {/* ── CHART: 7 DERNIERS JOURS ── */}
+      <div className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] font-semibold">Vues — 7 derniers jours</p>
+          <button onClick={handleExportCsv} className="flex items-center gap-1 text-[10px] text-[var(--ochre)] font-semibold active:opacity-70">
+            <Download className="w-3 h-3" /> CSV
+          </button>
         </div>
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} />
-              <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} />
+            <LineChart data={chartData}>
+              <CartesianGrid stroke="rgba(212,146,30,0.1)" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 10, fill: "rgba(248,238,224,0.45)" }}
+                axisLine={{ stroke: "rgba(212,146,30,0.15)" }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: "rgba(248,238,224,0.45)" }}
+                axisLine={false}
+                tickLine={false}
+                width={30}
+              />
               <Tooltip
                 contentStyle={{
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: 8,
-                  fontSize: 12,
+                  backgroundColor: "#281508",
+                  border: "1px solid rgba(212,146,30,0.28)",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                  color: "#F8EEE0",
                 }}
+                labelStyle={{ color: "rgba(248,238,224,0.6)" }}
               />
-              <Bar dataKey="likes" fill="hsl(var(--gold))" radius={[4, 4, 0, 0]} name="Likes" />
-              <Bar dataKey="views" fill="hsl(var(--gold) / 0.4)" radius={[4, 4, 0, 0]} name="Vibes" />
-            </BarChart>
+              <Line
+                type="monotone"
+                dataKey="views"
+                stroke="#D4921E"
+                strokeWidth={2.5}
+                dot={{ fill: "#D4921E", r: 3, strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: "#D4921E", stroke: "#281508", strokeWidth: 2 }}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
-
-        <button
-          onClick={handleExportCsv}
-          className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Download className="w-3 h-3" /> Exporter CSV
-        </button>
       </div>
+
+      {/* ── INFO ── */}
+      <p className="text-[10px] text-[var(--text-muted)] text-center">
+        Données basées sur les interactions avec votre fiche spot.
+      </p>
     </div>
   );
 }
