@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Clock, Gift, MapPin, ArrowRight, Sparkles, Bell } from "lucide-react";
+import { Camera, Clock, Gift, MapPin, ArrowRight, Sparkles, Bell, X } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { requestNotificationPermission } from "@/lib/pushNotifications";
 
@@ -141,6 +141,10 @@ export default function WelcomeModal({ open, onComplete, onOpenFlashPost }: Welc
             className="relative w-full max-w-sm rounded-3xl overflow-hidden border border-gold/20 shadow-[0_8px_40px_-8px_hsl(43_76%_52%/0.25)]"
             style={{ background: "linear-gradient(135deg, hsl(0 0% 8% / 0.85), hsl(0 0% 5% / 0.9))", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
           >
+            {/* Close X */}
+            <button onClick={() => finish(null)} className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <X className="w-4 h-4 text-white/60" />
+            </button>
             {/* Progress bar */}
             <div className="h-1 w-full bg-muted">
               <motion.div
