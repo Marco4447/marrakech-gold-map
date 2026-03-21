@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, MapPin, Flame, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const NEIGHBORHOODS: Record<string, { name: string; emoji: string; description: string; color: string }> = {
   medina: { name: "Médina", emoji: "🕌", description: "Le cœur historique", color: "hsl(30,70%,45%)" },
@@ -36,6 +37,12 @@ export default function NeighborhoodPage() {
   const navigate = useNavigate();
   const hood = slug ? NEIGHBORHOODS[slug] : null;
 
+  usePageMeta({
+    title: hood ? `${hood.name} — Restaurants, Cafés & Spots à Marrakech` : "Quartier",
+    description: hood ? `Top 10 adresses locales dans ${hood.name}, Marrakech. Découvre les meilleurs rooftops, restos et bars du quartier.` : undefined,
+    url: slug ? `https://weshkech.com/quartier/${slug}` : undefined,
+  });
+
   const [places, setPlaces] = useState<Place[]>([]);
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +72,30 @@ export default function NeighborhoodPage() {
     };
     fetchData();
   }, [slug, hood]);
+
+  // Schema.org Place with containsPlace
+  useEffect(() => {
+    if (!hood || !slug || places.length === 0) return;
+    const top5 = places.slice(0, 5);
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": `${hood.name}, Marrakech`,
+      "description": `Les meilleurs spots à ${hood.name} — restaurants, rooftops, cafés et bars à Marrakech.`,
+      "address": { "@type": "PostalAddress", "addressLocality": "Marrakech", "addressRegion": hood.name, "addressCountry": "MA" },
+      "containsPlace": top5.map(p => ({
+        "@type": "LocalBusiness",
+        "name": p.name,
+        ...(p.category ? { "additionalType": p.category } : {}),
+        "url": `https://weshkech.com/spot/${p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      })),
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, [hood, slug, places]);
 
   const placeNames = useMemo(() => new Set(places.map(p => p.name.toLowerCase())), [places]);
 
@@ -127,8 +158,8 @@ export default function NeighborhoodPage() {
         </button>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <span className="text-4xl">{hood.emoji}</span>
-          <h1 className="text-2xl font-bold text-foreground mt-2 font-display">{hood.name}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{hood.description}</p>
+          <h1 className="text-2xl font-black text-[var(--text-primary)] mt-2 font-display tracking-tight">Les meilleurs spots à {hood.name}</h1>
+          <p className="text-sm text-[var(--text-muted)] mt-1">{hood.description}</p>
         </motion.div>
       </div>
 
