@@ -16,6 +16,7 @@ import PartnerPromotions from "@/components/partner/PartnerPromotions";
 import { planAllows, type PlanType } from "@/lib/partnerPlans";
 import PartnerQRCode from "@/components/partner/PartnerQRCode";
 import PartnerStoryPublisher from "@/components/partner/PartnerStoryPublisher";
+import InstagramTemplateGenerator from "@/components/partner/InstagramTemplateGenerator";
 import VipOfferManager from "@/components/partner/VipOfferManager";
 import VenueEditor from "@/components/partner/VenueEditor";
 import PartnerStatsBanner from "@/components/partner/PartnerStatsBanner";
@@ -485,6 +486,7 @@ export default function PartnerDashboard() {
 
             {/* Partner Story Publisher */}
             <PartnerStoryPublisher userId={user.id} placeId={placeId} />
+            <InstagramTemplateGenerator placeName="Mon spot" category={null} offer={null} />
 
             {/* History */}
             <div>
