@@ -223,7 +223,7 @@ function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
 
   if (!isVideo) {
     return (
-      <img src={imageSrc} alt={vibe.caption || "Vibe"} className={className} loading="lazy" onError={handleImageError} />
+      <img src={imageSrc} alt={vibe.caption || "Vibe"} className={className} loading="lazy" onError={handleImageError} style={{ backgroundColor: "var(--bg-card)" }} />
     );
   }
 
@@ -242,23 +242,23 @@ function VibeMedia({ vibe, className }: { vibe: Vibe; className?: string }) {
 
 function VibeSkeleton() {
   return (
-    <div className="border-b border-border/20">
+    <div className="border-b border-[var(--border-subtle)]">
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-9 h-9 rounded-full skeleton-shimmer shrink-0" />
+        <div className="w-9 h-9 rounded-full bg-[var(--bg-card)] animate-pulse shrink-0" />
         <div className="flex-1 space-y-1.5">
-          <div className="h-3 w-28 skeleton-shimmer rounded-full" />
-          <div className="h-2 w-16 skeleton-shimmer rounded-full" />
+          <div className="h-3 w-28 bg-[var(--bg-card)] animate-pulse rounded-full" />
+          <div className="h-2 w-16 bg-[var(--bg-card)] animate-pulse rounded-full" />
         </div>
       </div>
-      <div className="aspect-[4/5] skeleton-shimmer" />
+      <div className="aspect-[4/5] bg-[var(--bg-card)] animate-pulse" />
       <div className="flex gap-5 px-4 py-3">
-        <div className="h-4 w-10 skeleton-shimmer rounded-full" />
-        <div className="h-4 w-10 skeleton-shimmer rounded-full" />
-        <div className="h-4 w-10 skeleton-shimmer rounded-full" />
+        <div className="h-4 w-10 bg-[var(--bg-card)] animate-pulse rounded-full" />
+        <div className="h-4 w-10 bg-[var(--bg-card)] animate-pulse rounded-full" />
+        <div className="h-4 w-10 bg-[var(--bg-card)] animate-pulse rounded-full" />
       </div>
       <div className="px-4 pb-3 space-y-1.5">
-        <div className="h-2.5 w-3/4 skeleton-shimmer rounded-full" />
-        <div className="h-2.5 w-1/2 skeleton-shimmer rounded-full" />
+        <div className="h-2.5 w-3/4 bg-[var(--bg-card)] animate-pulse rounded-full" />
+        <div className="h-2.5 w-1/2 bg-[var(--bg-card)] animate-pulse rounded-full" />
       </div>
     </div>
   );
@@ -629,7 +629,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           className="flex items-center justify-center transition-all"
           style={{ height: refreshing ? 48 : pullDistance }}
         >
-          <div className={`w-6 h-6 border-2 border-gold border-t-transparent rounded-full ${refreshing ? "animate-spin" : ""}`}
+          <div className={`w-6 h-6 border-2 border-[var(--ochre)] border-t-transparent rounded-full ${refreshing ? "animate-spin" : ""}`}
             style={{ opacity: Math.min(1, pullDistance / 50), transform: `rotate(${pullDistance * 4}deg)` }}
           />
         </div>
@@ -951,7 +951,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             })}
             {visibleCount < filteredFeed.length ? (
               <div ref={sentinelRef} className="flex justify-center py-4">
-                <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-[var(--ochre)] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : filteredFeed.length > 0 && (
               <div className="flex flex-col items-center py-8 text-center gap-2">
