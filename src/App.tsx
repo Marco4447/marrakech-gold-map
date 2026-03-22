@@ -44,6 +44,8 @@ const NeighborhoodPage = lazy(() => import("./pages/NeighborhoodPage"));
 const SavedVibesPage = lazy(() => import("./pages/SavedVibesPage"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const PartnerPitchPage = lazy(() => import("./pages/PartnerPitchPage"));
+const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const CategoryNeighborhoodPage = lazy(() => import("./pages/CategoryNeighborhoodPage"));
 
 const queryClient = new QueryClient();
 
@@ -96,6 +98,8 @@ const AppShell = () => {
                 <Route path="/saved" element={<SavedVibesPage />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/partner-pitch" element={<Navigate to="/business" replace />} />
+                <Route path="/marrakech/:category" element={<CategoryPage />} />
+                <Route path="/marrakech/:category/:neighborhood" element={<CategoryNeighborhoodPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

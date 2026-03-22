@@ -50,4 +50,27 @@
   <url><loc>https://weshkech.com/spot/beats-burger</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://weshkech.com/spot/lotus-club</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://weshkech.com/spot/macma</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+
+  <!-- Category pages -->
+  <url><loc>https://weshkech.com/marrakech/cafes</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/marrakech/restaurants</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/marrakech/rooftops</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/marrakech/clubs</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://weshkech.com/marrakech/hammams</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://weshkech.com/marrakech/hotels</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://weshkech.com/marrakech/shopping</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://weshkech.com/marrakech/culture</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://weshkech.com/marrakech/activites</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+
+  <!-- Category + Neighborhood pages -->
+  <url><loc>https://weshkech.com/marrakech/cafes/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/cafes/gueliz</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/restaurants/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/restaurants/gueliz</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/rooftops/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/rooftops/gueliz</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/clubs/hivernage</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/hammams/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/hotels/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://weshkech.com/marrakech/shopping/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
 </urlset>

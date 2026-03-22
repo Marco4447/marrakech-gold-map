@@ -317,6 +317,31 @@ export default function PlaceDetailPage() {
                 <span className="text-xs font-bold text-gold uppercase tracking-wider">Membre fondateur</span>
               </div>
             )}
+
+            {/* ── INTERNAL SEO LINKS ── */}
+            <div className="space-y-2 pt-4 border-t border-[var(--border-subtle)]">
+              <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold">Explorer aussi</p>
+              <div className="flex gap-2 flex-wrap">
+                {place.category && (
+                  <Link to={`/marrakech/${place.category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}s`}
+                    className="px-3 py-1.5 rounded-md border border-[var(--border-default)] text-xs text-[var(--text-muted)] hover:text-[var(--ochre)] hover:border-[var(--ochre)] transition-colors">
+                    {place.category} à Marrakech
+                  </Link>
+                )}
+                {place.neighborhood && (
+                  <Link to={`/quartier/${place.neighborhood.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")}`}
+                    className="px-3 py-1.5 rounded-md border border-[var(--border-default)] text-xs text-[var(--text-muted)] hover:text-[var(--ochre)] hover:border-[var(--ochre)] transition-colors">
+                    Spots à {place.neighborhood}
+                  </Link>
+                )}
+                {place.category && place.neighborhood && (
+                  <Link to={`/marrakech/${place.category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}s/${place.neighborhood.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")}`}
+                    className="px-3 py-1.5 rounded-md border border-[var(--border-default)] text-xs text-[var(--text-muted)] hover:text-[var(--ochre)] hover:border-[var(--ochre)] transition-colors">
+                    {place.category} à {place.neighborhood}
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
