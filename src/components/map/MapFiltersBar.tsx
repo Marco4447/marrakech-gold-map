@@ -6,6 +6,7 @@ interface FilterDef {
 
 const QUICK_FILTERS: FilterDef[] = [
   { key: "partners", emoji: "★", label: "Partenaires" },
+  { key: "open", emoji: "🕐", label: "Ouvert" },
   { key: "hot", emoji: "🔥", label: "Hot" },
   { key: "rooftop", emoji: "🌅", label: "Rooftops" },
   { key: "party", emoji: "💃", label: "Clubs" },
@@ -42,7 +43,9 @@ export default function MapFiltersBar({ activeFilter, onFilterChange }: MapFilte
             activeFilter === f.key
               ? f.key === "partners"
                 ? "bg-[#C44A2A] text-[#F5EDD8] font-bold shadow-md shadow-[#C44A2A]/30"
-                : "bg-[#C8821E] text-[#120B05] shadow-md shadow-[#C8821E]/30"
+                : f.key === "open"
+                  ? "bg-[var(--ochre)] text-[#0E0904] font-bold shadow-md shadow-[var(--ochre)]/30"
+                  : "bg-[#C8821E] text-[#120B05] shadow-md shadow-[#C8821E]/30"
               : "bg-card/90 backdrop-blur-md text-[rgba(245,237,216,0.6)] border border-[rgba(200,130,30,0.3)]"
           }`}
         >

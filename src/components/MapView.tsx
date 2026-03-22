@@ -245,6 +245,21 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
     if (activeFilter) {
       if (activeFilter === "partners") {
         filtered = filtered.filter(p => p.is_partner);
+      } else if (activeFilter === "open") {
+        const now = new Date();
+        const currentH = now.getHours();
+        filtered = filtered.filter(p => {
+          if (!p.opening_hours) return false;
+          const hours = (p as any).opening_hours as string;
+          // Parse simple format "HH:MM–HH:MM" or "HH:00-HH:00"
+          const match = hours.match(/(\d{1,2})[:\.]?(\d{0,2})\s*[-–]\s*(\d{1,2})/);
+          if (!match) return true; // If can't parse, show it
+          const openH = parseInt(match[1]);
+          const closeH = parseInt(match[3]);
+          if (closeH > openH) return currentH >= openH && currentH < closeH;
+          // Wraps midnight (e.g. 20:00-04:00)
+          return currentH >= openH || currentH < closeH;
+        });
       } else if (activeFilter === "hot") {
         filtered = filtered.filter(p => trendingLocations.has(p.name.toLowerCase()));
       } else if (activeFilter === "offers") {
@@ -298,10 +313,12 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
       showCoverageOnHover: false,
       iconCreateFunction: (cluster: any) => {
         const count = cluster.getChildCount();
+        const sz = count > 15 ? 48 : count > 5 ? 40 : 32;
+        const fs = count > 15 ? 15 : count > 5 ? 13 : 12;
         return L.divIcon({
-          html: `<div style="background:hsl(43,76%,52%);color:#1a1a1a;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.2)">${count}</div>`,
+          html: `<div style="background:var(--ochre);color:#0E0904;border-radius:50%;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${fs}px;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid var(--border-default)">${count}</div>`,
           className: "place-cluster-icon",
-          iconSize: L.point(36, 36),
+          iconSize: L.point(sz, sz),
         });
       },
     });
