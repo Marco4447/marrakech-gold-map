@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Clock, Gift, MapPin, ArrowRight, Sparkles, Bell, X } from "lucide-react";
-import { useLanguage } from "@/i18n/LanguageContext";
-import { requestNotificationPermission } from "@/lib/pushNotifications";
+import { ArrowRight, X, MapPin, Star } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface WelcomeModalProps {
   open: boolean;
@@ -10,158 +10,208 @@ interface WelcomeModalProps {
   onOpenFlashPost?: () => void;
 }
 
-const TOTAL_STEPS = 3;
+const INTERESTS = [
+  { key: "cafe", emoji: "🍵", label: "Cafés" },
+  { key: "restaurant", emoji: "🍽️", label: "Restos" },
+  { key: "culture", emoji: "🏛️", label: "Culture" },
+  { key: "nightlife", emoji: "🌙", label: "Soirées" },
+];
 
-export default function WelcomeModal({ open, onComplete, onOpenFlashPost }: WelcomeModalProps) {
+interface SpotPreview {
+  id: string;
+  name: string;
+  category: string | null;
+  image_url: string | null;
+  rating: number | null;
+}
+
+function logEvent(event: string) {
+  supabase.from("acquisition_events").insert({
+    event_type: event,
+    source: "onboarding",
+    campaign: new Date().toISOString().split("T")[0],
+  } as any).then(() => {});
+}
+
+export default function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
   const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const { t } = useLanguage();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [spots, setSpots] = useState<SpotPreview[]>([]);
+  const [hasLogged, setHasLogged] = useState(false);
 
-  const requestGeoloc = () => {
-    setLoading(true);
-    // Request both geoloc + notifications in parallel
-    requestNotificationPermission().catch(() => {});
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { setLoading(false); finish({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
-      () => { setLoading(false); finish(null); },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+  // Log onboarding_started once
+  useEffect(() => {
+    if (open && !hasLogged) {
+      logEvent("onboarding_started");
+      setHasLogged(true);
+    }
+  }, [open, hasLogged]);
+
+  const toggle = (key: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
   };
 
-  const finish = (coords: { lat: number; lng: number } | null) => {
+  const goToStep2 = () => {
+    setStep(1);
+  };
+
+  const goToStep3 = async () => {
+    logEvent("onboarding_preferences_set");
+    // Save preferences
+    const prefs = Array.from(selected);
+    localStorage.setItem("wk_preferences", JSON.stringify(prefs));
+
+    // Fetch 3 recommended spots
+    const catMap: Record<string, string> = { cafe: "cafe", restaurant: "restaurant", culture: "culture", nightlife: "club" };
+    const dbCats = prefs.map(p => catMap[p] || p);
+    let query = supabase.from("places").select("id, name, category, image_url, rating").limit(3);
+    if (dbCats.length > 0) {
+      query = query.or(dbCats.map(c => `category.ilike.%${c}%`).join(","));
+    }
+    query = query.order("rating", { ascending: false });
+    const { data } = await query;
+    if (data) setSpots(data as SpotPreview[]);
+    setStep(2);
+  };
+
+  const finish = (abandoned: boolean = false) => {
+    if (abandoned) {
+      logEvent("onboarding_abandoned");
+    } else {
+      logEvent("onboarding_completed");
+    }
     localStorage.setItem("wk_welcome_seen", "1");
-    onComplete(coords);
+    onComplete(null);
+
+    // Nudge toast after 3s
+    if (!abandoned) {
+      setTimeout(() => {
+        toast("📍 Clique sur un spot pour voir l'offre VIP", {
+          duration: 4000,
+          style: {
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-default)",
+            color: "var(--text-primary)",
+          },
+        });
+      }, 3000);
+    }
   };
 
-  const steps = [
-    // Step 0: Welcome rules
-    {
-      content: (
-        <motion.div key="rules" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-5">
-          <div className="text-center space-y-2">
-            <h2 className="font-display text-2xl font-bold text-gold">{t("welcome_title")}</h2>
-            <p className="text-xs text-muted-foreground">{t("welcome_subtitle")}</p>
-          </div>
-          <div className="space-y-3">
-            {[
-              { emoji: "📸", title: t("welcome_rule1Title"), desc: t("welcome_rule1Desc") },
-              { emoji: "⏳", title: t("welcome_rule2Title"), desc: t("welcome_rule2Desc") },
-              { emoji: "🎁", title: t("welcome_rule3Title"), desc: t("welcome_rule3Desc") },
-            ].map((rule, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * (i + 1) }}
-                className="flex items-start gap-3 p-3 rounded-2xl bg-gold/5 border border-gold/10">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-lg">{rule.emoji}</div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{rule.title}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{rule.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          <button onClick={() => setStep(1)}
-            className="cta-shimmer relative w-full overflow-hidden py-3.5 rounded-2xl font-bold text-primary-foreground text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-[0_6px_20px_-4px_hsl(43_76%_52%/0.4)]"
-            style={{ background: "linear-gradient(to bottom right, #BF953F, #FCF6BA, #B38728)" }}>
-            {t("continue")} <ArrowRight className="w-4 h-4" />
-          </button>
-          <button onClick={() => finish(null)} className="w-full text-xs text-muted-foreground text-center py-1">{t("later")}</button>
-        </motion.div>
-      ),
-    },
-    // Step 1: Geolocation
-    {
-      content: (
-        <motion.div key="geoloc" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-5">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center">
-              <MapPin className="w-8 h-8 text-gold" />
-            </div>
-          </div>
-          <div className="text-center space-y-2">
-            <h3 className="font-display text-lg font-bold text-foreground">{t("welcome_geoTitle")}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed px-2">{t("welcome_geoDesc")}</p>
-          </div>
-          <button onClick={requestGeoloc} disabled={loading}
-            className="cta-shimmer relative w-full overflow-hidden py-3.5 rounded-2xl font-bold text-primary-foreground text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-[0_6px_20px_-4px_hsl(43_76%_52%/0.4)] disabled:opacity-70"
-            style={{ background: "linear-gradient(to bottom right, #BF953F, #FCF6BA, #B38728)" }}>
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                {t("welcome_locating")}
-              </span>
-            ) : (
-              <>{t("welcome_allowLocation")} <MapPin className="w-4 h-4" /></>
-            )}
-          </button>
-          <button onClick={() => setStep(2)} className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-2">{t("later")}</button>
-        </motion.div>
-      ),
-    },
-    // Step 2: Quick tips + go
-    {
-      content: (
-        <motion.div key="tips" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-5">
-          <div className="text-center space-y-2">
-            <span className="text-3xl">🚀</span>
-            <h3 className="font-display text-lg font-bold text-foreground">Tu es prêt !</h3>
-            <p className="text-xs text-muted-foreground">Voici comment profiter à fond de Weshkech</p>
-          </div>
-          <div className="space-y-2">
-            {[
-              { emoji: "🗺️", text: "Explore la carte pour trouver les spots" },
-              { emoji: "📸", text: "Poste tes vibes — elles disparaissent après 6h" },
-              { emoji: "⚡", text: "Like et boost pour monter dans le classement" },
-            ].map((tip, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 * (i + 1) }}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-surface border border-border">
-                <span className="text-base">{tip.emoji}</span>
-                <p className="text-xs text-foreground">{tip.text}</p>
-              </motion.div>
-            ))}
-          </div>
-          <button onClick={() => finish(null)}
-            className="cta-shimmer relative w-full overflow-hidden py-3.5 rounded-2xl font-bold text-primary-foreground text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-[0_6px_20px_-4px_hsl(43_76%_52%/0.4)]"
-            style={{ background: "linear-gradient(to bottom right, #BF953F, #FCF6BA, #B38728)" }}>
-            C'est parti ! <Sparkles className="w-4 h-4" />
-          </button>
-        </motion.div>
-      ),
-    },
-  ];
+  if (!open) return null;
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[4000] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="relative w-full max-w-sm rounded-3xl overflow-hidden border border-gold/20 shadow-[0_8px_40px_-8px_hsl(43_76%_52%/0.25)]"
-            style={{ background: "linear-gradient(135deg, hsl(0 0% 8% / 0.85), hsl(0 0% 5% / 0.9))", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
-          >
-            {/* Close X */}
-            <button onClick={() => finish(null)} className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-              <X className="w-4 h-4 text-white/60" />
-            </button>
-            {/* Progress bar */}
-            <div className="h-1 w-full bg-muted">
-              <motion.div
-                className="h-full"
-                style={{ background: "linear-gradient(to right, #BF953F, #FCF6BA, #B38728)" }}
-                animate={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
-                transition={{ duration: 0.35 }}
-              />
-            </div>
-            <div className="p-6">
-              <AnimatePresence mode="wait">
-                {steps[step].content}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[4000] flex items-center justify-center p-6">
+      <div className="absolute inset-0 bg-[var(--bg-primary)]/80 backdrop-blur-sm" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92, y: 20 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="relative w-full max-w-sm rounded-3xl overflow-hidden border border-[var(--border-default)] shadow-2xl bg-[var(--bg-primary)]"
+      >
+        {/* Close X */}
+        <button onClick={() => finish(true)} className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-[rgba(248,238,224,0.07)] border border-[var(--border-subtle)] flex items-center justify-center">
+          <X className="w-4 h-4 text-[var(--text-muted)]" />
+        </button>
+
+        {/* Progress dots */}
+        <div className="flex items-center justify-center gap-2 pt-5 pb-2">
+          {[0, 1, 2].map(i => (
+            <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? "w-6 bg-[var(--ochre)]" : i < step ? "w-1.5 bg-[var(--ochre)]/50" : "w-1.5 bg-[var(--text-muted)]/30"}`} />
+          ))}
+        </div>
+
+        <div className="p-6">
+          <AnimatePresence mode="wait">
+            {/* ── ÉCRAN 1: Bienvenue ── */}
+            {step === 0 && (
+              <motion.div key="welcome" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="flex flex-col items-center text-center space-y-5">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }} className="text-5xl">🌙</motion.div>
+                <div>
+                  <h2 className="font-display text-2xl font-black tracking-tight text-[var(--text-primary)]">Marrakech comme les locaux</h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-2">500 adresses vérifiées, zéro tourist trap.</p>
+                </div>
+                <button onClick={goToStep2}
+                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm text-[#0E0904] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform" style={{ background: "#D4921E" }}>
+                  Commencer <ArrowRight className="w-4 h-4" />
+                </button>
+              </motion.div>
+            )}
+
+            {/* ── ÉCRAN 2: Préférences ── */}
+            {step === 1 && (
+              <motion.div key="prefs" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-5">
+                <div className="text-center">
+                  <h2 className="font-display text-xl font-black text-[var(--text-primary)]">Tu es plutôt ?</h2>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">Sélectionne ce qui t'intéresse</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {INTERESTS.map(item => {
+                    const active = selected.has(item.key);
+                    return (
+                      <motion.button key={item.key} whileTap={{ scale: 0.95 }}
+                        onClick={() => { toggle(item.key); try { navigator.vibrate?.(5); } catch {} }}
+                        className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${active ? "border-[var(--ochre)] bg-[var(--ochre)]/10" : "border-[var(--border-default)] bg-[var(--bg-card)]"}`}>
+                        <span className="text-2xl">{item.emoji}</span>
+                        <span className={`text-sm font-semibold ${active ? "text-[var(--ochre)]" : "text-[var(--text-primary)]"}`}>{item.label}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+                <button onClick={goToStep3}
+                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm text-[#0E0904] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform" style={{ background: "#D4921E" }}>
+                  Continuer <ArrowRight className="w-4 h-4" />
+                </button>
+                <button onClick={goToStep3} className="w-full text-xs text-[var(--text-muted)] text-center py-1">Passer</button>
+              </motion.div>
+            )}
+
+            {/* ── ÉCRAN 3: Spots recommandés ── */}
+            {step === 2 && (
+              <motion.div key="ready" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-5">
+                <div className="text-center">
+                  <span className="text-3xl">🎉</span>
+                  <h2 className="font-display text-xl font-black text-[var(--text-primary)] mt-2">Ton feed est prêt</h2>
+                </div>
+
+                {spots.length > 0 && (
+                  <div className="space-y-2">
+                    {spots.map((s, i) => (
+                      <motion.div key={s.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                        className="flex gap-3 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-2.5">
+                        {s.image_url ? (
+                          <img src={s.image_url} alt={s.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center shrink-0">
+                            <MapPin className="w-4 h-4 text-[var(--ochre)]/40" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                          <p className="text-sm font-bold text-[var(--text-primary)] truncate">{s.name}</p>
+                          <div className="flex items-center gap-2">
+                            {s.category && <span className="text-[10px] text-[var(--ochre)] uppercase">{s.category}</span>}
+                            {s.rating && <span className="flex items-center gap-0.5 text-[10px] text-[var(--ochre-light)]"><Star className="w-2.5 h-2.5 fill-[var(--ochre-light)]" /> {s.rating}</span>}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+
+                <button onClick={() => finish(false)}
+                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm text-[#0E0904] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform" style={{ background: "#D4921E" }}>
+                  Explorer Marrakech →
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
