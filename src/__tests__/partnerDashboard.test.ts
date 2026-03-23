@@ -118,8 +118,8 @@ describe("Partner Dashboard", () => {
   });
 
   it("Partner credits display correctly", () => {
-    const credits = 38;
-    const display = `${credits} crédit${credits !== 1 ? "s" : ""}`;
+    const credits: number = 38;
+    const display = `${credits} crédit${(credits as number) !== 1 ? "s" : ""}`;
     expect(display).toBe("38 crédits");
   });
 });
