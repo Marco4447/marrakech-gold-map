@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Navigation, Share2, ExternalLink, Instagram } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";

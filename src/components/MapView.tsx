@@ -249,7 +249,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         const now = new Date();
         const currentH = now.getHours();
         filtered = filtered.filter(p => {
-          if (!p.opening_hours) return false;
+          if (!(p as any).opening_hours) return false;
           const hours = (p as any).opening_hours as string;
           // Parse simple format "HH:MM–HH:MM" or "HH:00-HH:00"
           const match = hours.match(/(\d{1,2})[:\.]?(\d{0,2})\s*[-–]\s*(\d{1,2})/);
