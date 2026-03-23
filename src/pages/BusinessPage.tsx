@@ -125,8 +125,8 @@ export default function BusinessPage() {
         {/* ════════════ HERO ════════════ */}
         <section className="px-5 pt-8 pb-10 text-center space-y-6">
           <FadeIn>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/20 text-xs font-bold text-gold mb-2">
-              <Zap className="w-3 h-3" /> Offre Fondateur — Places limitées
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgba(196,74,42,0.2)] border border-[#C44A2A] text-xs font-bold text-[#F5EDD8] mb-2">
+              <Zap className="w-3 h-3 text-[#C44A2A]" /> Offre Fondateur — Gratuit 6 mois
             </div>
             <h1 className="font-display text-[28px] font-bold text-foreground leading-tight">
               Vos futurs clients sont <span className="text-gold">déjà sur WeshKech</span>
@@ -134,6 +134,11 @@ export default function BusinessPage() {
             <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
               Rejoignez les établissements qui remplissent leur terrasse grâce à la communauté la plus active de Marrakech.
             </p>
+            <div className="flex gap-4 flex-wrap justify-center mt-3 text-xs text-[rgba(248,238,224,0.45)] tracking-wide">
+              <span>✓ 147 spots vérifiés</span>
+              <span>✓ 12 quartiers</span>
+              <span>✓ 0€ commission</span>
+            </div>
           </FadeIn>
 
           <FadeIn delay={0.2}>
@@ -418,22 +423,18 @@ export default function BusinessPage() {
         </section>
       </div>
 
-      {/* ── FLOATING WHATSAPP BUTTON ── */}
-      <a
-        href={`https://wa.me/${WA_NUMBER}?text=${WA_MSG}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-4 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold text-sm px-4 py-3 rounded-full shadow-xl shadow-green-900/30 active:scale-95 transition-transform"
-      >
-        <MessageCircle className="w-5 h-5" />
-        <span className="hidden sm:inline">Discuter</span>
-      </a>
-
-      {/* ── STICKY MOBILE CTA ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 p-3 bg-gradient-to-t from-background via-background/95 to-transparent md:hidden">
-        <button onClick={scrollToForm} className="w-full py-3.5 rounded-2xl font-bold text-sm text-primary-foreground flex items-center justify-center gap-2 shadow-lg shadow-gold/25" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
-          <Zap className="w-4 h-4" /> Devenir Partenaire Fondateur
+      {/* ── STICKY BOTTOM BAR (unified) ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0E0904] border-t border-[rgba(212,146,30,0.2)] px-4 py-3 flex items-center gap-2">
+        <button onClick={scrollToForm} className="flex-1 h-12 rounded-xl font-black uppercase text-sm text-[#0E0904] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform shadow-lg shadow-[#D4921E]/20" style={{ background: "#D4921E" }}>
+          Devenir Partenaire Fondateur
         </button>
+        <a href={`https://wa.me/${WA_NUMBER}?text=${WA_MSG}`} target="_blank" rel="noopener noreferrer"
+          className="w-12 h-12 rounded-xl bg-[rgba(37,211,102,0.15)] border border-[rgba(37,211,102,0.3)] flex items-center justify-center active:scale-90 transition-transform">
+          <svg viewBox="0 0 24 24" className="w-5 h-5 text-[#25D366]" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.604-1.207A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.09 0-4.028-.655-5.625-1.77l-.404-.24-2.732.717.73-2.667-.264-.42A9.72 9.72 0 012.25 12 9.75 9.75 0 0112 2.25 9.75 9.75 0 0121.75 12 9.75 9.75 0 0112 21.75z"/>
+          </svg>
+        </a>
       </div>
     </div>
   );
