@@ -137,9 +137,9 @@ export default function BusinessPage() {
               Rejoignez les établissements qui remplissent leur terrasse grâce à la communauté la plus active de Marrakech.
             </p>
             <div className="flex gap-4 flex-wrap justify-center mt-3 text-xs text-[var(--text-muted)] tracking-wide">
-              <span>✓ 147 spots vérifiés</span>
-              <span>✓ 12 quartiers</span>
-              <span>✓ 0€ commission</span>
+              <span className="flex items-center gap-1"><Check className="w-3 h-3 text-gold" /> 147 spots vérifiés</span>
+              <span className="flex items-center gap-1"><Check className="w-3 h-3 text-gold" /> 12 quartiers</span>
+              <span className="flex items-center gap-1"><Check className="w-3 h-3 text-gold" /> 0€ commission</span>
             </div>
           </FadeIn>
 
@@ -186,8 +186,9 @@ export default function BusinessPage() {
           ].map((s, i) => (
             <FadeIn key={i} delay={i * 0.1}>
               <div className="flex gap-4 bg-card/80 border border-border rounded-xl p-4">
-                <div className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/20 flex items-center justify-center shrink-0">
-                  <span className="text-sm font-black text-gold">{s.step}</span>
+                <div className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/20 flex items-center justify-center shrink-0 relative">
+                  <s.icon className="w-5 h-5 text-gold" />
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gold text-primary-foreground text-2xs font-black flex items-center justify-center">{s.step}</span>
                 </div>
                 <div>
                   <p className="text-sm font-bold text-foreground">{s.title}</p>
@@ -251,7 +252,7 @@ export default function BusinessPage() {
                   </div>
                 </div>
               ))}
-              <Link to="/demo" className="block text-center text-xs text-gold font-semibold py-2 hover:underline">
+              <Link to="/demo" className="block text-center text-xs text-gold font-bold py-2.5 rounded-xl border border-gold/25 hover:bg-gold/5 transition-colors">
                 Voir le dashboard démo →
               </Link>
             </div>
@@ -273,10 +274,10 @@ export default function BusinessPage() {
                 <p className="text-xs text-muted-foreground mb-4">Les 20 premiers partenaires bénéficient de :</p>
                 <div className="space-y-2.5">
                   {[
-                    "🛡️ Badge Fondateur permanent sur votre fiche",
-                    "🎁 6 mois gratuits (plan Business à 49€/mois offert)",
-                    "📸 30 crédits vibes offerts",
-                    "🤝 Accompagnement personnalisé",
+                    "Badge Fondateur permanent sur votre fiche",
+                    "6 mois gratuits (plan Business à 49€/mois offert)",
+                    "30 crédits vibes offerts",
+                    "Accompagnement personnalisé",
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <Check className="w-3.5 h-3.5 text-gold shrink-0" />
@@ -316,7 +317,9 @@ export default function BusinessPage() {
                   {[...Array(5)].map((_, si) => <Star key={si} className="w-3.5 h-3.5 fill-gold text-gold" />)}
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center text-sm">{t.emoji}</div>
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gold/25 to-accent-warm/20 border border-gold/30 flex items-center justify-center">
+                    <span className="text-xs font-bold text-gold">{t.name[0]}</span>
+                  </div>
                   <div>
                     <p className="text-xs font-bold text-foreground">{t.name}</p>
                     <p className="text-2xs text-muted-foreground">Gérant · {t.venue}</p>

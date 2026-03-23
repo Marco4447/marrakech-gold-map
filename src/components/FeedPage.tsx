@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark, Sparkles, Copy, Gift } from "lucide-react";
+import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark, Sparkles, Copy, Gift, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -676,7 +676,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         )}
       </AnimatePresence>
       {/* Header — Instagram style */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border/30 px-4 pt-12 md:pt-4 pb-2">
+      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-xl border-b border-border/30 px-4 pt-12 md:pt-4 pb-2">
         <div className="flex items-center justify-between">
           <button
             onClick={() => {
@@ -693,9 +693,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                 {activeTab === "foryou" ? "Pour toi" : activeTab === "following" ? "Suivis" : "Récents"}
               </h1>
             </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-foreground mt-1">
-              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </button>
           <div className="flex items-center gap-3">
             <button
@@ -703,14 +701,14 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
               className="active:scale-90 transition-transform"
               aria-label="Voir les reels"
             >
-              <Film className="w-[26px] h-[26px] text-foreground" />
+              <Film className="w-6 h-6 text-foreground" />
             </button>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("wk:open-notifications"))}
               aria-label="Notifications"
               className="active:scale-90 transition-transform relative"
             >
-              <Heart className="w-[26px] h-[26px] text-foreground" />
+              <Heart className="w-6 h-6 text-foreground" />
             </button>
           </div>
         </div>
@@ -834,7 +832,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: Math.min(i * 0.03, 0.3) }}
-                  className="bg-background"
+                  className="bg-background rounded-xl overflow-hidden"
                 >
                   {/* Header — Instagram style */}
                   <div className="flex items-center justify-between px-3 py-2.5">
@@ -852,8 +850,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       {getAvatarUrl(vibe) ? (
                         <img src={getAvatarUrl(vibe)!} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-semibold text-foreground">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gold/20 to-accent-warm/20 border border-gold/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-gold">{getDisplayName(vibe).charAt(0).toUpperCase()}</span>
                         </div>
                       )}
                       <div className="min-w-0">
@@ -904,20 +902,20 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                           onTouchEnd={() => clearTimeout((window as unknown as Record<string, ReturnType<typeof setTimeout>>).__reactionTimer)}
                         >
                           <motion.div animate={isAnimating ? { scale: [1, 1.3, 1] } : {}} transition={{ type: "spring", stiffness: 150, damping: 15 }}>
-                            <Heart className={`w-[24px] h-[24px] transition-colors duration-200 ${liked ? "fill-destructive text-destructive" : "text-foreground"}`} />
+                            <Heart className={`w-6 h-6 transition-colors duration-200 ${liked ? "fill-destructive text-destructive" : "text-foreground"}`} />
                           </motion.div>
                         </button>
                         <FloatingReaction emoji={floatingReaction?.id === vibe.id ? floatingReaction.emoji : null} show={floatingReaction?.id === vibe.id} />
                       </div>
                       <button onClick={() => setCommentVibeId(vibe.id)}>
-                        <MessageCircle className="w-[24px] h-[24px] text-foreground" />
+                        <MessageCircle className="w-6 h-6 text-foreground" />
                       </button>
                       <button
                         onClick={() => handleSuperVibe(vibe.id)}
                         disabled={!canSuperVibe || superVibeIds.has(vibe.id)}
                       >
                         <motion.div animate={superVibeAnimId === vibe.id ? { scale: [1, 1.5, 0.9, 1.2, 1], rotate: [0, -10, 10, -5, 0] } : {}} transition={{ duration: 0.5, ease: "easeOut" }}>
-                          <Zap className={`w-[24px] h-[24px] transition-colors duration-200 ${
+                          <Zap className={`w-6 h-6 transition-colors duration-200 ${
                             superVibeIds.has(vibe.id) ? "fill-gold text-gold" : canSuperVibe ? "text-foreground" : "text-muted-foreground/40"
                           }`} />
                         </motion.div>
@@ -928,11 +926,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                           setShowDmPicker(true);
                         }}
                       >
-                        <Share2 className="w-[24px] h-[24px] text-foreground" />
+                        <Share2 className="w-6 h-6 text-foreground" />
                       </button>
                     </div>
                     <button onClick={() => { toggleBookmark(vibe.id); try { navigator.vibrate?.(5); } catch {} }}>
-                      <Bookmark className={`w-[24px] h-[24px] transition-colors duration-200 ${isBookmarked(vibe.id) ? "fill-foreground text-foreground" : "text-foreground"}`} />
+                      <Bookmark className={`w-6 h-6 transition-colors duration-200 ${isBookmarked(vibe.id) ? "fill-foreground text-foreground" : "text-foreground"}`} />
                     </button>
                   </div>
 
@@ -956,7 +954,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       </div>
                     )}
                     {(commentCounts[vibe.id] || 0) > 0 && (
-                      <button onClick={() => setCommentVibeId(vibe.id)} className="text-sm text-muted-foreground active:opacity-70 transition-opacity">
+                      <button onClick={() => setCommentVibeId(vibe.id)} className="text-sm text-muted-foreground font-medium active:opacity-70 transition-opacity">
                         Voir les {commentCounts[vibe.id]} commentaire{(commentCounts[vibe.id] || 0) !== 1 ? "s" : ""}
                       </button>
                     )}
