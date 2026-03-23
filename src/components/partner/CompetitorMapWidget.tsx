@@ -114,7 +114,7 @@ export default function CompetitorMapWidget({ placeId }: Props) {
         `,
       });
       L.marker([p.latitude, p.longitude], { icon })
-        .bindTooltip(p.name, { direction: "top", className: "!bg-card !text-foreground !border-border !text-[10px] !font-semibold !px-2 !py-1 !rounded-lg" })
+        .bindTooltip(p.name, { direction: "top", className: "!bg-card !text-foreground !border-border !text-2xs !font-semibold !px-2 !py-1 !rounded-lg" })
         .addTo(map);
     });
 
@@ -143,7 +143,7 @@ export default function CompetitorMapWidget({ placeId }: Props) {
 
       <div ref={containerRef} className="h-52 rounded-xl overflow-hidden border border-border" />
 
-      <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+      <div className="flex items-center gap-4 text-2xs text-muted-foreground">
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ background: STATUS_COLORS.own }} /> Toi</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ background: STATUS_COLORS.active }} /> Actif</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ background: STATUS_COLORS.trending }} /> Trending</span>

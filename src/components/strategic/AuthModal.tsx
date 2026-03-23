@@ -27,7 +27,7 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[3000] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-modal flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div

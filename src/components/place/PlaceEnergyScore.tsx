@@ -99,13 +99,13 @@ export default function PlaceEnergyScore({ placeName, placeId }: Props) {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className={`h-full rounded-full ${barColor}`}
         />
-        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-foreground/70">
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-2xs font-bold text-foreground/70">
           {energy.score}/100
         </span>
       </div>
 
       {/* Details */}
-      <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+      <div className="flex items-center gap-4 text-2xs text-muted-foreground">
         <span>📸 {energy.vibeCount} vibes récentes</span>
         <span>📍 {energy.checkinCount} ici maintenant</span>
       </div>

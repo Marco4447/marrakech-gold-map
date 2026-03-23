@@ -137,7 +137,7 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 350)}
           placeholder="Rechercher…"
-          className="w-full pl-7 pr-7 py-1.5 rounded-lg bg-card/90 backdrop-blur-xl border border-border text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold/40 transition-colors"
+          className="w-full pl-7 pr-7 py-1.5 rounded-lg bg-card/90 backdrop-blur-xl border border-border text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-gold/40 transition-colors"
         />
         {query && (
           <button onClick={() => { setQuery(""); inputRef.current?.focus(); }} className="absolute right-2.5">
@@ -152,7 +152,7 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="absolute top-full mt-1 left-0 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-[2000] max-h-[50dvh] overflow-y-auto"
+            className="absolute top-full mt-1 left-0 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-nav max-h-[50dvh] overflow-y-auto"
           >
             {results.map((place) => (
               <button
@@ -165,7 +165,7 @@ export default function MapSearchBar({ places, onSelect }: MapSearchBarProps) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium text-foreground truncate">{place.name}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">
+                  <p className="text-2xs text-muted-foreground truncate">
                     {[place.category, place.neighborhood].filter(Boolean).join(" · ")}
                   </p>
                 </div>

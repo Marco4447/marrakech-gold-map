@@ -109,7 +109,7 @@ function ProfileCard({
       setEditing(false);
       toast.success("Nom enregistré");
     } catch (e) {
-      console.error("Profile save error:", e);
+     
       toast.error("Impossible d'enregistrer le nom", {
         description: "Ta session a peut-être expiré. Réessaie après reconnexion.",
       });
@@ -155,7 +155,7 @@ function ProfileCard({
       toast.success("Photo de profil mise à jour !");
       onAvatarChanged();
     } catch (err) {
-      console.error("Avatar upload error:", err);
+     
       toast.error("Échec de l'upload", { description: "Réessaie." });
     } finally {
       setUploadingAvatar(false);
@@ -163,7 +163,7 @@ function ProfileCard({
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-8 pb-4">
+    <div className="flex flex-col items-center px-5 pt-8 pb-4">
       {/* Avatar with edit overlay */}
       <div className="relative mb-3">
         <Avatar className="w-20 h-20 border-2 border-gold/30">
@@ -388,17 +388,17 @@ function VipStatsSection({ user, deviceId }: { user: any; deviceId: string }) {
         <div className="bg-surface border border-gold/15 rounded-xl p-3 text-center">
           <Heart className="w-4 h-4 text-gold mx-auto mb-1" />
           <p className="font-display text-lg font-bold text-gold">{stats.likesReceived}</p>
-          <p className="text-[9px] text-muted-foreground">Likes reçus</p>
+          <p className="text-2xs text-muted-foreground">Likes reçus</p>
         </div>
         <div className="bg-surface border border-gold/15 rounded-xl p-3 text-center">
           <TrendingUp className="w-4 h-4 text-gold mx-auto mb-1" />
           <p className="font-display text-lg font-bold text-gold">{stats.vibesPosted}</p>
-          <p className="text-[9px] text-muted-foreground">Vibes postées</p>
+          <p className="text-2xs text-muted-foreground">Vibes postées</p>
         </div>
         <div className="bg-surface border border-gold/15 rounded-xl p-3 text-center">
           <MapPin className="w-4 h-4 text-gold mx-auto mb-1" />
           <p className="font-display text-lg font-bold text-gold">{stats.spotsDiscovered}</p>
-          <p className="text-[9px] text-muted-foreground">Spots découverts</p>
+          <p className="text-2xs text-muted-foreground">Spots découverts</p>
         </div>
       </div>
 
@@ -478,12 +478,12 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
       if (res.ok) {
         await signOut();
       } else {
-        console.error("Delete failed");
+       
         setDeleting(false);
         setShowDeleteConfirm(false);
       }
     } catch (e) {
-      console.error(e);
+     
       setDeleting(false);
       setShowDeleteConfirm(false);
     }
@@ -495,7 +495,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
     try {
       await signOut();
     } catch (e) {
-      console.error("Logout failed:", e);
+     
     } finally {
       setSigningOut(false);
     }
@@ -636,7 +636,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
   // Fetch territories
   useEffect(() => {
     if (!user) return;
-    getUserMayorTerritories(user.id).then(setTerritories).catch(() => {});
+    getUserMayorTerritories(user.id).then(setTerritories).catch(() => { toast.error("Erreur chargement territoires"); });
   }, [user]);
 
   return (
@@ -698,12 +698,12 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
       <div className="flex items-center justify-center gap-8 px-5 py-3">
         <button onClick={() => { setShowFollowList("followers"); fetchFollowList("followers"); }} className="text-center active:opacity-70 transition-opacity">
           <p className="text-lg font-bold text-foreground">{followerCount}</p>
-          <p className="text-[11px] text-muted-foreground">Abonnés</p>
+          <p className="text-xs text-muted-foreground">Abonnés</p>
         </button>
         <div className="w-px h-8 bg-border" />
         <button onClick={() => { setShowFollowList("following"); fetchFollowList("following"); }} className="text-center active:opacity-70 transition-opacity">
           <p className="text-lg font-bold text-foreground">{followingCount}</p>
-          <p className="text-[11px] text-muted-foreground">Abonnements</p>
+          <p className="text-xs text-muted-foreground">Abonnements</p>
         </button>
       </div>
 
@@ -718,11 +718,11 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                 {tp.currentEmoji} {tp.currentTier}
               </span>
               {tp.nextTier ? (
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-2xs text-muted-foreground">
                   {tp.current}/{tp.target} vibes → {tp.nextEmoji} {tp.nextTier}
                 </span>
               ) : (
-                <span className="text-[10px] text-gold font-bold">Niveau max ✨</span>
+                <span className="text-2xs text-gold font-bold">Niveau max ✨</span>
               )}
             </div>
             <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
@@ -757,7 +757,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
             <p className="text-sm font-semibold text-foreground group-hover:text-gold transition-colors">
               Invite tes amis 🎁
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-2xs text-muted-foreground">
               3 amis inscrits = 7 jours VIP gratuits
             </p>
           </div>
@@ -796,7 +796,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
               <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
                 Notifications
               </p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 Likes, commentaires, challenges
               </p>
             </div>
@@ -828,8 +828,8 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium text-foreground">{n.title}</p>
-                          {n.body && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
-                          <p className="text-[9px] text-muted-foreground mt-1">{timeAgo(n.created_at)}</p>
+                          {n.body && <p className="text-2xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
+                          <p className="text-2xs text-muted-foreground mt-1">{timeAgo(n.created_at)}</p>
                         </div>
                       </div>
                     ))
@@ -863,8 +863,8 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                 className="flex items-center gap-1.5 bg-gold/10 border border-gold/20 rounded-full px-3 py-1.5"
               >
                 <span className="text-xs">👑</span>
-                <span className="text-[11px] font-semibold text-gold">{t.placeName}</span>
-                <span className="text-[9px] text-muted-foreground">{t.vibeCount} vibes</span>
+                <span className="text-xs font-semibold text-gold">{t.placeName}</span>
+                <span className="text-2xs text-muted-foreground">{t.vibeCount} vibes</span>
               </div>
             ))}
           </div>
@@ -890,21 +890,21 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
 
           <div className="grid grid-cols-2 gap-3 mb-3">
             {/* Credits balance */}
-            <div className="bg-surface border border-gold/20 rounded-xl p-4 text-center">
+            <div className="bg-surface border border-gold/20 rounded-xl p-3 text-center">
               <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-2">
                 <Sparkles className="w-5 h-5 text-gold" />
               </div>
               <p className="font-display text-2xl font-bold text-gold">{credits}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Crédits restants</p>
+              <p className="text-2xs text-muted-foreground mt-0.5">Crédits restants</p>
             </div>
 
             {/* Official vibes count */}
-            <div className="bg-surface border border-border rounded-xl p-4 text-center">
+            <div className="bg-surface border border-border rounded-xl p-3 text-center">
               <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-2">
                 <Star className="w-5 h-5 text-gold" />
               </div>
               <p className="font-display text-2xl font-bold text-foreground">{officialVibesCount}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Vibes Officielles</p>
+              <p className="text-2xs text-muted-foreground mt-0.5">Vibes Officielles</p>
             </div>
           </div>
 
@@ -1006,7 +1006,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                 {/* Archive toggle */}
                 {myVibes.length > 0 && (
                   <div className="flex items-center justify-between pt-3 pb-2">
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {activeVibes.length} publique{activeVibes.length !== 1 ? "s" : ""} · {archivedVibes.length} archivée{archivedVibes.length !== 1 ? "s" : ""}
                     </p>
                   </div>
@@ -1048,7 +1048,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                             />
                             {isExpired && (
                               <div className="absolute top-1 right-1 bg-background/70 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
-                                <span className="text-[8px] font-bold text-muted-foreground">🗄️</span>
+                                <span className="text-2xs font-bold text-muted-foreground">🗄️</span>
                               </div>
                             )}
                             <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
@@ -1061,7 +1061,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
                       })}
                     </div>
                     {archivedVibes.length > 0 && (
-                      <p className="text-[10px] text-muted-foreground text-center mt-3 px-4">
+                      <p className="text-2xs text-muted-foreground text-center mt-3 px-4">
                         👻 Tes vibes expirent publiquement après 6h mais restent dans ton archive privée.
                       </p>
                     )}
@@ -1143,7 +1143,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         {/* Business link */}
         <Link
           to="/business"
-          className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground hover:text-gold transition-colors pt-2"
+          className="flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-gold transition-colors pt-2"
         >
           <Building2 className="w-3.5 h-3.5" />
           Vous êtes un établissement ?
@@ -1151,11 +1151,11 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
 
         {/* Legal links */}
         <div className="flex items-center justify-center gap-4 pt-2">
-          <Link to="/privacy" className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+          <Link to="/privacy" className="text-2xs text-muted-foreground hover:text-gold transition-colors">
             Politique de Confidentialité
           </Link>
           <span className="text-border">·</span>
-          <Link to="/terms" className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+          <Link to="/terms" className="text-2xs text-muted-foreground hover:text-gold transition-colors">
             Conditions Générales
           </Link>
         </div>
@@ -1166,14 +1166,14 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
         {showDeleteConfirm && (
           <>
             <motion.div
-              className="fixed inset-0 bg-background/70 backdrop-blur-md z-[3000]"
+              className="fixed inset-0 bg-background/70 backdrop-blur-md z-modal"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => !deleting && setShowDeleteConfirm(false)}
             />
             <motion.div
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[3001] bg-card border border-border rounded-2xl p-6 max-w-sm mx-auto"
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-modal bg-card border border-border rounded-2xl p-6 max-w-sm mx-auto"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -1218,7 +1218,7 @@ export default function ProfilPage({ onOpenAdmin, onClose }: ProfilPageProps) {
       {/* Follow list bottom sheet */}
       <AnimatePresence>
         {showFollowList !== null && (
-          <div className="fixed inset-0 z-[3000] flex flex-col justify-end" onClick={() => setShowFollowList(null)}>
+          <div className="fixed inset-0 z-modal flex flex-col justify-end" onClick={() => setShowFollowList(null)}>
             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
             <motion.div
               initial={{ y: "100%" }}

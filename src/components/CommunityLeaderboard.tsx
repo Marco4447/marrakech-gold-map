@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Crown, Heart, Zap } from "lucide-react";
@@ -41,8 +42,11 @@ const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 export default function CommunityLeaderboard({ currentUserId, refreshSignal = 0 }: { currentUserId: string; refreshSignal?: number }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    setFetchError(false);
     // Check sessionStorage cache
     try {
       const cached = sessionStorage.getItem(CACHE_KEY);
@@ -119,15 +123,38 @@ export default function CommunityLeaderboard({ currentUserId, refreshSignal = 0 
           sessionStorage.setItem(CACHE_KEY, JSON.stringify({ entries: final, cachedAt: Date.now() } satisfies CacheData));
         } catch {}
       } catch (err) {
-        console.error("Leaderboard fetch error:", err);
+        toast.error("Erreur chargement classement");
+        setFetchError(true);
       }
       setLoading(false);
     };
 
     fetchLeaderboard();
-  }, [refreshSignal]);
+  }, [refreshSignal, retryCount]);
 
-  if (loading) return null;
+  if (fetchError) return (
+    <div className="px-5 pt-4 text-center py-8">
+      <p className="text-xs text-muted-foreground">Impossible de charger le classement</p>
+      <button onClick={() => { setFetchError(false); setLoading(true); setRetryCount(c => c + 1); }}
+        className="mt-2 text-xs text-gold font-semibold underline">Réessayer</button>
+    </div>
+  );
+
+  if (loading) return (
+    <div className="px-5 pt-4 space-y-3">
+      <div className="h-5 w-40 bg-muted/30 rounded animate-pulse" />
+      {[0,1,2,3,4].map(i => (
+        <div key={i} className="flex items-center gap-3 py-2">
+          <div className="w-6 h-4 bg-muted/30 rounded animate-pulse" />
+          <div className="w-8 h-8 rounded-full bg-muted/20 animate-pulse" />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-3 w-24 bg-muted/30 rounded animate-pulse" />
+            <div className="h-2.5 w-16 bg-muted/20 rounded animate-pulse" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
   if (entries.length === 0) return null;
 
   return (
@@ -141,7 +168,7 @@ export default function CommunityLeaderboard({ currentUserId, refreshSignal = 0 
         <Trophy className="w-4 h-4 text-gold" />
         <h3 className="font-display text-sm font-semibold text-foreground">Top Insiders</h3>
         <div className="flex-1 h-px bg-border" />
-        <span className="text-[10px] text-muted-foreground">Top 10</span>
+        <span className="text-2xs text-muted-foreground">Top 10</span>
       </div>
 
       <div className="space-y-2">
@@ -187,9 +214,9 @@ export default function CommunityLeaderboard({ currentUserId, refreshSignal = 0 
                   {entry.is_vip && <Crown className="w-3 h-3 text-gold shrink-0" />}
                 </div>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <span className="text-[10px]">{tier.emoji}</span>
-                  <span className={`text-[9px] font-semibold ${tier.color}`}>{tier.label}</span>
-                  <span className="text-[9px] text-muted-foreground">· {entry.vibes_count} vibes</span>
+                  <span className="text-2xs">{tier.emoji}</span>
+                  <span className={`text-2xs font-semibold ${tier.color}`}>{tier.label}</span>
+                  <span className="text-2xs text-muted-foreground">· {entry.vibes_count} vibes</span>
                 </div>
               </Link>
 
@@ -197,11 +224,11 @@ export default function CommunityLeaderboard({ currentUserId, refreshSignal = 0 
               <div className="flex items-center gap-2 shrink-0">
                 <div className="flex items-center gap-0.5">
                   <Heart className="w-3 h-3 text-gold/70" />
-                  <span className="text-[10px] font-bold text-foreground">{entry.total_likes}</span>
+                  <span className="text-2xs font-bold text-foreground">{entry.total_likes}</span>
                 </div>
                 <div className="flex items-center gap-0.5 bg-gold/10 px-1.5 py-0.5 rounded-full">
                   <Zap className="w-2.5 h-2.5 text-gold" />
-                  <span className="text-[10px] font-bold text-gold">{entry.score}</span>
+                  <span className="text-2xs font-bold text-gold">{entry.score}</span>
                 </div>
               </div>
             </motion.div>

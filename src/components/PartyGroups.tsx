@@ -117,7 +117,7 @@ export default function PartyGroups({ placeId, placeName }: Props) {
           <h3 className="font-display text-sm font-semibold text-foreground">Groupes ce soir</h3>
         </div>
         {user && (
-          <button onClick={() => setShowCreate(true)} className="flex items-center gap-1 text-[10px] font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full">
+          <button onClick={() => setShowCreate(true)} className="flex items-center gap-1 text-2xs font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full">
             <Plus className="w-3 h-3" /> Créer
           </button>
         )}
@@ -134,7 +134,7 @@ export default function PartyGroups({ placeId, placeName }: Props) {
               <span className="text-xl">{group.emoji}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-foreground truncate">{group.name}</p>
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                <div className="flex items-center gap-2 text-2xs text-muted-foreground">
                   <span>{group.member_count} membre{(group.member_count || 0) !== 1 ? "s" : ""}</span>
                   <span className="flex items-center gap-0.5">
                     <Clock className="w-2.5 h-2.5" /> {timeLeft(group.expires_at)}
@@ -143,7 +143,7 @@ export default function PartyGroups({ placeId, placeName }: Props) {
               </div>
               {group.is_member ? (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setActiveGroupId(group.id)} className="text-[10px] font-semibold text-gold bg-gold/15 px-2.5 py-1 rounded-full">
+                  <button onClick={() => setActiveGroupId(group.id)} className="text-2xs font-semibold text-gold bg-gold/15 px-2.5 py-1 rounded-full">
                     Chat
                   </button>
                   <button onClick={() => handleLeave(group.id)} className="p-1 text-muted-foreground hover:text-destructive">
@@ -151,7 +151,7 @@ export default function PartyGroups({ placeId, placeName }: Props) {
                   </button>
                 </div>
               ) : (
-                <button onClick={() => handleJoin(group.id)} className="text-[10px] font-bold text-primary-foreground bg-gold px-3 py-1 rounded-full">
+                <button onClick={() => handleJoin(group.id)} className="text-2xs font-bold text-primary-foreground bg-gold px-3 py-1 rounded-full">
                   Rejoindre
                 </button>
               )}
@@ -223,7 +223,7 @@ function CreateGroupModal({ placeId, placeName, onClose, onCreated }: {
           className="w-full bg-muted/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none"
           placeholder="Nom du groupe..." />
 
-        <p className="text-[10px] text-muted-foreground">⏳ Le groupe expire automatiquement dans 12h</p>
+        <p className="text-2xs text-muted-foreground">⏳ Le groupe expire automatiquement dans 12h</p>
 
         <button onClick={handleCreate} disabled={creating || !name.trim()}
           className="w-full py-3 rounded-xl font-bold text-primary-foreground bg-gold disabled:opacity-40">
@@ -307,7 +307,7 @@ function GroupChat({ groupId, onClose }: { groupId: string; onClose: () => void 
               <div key={msg.id} className={`flex gap-2 ${isMe ? "flex-row-reverse" : ""}`}>
                 <Avatar className="w-6 h-6 border border-border shrink-0 mt-1">
                   <AvatarImage src={msg.profile?.avatar_url || undefined} />
-                  <AvatarFallback className="text-[8px] bg-gold/10 text-gold">
+                  <AvatarFallback className="text-2xs bg-gold/10 text-gold">
                     {(msg.profile?.full_name || "?")[0]}
                   </AvatarFallback>
                 </Avatar>
@@ -315,10 +315,10 @@ function GroupChat({ groupId, onClose }: { groupId: string; onClose: () => void 
                   isMe ? "bg-gold text-primary-foreground rounded-tr-sm" : "bg-muted rounded-tl-sm text-foreground"
                 }`}>
                   {!isMe && (
-                    <p className="text-[9px] font-semibold opacity-70 mb-0.5">{msg.profile?.full_name || "Anonyme"}</p>
+                    <p className="text-2xs font-semibold opacity-70 mb-0.5">{msg.profile?.full_name || "Anonyme"}</p>
                   )}
-                  <p className="text-[13px] leading-snug">{msg.content}</p>
-                  <p className={`text-[8px] mt-0.5 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                  <p className="text-sm leading-snug">{msg.content}</p>
+                  <p className={`text-2xs mt-0.5 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                     {timeAgo(msg.created_at)}
                   </p>
                 </div>

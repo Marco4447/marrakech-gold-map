@@ -163,18 +163,18 @@ export default function TikTokFeed({ open, onClose }: { open: boolean; onClose: 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9999] bg-black"
+      className="fixed inset-0 z-fullscreen bg-black"
     >
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-[env(safe-area-inset-top)] mt-3 right-4 z-[350] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center"
+        className="absolute top-[env(safe-area-inset-top)] mt-3 right-4 z-toast w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center"
       >
         <X className="w-6 h-6 text-white" />
       </button>
 
       {/* Progress dots */}
-      <div className="absolute top-[env(safe-area-inset-top)] mt-4 left-1/2 -translate-x-1/2 z-[350] flex gap-1">
+      <div className="absolute top-[env(safe-area-inset-top)] mt-4 left-1/2 -translate-x-1/2 z-toast flex gap-1">
         {vibes.slice(Math.max(0, currentIndex - 3), currentIndex + 4).map((v, i) => {
           const actualIndex = Math.max(0, currentIndex - 3) + i;
           return (
@@ -280,7 +280,7 @@ export default function TikTokFeed({ open, onClose }: { open: boolean; onClose: 
                       {/* Comment */}
                       <button className="flex flex-col items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <MessageCircle className="w-7 h-7 text-white drop-shadow-lg" />
-                        <span className="text-[10px] font-bold text-white drop-shadow">{vibe.super_vibes || 0}</span>
+                        <span className="text-2xs font-bold text-white drop-shadow">{vibe.super_vibes || 0}</span>
                       </button>
 
                       {/* Share */}
@@ -332,10 +332,10 @@ export default function TikTokFeed({ open, onClose }: { open: boolean; onClose: 
                             {getName(vibe)}
                             {vibe.profile?.is_vip && <Crown className="w-3.5 h-3.5 text-gold" />}
                             {vibe.is_official && (
-                              <span className="text-[9px] bg-gold/30 text-gold px-1.5 py-0.5 rounded font-bold">PRO</span>
+                              <span className="text-2xs bg-gold/30 text-gold px-1.5 py-0.5 rounded font-bold">PRO</span>
                             )}
                           </p>
-                          <p className="text-[10px] text-white/60 drop-shadow">{timeAgo(vibe.created_at)}</p>
+                          <p className="text-2xs text-white/60 drop-shadow">{timeAgo(vibe.created_at)}</p>
                         </div>
                       </div>
 

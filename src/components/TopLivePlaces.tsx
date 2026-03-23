@@ -104,13 +104,13 @@ export default function TopLivePlaces({ onPlaceClick }: { onPlaceClick?: (name: 
           </div>
           {/* Info */}
           <div className="min-w-0 text-left">
-            <p className="text-[11px] font-semibold text-foreground truncate max-w-[80px] leading-tight">{place.name}</p>
+            <p className="text-xs font-semibold text-foreground truncate max-w-[80px] leading-tight">{place.name}</p>
             <div className="flex items-center gap-1">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
               </span>
-              <span className="text-[9px] text-muted-foreground">{place.vibeCount} live</span>
+              <span className="text-2xs text-muted-foreground">{place.vibeCount} live</span>
             </div>
           </div>
         </motion.button>

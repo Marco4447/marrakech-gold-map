@@ -190,7 +190,7 @@ export default function PlaceDetailPage() {
                 transition={{ delay: 0.2 }}
                 className="rounded-2xl border border-gold/30 bg-gold/5 p-4"
               >
-                <p className="text-[10px] uppercase tracking-widest font-bold text-gold mb-1">🎁 Offre VIP</p>
+                <p className="text-2xs uppercase tracking-widest font-bold text-gold mb-1">🎁 Offre VIP</p>
                 <p className="text-sm text-foreground font-medium">{place.vip_perk_description}</p>
               </motion.div>
             )}
@@ -320,7 +320,7 @@ export default function PlaceDetailPage() {
 
             {/* ── INTERNAL SEO LINKS ── */}
             <div className="space-y-2 pt-4 border-t border-[var(--border-subtle)]">
-              <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold">Explorer aussi</p>
+              <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] font-semibold">Explorer aussi</p>
               <div className="flex gap-2 flex-wrap">
                 {place.category && (
                   <Link to={`/marrakech/${place.category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}s`}

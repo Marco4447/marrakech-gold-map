@@ -42,7 +42,7 @@ export default function StoryBubbles({ groups, onGroupPress, onAddStory }: Story
                 <Plus className="w-3 h-3 text-white" strokeWidth={3} />
               </div>
             </div>
-            <span className="text-[11px] text-muted-foreground leading-tight truncate w-full text-center">Ma story</span>
+            <span className="text-xs text-muted-foreground leading-tight truncate w-full text-center">Ma story</span>
           </button>
         )}
 
@@ -75,7 +75,7 @@ export default function StoryBubbles({ groups, onGroupPress, onAddStory }: Story
             </div>
 
             {/* Name */}
-            <span className={`text-[11px] leading-tight truncate w-full text-center ${group.hasUnviewed ? "text-foreground/80" : "text-muted-foreground"}`}>
+            <span className={`text-xs leading-tight truncate w-full text-center ${group.hasUnviewed ? "text-foreground/80" : "text-muted-foreground"}`}>
               {group.name.length > 10 ? group.name.slice(0, 10) + "…" : group.name}
             </span>
           </motion.button>

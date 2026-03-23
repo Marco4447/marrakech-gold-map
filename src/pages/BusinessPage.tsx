@@ -105,17 +105,17 @@ export default function BusinessPage() {
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden">
       {/* Close button — above sticky header */}
-      <button onClick={() => navigate("/")} className="fixed top-3 right-3 z-[60] w-9 h-9 rounded-full bg-[rgba(248,238,224,0.1)] border border-[rgba(212,146,30,0.25)] flex items-center justify-center active:scale-90 transition-transform backdrop-blur-md">
-        <X className="w-4 h-4 text-[rgba(248,238,224,0.6)]" />
+      <button onClick={() => navigate("/")} className="fixed top-3 right-3 z-controls w-9 h-9 rounded-full bg-[rgba(248,238,224,0.1)] border border-[rgba(212,146,30,0.25)] flex items-center justify-center active:scale-90 transition-transform backdrop-blur-md">
+        <X className="w-4 h-4 text-[var(--text-secondary)]" />
       </button>
       {/* ── STICKY HEADER ── */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3">
           <div className="font-display text-lg font-bold">
             <span className="text-gold">Wesh</span><span className="text-foreground">Kech</span>
-            <span className="text-muted-foreground text-[10px] ml-1.5 uppercase tracking-widest">Partners</span>
+            <span className="text-muted-foreground text-2xs ml-1.5 uppercase tracking-widest">Partners</span>
           </div>
-          <button onClick={scrollToForm} className="px-4 py-1.5 rounded-full text-[11px] font-bold text-primary-foreground" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
+          <button onClick={scrollToForm} className="px-4 py-1.5 rounded-full text-xs font-bold text-primary-foreground" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
             Rejoindre
           </button>
         </div>
@@ -125,8 +125,8 @@ export default function BusinessPage() {
         {/* ════════════ HERO ════════════ */}
         <section className="px-5 pt-8 pb-10 text-center space-y-6">
           <FadeIn>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgba(196,74,42,0.2)] border border-[#C44A2A] text-xs font-bold text-[#F5EDD8] mb-2">
-              <Zap className="w-3 h-3 text-[#C44A2A]" /> Offre Fondateur — Gratuit 6 mois
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgba(196,74,42,0.2)] border border-[var(--terracotta)] text-xs font-bold text-[var(--text-primary)] mb-2">
+              <Zap className="w-3 h-3 text-[var(--terracotta)]" /> Offre Fondateur — Gratuit 6 mois
             </div>
             <h1 className="font-display text-[28px] font-bold text-foreground leading-tight">
               Vos futurs clients sont <span className="text-gold">déjà sur WeshKech</span>
@@ -134,7 +134,7 @@ export default function BusinessPage() {
             <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
               Rejoignez les établissements qui remplissent leur terrasse grâce à la communauté la plus active de Marrakech.
             </p>
-            <div className="flex gap-4 flex-wrap justify-center mt-3 text-xs text-[rgba(248,238,224,0.45)] tracking-wide">
+            <div className="flex gap-4 flex-wrap justify-center mt-3 text-xs text-[var(--text-muted)] tracking-wide">
               <span>✓ 147 spots vérifiés</span>
               <span>✓ 12 quartiers</span>
               <span>✓ 0€ commission</span>
@@ -163,7 +163,7 @@ export default function BusinessPage() {
                 <div key={i} className="text-center bg-card/80 border border-border rounded-2xl py-3 px-2">
                   <kpi.icon className="w-4 h-4 text-gold mx-auto mb-1" />
                   <p className="text-xl font-black text-gold"><Counter target={kpi.value} suffix={kpi.suffix} /></p>
-                  <p className="text-[9px] text-muted-foreground mt-0.5">{kpi.label}</p>
+                  <p className="text-2xs text-muted-foreground mt-0.5">{kpi.label}</p>
                 </div>
               ))}
             </div>
@@ -204,20 +204,20 @@ export default function BusinessPage() {
           <FadeIn delay={0.1}>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">Sans WeshKech</p>
+                <p className="text-2xs font-bold text-muted-foreground uppercase tracking-wider text-center">Sans WeshKech</p>
                 {["Vous espérez que les gens passent devant", "Pas de visibilité digitale locale", "Aucune donnée sur vos clients", "Budget pub perdu sur Instagram ads"].map((t, i) => (
                   <div key={i} className="flex items-start gap-2 bg-muted/30 border border-border rounded-lg p-2.5">
                     <X className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-muted-foreground leading-tight">{t}</p>
+                    <p className="text-xs text-muted-foreground leading-tight">{t}</p>
                   </div>
                 ))}
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-gold uppercase tracking-wider text-center">Avec WeshKech</p>
+                <p className="text-2xs font-bold text-gold uppercase tracking-wider text-center">Avec WeshKech</p>
                 {["2 400 personnes voient votre spot ce soir", "Notifications push à toute la communauté", "Analytics : vues, check-ins, profils", "0€ de pub — visibilité organique"].map((t, i) => (
                   <div key={i} className="flex items-start gap-2 bg-gold/5 border border-gold/20 rounded-lg p-2.5">
                     <Check className="w-3.5 h-3.5 text-gold shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-foreground leading-tight">{t}</p>
+                    <p className="text-xs text-foreground leading-tight">{t}</p>
                   </div>
                 ))}
               </div>
@@ -245,7 +245,7 @@ export default function BusinessPage() {
                   <span className="text-lg">{f.emoji}</span>
                   <div className="flex-1">
                     <p className="text-xs font-semibold text-foreground">{f.label}</p>
-                    <p className="text-[10px] text-muted-foreground">{f.desc}</p>
+                    <p className="text-2xs text-muted-foreground">{f.desc}</p>
                   </div>
                 </div>
               ))}
@@ -314,7 +314,7 @@ export default function BusinessPage() {
                   <div className="w-9 h-9 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center text-sm">{t.emoji}</div>
                   <div>
                     <p className="text-xs font-bold text-foreground">{t.name}</p>
-                    <p className="text-[10px] text-muted-foreground">Gérant · {t.venue}</p>
+                    <p className="text-2xs text-muted-foreground">Gérant · {t.venue}</p>
                   </div>
                 </div>
               </div>
@@ -336,7 +336,7 @@ export default function BusinessPage() {
               <FadeIn key={i} delay={i * 0.1}>
                 <div className={`relative rounded-2xl p-5 ${plan.highlight ? "bg-card/90 border-2 border-gold/40 shadow-[0_0_30px_hsl(43_76%_52%/0.08)]" : "bg-card border border-border"}`}>
                   {plan.badge && (
-                    <div className="absolute -top-2.5 right-4 bg-gold text-primary-foreground text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider">{plan.badge}</div>
+                    <div className="absolute -top-2.5 right-4 bg-gold text-primary-foreground text-2xs font-bold px-3 py-0.5 rounded-full uppercase tracking-wider">{plan.badge}</div>
                   )}
                   <div className="flex items-baseline gap-1 mb-3">
                     <span className="text-2xl font-black text-foreground">{plan.price}</span>
@@ -400,7 +400,7 @@ export default function BusinessPage() {
                 <button onClick={handleSubmit} disabled={submitting} className="w-full py-3.5 rounded-xl font-bold text-sm text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
                   {submitting ? <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> : <><Send className="w-4 h-4" /> Rejoindre WeshKech</>}
                 </button>
-                <p className="text-[10px] text-center text-muted-foreground">Sans engagement · Activation sous 24h</p>
+                <p className="text-2xs text-center text-muted-foreground">Sans engagement · Activation sous 24h</p>
                 <a href={`https://wa.me/${WA_NUMBER}?text=${WA_MSG}`} target="_blank" rel="noopener noreferrer" className="block text-center text-xs text-green-400 font-medium py-1 hover:underline">
                   Ou contactez-nous directement sur WhatsApp →
                 </a>
@@ -415,7 +415,7 @@ export default function BusinessPage() {
           <p className="text-xs text-muted-foreground pt-2">
             Des questions ? <a href={`https://wa.me/${WA_NUMBER}?text=${WA_MSG}`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">WhatsApp</a>
           </p>
-          <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-center gap-4 text-2xs text-muted-foreground">
             <Link to="/privacy" className="hover:text-foreground">Confidentialité</Link>
             <Link to="/terms" className="hover:text-foreground">CGU</Link>
             <a href="https://weshkech.com" className="hover:text-foreground">weshkech.com</a>
@@ -424,8 +424,8 @@ export default function BusinessPage() {
       </div>
 
       {/* ── STICKY BOTTOM BAR (unified) ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0E0904] border-t border-[rgba(212,146,30,0.2)] px-4 py-3 flex items-center gap-2">
-        <button onClick={scrollToForm} className="flex-1 h-12 rounded-xl font-black uppercase text-sm text-[#0E0904] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform shadow-lg shadow-[#D4921E]/20" style={{ background: "#D4921E" }}>
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-primary)] border-t border-[rgba(212,146,30,0.2)] px-4 py-3 flex items-center gap-2">
+        <button onClick={scrollToForm} className="flex-1 h-12 rounded-xl font-black uppercase text-sm bg-[var(--ochre)] text-[var(--bg-primary)] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform shadow-lg shadow-[var(--ochre)]/20">
           Devenir Partenaire Fondateur
         </button>
         <a href={`https://wa.me/${WA_NUMBER}?text=${WA_MSG}`} target="_blank" rel="noopener noreferrer"

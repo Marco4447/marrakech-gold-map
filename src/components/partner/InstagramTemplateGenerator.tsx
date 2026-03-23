@@ -150,7 +150,7 @@ export default function InstagramTemplateGenerator({ placeName, category, offer 
       URL.revokeObjectURL(url);
       toast.success("Image téléchargée !");
     } catch (err) {
-      console.error(err);
+     
       toast.error("Erreur de génération");
     } finally {
       setGenerating(false);
@@ -159,7 +159,7 @@ export default function InstagramTemplateGenerator({ placeName, category, offer 
 
   return (
     <div className="space-y-3">
-      <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold">Template Instagram</p>
+      <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] font-semibold">Template Instagram</p>
       <div className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4 space-y-3">
         <p className="text-sm text-[var(--text-primary)]">
           Génère un visuel <span className="font-bold text-[var(--ochre)]">1080×1080</span> prêt à poster sur Instagram avec le nom de ton spot et ton offre VIP.
@@ -167,10 +167,10 @@ export default function InstagramTemplateGenerator({ placeName, category, offer 
         <button
           onClick={generate}
           disabled={generating}
-          className="w-full flex items-center justify-center gap-2 bg-[var(--ochre)] text-[#0E0904] font-black uppercase text-sm rounded-xl px-6 py-3 active:scale-[0.97] transition-transform disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 bg-[var(--ochre)] text-[var(--bg-primary)] font-black uppercase text-sm rounded-xl px-6 py-3 active:scale-[0.97] transition-transform disabled:opacity-50"
         >
           {generating ? (
-            <div className="w-4 h-4 border-2 border-[#0E0904] border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-[var(--bg-primary)] border-t-transparent rounded-full animate-spin" />
           ) : (
             <><Instagram className="w-4 h-4" /> Générer mon post Instagram</>
           )}

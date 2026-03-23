@@ -151,8 +151,8 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
     <AnimatePresence>
       {open && (
         <>
-          <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[1001]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => onOpenChange(false)} />
-          <motion.div className="absolute bottom-0 left-0 right-0 z-[1002] px-3 pb-16 max-h-[88vh] flex flex-col" initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} transition={{ type: "spring", damping: 28, stiffness: 300 }}
+          <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => onOpenChange(false)} />
+          <motion.div className="absolute bottom-0 left-0 right-0 z-sheet px-3 pb-16 max-h-[88vh] flex flex-col" initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} transition={{ type: "spring", damping: 28, stiffness: 300 }}
             drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={0.3} onDragEnd={(_, info) => { if (info.offset.y > 100 || info.velocity.y > 300) onOpenChange(false); }}>
             <div className={`bg-[var(--bg-card)] rounded-2xl overflow-hidden border shadow-2xl shadow-black/50 flex flex-col max-h-full ${isPartner ? "border-[rgba(200,130,30,0.35)]" : "border-[var(--border-default)]"}`}>
               {/* Drag handle */}
@@ -169,22 +169,22 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                   {/* Partner badge */}
                   {isPartner && (
                     <div className="absolute top-3 left-3 bg-[var(--terracotta)] px-2 py-1 rounded z-10 flex items-center gap-1">
-                      <span className="text-[9px] font-bold text-[var(--text-primary)] uppercase tracking-wide">★ Partenaire</span>
+                      <span className="text-2xs font-bold text-[var(--text-primary)] uppercase tracking-wide">★ Partenaire</span>
                     </div>
                   )}
                   {/* Photo counter */}
                   {allImages.length > 1 && (
                     <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-md z-10">
-                      <span className="text-[11px] font-semibold text-[var(--text-primary)]">1/{allImages.length}</span>
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">1/{allImages.length}</span>
                     </div>
                   )}
                   {/* Bottom overlay: category + score */}
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[var(--bg-card)] via-[var(--bg-card)]/70 to-transparent h-16 z-10" />
                   {place.category && (
                     <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-[var(--ochre)] uppercase tracking-[0.15em]">{place.category}</span>
+                      <span className="text-2xs font-bold text-[var(--ochre)] uppercase tracking-[0.15em]">{place.category}</span>
                       {place.rating && (
-                        <span className="flex items-center gap-0.5 text-[10px] font-semibold text-[var(--ochre-light)]">
+                        <span className="flex items-center gap-0.5 text-2xs font-semibold text-[var(--ochre-light)]">
                           <Star className="w-3 h-3 fill-[var(--ochre-light)] text-[var(--ochre-light)]" /> {place.rating}
                         </span>
                       )}
@@ -192,7 +192,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                   )}
                 </div>
 
-                <div className="px-5 pt-4">
+                <div className="px-4 pt-4">
 
                   {/* ── ZONE 2: IDENTITÉ ── */}
                   <div>
@@ -205,7 +205,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                         {place.name}
                       </Link>
                       {isPartner && (
-                        <span className="inline-flex items-center bg-[rgba(196,74,42,0.15)] border border-[rgba(196,74,42,0.4)] text-[var(--terracotta)] text-[9px] font-bold px-2 py-0.5 rounded ml-2">
+                        <span className="inline-flex items-center bg-[rgba(196,74,42,0.15)] border border-[rgba(196,74,42,0.4)] text-[var(--terracotta)] text-2xs font-bold px-2 py-0.5 rounded ml-2">
                           Partenaire
                         </span>
                       )}
@@ -315,29 +315,34 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
 
                   {/* ── ZONE 5: INFOS PRATIQUES ── */}
                   <div>
-                    <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold mb-2">Infos pratiques</p>
+                    <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] font-semibold mb-2">Infos pratiques</p>
+                    {!placeDetails && (
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        {[0,1].map(i => <div key={i} className="h-16 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg animate-pulse" />)}
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-2">
                       {placeDetails?.opening_hours && (
                         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-2.5">
-                          <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Horaires</p>
+                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Horaires</p>
                           <p className="text-xs font-semibold text-[var(--text-primary)]">{placeDetails.opening_hours.split(",")[0]}</p>
                         </div>
                       )}
                       {placeDetails?.price_range && (
                         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-2.5">
-                          <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Prix moyen</p>
+                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Prix moyen</p>
                           <p className="text-xs font-semibold text-[var(--text-primary)]">{placeDetails.price_range}</p>
                         </div>
                       )}
                       {(placeDetails as any)?.phone && (
                         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-2.5">
-                          <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Téléphone</p>
+                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Téléphone</p>
                           <a href={`tel:${(placeDetails as any).phone}`} className="text-xs font-semibold text-[var(--ochre)]">{(placeDetails as any).phone}</a>
                         </div>
                       )}
                       {placeDetails?.music_style && (
                         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-2.5">
-                          <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Ambiance</p>
+                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Ambiance</p>
                           <p className="text-xs font-semibold text-[var(--text-primary)]">{placeDetails.music_style}</p>
                         </div>
                       )}
@@ -365,7 +370,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
 
                   {/* ── ZONE 6: AMBIANCE LIVE ── */}
                   <div>
-                    <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold mb-2">Ambiance live</p>
+                    <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] font-semibold mb-2">Ambiance live</p>
                     <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3 space-y-3">
                       <PlaceCheckin placeId={place.id} placeName={place.name} />
                       <VibeCheck placeId={place.id} placeName={place.name} />
@@ -376,7 +381,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
 
                   {/* ── ZONE 7: AVIS LOCAUX ── */}
                   <div>
-                    <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold mb-2">Avis locaux</p>
+                    <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] font-semibold mb-2">Avis locaux</p>
                     <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3">
                       <EphemeralReviews placeId={place.id} />
                     </div>
@@ -390,7 +395,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                   {/* ── ZONE 8: ADRESSE ── */}
                   {place.address && (
                     <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3 mb-4">
-                      <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold mb-1.5">Adresse</p>
+                      <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] font-semibold mb-1.5">Adresse</p>
                       <div className="flex items-center gap-2">
                         <MapPin className="w-3.5 h-3.5 text-[var(--ochre)]/60 shrink-0" />
                         <span className="text-xs text-[var(--text-muted)] flex-1">{place.address}</span>
@@ -418,7 +423,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                       <Building2 className="w-5 h-5 text-[var(--ochre)]" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-[var(--ochre)]">Vous êtes le gérant ?</p>
-                        <p className="text-[10px] text-[var(--text-muted)]">Rejoignez WeshKech</p>
+                        <p className="text-2xs text-[var(--text-muted)]">Rejoignez WeshKech</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-[var(--ochre)]" />
                     </Link>
@@ -429,12 +434,12 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
               {/* ═══════════ STICKY BOTTOM BAR ═══════════ */}
               <div className="flex-shrink-0 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] px-4 py-3 flex items-center gap-2">
                 {/* Save */}
-                <button onClick={handleSave}
+                <button onClick={handleSave} aria-label={saved ? "Retirer des favoris" : "Ajouter aux favoris"}
                   className={`w-11 h-11 flex items-center justify-center rounded-xl border transition-all active:scale-90 ${saved ? "bg-[var(--ochre)]/15 border-[var(--ochre)]/40" : "bg-[rgba(245,237,216,0.05)] border-[var(--border-subtle)]"}`}>
                   <Heart className={`w-5 h-5 ${saved ? "fill-[var(--ochre)] text-[var(--ochre)]" : "text-[var(--text-secondary)]"}`} />
                 </button>
                 {/* Share */}
-                <button onClick={handleShare}
+                <button onClick={handleShare} aria-label="Partager"
                   className="w-11 h-11 flex items-center justify-center rounded-xl bg-[rgba(245,237,216,0.05)] border border-[var(--border-subtle)] transition-all active:scale-90">
                   <Share2 className="w-5 h-5 text-[var(--text-secondary)]" />
                 </button>
@@ -455,7 +460,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[3000] bg-[var(--bg-primary)] flex flex-col items-center justify-center px-8"
+                className="fixed inset-0 z-modal bg-[var(--bg-primary)] flex flex-col items-center justify-center px-8"
                 onClick={() => setShowQrModal(false)}
               >
                 <motion.div

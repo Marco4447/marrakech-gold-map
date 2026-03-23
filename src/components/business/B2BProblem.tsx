@@ -17,7 +17,7 @@ export default function B2BProblem() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-semibold uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-destructive/10 border border-destructive/20 text-destructive text-2xs font-semibold uppercase tracking-wider">
               <AlertTriangle className="w-3 h-3" />
               Le problème
             </span>

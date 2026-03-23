@@ -82,7 +82,7 @@ export default function B2BPricing({ onCtaClick }: { onCtaClick: () => void }) {
             >
               {plan.highlight && (
                 <div
-                  className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-bold text-primary-foreground uppercase tracking-wider"
+                  className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-2xs font-bold text-primary-foreground uppercase tracking-wider"
                   style={{ background: "linear-gradient(135deg, hsl(43 76% 52%), hsl(43 70% 62%))" }}
                 >
                   Populaire
@@ -100,7 +100,7 @@ export default function B2BPricing({ onCtaClick }: { onCtaClick: () => void }) {
                   <span className={`text-lg font-display font-black ${plan.highlight ? "text-gold" : "text-foreground"}`}>
                     {plan.price}
                   </span>
-                  <span className="text-[10px] text-muted-foreground block">{plan.priceNote}</span>
+                  <span className="text-2xs text-muted-foreground block">{plan.priceNote}</span>
                 </div>
               </div>
 
@@ -128,7 +128,7 @@ export default function B2BPricing({ onCtaClick }: { onCtaClick: () => void }) {
           ))}
         </div>
 
-        <p className="text-center text-[10px] text-muted-foreground">
+        <p className="text-center text-2xs text-muted-foreground">
           💡 Essai gratuit 30 jours sur le plan Business · Sans engagement
         </p>
       </div>

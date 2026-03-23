@@ -48,7 +48,7 @@ export async function getMayorOfPlace(placeName: string): Promise<MayorInfo | nu
       vibeCount: topCount,
     };
   } catch (e) {
-    console.error("getMayorOfPlace error:", e);
+   
     return null;
   }
 }
@@ -110,7 +110,7 @@ export async function getUserMayorTerritories(userId: string): Promise<{ placeNa
 
     return territories;
   } catch (e) {
-    console.error("getUserMayorTerritories error:", e);
+   
     return [];
   }
 }

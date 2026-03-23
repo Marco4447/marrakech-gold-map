@@ -54,7 +54,7 @@ export default function BoostUpsell({ show, onClose, onBoost }: Props) {
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-bold text-foreground">{b.label}</p>
-                    <p className="text-[10px] text-muted-foreground">{b.desc}</p>
+                    <p className="text-2xs text-muted-foreground">{b.desc}</p>
                   </div>
                   <span className="text-sm font-black text-gold shrink-0">{b.price}</span>
                 </button>

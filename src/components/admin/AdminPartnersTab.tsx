@@ -52,7 +52,7 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-foreground">{selectedPartner.business_name}</p>
             <p className="text-xs text-muted-foreground">{selectedPartner.full_name} · {selectedPartner.category}</p>
-            <p className="text-[10px] text-muted-foreground">{selectedPartner.email}</p>
+            <p className="text-2xs text-muted-foreground">{selectedPartner.email}</p>
           </div>
         </div>
 
@@ -87,19 +87,19 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
                         setEditingCredits(false);
                         toast.success(`Crédits mis à jour : ${newCredits}`);
                       } catch (err) {
-                        console.error(err);
+                       
                         toast.error("Erreur de mise à jour");
                       } finally {
                         setSavingCredits(false);
                       }
                     }}
-                    className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-md font-medium hover:bg-gold/25 transition-colors"
+                    className="text-2xs bg-gold/15 text-gold px-2 py-0.5 rounded-md font-medium hover:bg-gold/25 transition-colors"
                   >
                     {savingCredits ? "…" : "✓"}
                   </button>
                   <button
                     onClick={() => setEditingCredits(false)}
-                    className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-md font-medium hover:bg-muted/80 transition-colors"
+                    className="text-2xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md font-medium hover:bg-muted/80 transition-colors"
                   >
                     ✕
                   </button>
@@ -108,7 +108,7 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
             ) : (
               <>
                 <p className="text-lg font-bold text-gold">{selectedPartner.credits}</p>
-                <p className="text-[10px] text-muted-foreground">Crédits</p>
+                <p className="text-2xs text-muted-foreground">Crédits</p>
                 <button
                   onClick={() => { setCreditValue(String(selectedPartner.credits)); setEditingCredits(true); }}
                   className="absolute top-1.5 right-1.5 text-muted-foreground hover:text-gold transition-colors"
@@ -120,11 +120,11 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
           </div>
           <div className="bg-surface border border-border rounded-xl p-3 text-center">
             <p className="text-lg font-bold text-foreground">{selectedPartner.total_vibes}</p>
-            <p className="text-[10px] text-muted-foreground">Vibes</p>
+            <p className="text-2xs text-muted-foreground">Vibes</p>
           </div>
           <div className="bg-surface border border-border rounded-xl p-3 text-center">
             <p className="text-lg font-bold text-foreground">{selectedPartner.official_vibes}</p>
-            <p className="text-[10px] text-muted-foreground">Officielles</p>
+            <p className="text-2xs text-muted-foreground">Officielles</p>
           </div>
         </div>
 
@@ -163,11 +163,11 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
                 <div key={v.id} className="relative aspect-square rounded-lg overflow-hidden border border-border">
                   <img src={v.image_url} alt={v.caption || ""} className="w-full h-full object-cover" />
                   {v.is_official && (
-                    <span className="absolute top-1 left-1 bg-gold/90 text-[8px] text-primary-foreground font-bold px-1 py-0.5 rounded">OFF</span>
+                    <span className="absolute top-1 left-1 bg-gold/90 text-2xs text-primary-foreground font-bold px-1 py-0.5 rounded">OFF</span>
                   )}
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-1.5">
-                    <p className="text-[9px] text-white/90 truncate">{v.caption || v.location || "—"}</p>
-                    <p className="text-[8px] text-white/60">❤️ {v.likes} · {timeAgo(v.created_at)}</p>
+                    <p className="text-2xs text-white/90 truncate">{v.caption || v.location || "—"}</p>
+                    <p className="text-2xs text-white/60">❤️ {v.likes} · {timeAgo(v.created_at)}</p>
                   </div>
                 </div>
               ))}
@@ -188,7 +188,7 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
                 <div key={i} className="bg-surface border border-border rounded-lg px-3 py-2 flex items-center justify-between">
                   <div>
                     <p className="text-xs text-foreground">{pu.description}</p>
-                    <p className="text-[10px] text-muted-foreground">{timeAgo(pu.created)}</p>
+                    <p className="text-2xs text-muted-foreground">{timeAgo(pu.created)}</p>
                   </div>
                   <span className="text-xs font-bold text-gold">{pu.amount.toFixed(2)}€</span>
                 </div>
@@ -199,7 +199,7 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
 
         {/* Joined */}
         {selectedPartner.joined && (
-          <p className="text-[10px] text-muted-foreground mt-4">Inscrit le {new Date(selectedPartner.joined).toLocaleDateString("fr-FR")}</p>
+          <p className="text-2xs text-muted-foreground mt-4">Inscrit le {new Date(selectedPartner.joined).toLocaleDateString("fr-FR")}</p>
         )}
       </>
     );
@@ -244,7 +244,7 @@ export default function AdminPartnersTab({ stats, setStats }: Props) {
                     <CreditCard className="w-3 h-3" />
                     <span className="text-sm font-bold">{p.credits}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">crédits</p>
+                  <p className="text-2xs text-muted-foreground">crédits</p>
                 </div>
                 <ArrowLeft className="w-3.5 h-3.5 text-muted-foreground rotate-180" />
               </div>

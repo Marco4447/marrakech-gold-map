@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -182,7 +183,7 @@ export default function VenueContextPage() {
       redirect_uri: window.location.href,
     });
     if (error) {
-      console.error("OAuth error:", error);
+     
       toast.error("Erreur de connexion");
       setOauthLoading(false);
     }
@@ -192,7 +193,7 @@ export default function VenueContextPage() {
   const doCheckin = async () => {
     if (!user || !place) return;
     const { error } = await (supabase.from("checkins" as any) as any).insert({ user_id: user.id, place_id: place.id });
-    if (error) { toast.error("Erreur"); console.error(error); return; }
+    if (error) { toast.error("Erreur"); reportError(error, { context: "VenueContext checkin" }); return; }
     setIsCheckedIn(true);
     setCheckinCount((c) => c + 1);
     const newTotal = totalUserCheckins + 1;
@@ -234,7 +235,7 @@ export default function VenueContextPage() {
 
     if (error || !pass) {
       toast.error("Erreur lors de la génération du pass");
-      console.error(error);
+     
       setClaiming(null);
       return;
     }
@@ -271,7 +272,7 @@ export default function VenueContextPage() {
       const { error } = await (supabase.from("place_follows" as any) as any)
         .insert({ user_id: user.id, place_id: place.id });
       if (error) {
-        console.error(error);
+       
         toast.error("Erreur");
         return;
       }
@@ -322,18 +323,18 @@ export default function VenueContextPage() {
           <div className="flex-1 bg-card/80 border border-border rounded-xl p-3 text-center">
             <Users className="w-4 h-4 text-gold mx-auto mb-1" />
             <p className="text-lg font-black text-foreground">{checkinCount}</p>
-            <p className="text-[10px] text-muted-foreground">Ici maintenant</p>
+            <p className="text-2xs text-muted-foreground">Ici maintenant</p>
           </div>
           <div className="flex-1 bg-card/80 border border-border rounded-xl p-3 text-center">
             <Gift className="w-4 h-4 text-gold mx-auto mb-1" />
             <p className="text-lg font-black text-foreground">{offers.length}</p>
-            <p className="text-[10px] text-muted-foreground">Offres actives</p>
+            <p className="text-2xs text-muted-foreground">Offres actives</p>
           </div>
           {place.category && (
             <div className="flex-1 bg-card/80 border border-border rounded-xl p-3 text-center">
               <Sparkles className="w-4 h-4 text-gold mx-auto mb-1" />
               <p className="text-sm font-bold text-foreground capitalize">{place.category}</p>
-              <p className="text-[10px] text-muted-foreground">Catégorie</p>
+              <p className="text-2xs text-muted-foreground">Catégorie</p>
             </div>
           )}
         </motion.div>
@@ -357,7 +358,7 @@ export default function VenueContextPage() {
             )}
           </button>
           {!isCheckedIn && (
-            <p className="text-[11px] text-muted-foreground text-center">
+            <p className="text-xs text-muted-foreground text-center">
               Confirme ta présence pour accéder aux offres VIP
             </p>
           )}
@@ -377,12 +378,12 @@ export default function VenueContextPage() {
                     {isHabitue ? "⭐ Habitué" : "Fidélité"}
                   </p>
                   {isHabitue && (
-                    <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded-full font-semibold">
+                    <span className="text-2xs bg-gold/20 text-gold px-2 py-0.5 rounded-full font-semibold">
                       Statut débloqué
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {isHabitue
                     ? `${totalUserCheckins} visites · Le staff te reconnaît 🤝`
                     : `${totalUserCheckins}/${HABITUE_THRESHOLD} check-ins pour devenir Habitué`
@@ -479,25 +480,25 @@ export default function VenueContextPage() {
           <div className="grid grid-cols-2 gap-2">
             {place.opening_hours && (
               <div className="bg-card/60 border border-border rounded-xl px-3 py-2">
-                <p className="text-[10px] text-muted-foreground">Horaires</p>
+                <p className="text-2xs text-muted-foreground">Horaires</p>
                 <p className="text-xs font-semibold text-foreground">{place.opening_hours}</p>
               </div>
             )}
             {place.price_range && (
               <div className="bg-card/60 border border-border rounded-xl px-3 py-2">
-                <p className="text-[10px] text-muted-foreground">Prix</p>
+                <p className="text-2xs text-muted-foreground">Prix</p>
                 <p className="text-xs font-semibold text-foreground">{place.price_range}</p>
               </div>
             )}
             {place.music_style && (
               <div className="bg-card/60 border border-border rounded-xl px-3 py-2">
-                <p className="text-[10px] text-muted-foreground">Musique</p>
+                <p className="text-2xs text-muted-foreground">Musique</p>
                 <p className="text-xs font-semibold text-foreground">{place.music_style}</p>
               </div>
             )}
             {place.dress_code && (
               <div className="bg-card/60 border border-border rounded-xl px-3 py-2">
-                <p className="text-[10px] text-muted-foreground">Dress code</p>
+                <p className="text-2xs text-muted-foreground">Dress code</p>
                 <p className="text-xs font-semibold text-foreground">{place.dress_code}</p>
               </div>
             )}
@@ -544,7 +545,7 @@ export default function VenueContextPage() {
                     >
                       🔒 Réclamer mon pass VIP
                     </button>
-                    <p className="text-[10px] text-muted-foreground text-center">
+                    <p className="text-2xs text-muted-foreground text-center">
                       Tape sur « 🙋 Je suis là ! » d'abord pour débloquer
                     </p>
                   </div>

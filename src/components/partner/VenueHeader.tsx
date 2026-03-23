@@ -59,27 +59,27 @@ export default function VenueHeader({ placeId, planType, credits, onEditVenue, o
             <h2 className="font-display text-lg font-bold text-foreground">{venue.name}</h2>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               {venue.is_founder && (
-                <span className="flex items-center gap-1 text-[10px] font-bold text-gold bg-gold/10 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-2xs font-bold text-gold bg-gold/10 px-2 py-0.5 rounded-full">
                   🛡️ Fondateur
                 </span>
               )}
               {planType && (
-                <span className="flex items-center gap-1 text-[10px] font-bold text-gold">
+                <span className="flex items-center gap-1 text-2xs font-bold text-gold">
                   <Crown className="w-3 h-3" />
                   {planType.charAt(0).toUpperCase() + planType.slice(1)}
                 </span>
               )}
               {venue.listing_tier === "featured" && (
-                <span className="flex items-center gap-1 text-[10px] font-bold text-accent">
+                <span className="flex items-center gap-1 text-2xs font-bold text-accent">
                   ⚡ Featured
                 </span>
               )}
               {venue.category && (
-                <span className="text-[10px] text-muted-foreground">{venue.category}</span>
+                <span className="text-2xs text-muted-foreground">{venue.category}</span>
               )}
             </div>
           </div>
-          <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold border ${status.color}`}>
+          <span className={`px-2.5 py-1 rounded-full text-2xs font-bold border ${status.color}`}>
             {status.text}
           </span>
         </div>
@@ -108,7 +108,7 @@ export default function VenueHeader({ placeId, planType, credits, onEditVenue, o
             style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)), hsl(var(--gold-dark)))" }}
           >
             <Zap className="w-3 h-3" /> Vibe
-            <span className="bg-primary-foreground/20 px-1.5 py-0.5 rounded text-[8px]">{credits}</span>
+            <span className="bg-primary-foreground/20 px-1.5 py-0.5 rounded text-2xs">{credits}</span>
           </button>
         </div>
       </div>

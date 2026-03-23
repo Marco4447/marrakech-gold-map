@@ -93,7 +93,7 @@ export default function PlaceCheckin({ placeId, placeName }: PlaceCheckinProps) 
         try { navigator.vibrate?.([10, 20, 10]); } catch {}
       }
     } catch (err) {
-      console.error("Checkin error:", err);
+     
       toast.error("Erreur de check-in");
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ export default function PlaceCheckin({ placeId, placeName }: PlaceCheckinProps) 
                 {u.avatar_url ? (
                   <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-foreground">
+                  <div className="w-full h-full flex items-center justify-center text-2xs font-bold text-foreground">
                     {(u.full_name || "?")[0]}
                   </div>
                 )}

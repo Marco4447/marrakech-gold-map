@@ -95,7 +95,7 @@ export default function NotificationsPage() {
                   {n.body && (
                     <p className="text-xs text-muted-foreground mt-0.5 truncate">{n.body}</p>
                   )}
-                  <p className="text-[10px] text-muted-foreground/60 mt-1">{timeAgo(n.created_at)}</p>
+                  <p className="text-2xs text-muted-foreground/60 mt-1">{timeAgo(n.created_at)}</p>
                 </div>
               </motion.div>
             ))}
@@ -106,7 +106,7 @@ export default function NotificationsPage() {
       {/* Settings sheet */}
       <AnimatePresence>
         {showSettings && (
-          <div className="fixed inset-0 z-[3000] flex flex-col justify-end" onClick={() => setShowSettings(false)}>
+          <div className="fixed inset-0 z-modal flex flex-col justify-end" onClick={() => setShowSettings(false)}>
             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
             <motion.div
               initial={{ y: "100%" }}

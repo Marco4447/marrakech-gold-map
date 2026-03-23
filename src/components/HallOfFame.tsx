@@ -116,7 +116,7 @@ export default function HallOfFame({ currentUserId }: { currentUserId?: string }
           <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
               period === p
                 ? "bg-gold text-primary-foreground shadow-sm shadow-gold/20"
                 : "bg-muted/50 text-muted-foreground hover:bg-muted"
@@ -164,11 +164,11 @@ export default function HallOfFame({ currentUserId }: { currentUserId?: string }
                       </span>
                       {entry.is_vip && <Crown className="w-3 h-3 text-gold" />}
                     </div>
-                    <span className="text-[10px] text-muted-foreground">{entry.vibes_count} vibes · {entry.total_likes} ❤️</span>
+                    <span className="text-2xs text-muted-foreground">{entry.vibes_count} vibes · {entry.total_likes} ❤️</span>
                   </div>
                   <div className="flex items-center gap-1 bg-gold/10 px-2 py-1 rounded-full">
                     <TrendingUp className="w-3 h-3 text-gold" />
-                    <span className="text-[10px] font-bold text-gold">{entry.score}</span>
+                    <span className="text-2xs font-bold text-gold">{entry.score}</span>
                   </div>
                 </Link>
               );
@@ -200,12 +200,12 @@ function PodiumSlot({ entry, rank, currentUserId, isFirst }: { entry: HallEntry;
         </Avatar>
         <span className="absolute -bottom-1 -right-1 text-sm">{style.badge}</span>
       </div>
-      <span className={`text-[11px] font-semibold text-center truncate max-w-[80px] ${isMe ? "text-gold" : "text-foreground"}`}>
+      <span className={`text-xs font-semibold text-center truncate max-w-[80px] ${isMe ? "text-gold" : "text-foreground"}`}>
         {entry.full_name || "Anonyme"}
       </span>
       <div className={`flex items-center gap-1 ${style.bg} px-2 py-0.5 rounded-full`}>
         <Flame className="w-2.5 h-2.5 text-gold" />
-        <span className="text-[9px] font-bold text-gold">{entry.score}</span>
+        <span className="text-2xs font-bold text-gold">{entry.score}</span>
       </div>
     </motion.div>
   );

@@ -168,7 +168,7 @@ export default function BadgesSection({ userId }: { userId: string }) {
                 <Lock className="absolute top-1 right-1 w-2.5 h-2.5 text-muted-foreground" />
               )}
               <span className={`text-lg ${unlocked ? "" : "grayscale"}`}>{badge.emoji}</span>
-              <span className={`text-[9px] font-semibold text-center leading-tight ${unlocked ? "text-foreground" : "text-muted-foreground"}`}>
+              <span className={`text-2xs font-semibold text-center leading-tight ${unlocked ? "text-foreground" : "text-muted-foreground"}`}>
                 {badge.label}
               </span>
             </motion.div>
@@ -180,10 +180,10 @@ export default function BadgesSection({ userId }: { userId: string }) {
       {nextBadge && (
         <div className="bg-secondary/50 border border-border rounded-xl p-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold text-foreground flex items-center gap-1">
+            <span className="text-2xs font-semibold text-foreground flex items-center gap-1">
               <span>{nextBadge.emoji}</span> Prochain : {nextBadge.label}
             </span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-2xs text-muted-foreground">
               {stats[nextBadge.metric]}/{nextBadge.threshold}
             </span>
           </div>
@@ -195,7 +195,7 @@ export default function BadgesSection({ userId }: { userId: string }) {
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
           </div>
-          <p className="text-[9px] text-muted-foreground mt-1">{nextBadge.desc}</p>
+          <p className="text-2xs text-muted-foreground mt-1">{nextBadge.desc}</p>
         </div>
       )}
 
@@ -204,7 +204,7 @@ export default function BadgesSection({ userId }: { userId: string }) {
         <div className="bg-gold/10 border border-gold/30 rounded-xl p-3 text-center">
           <span className="text-sm">🏆✨</span>
           <p className="text-xs font-semibold text-gold mt-1">Tous les badges débloqués !</p>
-          <p className="text-[10px] text-muted-foreground">Tu es une vraie Légende de Kech</p>
+          <p className="text-2xs text-muted-foreground">Tu es une vraie Légende de Kech</p>
         </div>
       )}
 

@@ -48,7 +48,7 @@ export function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceCli
   if (!current) return null;
 
   return (
-    <div className="absolute bottom-20 left-3 right-14 z-[1000]">
+    <div className="absolute bottom-20 left-3 right-14 z-map-overlay">
       <AnimatePresence mode="wait">
         <motion.div
           key={bubbleIndex}
@@ -64,8 +64,8 @@ export function FloatingBubble({ places, bubbleIndex, setBubbleIndex, onPlaceCli
           >
             <span className="text-base flex-shrink-0">{current.emoji}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] text-gold font-bold uppercase tracking-wider">{current.tag}</p>
-              <p className="text-[11px] text-[hsl(30,20%,85%)] font-medium truncate">{current.text}</p>
+              <p className="text-2xs text-gold font-bold uppercase tracking-wider">{current.tag}</p>
+              <p className="text-xs text-[hsl(30,20%,85%)] font-medium truncate">{current.text}</p>
             </div>
             {current.place && <ChevronRight className="w-3 h-3 text-gold flex-shrink-0" />}
           </button>
@@ -88,12 +88,12 @@ export function CollapsibleLegend({ categories, activeCategory, onCategoryClick 
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="absolute bottom-20 left-3 z-[1000]">
+    <div className="absolute bottom-20 left-3 z-map-overlay">
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 bg-card/90 backdrop-blur-xl border border-border rounded-lg px-2.5 py-1.5 shadow-lg text-left"
       >
-        <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider">Légende</p>
+        <p className="text-2xs text-muted-foreground font-semibold uppercase tracking-wider">Légende</p>
         {open ? <ChevronDown className="w-3 h-3 text-muted-foreground" /> : <ChevronUp className="w-3 h-3 text-muted-foreground" />}
       </button>
       <AnimatePresence>
@@ -112,8 +112,8 @@ export function CollapsibleLegend({ categories, activeCategory, onCategoryClick 
                   !activeCategory ? "bg-gold/15" : "hover:bg-secondary/60"
                 }`}
               >
-                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] border-2 border-gold bg-secondary">📍</span>
-                <span className={`text-[10px] font-medium ${!activeCategory ? "text-gold" : "text-foreground/80"}`}>Tous</span>
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-2xs border-2 border-gold bg-secondary">📍</span>
+                <span className={`text-2xs font-medium ${!activeCategory ? "text-gold" : "text-foreground/80"}`}>Tous</span>
               </button>
 
               {categories.map(([key, { emoji, color }]) => {
@@ -127,23 +127,23 @@ export function CollapsibleLegend({ categories, activeCategory, onCategoryClick 
                     }`}
                   >
                     <span
-                      className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-2xs"
                       style={{ border: `2px solid ${color}`, background: isActive ? `${color}22` : "hsl(var(--secondary))" }}
                     >
                       {emoji}
                     </span>
-                    <span className={`text-[10px] ${isActive ? "text-gold font-semibold" : "text-foreground/80"}`}>{key}</span>
+                    <span className={`text-2xs ${isActive ? "text-gold font-semibold" : "text-foreground/80"}`}>{key}</span>
                   </button>
                 );
               })}
 
               <div className="flex items-center gap-2 mt-1 pt-1 border-t border-border">
-                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ border: "3px solid hsl(var(--gold))", background: "hsl(var(--secondary))" }}>⭐</span>
-                <span className="text-[10px] text-gold font-medium">Partenaire</span>
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-2xs" style={{ border: "3px solid hsl(var(--gold))", background: "hsl(var(--secondary))" }}>⭐</span>
+                <span className="text-2xs text-gold font-medium">Partenaire</span>
               </div>
               <Link
                 to="/business"
-                className="flex items-center gap-2 mt-1 pt-1 border-t border-border text-[10px] text-muted-foreground hover:text-gold transition-colors"
+                className="flex items-center gap-2 mt-1 pt-1 border-t border-border text-2xs text-muted-foreground hover:text-gold transition-colors"
               >
                 <Building2 className="w-3 h-3" />
                 Vous êtes un établissement ?

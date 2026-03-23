@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Play, Heart, Sparkles } from "lucide-react";
@@ -58,6 +59,7 @@ export default function DiscoverTab({ onGoToMap, onStartChat }: { onGoToMap?: (l
           .select("id, name, latitude, longitude")
       ]);
 
+      if (vibesRes.error || placesRes.error) { toast.error("Erreur chargement données"); return; }
       // Build place lookups (by name + by id)
       const pMapByName = new Map<string, PlaceMatch>();
       const pMapById = new Map<string, PlaceMatch>();

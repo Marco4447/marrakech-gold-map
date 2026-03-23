@@ -58,7 +58,7 @@ export default function BusinessStats() {
                 <p className="text-lg font-display font-black text-foreground tabular-nums">
                   {value.toLocaleString("fr-FR")}{suffix}
                 </p>
-                <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-medium leading-tight">
+                <p className="text-2xs uppercase tracking-widest text-muted-foreground font-medium leading-tight">
                   {label}
                 </p>
               </motion.div>

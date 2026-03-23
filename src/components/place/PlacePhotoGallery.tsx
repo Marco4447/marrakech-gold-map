@@ -67,6 +67,7 @@ function GalleryVideo({ src, isActive }: { src: string; isActive: boolean }) {
       </button>
       <button
         onClick={toggleMute}
+        aria-label={muted ? "Activer le son" : "Couper le son"}
         className="absolute bottom-3 right-3 z-20 w-7 h-7 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center text-foreground"
       >
         {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
@@ -135,11 +136,11 @@ export default function PlacePhotoGallery({ images, placeName, isPartner, viewer
         {/* Nav arrows */}
         {images.length > 1 && (
           <>
-            <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + images.length) % images.length); }}
+            <button aria-label="Photo précédente" onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + images.length) % images.length); }}
               className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground z-20">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % images.length); }}
+            <button aria-label="Photo suivante" onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % images.length); }}
               className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center text-foreground z-20">
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -147,7 +148,7 @@ export default function PlacePhotoGallery({ images, placeName, isPartner, viewer
         )}
 
         {/* Close button */}
-        <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-background/80 transition-colors z-30">
+        <button aria-label="Fermer la galerie" onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-background/80 transition-colors z-30">
           <X className="w-4 h-4" />
         </button>
 
@@ -155,20 +156,20 @@ export default function PlacePhotoGallery({ images, placeName, isPartner, viewer
         {isPartner && (
           <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-gold px-3 py-1.5 rounded-full shadow-lg z-20">
             <span className="text-xs">⭐</span>
-            <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">{t("place_partner")}</span>
+            <span className="text-2xs font-bold text-primary-foreground uppercase tracking-wider">{t("place_partner")}</span>
           </div>
         )}
 
         {/* Viewer count */}
         <div className="absolute bottom-2 right-3 flex items-center gap-1 bg-background/60 backdrop-blur-md px-2 py-1 rounded-full z-20">
           <Users className="w-3 h-3 text-gold" />
-          <span className="text-[10px] text-foreground font-medium">{viewerCount} {t("place_watching")}</span>
+          <span className="text-2xs text-foreground font-medium">{viewerCount} {t("place_watching")}</span>
         </div>
 
         {/* Media counter */}
         {images.length > 1 && (
           <div className="absolute bottom-2 left-3 bg-background/60 backdrop-blur-md px-2 py-1 rounded-full z-20">
-            <span className="text-[10px] text-foreground font-medium">{galleryIndex + 1}/{images.length}</span>
+            <span className="text-2xs text-foreground font-medium">{galleryIndex + 1}/{images.length}</span>
           </div>
         )}
       </div>

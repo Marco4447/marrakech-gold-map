@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -316,7 +317,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         const sz = count > 15 ? 48 : count > 5 ? 40 : 32;
         const fs = count > 15 ? 15 : count > 5 ? 13 : 12;
         return L.divIcon({
-          html: `<div style="background:var(--ochre);color:#0E0904;border-radius:50%;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${fs}px;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid var(--border-default)">${count}</div>`,
+          html: `<div style="background:var(--ochre);color:var(--bg-primary);border-radius:50%;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${fs}px;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid var(--border-default)">${count}</div>`,
           className: "place-cluster-icon",
           iconSize: L.point(sz, sz),
         });
@@ -459,7 +460,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         layer.addTo(map);
         heatLayerRef.current = layer;
       } catch (e) {
-        console.warn("Heatmap layer failed:", e);
+        reportError(e, { context: "Heatmap layer" });
       }
     }
 
@@ -574,7 +575,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
             key="map-header"
-            className="absolute top-0 left-0 right-0 z-[100] pointer-events-none"
+            className="absolute top-0 left-0 right-0 z-controls pointer-events-none"
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
@@ -649,7 +650,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
         {!sheetOpen && !vibeSheetOpen && (
           <motion.div
             key="map-controls-right"
-            className="absolute bottom-24 right-3 z-[50] flex flex-col gap-1.5 items-end"
+            className="absolute bottom-24 right-3 z-controls flex flex-col gap-1.5 items-end"
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 12 }}
@@ -660,7 +661,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
               count={tonightMode ? getFilteredPlaces().length : 0}
               onToggle={() => setTonightMode((v) => !v)}
             />
-            <button onClick={handleGeolocate} className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md flex items-center justify-center active:scale-95 transition-transform" title="Ma position">
+            <button onClick={handleGeolocate} aria-label="Ma position" className="w-10 h-10 rounded-full bg-card/90 backdrop-blur-xl border border-border shadow-md flex items-center justify-center active:scale-95 transition-transform" title="Ma position">
               <Navigation className="w-4 h-4 text-gold" />
             </button>
           </motion.div>
@@ -669,13 +670,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
       {/* ===== BOTTOM LEFT: Mon parcours ===== */}
       {!sheetOpen && !vibeSheetOpen && (
-        <div className="absolute bottom-24 left-3 z-[50]">
+        <div className="absolute bottom-24 left-3 z-controls">
           <button
             onClick={() => setShowNightPlanner(true)}
             className="flex items-center gap-1.5 bg-card/80 backdrop-blur-md border border-border/40 rounded-full px-3 py-2 shadow-md active:scale-95 transition-transform"
           >
             <span className="text-xs">🗺️</span>
-            <span className="text-[10px] font-semibold text-foreground">Mon parcours</span>
+            <span className="text-2xs font-semibold text-foreground">Mon parcours</span>
           </button>
         </div>
       )}
@@ -694,7 +695,7 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[2000] flex items-end justify-center pb-24 px-4 pointer-events-none"
+            className="absolute inset-0 z-nav flex items-end justify-center pb-24 px-4 pointer-events-none"
           >
             <motion.div
               key={onboardingStep}
@@ -735,13 +736,13 @@ export default function MapView({ refreshSignal = 0, flyToCoords, deepLinkPlaceI
 
       {/* Error state */}
       {placesError && !placesLoading && (
-        <div className="absolute top-24 left-4 right-4 z-[1001] bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex items-center gap-2">
+        <div className="absolute top-24 left-4 right-4 z-sheet-backdrop bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex items-center gap-2">
           <span className="text-sm">⚠️</span>
           <div className="flex-1">
             <p className="text-xs font-medium text-destructive">{placesError}</p>
             <button
               onClick={() => window.location.reload()}
-              className="text-[10px] text-gold font-semibold mt-1 underline"
+              className="text-2xs text-gold font-semibold mt-1 underline"
             >
               Réessayer
             </button>

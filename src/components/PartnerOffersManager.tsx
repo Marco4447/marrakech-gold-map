@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useState, useEffect } from "react";
 import { Plus, Trash2, Gift, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +45,7 @@ export default function PartnerOffersManager({ placeId }: { placeId: string }) {
       expiration_date: form.expiration_date || null,
       created_by: user.id,
     });
-    if (error) { toast.error("Erreur"); console.error(error); }
+    if (error) { toast.error("Erreur"); reportError(error, { context: "PartnerOffersManager" }); }
     else { toast.success("Offre créée !"); setForm({ title: "", description: "", vip_only: true, expiration_date: "" }); fetchOffers(); }
     setCreating(false);
   };

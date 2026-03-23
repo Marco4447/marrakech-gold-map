@@ -50,7 +50,7 @@ export default function FollowButton({
   };
 
   const sizeClasses = {
-    sm: "px-2.5 py-1 text-[10px] gap-1",
+    sm: "px-2.5 py-1 text-2xs gap-1",
     md: "px-3.5 py-1.5 text-xs gap-1.5",
     lg: "px-5 py-2.5 text-sm gap-2",
   };

@@ -15,7 +15,7 @@ export default function HotPlacesDrawer({ onPlaceClick, visible }: HotPlacesDraw
 
   return (
     <motion.div
-      className="absolute bottom-14 left-0 right-0 z-[999]"
+      className="absolute bottom-14 left-0 right-0 z-map-overlay"
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.5, type: "spring", damping: 20 }}
@@ -29,8 +29,8 @@ export default function HotPlacesDrawer({ onPlaceClick, visible }: HotPlacesDraw
           <div className="w-8 h-1 rounded-full bg-muted-foreground/30 mb-2" />
           <div className="flex items-center gap-1.5 px-4 w-full">
             <Flame className="w-3.5 h-3.5 text-accent-warm" />
-            <span className="text-[11px] font-bold text-foreground">What's Hot</span>
-            <span className="text-[9px] text-muted-foreground ml-1">en ce moment</span>
+            <span className="text-xs font-bold text-foreground">What's Hot</span>
+            <span className="text-2xs text-muted-foreground ml-1">en ce moment</span>
             <div className="flex-1" />
             <ChevronUp className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${expanded ? "" : "rotate-180"}`} />
           </div>

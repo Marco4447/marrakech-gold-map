@@ -271,25 +271,25 @@ export default function VenuePage() {
           {(place as any).is_founder && (
             <div className="flex items-center gap-1.5 bg-card/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg border border-gold/40">
               <span className="text-xs">🛡️</span>
-              <span className="text-[10px] font-bold text-gold uppercase tracking-wider">Fondateur</span>
+              <span className="text-2xs font-bold text-gold uppercase tracking-wider">Fondateur</span>
             </div>
           )}
           {isPartner && (
             <div className="flex items-center gap-1.5 bg-gold/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <span className="text-xs">⭐</span>
-              <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">Partenaire</span>
+              <span className="text-2xs font-bold text-primary-foreground uppercase tracking-wider">Partenaire</span>
             </div>
           )}
           {place.listing_tier === "featured" && (
             <div className="flex items-center gap-1.5 bg-accent/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
               <span className="text-xs">⚡</span>
-              <span className="text-[10px] font-bold text-accent-foreground uppercase tracking-wider">Featured</span>
+              <span className="text-2xs font-bold text-accent-foreground uppercase tracking-wider">Featured</span>
             </div>
           )}
           {hasOffer && (
             <div className="flex items-center gap-1.5 bg-destructive/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg animate-pulse">
               <span className="text-xs">🔥</span>
-              <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wider">Offre ce soir</span>
+              <span className="text-2xs font-bold text-destructive-foreground uppercase tracking-wider">Offre ce soir</span>
             </div>
           )}
         </div>
@@ -298,7 +298,7 @@ export default function VenuePage() {
         {viewerCount > 0 && (
           <div className="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-background/40 backdrop-blur-xl px-3 py-1.5 rounded-full">
             <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            <span className="text-[11px] text-foreground font-medium">{viewerCount} en ligne</span>
+            <span className="text-xs text-foreground font-medium">{viewerCount} en ligne</span>
           </div>
         )}
       </div>
@@ -314,10 +314,10 @@ export default function VenuePage() {
                 {place.category && (
                   <span className="inline-flex items-center gap-1 bg-gold/10 px-2.5 py-0.5 rounded-full">
                     <Tag className="w-3 h-3 text-gold" />
-                    <span className="text-[11px] text-gold font-semibold uppercase tracking-wider">{place.category}</span>
+                    <span className="text-xs text-gold font-semibold uppercase tracking-wider">{place.category}</span>
                   </span>
                 )}
-                {place.neighborhood && <span className="text-[11px] text-muted-foreground">📍 {place.neighborhood}</span>}
+                {place.neighborhood && <span className="text-xs text-muted-foreground">📍 {place.neighborhood}</span>}
               </div>
             </div>
             {place.rating && (
@@ -360,7 +360,7 @@ export default function VenuePage() {
           >
             <span className="text-base">👑</span>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-gold font-bold uppercase tracking-wider">Mayor du spot</p>
+              <p className="text-2xs text-gold font-bold uppercase tracking-wider">Mayor du spot</p>
               <p className="text-xs text-foreground truncate">
                 {user?.id === mayor.userId
                   ? "Tu es le Mayor de ce spot !"
@@ -369,7 +369,7 @@ export default function VenuePage() {
             </div>
             <Avatar className="w-7 h-7 border border-gold/30 shrink-0">
               <AvatarImage src={mayor.avatarUrl || undefined} />
-              <AvatarFallback className="text-[10px] bg-gold/10 text-gold">
+              <AvatarFallback className="text-2xs bg-gold/10 text-gold">
                 {(mayor.fullName || "?")[0]}
               </AvatarFallback>
             </Avatar>
@@ -435,7 +435,7 @@ export default function VenuePage() {
                 <div className="bg-muted/30 rounded-xl p-3 space-y-1">
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-gold" />
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Horaires</span>
+                    <span className="text-2xs text-muted-foreground uppercase tracking-wider font-medium">Horaires</span>
                   </div>
                   <p className="text-xs text-foreground font-medium">{place.opening_hours}</p>
                 </div>
@@ -444,7 +444,7 @@ export default function VenuePage() {
                 <div className="bg-muted/30 rounded-xl p-3 space-y-1">
                   <div className="flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5 text-gold" />
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Prix</span>
+                    <span className="text-2xs text-muted-foreground uppercase tracking-wider font-medium">Prix</span>
                   </div>
                   <p className="text-xs text-foreground font-medium">{place.price_range}</p>
                 </div>
@@ -453,7 +453,7 @@ export default function VenuePage() {
                 <div className="bg-muted/30 rounded-xl p-3 space-y-1">
                   <div className="flex items-center gap-1.5">
                     <Music className="w-3.5 h-3.5 text-gold" />
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Musique</span>
+                    <span className="text-2xs text-muted-foreground uppercase tracking-wider font-medium">Musique</span>
                   </div>
                   <p className="text-xs text-foreground font-medium">{place.music_style}</p>
                 </div>
@@ -462,7 +462,7 @@ export default function VenuePage() {
                 <div className="bg-muted/30 rounded-xl p-3 space-y-1">
                   <div className="flex items-center gap-1.5">
                     <Shirt className="w-3.5 h-3.5 text-gold" />
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Dress code</span>
+                    <span className="text-2xs text-muted-foreground uppercase tracking-wider font-medium">Dress code</span>
                   </div>
                   <p className="text-xs text-foreground font-medium">{place.dress_code}</p>
                 </div>
@@ -483,7 +483,7 @@ export default function VenuePage() {
                     <span className="text-base">🍽️</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">Carte / Menu</p>
-                      <p className="text-[10px] text-muted-foreground">Plats & tarifs</p>
+                      <p className="text-2xs text-muted-foreground">Plats & tarifs</p>
                     </div>
                     <ChevronR className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
                   </a>
@@ -494,7 +494,7 @@ export default function VenuePage() {
                     <span className="text-base">🍸</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-foreground group-hover:text-gold transition-colors">Carte des boissons</p>
-                      <p className="text-[10px] text-muted-foreground">Cocktails, vins, softs</p>
+                      <p className="text-2xs text-muted-foreground">Cocktails, vins, softs</p>
                     </div>
                     <ChevronR className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
                   </a>
@@ -512,7 +512,7 @@ export default function VenuePage() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground group-hover:text-gold transition-colors">Itinéraire</p>
-            <p className="text-[11px] text-muted-foreground">Ouvrir dans Google Maps</p>
+            <p className="text-xs text-muted-foreground">Ouvrir dans Google Maps</p>
           </div>
           <ChevronR className="w-5 h-5 text-muted-foreground group-hover:text-gold transition-colors" />
         </a>
@@ -532,7 +532,7 @@ export default function VenuePage() {
                     <img src={v.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
                   )}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/80 to-transparent p-1.5">
-                    <p className="text-[9px] text-foreground font-medium truncate">{v.username || v.caption || ""}</p>
+                    <p className="text-2xs text-foreground font-medium truncate">{v.username || v.caption || ""}</p>
                   </div>
                 </Link>
               ))}
@@ -549,7 +549,7 @@ export default function VenuePage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gold">Tu gères cet établissement ?</p>
-              <p className="text-[11px] text-foreground/70">Rejoins Weshkech Partners · Boostez votre visibilité</p>
+              <p className="text-xs text-foreground/70">Rejoins Weshkech Partners · Boostez votre visibilité</p>
             </div>
             <ChevronR className="w-5 h-5 text-gold" />
           </Link>

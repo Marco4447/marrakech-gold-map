@@ -16,7 +16,7 @@ export default function BusinessHero({ onCtaClick }: { onCtaClick: () => void })
       >
         {/* Badge */}
         <div className="flex justify-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-[11px] font-semibold uppercase tracking-widest">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-xs font-semibold uppercase tracking-widest">
             <Sparkles className="w-3 h-3" />
             Application #1 — Marrakech Nightlife
           </span>
@@ -45,7 +45,7 @@ export default function BusinessHero({ onCtaClick }: { onCtaClick: () => void })
             Essayer gratuitement
             <ArrowRight className="w-4 h-4" />
           </motion.button>
-          <p className="text-[11px] text-gold/80 font-medium">🎁 15 crédits de visibilité offerts · Sans engagement</p>
+          <p className="text-xs text-gold/80 font-medium">🎁 15 crédits de visibilité offerts · Sans engagement</p>
         </div>
 
         {/* Mini social proof */}
@@ -58,7 +58,7 @@ export default function BusinessHero({ onCtaClick }: { onCtaClick: () => void })
             <div key={p.name} className="flex items-center gap-1.5 opacity-60">
               <img src={p.img} alt={p.name} className="w-6 h-6 rounded-full object-cover bg-card border border-border" 
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              <span className="text-[10px] text-muted-foreground font-medium">{p.name}</span>
+              <span className="text-2xs text-muted-foreground font-medium">{p.name}</span>
             </div>
           ))}
         </div>

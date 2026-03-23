@@ -20,7 +20,7 @@ function StatCard({ icon: Icon, label, value, delay = 0 }: { icon: any; label: s
     >
       <div className="flex items-center gap-2 text-muted-foreground">
         <Icon className="w-4 h-4 text-gold" />
-        <span className="text-[11px] uppercase tracking-wide">{label}</span>
+        <span className="text-xs uppercase tracking-wide">{label}</span>
       </div>
       <p className="text-2xl font-display font-black text-foreground">{value}</p>
     </motion.div>
@@ -74,11 +74,11 @@ export default function PartnerOverview({ userId, placeId, planType, credits }: 
       <div className="rounded-2xl border border-gold/20 bg-card/80 backdrop-blur-xl p-5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Plan actif</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Plan actif</p>
             <p className="text-lg font-display font-bold text-gold capitalize">{planType || "Aucun"}</p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Crédits</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Crédits</p>
             <p className="text-lg font-display font-bold text-foreground">{credits}</p>
           </div>
         </div>

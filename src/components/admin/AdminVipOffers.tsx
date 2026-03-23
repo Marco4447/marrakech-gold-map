@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Gift, Loader2, Plus, Trash2, ToggleLeft, ToggleRight, Clock, Users, Search } from "lucide-react";
@@ -95,7 +96,7 @@ export default function AdminVipOffers() {
       limit_per_user: parseInt(form.limit_per_user) || 1,
       created_by: user!.id,
     });
-    if (error) { toast.error("Erreur"); console.error(error); }
+    if (error) { toast.error("Erreur"); reportError(error, { context: "AdminVipOffers" }); }
     else {
       toast.success("Offre VIP créée !");
       setForm({ place_id: "", title: "", description: "", perk_type: "drink", start_time: "", end_time: "", max_redemptions: "", limit_per_user: "1" });
@@ -172,13 +173,13 @@ export default function AdminVipOffers() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-muted-foreground mb-0.5 block">Début</label>
+                <label className="text-2xs text-muted-foreground mb-0.5 block">Début</label>
                 <input type="datetime-local" value={form.start_time}
                   onChange={(e) => setForm({ ...form, start_time: e.target.value })}
                   className="w-full text-xs bg-surface border border-border rounded-lg px-2 py-1.5 text-foreground" />
               </div>
               <div>
-                <label className="text-[10px] text-muted-foreground mb-0.5 block">Fin</label>
+                <label className="text-2xs text-muted-foreground mb-0.5 block">Fin</label>
                 <input type="datetime-local" value={form.end_time}
                   onChange={(e) => setForm({ ...form, end_time: e.target.value })}
                   className="w-full text-xs bg-surface border border-border rounded-lg px-2 py-1.5 text-foreground" />
@@ -186,14 +187,14 @@ export default function AdminVipOffers() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-muted-foreground mb-0.5 block">Max validations</label>
+                <label className="text-2xs text-muted-foreground mb-0.5 block">Max validations</label>
                 <input type="number" value={form.max_redemptions}
                   onChange={(e) => setForm({ ...form, max_redemptions: e.target.value })}
                   placeholder="Illimité"
                   className="w-full text-xs bg-surface border border-border rounded-lg px-2 py-1.5 text-foreground placeholder:text-muted-foreground" />
               </div>
               <div>
-                <label className="text-[10px] text-muted-foreground mb-0.5 block">Limite / personne</label>
+                <label className="text-2xs text-muted-foreground mb-0.5 block">Limite / personne</label>
                 <input type="number" value={form.limit_per_user}
                   onChange={(e) => setForm({ ...form, limit_per_user: e.target.value })}
                   className="w-full text-xs bg-surface border border-border rounded-lg px-2 py-1.5 text-foreground" />
@@ -220,9 +221,9 @@ export default function AdminVipOffers() {
               <span className="text-xl">{PERK_TYPES.find((p) => p.key === offer.perk_type)?.emoji || "🎁"}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground">{offer.title}</p>
-                <p className="text-[10px] text-gold font-medium">{offer.place_name}</p>
+                <p className="text-2xs text-gold font-medium">{offer.place_name}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{offer.description}</p>
-                <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                <div className="flex items-center gap-3 mt-2 text-2xs text-muted-foreground">
                   {offer.end_time && (
                     <span className="flex items-center gap-0.5">
                       <Clock className="w-3 h-3" />

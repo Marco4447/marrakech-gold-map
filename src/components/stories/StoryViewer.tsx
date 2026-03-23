@@ -254,7 +254,7 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
 
   return (
     <div
-      className="fixed inset-0 z-[9999] bg-black select-none overflow-hidden"
+      className="fixed inset-0 z-fullscreen bg-black select-none overflow-hidden"
       style={{ perspective: "1200px" }}
     >
       <AnimatePresence mode="popLayout" custom={slideDirection} initial={false}>
@@ -306,17 +306,18 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
               )}
               <div>
                 <div className="flex items-center gap-1.5">
-                  <p className="text-[13px] font-semibold text-white">{group.name}</p>
+                  <p className="text-sm font-semibold text-white">{group.name}</p>
                   {badge && (
-                    <span className={`text-[8px] font-bold px-1.5 py-[1px] rounded-full text-white ${BADGE_COLORS[badge] || "bg-white/20"}`}>
+                    <span className={`text-2xs font-bold px-1.5 py-[1px] rounded-full text-white ${BADGE_COLORS[badge] || "bg-white/20"}`}>
                       {badge}
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-white/50">{timeAgo(story.created_at)}</p>
+                <p className="text-2xs text-white/50">{timeAgo(story.created_at)}</p>
               </div>
             </div>
             <button
+              aria-label="Fermer la story"
               onClick={(e) => { e.stopPropagation(); onClose(); }}
               onTouchEnd={(e) => { e.stopPropagation(); onClose(); }}
               className="p-2 z-30"
@@ -388,9 +389,9 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, onView
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white truncate">{story.place_name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    {story.place_category && <span className="text-[10px] text-white/60 capitalize">{story.place_category}</span>}
+                    {story.place_category && <span className="text-2xs text-white/60 capitalize">{story.place_category}</span>}
                     {story.place_rating && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-gold">
+                      <span className="flex items-center gap-0.5 text-2xs text-gold">
                         <Star className="w-2.5 h-2.5 fill-gold" /> {story.place_rating}
                       </span>
                     )}

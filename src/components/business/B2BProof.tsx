@@ -64,7 +64,7 @@ export default function B2BProof() {
                 ))}
               </div>
               <p className="text-sm text-foreground leading-relaxed italic">"{item.text}"</p>
-              <span className="inline-block text-[10px] font-bold text-gold bg-gold/10 border border-gold/20 px-2.5 py-1 rounded-full">
+              <span className="inline-block text-2xs font-bold text-gold bg-gold/10 border border-gold/20 px-2.5 py-1 rounded-full">
                 📈 {item.stat}
               </span>
               <div className="flex items-center gap-3 pt-1">
@@ -76,7 +76,7 @@ export default function B2BProof() {
                 />
                 <div>
                   <p className="text-xs font-bold text-foreground">{item.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{item.role}</p>
+                  <p className="text-2xs text-muted-foreground">{item.role}</p>
                 </div>
               </div>
             </motion.div>
@@ -107,7 +107,7 @@ export default function B2BProof() {
             <div key={label} className="text-center p-3 rounded-xl bg-surface-elevated border border-border">
               <Icon className="w-4 h-4 text-gold mx-auto mb-1" />
               <p className="text-lg font-display font-black text-foreground">{value}</p>
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{label}</p>
+              <p className="text-2xs uppercase tracking-widest text-muted-foreground">{label}</p>
             </div>
           ))}
         </div>

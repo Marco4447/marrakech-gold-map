@@ -105,7 +105,7 @@ export default function UnifiedSearch({ onSelectPlace, onSelectUser }: UnifiedSe
           className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-card border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold/40 transition-colors"
         />
         {query && (
-          <button onClick={() => { setQuery(""); setResults([]); inputRef.current?.focus(); }} className="absolute right-3">
+          <button aria-label="Effacer la recherche" onClick={() => { setQuery(""); setResults([]); inputRef.current?.focus(); }} className="absolute right-3">
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
         )}
@@ -117,7 +117,7 @@ export default function UnifiedSearch({ onSelectPlace, onSelectUser }: UnifiedSe
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="absolute top-full mt-1.5 left-0 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-[250] max-h-[50dvh] overflow-y-auto"
+            className="absolute top-full mt-1.5 left-0 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-dropdown max-h-[50dvh] overflow-y-auto"
           >
             {results.map((r) => (
               <button
@@ -143,9 +143,9 @@ export default function UnifiedSearch({ onSelectPlace, onSelectUser }: UnifiedSe
                     {r.isVip && <Crown className="w-3 h-3 text-gold" />}
                   </p>
                   {r.subtitle && (
-                    <p className="text-[10px] text-muted-foreground truncate">{r.subtitle}</p>
+                    <p className="text-2xs text-muted-foreground truncate">{r.subtitle}</p>
                   )}
-                  <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wider">
+                  <p className="text-2xs text-muted-foreground/70 uppercase tracking-wider">
                     {r.type === "place" ? "Lieu" : "Utilisateur"}
                   </p>
                 </div>

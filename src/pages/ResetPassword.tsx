@@ -58,7 +58,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-fullscreen bg-background flex flex-col items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
         <img src={heroImage} alt="Marrakech" className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />

@@ -69,7 +69,7 @@ export default function EventsPage() {
           .order("time", { ascending: true });
 
         if (error) {
-          console.error("Error fetching events:", error);
+         
           setEvents([]);
         } else {
           const mapped: Event[] = (data || []).map((row: any) => ({
@@ -86,7 +86,7 @@ export default function EventsPage() {
           setEvents(mapped);
         }
       } catch (err) {
-        console.error("Failed to fetch events:", err);
+       
         setEvents([]);
       } finally {
         setLoading(false);
@@ -133,7 +133,7 @@ export default function EventsPage() {
                     : "bg-white/5 text-white/60 hover:bg-white/10"
                 }`}
               >
-                <span className="text-[10px] font-medium uppercase">
+                <span className="text-2xs font-medium uppercase">
                   {isToday ? "Auj" : DAY_NAMES[day.getDay()]}
                 </span>
                 <span className="text-lg font-bold leading-tight">{day.getDate()}</span>
@@ -225,7 +225,7 @@ export default function EventsPage() {
                           </span>
                         </div>
                         <span
-                          className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${typeInfo.color}`}
+                          className={`text-2xs font-medium px-2 py-0.5 rounded-full ${typeInfo.color}`}
                         >
                           {typeInfo.emoji} {typeInfo.label}
                         </span>

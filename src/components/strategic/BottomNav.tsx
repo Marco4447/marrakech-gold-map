@@ -34,7 +34,7 @@ export default function BottomNav({
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="fixed bottom-0 left-0 right-0 z-[2000]"
+      className="fixed bottom-0 left-0 right-0 z-nav"
     >
       <div className="mx-4 mb-4">
         <div className="bg-surface/90 backdrop-blur-xl border border-border/60 rounded-2xl shadow-2xl shadow-black/40 p-2">
@@ -62,7 +62,7 @@ export default function BottomNav({
                     />
                   )}
                   <Icon className="w-5 h-5 relative z-10" />
-                  <span className="text-[10px] font-medium relative z-10">{item.label}</span>
+                  <span className="text-2xs font-medium relative z-10">{item.label}</span>
                 </motion.button>
               );
             })}

@@ -56,7 +56,7 @@ function HotPlacesDrawer({
     <motion.div
       initial={{ y: 100 }}
       animate={{ y: 0 }}
-      className="absolute bottom-0 left-0 right-0 z-[1000]"
+      className="absolute bottom-0 left-0 right-0 z-map-overlay"
     >
       <div className="mx-2 bg-surface/95 backdrop-blur-xl border border-border/60 rounded-t-2xl shadow-2xl shadow-black/40 overflow-hidden">
         {/* Handle bar */}
@@ -129,7 +129,7 @@ function HotPlacesDrawer({
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
                           </span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-2xs text-muted-foreground">
                             {place.vibeCount} live
                           </span>
                         </div>
@@ -158,7 +158,7 @@ export default function LiveRadarScreen() {
   return (
     <div className="relative h-screen w-full bg-background overflow-hidden">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] px-4 pt-12 pb-4 bg-gradient-to-b from-black/60 to-transparent">
+      <div className="absolute top-0 left-0 right-0 z-map-overlay px-4 pt-12 pb-4 bg-gradient-to-b from-black/60 to-transparent">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-xl font-semibold text-white">Radar Live</h1>
@@ -225,7 +225,7 @@ export default function LiveRadarScreen() {
                 
                 {/* Counter badge */}
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-background border-2 border-gold rounded-full flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-foreground">{place.vibeCount}</span>
+                  <span className="text-2xs font-bold text-foreground">{place.vibeCount}</span>
                 </span>
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function LiveRadarScreen() {
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 100 }}
-            className="absolute bottom-36 left-4 right-4 z-[1000]"
+            className="absolute bottom-36 left-4 right-4 z-map-overlay"
           >
             <div className="bg-surface/95 backdrop-blur-xl border border-border/60 rounded-2xl p-4 shadow-xl">
               <div className="flex items-center gap-3">
@@ -268,7 +268,7 @@ export default function LiveRadarScreen() {
                       {selectedPlace.name}
                     </h3>
                     {selectedPlace.isPartner && (
-                      <span className="px-1.5 py-0.5 bg-gold/20 text-gold text-[10px] font-medium rounded">
+                      <span className="px-1.5 py-0.5 bg-gold/20 text-gold text-2xs font-medium rounded">
                         PARTNER
                       </span>
                     )}

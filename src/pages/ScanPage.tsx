@@ -178,7 +178,7 @@ export default function ScanPage() {
         </button>
         <div>
           <h1 className="font-display text-lg font-bold text-foreground">Scanner VIP</h1>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {cameraMode ? "Pointez la caméra vers le QR code" : "Scannez les passes clients"}
           </p>
         </div>

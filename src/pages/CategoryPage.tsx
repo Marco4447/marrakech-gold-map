@@ -143,15 +143,15 @@ export default function CategoryPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-[var(--text-primary)] truncate">{p.name}</p>
-                    <p className="text-[10px] text-[var(--ochre)] uppercase tracking-wide">{p.neighborhood}</p>
+                    <p className="text-2xs text-[var(--ochre)] uppercase tracking-wide">{p.neighborhood}</p>
                     {p.description && <p className="text-xs text-[var(--text-muted)] line-clamp-2 mt-0.5">{p.description}</p>}
                     <div className="flex items-center gap-2 mt-1">
                       {p.rating && (
-                        <span className="flex items-center gap-0.5 text-[10px] text-[var(--ochre-light)]">
+                        <span className="flex items-center gap-0.5 text-2xs text-[var(--ochre-light)]">
                           <Star className="w-3 h-3 fill-[var(--ochre-light)] text-[var(--ochre-light)]" /> {p.rating}
                         </span>
                       )}
-                      {p.price_range && <span className="text-[10px] text-[var(--text-muted)]">{p.price_range}</span>}
+                      {p.price_range && <span className="text-2xs text-[var(--text-muted)]">{p.price_range}</span>}
                     </div>
                   </div>
                 </Link>
@@ -161,7 +161,7 @@ export default function CategoryPage() {
         )}
 
         {/* CTA */}
-        <Link to="/" className="block w-full py-3 rounded-xl text-center text-sm font-bold bg-[var(--ochre)] text-[#0E0904] uppercase tracking-wide active:scale-[0.97] transition-transform">
+        <Link to="/" className="block w-full py-3 rounded-xl text-center text-sm font-bold bg-[var(--ochre)] text-[var(--bg-primary)] uppercase tracking-wide active:scale-[0.97] transition-transform">
           Voir sur la carte
         </Link>
       </div>

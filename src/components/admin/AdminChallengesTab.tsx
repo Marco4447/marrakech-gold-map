@@ -86,7 +86,7 @@ export default function AdminChallengesTab() {
               setChTitle(""); setChDesc(""); setChEmoji("🏆"); setChDays("7");
               fetchChallenges();
             } catch (err) {
-              console.error(err);
+             
               toast.error("Erreur lors de la création");
             } finally { setSavingCh(false); }
           }}
@@ -116,16 +116,16 @@ export default function AdminChallengesTab() {
                     <span className="text-xl">{ch.emoji}</span>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">{ch.title}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-2xs text-muted-foreground">
                         {new Date(ch.start_date).toLocaleDateString("fr-FR")} → {new Date(ch.end_date).toLocaleDateString("fr-FR")}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {isActive && timeLeft && (
-                      <span className="text-[10px] font-semibold text-gold bg-gold/10 px-2 py-0.5 rounded-full">{timeLeft}</span>
+                      <span className="text-2xs font-semibold text-gold bg-gold/10 px-2 py-0.5 rounded-full">{timeLeft}</span>
                     )}
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-green-500/15 text-green-400" : "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-2xs font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-green-500/15 text-green-400" : "bg-muted text-muted-foreground"}`}>
                       {isActive ? "Actif" : "Terminé"}
                     </span>
                   </div>
@@ -145,7 +145,7 @@ export default function AdminChallengesTab() {
                           toast.success("Challenge clôturé !");
                           fetchChallenges();
                         } catch (err) {
-                          console.error(err);
+                         
                           toast.error("Erreur lors de la clôture");
                         }
                       }}

@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowLeft,
@@ -119,7 +120,7 @@ function VoiceMessagePlayer({ src, isMine }: { src: string; isMine: boolean }) {
         <div className="h-1 bg-white/20 rounded-full overflow-hidden">
           <div className="h-full bg-current rounded-full transition-all" style={{ width: `${progress * 100}%` }} />
         </div>
-        <span className="text-[9px] opacity-60">{duration > 0 ? fmt(playing ? progress * duration : duration) : "..."}</span>
+        <span className="text-2xs opacity-60">{duration > 0 ? fmt(playing ? progress * duration : duration) : "..."}</span>
       </div>
     </div>
   );
@@ -194,7 +195,7 @@ function ChatView({
           });
         }
       } catch (err) {
-        console.error("fetchMessages error:", err);
+       
         toast.error("Impossible de charger les messages");
       }
     },
@@ -209,7 +210,7 @@ function ChatView({
       setPage(nextPage);
       await fetchMessages(nextPage);
     } catch (err) {
-      console.error("loadMoreMessages error:", err);
+     
       toast.error("Impossible de charger plus de messages");
     } finally {
       setLoadingMore(false);
@@ -224,7 +225,7 @@ function ChatView({
         await markReadRef.current(conversation.id);
         setTimeout(() => inputRef.current?.focus(), 0);
       } catch (err) {
-        console.error("initial chat load error:", err);
+       
         toast.error("Impossible d'ouvrir la conversation");
       }
     };
@@ -274,7 +275,7 @@ function ChatView({
               await markReadRef.current(conversation.id);
             }
           } catch (err) {
-            console.error("realtime insert message error:", err);
+           
             toast.error("Erreur de synchronisation des messages");
           }
         }
@@ -321,7 +322,7 @@ function ChatView({
     const ext = file.name.split(".").pop() || "jpg";
     const path = `dm/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { error } = await supabase.storage.from("vibes_media").upload(path, file);
-    if (error) { console.error("Upload error:", error); return null; }
+    if (error) { reportError(error, { context: "DM image upload" }); toast.error("Échec de l'envoi de l'image"); return null; }
     const { data: { publicUrl } } = supabase.storage.from("vibes_media").getPublicUrl(path);
     return publicUrl;
   };
@@ -390,7 +391,7 @@ function ChatView({
         .eq("id", conversation.id);
 
       if (convoUpdateError) {
-        console.error("update conversation timestamp error:", convoUpdateError);
+       
       }
 
       // Notification silencieuse (intentionnel)
@@ -406,7 +407,7 @@ function ChatView({
         // intentionally silent
       }
     } catch (err) {
-      console.error("send message error:", err);
+     
       setMessages((prev) => prev.filter((message) => message.id !== tempId));
       setNewMessage(content);
       toast.error("Message non envoyé");
@@ -441,7 +442,7 @@ function ChatView({
 
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground truncate">{conversation.otherUserName}</p>
-            <p className="text-[11px] text-muted-foreground">Actif maintenant</p>
+            <p className="text-xs text-muted-foreground">Actif maintenant</p>
           </div>
         </div>
 
@@ -491,7 +492,7 @@ function ChatView({
             onClick={() => {
               void loadMoreMessages();
             }}
-            className="w-full text-center text-[11px] text-gold py-1.5 hover:opacity-80 transition-opacity"
+            className="w-full text-center text-xs text-gold py-1.5 hover:opacity-80 transition-opacity"
           >
             ↑ Voir les messages précédents
           </button>
@@ -513,7 +514,7 @@ function ChatView({
         {messageGroups.map(({ date, messages: dayMessages }) => (
           <div key={date} className="space-y-1.5">
             <div className="flex items-center justify-center py-1">
-              <span className="text-[10px] text-muted-foreground bg-card border border-border/60 px-3 py-1 rounded-full">
+              <span className="text-2xs text-muted-foreground bg-card border border-border/60 px-3 py-1 rounded-full">
                 {date}
               </span>
             </div>
@@ -558,7 +559,7 @@ function ChatView({
                               src={conversation.otherUserAvatar || undefined}
                               alt={conversation.otherUserName}
                             />
-                            <AvatarFallback className="bg-card text-foreground text-[10px]">
+                            <AvatarFallback className="bg-card text-foreground text-2xs">
                               {conversation.otherUserName.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
@@ -568,7 +569,7 @@ function ChatView({
 
                     <div className={`max-w-[78%] ${isMine ? "items-end" : "items-start"} flex flex-col`}>
                       <div
-                        className={`px-3 py-2 text-[13px] leading-relaxed break-words ${
+                        className={`px-3 py-2 text-sm leading-relaxed break-words ${
                           isMine ? "bg-foreground text-background" : "bg-card border border-border text-foreground"
                         }`}
                         style={{ borderRadius: bubbleRadius }}
@@ -596,7 +597,7 @@ function ChatView({
 
                       {isLastInGroup && (
                         <div className={`mt-0.5 px-1 flex items-center gap-1 ${isMine ? "justify-end" : "justify-start"}`}>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-2xs text-muted-foreground">
                             {isTemp ? "Envoi…" : formatMessageTime(message.created_at)}
                           </span>
                           {isMine && isLastSent && !isTemp && (
@@ -622,7 +623,7 @@ function ChatView({
         <div className="px-4 py-2 border-t border-border">
           <div className="relative inline-block">
             <img src={imagePreview} alt="Preview" className="h-16 rounded-lg" />
-            <button onClick={clearImage} className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[10px]">✕</button>
+            <button onClick={clearImage} className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-2xs">✕</button>
           </div>
         </div>
       )}
@@ -679,7 +680,7 @@ function ChatView({
             }}
             placeholder="Message…"
             maxLength={1000}
-            className="flex-1 bg-card border border-border/60 rounded-full px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold/40 transition-colors"
+            className="flex-1 bg-card border border-border/60 rounded-full px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold/40 transition-colors"
           />
 
           <AnimatePresence mode="wait" initial={false}>
@@ -793,7 +794,7 @@ function ConversationRow({
           </AvatarFallback>
         </Avatar>
         {hasUnread && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-foreground text-background text-[10px] font-bold flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-foreground text-background text-2xs font-bold flex items-center justify-center">
             {conversation.unreadCount > 9 ? "9+" : conversation.unreadCount}
           </span>
         )}
@@ -804,7 +805,7 @@ function ConversationRow({
           <p className={`truncate text-sm ${hasUnread ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>
             {conversation.otherUserName}
           </p>
-          <span className="text-[10px] text-muted-foreground shrink-0">
+          <span className="text-2xs text-muted-foreground shrink-0">
             {timeAgo(conversation.lastMessageAt)}
           </span>
         </div>
@@ -865,7 +866,7 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
           const filtered = (data || []).filter((profile: any) => profile.user_id !== user?.id);
           setSearchResults(filtered as unknown as SearchProfile[]);
         } catch (err) {
-          console.error("search users error:", err);
+         
           toast.error("Recherche impossible");
         } finally {
           setSearchLoading(false);
@@ -908,7 +909,7 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
         setSearchQuery("");
         setSearchResults([]);
       } catch (err) {
-        console.error("start chat error:", err);
+       
         toast.error("Impossible de démarrer la conversation");
       }
     },
@@ -937,7 +938,7 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
           setTimeout(() => document.getElementById("dm-search-input")?.focus(), 0);
         }
       } catch (err) {
-        console.error("open dm detail error:", err);
+       
         toast.error("Impossible d'ouvrir cette conversation");
       }
     },
@@ -978,7 +979,7 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
       const detail = JSON.parse(pending) as OpenDmDetail;
       void openFromDetail(detail);
     } catch (err) {
-      console.error("pending dm parse error:", err);
+     
       toast.error("Impossible d'ouvrir ce message");
     }
   }, [openFromDetail, user]);
@@ -1103,7 +1104,7 @@ export default function MessagesPage({ onBack }: { onBack: () => void }) {
                       <p className="text-sm font-medium text-foreground truncate">
                         {profile.full_name || "Utilisateur"}
                       </p>
-                      <p className="text-[11px] text-muted-foreground">Envoyer un message</p>
+                      <p className="text-xs text-muted-foreground">Envoyer un message</p>
                     </div>
 
                     <MessageCircle className="w-4 h-4 text-muted-foreground" />

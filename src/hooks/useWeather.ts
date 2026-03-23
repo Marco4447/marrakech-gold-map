@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useState, useEffect } from "react";
 
 interface Weather {
@@ -82,7 +83,7 @@ export function useWeather() {
           localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
         } catch {}
       } catch (err) {
-        console.warn("Weather fetch failed:", err);
+        reportError(err, { context: "Weather fetch" });
         // Fallback
         setWeather({ temp: 26, description: "Ensoleillé", icon: "☀️", isRainy: false, isHot: true, isCool: false });
       } finally {

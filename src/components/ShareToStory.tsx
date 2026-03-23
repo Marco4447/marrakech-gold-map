@@ -132,7 +132,7 @@ export default function ShareToStory({ imageUrl, placeName, caption, vibeId, spo
         toast.success("Image téléchargée !");
       }
     } catch (err) {
-      console.error("Share error:", err);
+     
       toast.error("Impossible de générer l'image");
     } finally {
       setGenerating(false);
@@ -143,7 +143,7 @@ export default function ShareToStory({ imageUrl, placeName, caption, vibeId, spo
     <button
       onClick={generate}
       disabled={generating}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-[#833AB4] via-[#E1306C] to-[#F77737] text-white text-[10px] font-bold active:scale-95 transition-transform disabled:opacity-50"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-[#833AB4] via-[#E1306C] to-[#F77737] text-white text-2xs font-bold active:scale-95 transition-transform disabled:opacity-50"
     >
       {generating ? (
         <div className="w-3 h-3 border-[1.5px] border-white border-t-transparent rounded-full animate-spin" />

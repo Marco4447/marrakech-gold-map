@@ -77,7 +77,7 @@ export default function VibeCheck({ placeId, placeName }: VibeCheckProps) {
 
       setVotes(counts);
     } catch {
-      console.error("Failed to fetch vibe checks");
+     
     } finally {
       setLoading(false);
     }
@@ -171,7 +171,7 @@ export default function VibeCheck({ placeId, placeName }: VibeCheckProps) {
                 {mood.label}
               </span>
               {totalVotes > 0 && (
-                <span className="text-[10px] text-foreground/40 relative z-10">
+                <span className="text-2xs text-foreground/40 relative z-10">
                   {voteCount}
                 </span>
               )}

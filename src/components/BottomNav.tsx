@@ -31,7 +31,7 @@ export default function BottomNav({ active, onChange, onCreatePress, unreadMessa
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[2000] bg-background/95 backdrop-blur-xl border-t border-border/50" aria-label="Navigation principale" role="tablist">
+    <nav className="fixed bottom-0 left-0 right-0 z-nav bg-background/95 backdrop-blur-xl border-t border-border/50" aria-label="Navigation principale" role="tablist">
       <div className="flex items-center justify-around h-12">
         {tabBtn("feed", <Home className={iconClass(active === "feed")} strokeWidth={active === "feed" ? 2.5 : 1.5} />, "Feed")}
         {tabBtn("map", <Map className={iconClass(active === "map")} strokeWidth={active === "map" ? 2.5 : 1.5} />, "Carte")}

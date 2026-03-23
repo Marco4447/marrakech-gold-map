@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Check, QrCode, Loader2, MessageCircle, Send } from "lucide-react";
@@ -32,7 +33,7 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
     try {
       const { data: { user } } = await supabase.auth.getUser();
       await supabase.from("bookings").insert({ place_name: placeName, amount: 0, status: "free_pass", user_id: user?.id });
-    } catch (e) { console.error("Booking error:", e); }
+    } catch (e) { reportError(e, { context: "Booking error" }); toast.error("Erreur lors de la réservation"); }
     setTimeout(() => { setProcessing(false); setStep("success"); }, 1000);
   };
 
@@ -45,8 +46,8 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
     <AnimatePresence>
       {open && (
         <>
-          <motion.div className="fixed inset-0 bg-background/70 backdrop-blur-md z-[2000]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleClose} />
-          <motion.div className="fixed inset-x-0 bottom-0 z-[2001] max-h-[85vh]" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 300 }}>
+          <motion.div className="fixed inset-0 bg-background/70 backdrop-blur-md z-nav" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleClose} />
+          <motion.div className="fixed inset-x-0 bottom-0 z-nav max-h-[85vh]" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 300 }}>
             <div className="bg-card rounded-t-3xl border-t border-border shadow-2xl">
               <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 rounded-full bg-muted-foreground/30" /></div>
               <div className="px-6 pb-8">
@@ -54,7 +55,7 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                   <>
                     <div className="flex items-center justify-between mb-5">
                       <h2 className="font-display text-lg font-semibold text-foreground">{t("deal_guestPass")}</h2>
-                      <button onClick={handleClose} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
+                      <button aria-label="Fermer" onClick={handleClose} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
                     </div>
                     <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 mb-5 space-y-1.5">
                       <p className="text-xs text-foreground font-medium">{t("deal_freeYouGet")}</p>
@@ -70,7 +71,7 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                     <button onClick={handleSubmit} disabled={processing || !email.includes("@")} className="w-full bg-gold hover:bg-gold-light disabled:opacity-40 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2">
                       {processing ? <><Loader2 className="w-4 h-4 animate-spin" />{t("deal_generating")}</> : t("deal_getPass")}
                     </button>
-                    <p className="text-[10px] text-muted-foreground text-center mt-3">{t("deal_noPayment")}</p>
+                    <p className="text-2xs text-muted-foreground text-center mt-3">{t("deal_noPayment")}</p>
                   </>
                 ) : (
                   <div className="text-center py-4">
@@ -79,11 +80,11 @@ export default function DealTunnel({ open, onOpenChange, placeName }: DealTunnel
                     <p className="text-sm text-gold font-medium mb-0.5">{displayName}</p>
                     <p className="text-sm text-muted-foreground mb-3">{t("deal_confirmSent")} <span className="text-gold font-medium">{displayEmail}</span></p>
                     <div className="bg-foreground rounded-2xl p-4 w-48 h-48 mx-auto mb-3 flex items-center justify-center">
-                      <div className="relative"><QrCode className="w-32 h-32 text-background" /><div className="absolute inset-0 flex items-center justify-center"><div className="w-8 h-8 bg-gold rounded-md flex items-center justify-center"><span className="text-primary-foreground font-bold text-[10px]">WK</span></div></div></div>
+                      <div className="relative"><QrCode className="w-32 h-32 text-background" /><div className="absolute inset-0 flex items-center justify-center"><div className="w-8 h-8 bg-gold rounded-md flex items-center justify-center"><span className="text-primary-foreground font-bold text-2xs">WK</span></div></div></div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-3">{t("deal_showPass")} {placeName}</p>
                     <div className="bg-gold/5 border border-gold/15 rounded-xl p-3 mb-4 text-left">
-                      <p className="text-[11px] text-muted-foreground leading-relaxed"><span className="text-gold font-medium">⚡ {t("deal_prelaunch")}</span> — {t("deal_prelaunchDesc")}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed"><span className="text-gold font-medium">⚡ {t("deal_prelaunch")}</span> — {t("deal_prelaunchDesc")}</p>
                     </div>
                     {!showFeedback && !feedbackSent && (
                       <button onClick={() => setShowFeedback(true)} className="w-full bg-gold/10 hover:bg-gold/20 text-gold font-medium py-3 rounded-xl transition-colors border border-gold/20 flex items-center justify-center gap-2 mb-3"><MessageCircle className="w-4 h-4" />{t("deal_feedback")}</button>

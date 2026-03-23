@@ -59,13 +59,13 @@ export default function AuthGate() {
 
       if (result?.error) {
         const errMsg = result.error instanceof Error ? result.error.message : String(result.error);
-        console.error("Google OAuth error:", errMsg, { origin: window.location.origin });
+       
         setError(`Erreur Google : ${errMsg}`);
         setLoading(false);
       }
       // If redirected, page will navigate away — don't setLoading(false)
     } catch (e) {
-      console.error("Google OAuth exception:", e);
+     
       setError(`Erreur Google : ${e instanceof Error ? e.message : String(e)}`);
       setLoading(false);
     }
@@ -126,7 +126,7 @@ export default function AuthGate() {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-fullscreen bg-background flex flex-col items-center justify-center overflow-hidden">
       {/* Background image */}
       <div className="absolute inset-0">
         <img src={heroImage} alt="Marrakech" className="w-full h-full object-cover opacity-30" />
@@ -160,7 +160,7 @@ export default function AuthGate() {
           ].map((p, i) => (
             <motion.div key={p.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 + i * 0.1 }} className="flex flex-col items-center gap-1">
               <div className="w-12 h-12 rounded-2xl bg-surface border border-border flex items-center justify-center text-lg">{p.icon}</div>
-              <span className="text-[10px] text-muted-foreground font-medium">{p.label}</span>
+              <span className="text-2xs text-muted-foreground font-medium">{p.label}</span>
             </motion.div>
           ))}
         </div>
@@ -183,11 +183,11 @@ export default function AuthGate() {
                 <h3 className="text-[15px] font-bold text-foreground text-center">
                   Connexion Google impossible
                 </h3>
-                <p className="text-[13px] text-muted-foreground text-center leading-relaxed">
+                <p className="text-sm text-muted-foreground text-center leading-relaxed">
                   La connexion via Google n'a pas abouti. Pas de panique, inscris-toi par email — c'est tout aussi rapide !
                 </p>
                 {oauthErrorDetail && (
-                  <p className="text-[10px] text-muted-foreground/60 text-center font-mono break-all">
+                  <p className="text-2xs text-muted-foreground/60 text-center font-mono break-all">
                     Détail : {oauthErrorDetail}
                   </p>
                 )}
@@ -200,7 +200,7 @@ export default function AuthGate() {
                 <Mail className="w-4 h-4" />
                 Continuer par email
               </button>
-              <p className="text-[10px] text-muted-foreground text-center">
+              <p className="text-2xs text-muted-foreground text-center">
                 ⚡ On t'envoie un code à 6 chiffres. Pas de mot de passe.
               </p>
             </motion.div>
@@ -237,14 +237,14 @@ export default function AuthGate() {
 
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-border" />
-                    <span className="text-[11px] text-muted-foreground">ou par email</span>
+                    <span className="text-xs text-muted-foreground">ou par email</span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
                 </>
               )}
 
               {googleDisabled && (
-                <p className="text-[11px] text-destructive/70 text-center bg-destructive/5 rounded-xl py-2 px-3 border border-destructive/10">
+                <p className="text-xs text-destructive/70 text-center bg-destructive/5 rounded-xl py-2 px-3 border border-destructive/10">
                   ⚠️ Google indisponible — continue par email ci-dessous
                 </p>
               )}
@@ -277,7 +277,7 @@ export default function AuthGate() {
                   </>
                 )}
               </button>
-              <p className="text-[10px] text-muted-foreground text-center">
+              <p className="text-2xs text-muted-foreground text-center">
                 ⚡ On t'envoie un code. Pas de mot de passe.
               </p>
             </motion.div>
@@ -289,7 +289,7 @@ export default function AuthGate() {
               exit={{ opacity: 0, x: -20 }}
               className="w-full space-y-4"
             >
-              <p className="text-[13px] text-foreground text-center font-medium">
+              <p className="text-sm text-foreground text-center font-medium">
                 📩 Code envoyé à {email}
               </p>
               <div className="flex justify-center">
@@ -326,7 +326,7 @@ export default function AuthGate() {
 
         {error && <p className="text-[12px] text-destructive text-center mt-3">{error}</p>}
 
-        <p className="text-[10px] text-muted-foreground mt-5 leading-relaxed max-w-[280px]">
+        <p className="text-2xs text-muted-foreground mt-5 leading-relaxed max-w-[280px]">
           En continuant, vous acceptez nos{" "}
           <Link to="/terms" className="text-gold hover:underline">Conditions Générales</Link>
           {" "}et notre{" "}
@@ -334,7 +334,7 @@ export default function AuthGate() {
         </p>
         <div className="flex items-center gap-1.5 mt-3">
           <Sparkles className="w-3 h-3 text-gold/50" />
-          <span className="text-[10px] text-muted-foreground">100% gratuit · Accès instantané</span>
+          <span className="text-2xs text-muted-foreground">100% gratuit · Accès instantané</span>
         </div>
       </motion.div>
     </div>

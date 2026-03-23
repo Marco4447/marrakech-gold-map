@@ -177,7 +177,7 @@ export default function NeighborhoodPage() {
             <div className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-4">
               <div className="text-center">
                 <p className="text-xl font-bold text-foreground">{recentVibes.length}</p>
-                <p className="text-[10px] text-muted-foreground">vibes 3h</p>
+                <p className="text-2xs text-muted-foreground">vibes 3h</p>
               </div>
               {dominantMood && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20">
@@ -214,9 +214,9 @@ export default function NeighborhoodPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
                     <div className="absolute bottom-0 inset-x-0 p-2">
                       <p className="text-xs font-bold text-foreground truncate">{place.name}</p>
-                      {place.category && <p className="text-[10px] text-muted-foreground truncate">{place.category}</p>}
+                      {place.category && <p className="text-2xs text-muted-foreground truncate">{place.category}</p>}
                       {place.is_partner && (
-                        <span className="text-[9px] font-bold text-gold">⭐ Partenaire</span>
+                        <span className="text-2xs font-bold text-gold">⭐ Partenaire</span>
                       )}
                     </div>
                   </div>

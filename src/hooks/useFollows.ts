@@ -26,7 +26,7 @@ export function useFollows() {
       setFollowerCount(followerRes.count || 0);
       setFollowingCount(followingCountRes.count || 0);
     } catch (err) {
-      console.error("Error fetching follows:", err);
+     
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export function useFollows() {
         }
       }
     } catch (err: unknown) {
-      console.error("Follow toggle error:", err);
+     
       toast.error("Erreur lors du suivi");
       // Revert optimistic update
       setFollowingIds(prev => {

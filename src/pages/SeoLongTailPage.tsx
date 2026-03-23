@@ -117,7 +117,7 @@ export default function SeoLongTailPage() {
           </button>
           <div>
             <h1 className="font-display text-base font-black text-[var(--text-primary)]">Meilleur {cat.label} à {hood}</h1>
-            <p className="text-[10px] text-[var(--text-muted)]">Marrakech · Adresses locales</p>
+            <p className="text-2xs text-[var(--text-muted)]">Marrakech · Adresses locales</p>
           </div>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function SeoLongTailPage() {
         </motion.div>
 
         {/* Breadcrumb */}
-        <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
+        <div className="flex items-center gap-1 text-2xs text-[var(--text-muted)]">
           <Link to="/" className="hover:text-[var(--ochre)]">Accueil</Link>
           <span>›</span>
           <Link to={`/quartier/${parsed!.hoodKey}`} className="hover:text-[var(--ochre)]">{hood}</Link>
@@ -166,12 +166,12 @@ export default function SeoLongTailPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-bold text-[var(--text-primary)] truncate">{p.name}</p>
-                      {i < 3 && <span className="text-[10px] text-[var(--ochre)] font-bold">#{i + 1}</span>}
+                      {i < 3 && <span className="text-2xs text-[var(--ochre)] font-bold">#{i + 1}</span>}
                     </div>
                     {p.description && <p className="text-xs text-[var(--text-muted)] line-clamp-2 mt-0.5">{p.description}</p>}
                     <div className="flex items-center gap-2 mt-1">
-                      {p.rating && <span className="flex items-center gap-0.5 text-[10px] text-[var(--ochre-light)]"><Star className="w-3 h-3 fill-[var(--ochre-light)] text-[var(--ochre-light)]" /> {p.rating}</span>}
-                      {p.price_range && <span className="text-[10px] text-[var(--text-muted)]">{p.price_range}</span>}
+                      {p.rating && <span className="flex items-center gap-0.5 text-2xs text-[var(--ochre-light)]"><Star className="w-3 h-3 fill-[var(--ochre-light)] text-[var(--ochre-light)]" /> {p.rating}</span>}
+                      {p.price_range && <span className="text-2xs text-[var(--text-muted)]">{p.price_range}</span>}
                     </div>
                   </div>
                 </Link>
@@ -180,13 +180,13 @@ export default function SeoLongTailPage() {
           </div>
         )}
 
-        <Link to="/" className="block w-full py-3 rounded-xl text-center text-sm font-bold bg-[var(--ochre)] text-[#0E0904] uppercase tracking-wide active:scale-[0.97] transition-transform">
+        <Link to="/" className="block w-full py-3 rounded-xl text-center text-sm font-bold bg-[var(--ochre)] text-[var(--bg-primary)] uppercase tracking-wide active:scale-[0.97] transition-transform">
           Voir sur la carte
         </Link>
 
         {/* Related links */}
         <div className="space-y-2 pt-4 border-t border-[var(--border-subtle)]">
-          <p className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold">Autres quartiers</p>
+          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] font-semibold">Autres quartiers</p>
           <div className="flex gap-2 flex-wrap">
             {Object.entries(HOOD_MAP).filter(([k]) => k !== parsed!.hoodKey).map(([k, v]) => (
               <Link key={k} to={`/meilleur-${parsed!.catKey}-${k}-marrakech`}

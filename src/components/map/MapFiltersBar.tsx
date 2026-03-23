@@ -27,10 +27,10 @@ export default function MapFiltersBar({ activeFilter, onFilterChange }: MapFilte
     <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
       <button
         onClick={() => onFilterChange(null)}
-        className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
+        className={`px-2.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
           activeFilter === null
-            ? "bg-[#C8821E] text-[#120B05] shadow-md shadow-[#C8821E]/30"
-            : "bg-card/90 backdrop-blur-md text-[rgba(245,237,216,0.6)] border border-[rgba(200,130,30,0.3)]"
+            ? "bg-[var(--ochre)] text-[var(--bg-primary)] shadow-md shadow-[var(--ochre)]/30"
+            : "bg-card/90 backdrop-blur-md text-[var(--text-secondary)] border border-[rgba(200,130,30,0.3)]"
         }`}
       >
         Tous
@@ -39,14 +39,14 @@ export default function MapFiltersBar({ activeFilter, onFilterChange }: MapFilte
         <button
           key={f.key}
           onClick={() => onFilterChange(activeFilter === f.key ? null : f.key)}
-          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
+          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
             activeFilter === f.key
               ? f.key === "partners"
-                ? "bg-[#C44A2A] text-[#F5EDD8] font-bold shadow-md shadow-[#C44A2A]/30"
+                ? "bg-[var(--terracotta)] text-[var(--text-primary)] font-bold shadow-md shadow-[var(--terracotta)]/30"
                 : f.key === "open"
-                  ? "bg-[var(--ochre)] text-[#0E0904] font-bold shadow-md shadow-[var(--ochre)]/30"
-                  : "bg-[#C8821E] text-[#120B05] shadow-md shadow-[#C8821E]/30"
-              : "bg-card/90 backdrop-blur-md text-[rgba(245,237,216,0.6)] border border-[rgba(200,130,30,0.3)]"
+                  ? "bg-[var(--ochre)] text-[var(--bg-primary)] font-bold shadow-md shadow-[var(--ochre)]/30"
+                  : "bg-[var(--ochre)] text-[var(--bg-primary)] shadow-md shadow-[var(--ochre)]/30"
+              : "bg-card/90 backdrop-blur-md text-[var(--text-secondary)] border border-[rgba(200,130,30,0.3)]"
           }`}
         >
           <span className="text-xs leading-none">{f.emoji}</span>

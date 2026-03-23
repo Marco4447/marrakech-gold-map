@@ -22,7 +22,8 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   const { t, lang } = useLanguage();
 
   useEffect(() => {
-    supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
+    supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count, error }) => {
+      if (error) return;
       setInsiderCount(count ?? 0);
     });
   }, []);
@@ -48,12 +49,12 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
 
       if (result?.error) {
         const errMsg = result.error instanceof Error ? result.error.message : String(result.error);
-        console.error("Google OAuth error:", errMsg);
+       
         setError(`Erreur Google : ${errMsg}`);
         setLoading(false);
       }
     } catch (e) {
-      console.error("Google OAuth exception:", e);
+     
       setError(`Erreur Google : ${e instanceof Error ? e.message : String(e)}`);
       setLoading(false);
     }
@@ -102,7 +103,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
   return (
     <motion.div
       ref={ref}
-      className="fixed inset-0 z-[3000] flex flex-col items-center bg-black overflow-y-auto overflow-x-hidden"
+      className="fixed inset-0 z-modal flex flex-col items-center bg-black overflow-y-auto overflow-x-hidden"
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
@@ -132,7 +133,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
             transition={{ delay: 0.2, duration: 0.5 }}
             className="flex justify-center"
           >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/[0.1] text-[11px] font-medium tracking-[0.15em] uppercase text-white/70">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/[0.1] text-xs font-medium tracking-[0.15em] uppercase text-white/70">
               <Lock className="w-3 h-3" />
               {t("landing_privateAccess")}
             </span>
@@ -147,7 +148,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
             <h1 className="text-[22px] sm:text-[26px] font-bold text-white leading-[1.2] tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
               {t("landing_headline")}
             </h1>
-            <p className="text-[13px] sm:text-[14px] text-white/50 leading-relaxed">
+            <p className="text-sm sm:text-[14px] text-white/50 leading-relaxed">
               {t("landing_headlineDesc")}
             </p>
           </motion.div>
@@ -182,7 +183,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
 
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-px bg-white/[0.08]" />
-                  <span className="text-[11px] text-white/30">{t("landing_orByEmail")}</span>
+                  <span className="text-xs text-white/30">{t("landing_orByEmail")}</span>
                   <div className="flex-1 h-px bg-white/[0.08]" />
                 </div>
 
@@ -213,7 +214,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
                 <button
                   onClick={handleEmailSignup}
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-white/[0.08] border border-white/[0.1] text-white/70 font-medium text-[13px] transition-all active:scale-[0.98] disabled:opacity-60 hover:bg-white/[0.12] hover:text-white"
+                  className="w-full py-3 rounded-xl bg-white/[0.08] border border-white/[0.1] text-white/70 font-medium text-sm transition-all active:scale-[0.98] disabled:opacity-60 hover:bg-white/[0.12] hover:text-white"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t("landing_signUpEmail")}
                 </button>
@@ -247,7 +248,7 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
             </span>
-            <span className="text-[11px] text-white/60">
+            <span className="text-xs text-white/60">
               {t("landing_joinInsiders")} <span className="text-white/80 font-medium">+{insiderCount !== null ? insiderCount : "…"}</span> {t("landing_insidersPresent")}
             </span>
           </motion.div>
@@ -262,10 +263,10 @@ const LandingPage = forwardRef<HTMLDivElement, LandingPageProps>(({ onEnter }, r
         transition={{ delay: 1, duration: 0.5 }}
         className="relative mt-8 mb-8 left-0 right-0 text-center space-y-1.5 z-10"
       >
-        <p className="text-[10px] text-white/20">
+        <p className="text-2xs text-white/20">
           {t("landing_copyright")}
         </p>
-        <p className="text-[9px] text-white/15">
+        <p className="text-2xs text-white/15">
           <Link to="/terms" className="underline hover:text-white/30">{t("landing_conditions")}</Link>
           {" · "}
           <Link to="/privacy" className="underline hover:text-white/30">{t("landing_confidentiality")}</Link>

@@ -254,11 +254,11 @@ const Index = () => {
 
   // Messages overlay — rendered as a layer on top, with BottomNav still accessible
   const messagesOverlay = showMessages && user ? (
-    <div className="fixed inset-0 z-[200] bg-background flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-dropdown bg-background flex flex-col overflow-hidden">
       <div className="flex-1 overflow-hidden pb-16">
         <MessagesPage onBack={() => setShowMessages(false)} />
       </div>
-      <div className="fixed bottom-0 left-0 right-0 z-[201]">
+      <div className="fixed bottom-0 left-0 right-0 z-dropdown">
         <BottomNav
           active={activeTab}
           onChange={(tab) => {
@@ -359,7 +359,7 @@ const Index = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 3, duration: 0.5 }}
-            className="fixed bottom-20 left-3 right-3 z-[100] md:left-auto md:right-4 md:bottom-4 md:max-w-sm"
+            className="fixed bottom-20 left-3 right-3 z-controls md:left-auto md:right-4 md:bottom-4 md:max-w-sm"
           >
             <div className="bg-card/95 backdrop-blur-xl border border-gold/30 rounded-2xl px-4 py-3 shadow-2xl shadow-gold/10 flex items-center gap-3 relative">
               <button
@@ -368,7 +368,7 @@ const Index = () => {
               >✕</button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground truncate">Crée ton compte gratuit</p>
-                <p className="text-[11px] text-muted-foreground">Poste, like, et débloque les avantages VIP</p>
+                <p className="text-xs text-muted-foreground">Poste, like, et débloque les avantages VIP</p>
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
                 <button
@@ -378,7 +378,7 @@ const Index = () => {
                 >
                   S'inscrire
                 </button>
-                <a href="/business" className="text-[10px] text-gold text-center font-medium">
+                <a href="/business" className="text-2xs text-gold text-center font-medium">
                   Établissement →
                 </a>
               </div>
@@ -447,7 +447,7 @@ const Index = () => {
 
       {/* Header: Language toggle + notifications bell + info (mobile only) */}
       {!isGuest && (
-        <div className="fixed top-4 right-4 z-[100] flex items-center gap-2 md:hidden">
+        <div className="fixed top-4 right-4 z-controls flex items-center gap-2 md:hidden">
           <button
             onClick={() => {
               markAllRead();
@@ -458,7 +458,7 @@ const Index = () => {
           >
             <Bell className="w-4 h-4 text-foreground" />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-2xs font-bold text-destructive-foreground">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -474,7 +474,7 @@ const Index = () => {
         </div>
       )}
       {isGuest && (
-        <div className="fixed top-4 right-4 z-[100] md:hidden">
+        <div className="fixed top-4 right-4 z-controls md:hidden">
           <LanguageToggle variant="icon" />
         </div>
       )}

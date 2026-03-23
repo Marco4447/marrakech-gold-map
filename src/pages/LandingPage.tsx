@@ -198,10 +198,10 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
                 </div>
                 <div className="p-3 space-y-1">
                   <p className="text-sm font-bold text-foreground truncate">{spot.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{spot.category}</p>
+                  <p className="text-2xs text-muted-foreground">{spot.category}</p>
                   <div className="flex items-center gap-1">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                    <span className="text-[10px] text-green-400 font-medium">{spot.checkins} ici</span>
+                    <span className="text-2xs text-green-400 font-medium">{spot.checkins} ici</span>
                   </div>
                 </div>
               </button>
@@ -257,11 +257,11 @@ export default function LandingPage({ onEnterApp }: LandingPageProps) {
       {/* ════════════ FOOTER ════════════ */}
       <footer className="px-5 py-8 max-w-lg mx-auto text-center space-y-4">
         <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-        <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground pt-2">
+        <div className="flex items-center justify-center gap-4 text-2xs text-muted-foreground pt-2">
           <Link to="/terms" className="hover:text-foreground transition-colors">CGU</Link>
           <Link to="/privacy" className="hover:text-foreground transition-colors">Confidentialité</Link>
         </div>
-        <p className="text-[10px] text-muted-foreground/50">
+        <p className="text-2xs text-muted-foreground/50">
           Made with 🔥 in Marrakech
         </p>
       </footer>

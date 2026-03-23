@@ -144,16 +144,16 @@ export default function VibeCard({
           </Link>
           <div className="min-w-0">
             <Link to={vibe.user_id ? `/u/${vibe.user_id}` : "#"}>
-              <p className="text-[13px] font-semibold text-foreground truncate flex items-center gap-1.5 hover:underline">
+              <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5 hover:underline">
               {getDisplayName(vibe)}
               {vibe.is_official && (
-                <span className="text-[9px] bg-gold/15 text-gold px-1.5 py-0.5 rounded font-bold">PRO</span>
+                <span className="text-2xs bg-gold/15 text-gold px-1.5 py-0.5 rounded font-bold">PRO</span>
               )}
               {!vibe.is_official && vibe.profile?.is_vip && (
                 <Crown className="w-3 h-3 text-gold" />
               )}
               {!vibe.is_official && vibe.user_id && getUserTier(userVibeCounts[vibe.user_id] || 0) && (
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-2xs text-muted-foreground">
                   {getUserTier(userVibeCounts[vibe.user_id] || 0)!.emoji}
                 </span>
               )}
@@ -161,11 +161,11 @@ export default function VibeCard({
             </Link>
             {vibe.location && (
               <div className="flex items-center gap-1">
-                <span className="text-[11px] text-muted-foreground truncate">{vibe.location}</span>
+                <span className="text-xs text-muted-foreground truncate">{vibe.location}</span>
                 {vibe.latitude != null && vibe.longitude != null && onGoToMap && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onGoToMap(vibe.latitude!, vibe.longitude!); }}
-                    className="text-[10px] text-gold font-medium"
+                    className="text-2xs text-gold font-medium"
                   >
                     · Voir
                   </button>
@@ -176,15 +176,15 @@ export default function VibeCard({
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {vibe.is_official && (
-            <span className="text-[9px] text-muted-foreground font-medium">Sponsorisé</span>
+            <span className="text-2xs text-muted-foreground font-medium">Sponsorisé</span>
           )}
           {!vibe.is_official && isNew(vibe.created_at) && (
             <div className="flex items-center gap-1 bg-destructive/15 px-1.5 py-0.5 rounded-full live-badge-blink">
               <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
-              <span className="text-[9px] font-bold text-destructive uppercase">Live</span>
+              <span className="text-2xs font-bold text-destructive uppercase">Live</span>
             </div>
           )}
-          <span className="text-[11px] text-muted-foreground">{timeAgo(vibe.created_at)}</span>
+          <span className="text-xs text-muted-foreground">{timeAgo(vibe.created_at)}</span>
           {currentUserId && vibe.user_id === currentUserId && (
             <button
               onClick={() => onDelete(vibe.id)}
@@ -207,14 +207,14 @@ export default function VibeCard({
         <DoubleTapHeart show={doubleTapId === vibe.id} />
         {vibe.mood && (
           <div className="absolute top-3 left-3 bg-background/70 backdrop-blur-md px-2.5 py-1 rounded-full">
-            <span className="text-[10px] font-semibold text-foreground">
+            <span className="text-2xs font-semibold text-foreground">
               {vibe.mood} {vibe.location || ''}
             </span>
           </div>
         )}
         {activeTab === "tendances" && getScore(vibe) > 0 && (
           <div className="absolute top-3 right-3 bg-background/70 backdrop-blur-md px-2 py-1 rounded-full">
-            <span className="text-[10px] font-bold text-gold flex items-center gap-0.5">
+            <span className="text-2xs font-bold text-gold flex items-center gap-0.5">
               <Zap className="w-2.5 h-2.5" /> {getScore(vibe)}
             </span>
           </div>
@@ -230,7 +230,7 @@ export default function VibeCard({
         {isPartnerVibe && !alreadySuperVibed && canSuperVibe && (
           <div className="absolute bottom-2 right-2 px-2 py-1 rounded-full bg-background/50 backdrop-blur-sm flex items-center gap-1">
             <Zap className="w-3 h-3 text-gold" />
-            <span className="text-[9px] text-gold font-bold">Maintiens</span>
+            <span className="text-2xs text-gold font-bold">Maintiens</span>
           </div>
         )}
 
@@ -244,7 +244,7 @@ export default function VibeCard({
       </div>
 
       {/* ── ACTION BAR ── */}
-      <div className="flex items-center justify-between px-3 pt-2.5 pb-1">
+      <div className="flex items-center justify-between px-3 py-2.5">
         <div className="flex items-center gap-4">
           {/* Like */}
           <div className="relative">
@@ -334,7 +334,7 @@ export default function VibeCard({
 
       {/* ── LIKES + CAPTION ── */}
       <div className="px-3 pb-3 space-y-1">
-        <div className="flex items-center gap-3 text-[13px]">
+        <div className="flex items-center gap-3 text-sm">
           <span className="font-semibold text-foreground">{vibe.likes} J'aime{vibe.likes !== 1 ? "s" : ""}</span>
           {(vibe.super_vibes || 0) > 0 && (
             <span className="text-gold font-semibold flex items-center gap-0.5">
@@ -343,13 +343,13 @@ export default function VibeCard({
           )}
         </div>
         {vibe.caption && (
-          <p className="text-[13px] text-foreground">
+          <p className="text-sm text-foreground">
             <span className="font-semibold mr-1.5">{getDisplayName(vibe)}</span>
             {vibe.caption}
           </p>
         )}
         {vibe.insider_tip && (
-          <div className="flex items-start gap-1.5 mt-1 px-2.5 py-2 rounded-lg bg-gold/[0.08] border border-gold/[0.15]">
+          <div className="flex items-start gap-1.5 mt-1 px-3 py-2 rounded-lg bg-gold/[0.08] border border-gold/[0.15]">
             <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0 mt-0.5" />
             <p className="text-[12px] text-gold leading-relaxed">
               <span className="font-semibold">Insider tip :</span> {vibe.insider_tip}
@@ -357,7 +357,7 @@ export default function VibeCard({
           </div>
         )}
         {(commentCounts[vibe.id] || 0) > 0 && (
-          <button onClick={() => onOpenComments(vibe.id)} className="text-[13px] text-muted-foreground">
+          <button onClick={() => onOpenComments(vibe.id)} className="text-sm text-muted-foreground">
             Voir les {commentCounts[vibe.id]} commentaire{(commentCounts[vibe.id] || 0) !== 1 ? "s" : ""}
           </button>
         )}

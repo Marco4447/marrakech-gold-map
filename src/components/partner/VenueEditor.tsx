@@ -185,7 +185,7 @@ export default function VenueEditor({ userId, placeId }: Props) {
       {/* Header */}
       <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-5 space-y-1">
         <h3 className="font-display text-lg font-bold text-foreground">{placeName}</h3>
-        <p className="text-[11px] text-muted-foreground">Modifie les informations de ta fiche venue.</p>
+        <p className="text-xs text-muted-foreground">Modifie les informations de ta fiche venue.</p>
       </div>
 
       {/* ── PHOTO ── */}
@@ -209,8 +209,8 @@ export default function VenueEditor({ userId, placeId }: Props) {
         <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-gold/5 border border-gold/10">
           <Info className="w-3.5 h-3.5 text-gold shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <p className="text-[11px] text-foreground/80 font-medium">Format paysage recommandé</p>
-            <p className="text-[10px] text-muted-foreground">Taille idéale : 1200 × 675 px · Max {IMAGE_MAX_MB} Mo · JPG, PNG ou WebP</p>
+            <p className="text-xs text-foreground/80 font-medium">Format paysage recommandé</p>
+            <p className="text-2xs text-muted-foreground">Taille idéale : 1200 × 675 px · Max {IMAGE_MAX_MB} Mo · JPG, PNG ou WebP</p>
           </div>
         </div>
       </Section>
@@ -238,7 +238,7 @@ export default function VenueEditor({ userId, placeId }: Props) {
               }}
             />
           </div>
-          <span className={`text-[10px] font-medium tabular-nums shrink-0 ${form.description.length > DESC_MAX * 0.9 ? "text-red-400" : "text-muted-foreground"}`}>
+          <span className={`text-2xs font-medium tabular-nums shrink-0 ${form.description.length > DESC_MAX * 0.9 ? "text-red-400" : "text-muted-foreground"}`}>
             {form.description.length}/{DESC_MAX}
           </span>
         </div>
@@ -282,11 +282,11 @@ export default function VenueEditor({ userId, placeId }: Props) {
                     {schedule[d.key].open ? (
                       <div className="flex items-center gap-1.5 ml-auto">
                         <TimeInput value={schedule[d.key].from} onChange={v => updateDay(d.key, { from: v })} />
-                        <span className="text-muted-foreground text-[10px]">→</span>
+                        <span className="text-muted-foreground text-2xs">→</span>
                         <TimeInput value={schedule[d.key].to} onChange={v => updateDay(d.key, { to: v })} />
                       </div>
                     ) : (
-                      <span className="text-[11px] text-muted-foreground ml-auto">Fermé</span>
+                      <span className="text-xs text-muted-foreground ml-auto">Fermé</span>
                     )}
                   </div>
                 ))}
@@ -310,7 +310,7 @@ export default function VenueEditor({ userId, placeId }: Props) {
               }`}
             >
               <span className="text-base font-bold">{opt.label}</span>
-              <span className="text-[9px] leading-tight">{opt.desc}</span>
+              <span className="text-2xs leading-tight">{opt.desc}</span>
             </button>
           ))}
         </div>
@@ -364,7 +364,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
         <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{title}</label>
-        {hint && <span className="text-[10px] text-muted-foreground/60">{hint}</span>}
+        {hint && <span className="text-2xs text-muted-foreground/60">{hint}</span>}
       </div>
       {children}
     </div>
@@ -377,7 +377,7 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
       type="time"
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="w-[72px] px-1.5 py-1 rounded-lg bg-background border border-border text-[11px] text-foreground text-center focus:outline-none focus:ring-1 focus:ring-gold/50 [&::-webkit-calendar-picker-indicator]:invert"
+      className="w-[72px] px-1.5 py-1 rounded-lg bg-background border border-border text-xs text-foreground text-center focus:outline-none focus:ring-1 focus:ring-gold/50 [&::-webkit-calendar-picker-indicator]:invert"
     />
   );
 }

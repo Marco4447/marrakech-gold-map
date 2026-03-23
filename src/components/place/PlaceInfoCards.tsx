@@ -54,7 +54,7 @@ export default function PlaceInfoCards({ details }: Props) {
         return (
           <div key={key} className="flex items-start gap-2 bg-muted/50 rounded-lg px-3 py-2">
             <Icon className="w-3.5 h-3.5 text-gold shrink-0 mt-0.5" />
-            <span className="text-[11px] text-foreground leading-snug">{value}</span>
+            <span className="text-xs text-foreground leading-snug">{value}</span>
           </div>
         );
       })}

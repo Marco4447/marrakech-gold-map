@@ -54,7 +54,7 @@ export default function StreakBadge({ userId, compact = false }: StreakBadgeProp
 
   if (compact) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-orange-400">
+      <span className="inline-flex items-center gap-0.5 text-2xs font-bold text-orange-400">
         <Flame className="w-3 h-3" />
         {streak}
       </span>
@@ -74,7 +74,7 @@ export default function StreakBadge({ userId, compact = false }: StreakBadgeProp
       }}
     >
       <Flame className={`w-3.5 h-3.5 ${streak >= 7 ? "text-red-400" : "text-orange-400"}`} />
-      <span className={`text-[11px] font-bold ${streak >= 7 ? "text-red-400" : "text-orange-400"}`}>
+      <span className={`text-xs font-bold ${streak >= 7 ? "text-red-400" : "text-orange-400"}`}>
         {streak}j streak
       </span>
       {streak >= 7 && <span className="text-xs">🔥</span>}

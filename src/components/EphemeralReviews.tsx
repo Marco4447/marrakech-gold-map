@@ -50,7 +50,7 @@ export default function EphemeralReviews({ placeId }: EphemeralReviewsProps) {
       if (error) throw error;
       setReviews(data ?? []);
     } catch {
-      console.error("Failed to fetch ephemeral reviews");
+     
     } finally {
       setLoading(false);
     }
@@ -169,7 +169,7 @@ export default function EphemeralReviews({ placeId }: EphemeralReviewsProps) {
                 resize-none focus:outline-none focus:border-gold/40
                 transition-colors"
             />
-            <span className="absolute bottom-2 right-3 text-[10px] text-foreground/30">
+            <span className="absolute bottom-2 right-3 text-2xs text-foreground/30">
               {text.length}/140
             </span>
           </div>
@@ -226,7 +226,7 @@ export default function EphemeralReviews({ placeId }: EphemeralReviewsProps) {
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center justify-between gap-2">
                   <FlameRating value={review.rating} readonly />
-                  <span className="text-[10px] text-foreground/30 flex-shrink-0">
+                  <span className="text-2xs text-foreground/30 flex-shrink-0">
                     {timeAgo(review.created_at)}
                   </span>
                 </div>

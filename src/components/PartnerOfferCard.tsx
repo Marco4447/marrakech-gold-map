@@ -23,10 +23,10 @@ export default function PartnerOfferCard({ offer, isVip }: PartnerOfferCardProps
       {locked && (
         <div className="absolute inset-0 rounded-xl bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center z-10">
           <Lock className="w-5 h-5 text-gold mb-1" />
-          <p className="text-[10px] text-gold font-semibold">Réservé aux VIP</p>
+          <p className="text-2xs text-gold font-semibold">Réservé aux VIP</p>
           <button
             onClick={() => navigate("/vip-pass")}
-            className="mt-2 text-[10px] px-3 py-1 rounded-full bg-gold/20 text-gold font-bold"
+            className="mt-2 text-2xs px-3 py-1 rounded-full bg-gold/20 text-gold font-bold"
           >
             Débloquer
           </button>
@@ -40,7 +40,7 @@ export default function PartnerOfferCard({ offer, isVip }: PartnerOfferCardProps
           <p className="text-sm font-semibold text-foreground">{offer.title}</p>
           <p className="text-xs text-muted-foreground line-clamp-2">{offer.description}</p>
           {offer.expiration_date && (
-            <p className="text-[10px] text-muted-foreground mt-1">
+            <p className="text-2xs text-muted-foreground mt-1">
               Expire le {new Date(offer.expiration_date).toLocaleDateString("fr-FR")}
             </p>
           )}

@@ -16,7 +16,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
         <Icon className="w-4 h-4 text-gold" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
         <p className="text-sm text-foreground font-medium mt-0.5">{value}</p>
       </div>
     </div>

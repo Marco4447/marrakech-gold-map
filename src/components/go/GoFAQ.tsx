@@ -23,7 +23,7 @@ export default function GoFAQ({ lang, t }: GoFAQProps) {
             <AccordionTrigger className="text-[14px] font-medium text-foreground py-3">
               {t(q)}
             </AccordionTrigger>
-            <AccordionContent className="text-[13px] text-muted-foreground pb-3">
+            <AccordionContent className="text-sm text-muted-foreground pb-3">
               {t(a)}
             </AccordionContent>
           </AccordionItem>

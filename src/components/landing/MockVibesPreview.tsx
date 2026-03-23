@@ -69,7 +69,7 @@ export default function MockVibesPreview() {
       {/* Section title */}
       <div className="flex items-center gap-2 mb-3 px-1">
         <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-        <span className="text-[11px] font-semibold tracking-[0.12em] uppercase text-white/40">
+        <span className="text-xs font-semibold tracking-[0.12em] uppercase text-white/40">
           Aperçu — Ce soir à Kech
         </span>
       </div>
@@ -97,18 +97,18 @@ export default function MockVibesPreview() {
 
               {/* Category + Neighborhood */}
               <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/[0.1] border border-white/[0.1] text-white/60 backdrop-blur-sm">
+                <span className="text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/[0.1] border border-white/[0.1] text-white/60 backdrop-blur-sm">
                   {vibe.category}
                 </span>
-                <span className="text-[9px] text-white/40">{vibe.neighborhood}</span>
+                <span className="text-2xs text-white/40">{vibe.neighborhood}</span>
               </div>
 
               {/* Engagement */}
               <div className="absolute top-2.5 right-2.5 flex items-center gap-2">
-                <span className="flex items-center gap-1 text-[10px] text-white/50">
+                <span className="flex items-center gap-1 text-2xs text-white/50">
                   <Heart className="w-3 h-3" /> {vibe.likesCount}
                 </span>
-                <span className="flex items-center gap-1 text-[10px] text-white/50">
+                <span className="flex items-center gap-1 text-2xs text-white/50">
                   <Bookmark className="w-3 h-3" /> {vibe.savesCount}
                 </span>
               </div>
@@ -118,7 +118,7 @@ export default function MockVibesPreview() {
                 <h3 className="text-[14px] font-bold text-white leading-tight">
                   {vibe.placeName}
                 </h3>
-                <p className="text-[11px] text-white/50 leading-relaxed line-clamp-2 italic">
+                <p className="text-xs text-white/50 leading-relaxed line-clamp-2 italic">
                   "{vibe.insiderTip.slice(0, 50)}..."
                 </p>
 
@@ -127,8 +127,8 @@ export default function MockVibesPreview() {
                   <div className="w-5 h-5 rounded-full bg-white/[0.1] border border-white/[0.08] flex items-center justify-center">
                     <span className="text-[7px] font-bold text-white/60">{vibe.postedBy.initials}</span>
                   </div>
-                  <span className="text-[10px] text-white/40">{vibe.postedBy.username}</span>
-                  <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${BADGE_STYLES[vibe.postedBy.badge]}`}>
+                  <span className="text-2xs text-white/40">{vibe.postedBy.username}</span>
+                  <span className={`text-2xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${BADGE_STYLES[vibe.postedBy.badge]}`}>
                     {vibe.postedBy.badge}
                   </span>
                 </div>
@@ -149,7 +149,7 @@ export default function MockVibesPreview() {
         <p className="text-[12px] font-semibold text-white/50">
           Inscris-toi pour tout voir
         </p>
-        <p className="text-[10px] text-white/25 mt-0.5">
+        <p className="text-2xs text-white/25 mt-0.5">
           +12 spots cachés débloqués ce soir
         </p>
       </motion.div>

@@ -206,12 +206,12 @@ export default function AdminStoriesManager() {
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-foreground capitalize">{s.source_type}</span>
                   {s.badge && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold font-bold">{s.badge}</span>
+                    <span className="text-2xs px-1.5 py-0.5 rounded-full bg-gold/20 text-gold font-bold">{s.badge}</span>
                   )}
                   {s.is_featured && <Star className="w-3 h-3 text-gold fill-gold" />}
-                  {expired && <span className="text-[9px] text-destructive font-bold">EXPIRÉE</span>}
+                  {expired && <span className="text-2xs text-destructive font-bold">EXPIRÉE</span>}
                 </div>
-                <p className="text-[10px] text-muted-foreground truncate">{s.caption || "Sans légende"} · {timeAgo(s.created_at)}</p>
+                <p className="text-2xs text-muted-foreground truncate">{s.caption || "Sans légende"} · {timeAgo(s.created_at)}</p>
               </div>
               <div className="flex items-center gap-1">
                 <button onClick={() => handleToggleFeatured(s)} className="p-1.5 rounded-lg hover:bg-muted" title="Mettre en avant">

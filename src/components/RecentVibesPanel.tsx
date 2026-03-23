@@ -54,7 +54,7 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
         className="w-full flex items-center gap-1 px-2 py-1 rounded-full bg-card/80 backdrop-blur-md border border-border text-left"
       >
         <Radio className={`w-2.5 h-2.5 ${hasNew ? "text-destructive animate-pulse" : "text-gold"}`} />
-        <span className="text-[9px] font-semibold text-muted-foreground flex-1 truncate">
+        <span className="text-2xs font-semibold text-muted-foreground flex-1 truncate">
           Vibes {vibes.length > 0 && `(${vibes.length})`}
         </span>
         {hasNew && <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />}
@@ -81,15 +81,15 @@ export default function RecentVibesPanel({ onVibeClick }: { onVibeClick?: (vibe:
                   <img src={vibe.image_url} alt="" className="w-full h-full object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-medium text-foreground truncate flex items-center gap-1">
-                    {vibe.is_official && <span className="text-[8px] bg-gold/20 text-gold px-1 py-px rounded font-bold uppercase tracking-wider leading-none">Officiel</span>}
+                  <p className="text-2xs font-medium text-foreground truncate flex items-center gap-1">
+                    {vibe.is_official && <span className="text-2xs bg-gold/20 text-gold px-1 py-px rounded font-bold uppercase tracking-wider leading-none">Officiel</span>}
                     {vibe.username || vibe.location || "Anonyme"}
                   </p>
-                  <p className="text-[9px] text-muted-foreground">
+                  <p className="text-2xs text-muted-foreground">
                     {vibe.mood ? `${vibe.mood} · ` : ""}{timeAgoShort(vibe.created_at)}
                   </p>
                 </div>
-                {vibe.is_official && <span className="text-gold text-[10px]">⭐</span>}
+                {vibe.is_official && <span className="text-gold text-2xs">⭐</span>}
               </button>
             ))}
           </motion.div>

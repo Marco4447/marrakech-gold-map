@@ -58,7 +58,7 @@ export default function UsersTab() {
 
         setUsers(enriched);
       } catch (e) {
-        console.error("Failed to fetch users:", e);
+       
       } finally {
         setLoading(false);
       }
@@ -98,22 +98,22 @@ export default function UsersTab() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <p className="text-xs font-semibold text-foreground truncate">{u.full_name || "Sans nom"}</p>
-                {u.is_vip && <span className="text-[9px] font-bold bg-gold/15 text-gold px-1.5 py-0.5 rounded-full">VIP</span>}
+                {u.is_vip && <span className="text-2xs font-bold bg-gold/15 text-gold px-1.5 py-0.5 rounded-full">VIP</span>}
               </div>
-              <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
+              <p className="text-2xs text-muted-foreground truncate flex items-center gap-1">
                 <Mail className="w-2.5 h-2.5" /> {u.email || "—"}
               </p>
               <div className="flex items-center gap-3 mt-0.5">
-                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                <span className="text-2xs text-muted-foreground flex items-center gap-0.5">
                   <Camera className="w-2.5 h-2.5" /> {u.vibes_count} vibes
                 </span>
-                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                <span className="text-2xs text-muted-foreground flex items-center gap-0.5">
                   <Clock className="w-2.5 h-2.5" /> {u.last_vibe_at ? timeAgoShort(u.last_vibe_at) : "aucune"}
                 </span>
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-[10px] text-muted-foreground">{timeAgoShort(u.created_at)}</p>
+              <p className="text-2xs text-muted-foreground">{timeAgoShort(u.created_at)}</p>
             </div>
           </div>
         ))}

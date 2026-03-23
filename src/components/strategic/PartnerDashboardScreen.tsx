@@ -164,7 +164,7 @@ export default function PartnerDashboardScreen() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h1 className="font-display text-2xl font-semibold text-foreground">Tableau de bord</h1>
-              <span className="px-2 py-0.5 bg-gold/20 text-gold text-[10px] font-medium rounded-full flex items-center gap-1">
+              <span className="px-2 py-0.5 bg-gold/20 text-gold text-2xs font-medium rounded-full flex items-center gap-1">
                 <Crown className="w-3 h-3" />
                 EMPIRE
               </span>

@@ -26,9 +26,9 @@ export default function LanguageToggle({ className = "", variant = "pill" }: Lan
       className={`inline-flex items-center gap-1.5 bg-card/80 backdrop-blur-md border border-border hover:border-gold/30 rounded-full px-3 py-1.5 transition-all active:scale-95 ${className}`}
       aria-label="Toggle language"
     >
-      <span className={`text-[10px] font-bold transition-colors ${lang === "fr" ? "text-gold" : "text-muted-foreground"}`}>FR</span>
-      <span className="text-[10px] text-muted-foreground">/</span>
-      <span className={`text-[10px] font-bold transition-colors ${lang === "en" ? "text-gold" : "text-muted-foreground"}`}>EN</span>
+      <span className={`text-2xs font-bold transition-colors ${lang === "fr" ? "text-gold" : "text-muted-foreground"}`}>FR</span>
+      <span className="text-2xs text-muted-foreground">/</span>
+      <span className={`text-2xs font-bold transition-colors ${lang === "en" ? "text-gold" : "text-muted-foreground"}`}>EN</span>
     </button>
   );
 }

@@ -161,7 +161,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
         successCount++;
         setPublished(successCount);
       } catch (err) {
-        console.error("Seed error:", err);
+       
       }
     }
 
@@ -218,7 +218,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
         toast.error(result?.error || "Erreur d'import");
       }
     } catch (err: any) {
-      console.error("Auto import error:", err);
+     
       toast.error("Erreur: " + (err.message || "échec import"));
     } finally {
       setIgImporting(false);
@@ -235,7 +235,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           </div>
           <div>
             <h3 className="text-xs font-bold text-foreground">🚀 Auto-import Instagram</h3>
-            <p className="text-[10px] text-muted-foreground">Colle un lien profil → vibes + stories + photos en 1 clic</p>
+            <p className="text-2xs text-muted-foreground">Colle un lien profil → vibes + stories + photos en 1 clic</p>
           </div>
         </div>
 
@@ -285,7 +285,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
           )}
         </AnimatePresence>
 
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-2xs text-muted-foreground">
           💡 Colle le lien du <b>profil</b> Instagram (pas un post). L'app va extraire les dernières photos et les publier en tant que vibes officielles, stories à la une, et photos de la fiche.
         </p>
       </div>
@@ -297,7 +297,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
             ⚡ Quick Seed — Publication manuelle
           </h3>
           {queue.length > 0 && (
-            <span className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-full font-bold">
+            <span className="text-2xs bg-gold/15 text-gold px-2 py-0.5 rounded-full font-bold">
               {queue.length} en file
             </span>
           )}
@@ -332,7 +332,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
               <Plus className="w-4 h-4 text-gold" />
             </div>
             <p className="text-xs font-medium text-foreground">Fichiers</p>
-            <p className="text-[10px] text-muted-foreground">Photos / vidéos</p>
+            <p className="text-2xs text-muted-foreground">Photos / vidéos</p>
           </button>
           <button
             onClick={() => setShowUrlInput(!showUrlInput)}
@@ -344,7 +344,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
               <Link2 className="w-4 h-4 text-gold" />
             </div>
             <p className="text-xs font-medium text-foreground">URL / Instagram</p>
-            <p className="text-[10px] text-muted-foreground">Lien image ou post IG</p>
+            <p className="text-2xs text-muted-foreground">Lien image ou post IG</p>
           </button>
         </div>
         <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} />
@@ -374,7 +374,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1.5">
+              <p className="text-2xs text-muted-foreground mt-1.5">
                 💡 Colle un lien instagram.com/p/... ou un lien direct d'image — la caption sera extraite automatiquement
               </p>
             </motion.div>
@@ -398,7 +398,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
                     value={item.caption}
                     onChange={(e) => updateItem(item.id, { caption: e.target.value })}
                     placeholder="Caption…"
-                    className="w-full bg-transparent text-[10px] text-white placeholder:text-white/50 focus:outline-none"
+                    className="w-full bg-transparent text-2xs text-white placeholder:text-white/50 focus:outline-none"
                   />
                 </div>
               </div>
@@ -428,7 +428,7 @@ export default function AdminQuickSeed({ places }: { places: { id: string; name:
         )}
 
         {!selectedSpot && queue.length > 0 && (
-          <p className="text-[10px] text-destructive text-center">⚠️ Sélectionne un spot avant de publier</p>
+          <p className="text-2xs text-destructive text-center">⚠️ Sélectionne un spot avant de publier</p>
         )}
       </div>
     </div>

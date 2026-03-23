@@ -105,7 +105,7 @@ export default function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
   if (!open) return null;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[4000] flex items-center justify-center p-6">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-onboarding flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-[var(--bg-primary)]/80 backdrop-blur-sm" />
       <motion.div
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -137,7 +137,7 @@ export default function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
                   <p className="text-sm text-[var(--text-secondary)] mt-2">500 adresses vérifiées, zéro tourist trap.</p>
                 </div>
                 <button onClick={goToStep2}
-                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm text-[#0E0904] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform" style={{ background: "#D4921E" }}>
+                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm bg-[var(--ochre)] text-[var(--bg-primary)] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
                   Commencer <ArrowRight className="w-4 h-4" />
                 </button>
               </motion.div>
@@ -164,7 +164,7 @@ export default function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
                   })}
                 </div>
                 <button onClick={goToStep3}
-                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm text-[#0E0904] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform" style={{ background: "#D4921E" }}>
+                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm bg-[var(--ochre)] text-[var(--bg-primary)] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
                   Continuer <ArrowRight className="w-4 h-4" />
                 </button>
                 <button onClick={goToStep3} className="w-full text-xs text-[var(--text-muted)] text-center py-1">Passer</button>
@@ -194,8 +194,8 @@ export default function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                           <p className="text-sm font-bold text-[var(--text-primary)] truncate">{s.name}</p>
                           <div className="flex items-center gap-2">
-                            {s.category && <span className="text-[10px] text-[var(--ochre)] uppercase">{s.category}</span>}
-                            {s.rating && <span className="flex items-center gap-0.5 text-[10px] text-[var(--ochre-light)]"><Star className="w-2.5 h-2.5 fill-[var(--ochre-light)]" /> {s.rating}</span>}
+                            {s.category && <span className="text-2xs text-[var(--ochre)] uppercase">{s.category}</span>}
+                            {s.rating && <span className="flex items-center gap-0.5 text-2xs text-[var(--ochre-light)]"><Star className="w-2.5 h-2.5 fill-[var(--ochre-light)]" /> {s.rating}</span>}
                           </div>
                         </div>
                       </motion.div>
@@ -204,7 +204,7 @@ export default function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
                 )}
 
                 <button onClick={() => finish(false)}
-                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm text-[#0E0904] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform" style={{ background: "#D4921E" }}>
+                  className="w-full py-3.5 rounded-xl font-black uppercase text-sm bg-[var(--ochre)] text-[var(--bg-primary)] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
                   Explorer Marrakech →
                 </button>
               </motion.div>

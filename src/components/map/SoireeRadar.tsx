@@ -94,7 +94,7 @@ export default function SoireeRadar({ open, places, userPosition, energyMap, vib
               >
                 <div className="flex flex-col items-center gap-0.5 w-12 shrink-0">
                   {dist != null && (
-                    <span className="text-[10px] font-bold text-muted-foreground">
+                    <span className="text-2xs font-bold text-muted-foreground">
                       📍 {formatDistance(dist)}
                     </span>
                   )}
@@ -105,12 +105,12 @@ export default function SoireeRadar({ open, places, userPosition, energyMap, vib
                   <p className="text-xs font-bold text-foreground truncate">{place.name}</p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {energy && (
-                      <span className={`text-[10px] font-bold ${energy.color}`}>
+                      <span className={`text-2xs font-bold ${energy.color}`}>
                         {energy.emoji} {energy.label}
                       </span>
                     )}
                     {liveCount > 0 && (
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <span className="text-2xs text-muted-foreground flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
                         {liveCount} vibe{liveCount > 1 ? "s" : ""} live
                       </span>

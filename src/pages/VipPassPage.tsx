@@ -134,7 +134,7 @@ export default function VipPassPage() {
                 ? "linear-gradient(135deg, #1a1508, #2a2010)"
                 : "hsl(var(--card))"
             }}>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 font-semibold mb-2">VIP PASS</p>
+              <p className="text-2xs uppercase tracking-[0.2em] text-gold/60 font-semibold mb-2">VIP PASS</p>
               <h2 className="font-display text-xl font-black text-foreground">{pass.offer.place.name}</h2>
               <p className="text-sm text-muted-foreground mt-1">{pass.offer.title}</p>
 
@@ -179,7 +179,7 @@ export default function VipPassPage() {
                       }}
                     />
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-3 text-center">
+                  <p className="text-2xs text-muted-foreground mt-3 text-center">
                     Montre ce QR code au staff pour valider
                   </p>
                 </>
@@ -193,7 +193,7 @@ export default function VipPassPage() {
             </div>
           </div>
 
-          <p className="text-[10px] text-muted-foreground/50 text-center mt-4">
+          <p className="text-2xs text-muted-foreground/50 text-center mt-4">
             {pass.offer.description}
           </p>
         </motion.div>

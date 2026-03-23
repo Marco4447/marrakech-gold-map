@@ -38,7 +38,7 @@ function DemoStatCard({ icon: Icon, label, value, delay = 0 }: { icon: any; labe
     >
       <div className="flex items-center gap-2 text-muted-foreground">
         <Icon className="w-3.5 h-3.5 text-gold" />
-        <span className="text-[10px] uppercase tracking-wide">{label}</span>
+        <span className="text-2xs uppercase tracking-wide">{label}</span>
       </div>
       <p className="text-xl font-display font-black text-foreground">{value}</p>
     </motion.div>
@@ -57,7 +57,7 @@ function MiniBar({ data }: { data: { day: string; views: number }[] }) {
             transition={{ delay: i * 0.05, duration: 0.4 }}
             className="w-full rounded-t bg-gold/60 min-h-[2px]"
           />
-          <span className="text-[8px] text-muted-foreground">{d.day}</span>
+          <span className="text-2xs text-muted-foreground">{d.day}</span>
         </div>
       ))}
     </div>
@@ -79,10 +79,10 @@ export default function DemoPartnerPage() {
             </div>
             <div>
               <p className="text-sm font-bold text-foreground">Kabana Rooftop</p>
-              <p className="text-[10px] text-muted-foreground">Partner Dashboard · Démo</p>
+              <p className="text-2xs text-muted-foreground">Partner Dashboard · Démo</p>
             </div>
           </div>
-          <span className="text-[9px] px-2 py-0.5 rounded-full bg-gold/15 text-gold font-bold uppercase">
+          <span className="text-2xs px-2 py-0.5 rounded-full bg-gold/15 text-gold font-bold uppercase">
             Mode démo
           </span>
         </div>
@@ -129,11 +129,11 @@ export default function DemoPartnerPage() {
             <div className="rounded-2xl border border-gold/20 bg-card/80 backdrop-blur-xl p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Plan actif</p>
+                  <p className="text-2xs uppercase tracking-widest text-muted-foreground">Plan actif</p>
                   <p className="text-lg font-display font-bold text-gold">Business</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Crédits</p>
+                  <p className="text-2xs uppercase tracking-widest text-muted-foreground">Crédits</p>
                   <p className="text-lg font-display font-bold text-foreground">38</p>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default function DemoPartnerPage() {
             {/* Visibility Score */}
             <div className="rounded-2xl border border-border bg-card/80 p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Visibility Score</span>
+                <span className="text-2xs uppercase tracking-widest text-muted-foreground">Visibility Score</span>
                 <span className="text-2xl font-display font-black text-gold">{DEMO_STATS.visibilityScore}</span>
               </div>
               <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
@@ -154,7 +154,7 @@ export default function DemoPartnerPage() {
                   style={{ background: "linear-gradient(90deg, hsl(43 76% 52%), hsl(43 70% 62%))" }}
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1.5">Top 15% des établissements à Guéliz</p>
+              <p className="text-2xs text-muted-foreground mt-1.5">Top 15% des établissements à Guéliz</p>
             </div>
 
             {/* Stats grid */}
@@ -169,7 +169,7 @@ export default function DemoPartnerPage() {
 
             {/* Weekly chart */}
             <div className="rounded-2xl border border-border bg-card/80 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Vues cette semaine</p>
+              <p className="text-2xs uppercase tracking-widest text-muted-foreground mb-3">Vues cette semaine</p>
               <MiniBar data={WEEKLY_DATA} />
             </div>
           </div>
@@ -190,23 +190,23 @@ export default function DemoPartnerPage() {
                   <img src={v.image} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   <div className="absolute bottom-0 inset-x-0 p-2.5">
-                    <p className="text-[10px] text-white/90 font-medium line-clamp-1">{v.caption}</p>
+                    <p className="text-2xs text-white/90 font-medium line-clamp-1">{v.caption}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[9px] text-white/70 flex items-center gap-0.5">
+                      <span className="text-2xs text-white/70 flex items-center gap-0.5">
                         <Heart className="w-2.5 h-2.5" /> {v.likes}
                       </span>
-                      <span className="text-[9px] text-white/50">{v.time}</span>
+                      <span className="text-2xs text-white/50">{v.time}</span>
                     </div>
                   </div>
                   <div className="absolute top-2 right-2">
-                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-gold/90 text-primary-foreground font-bold">
+                    <span className="text-2xs px-1.5 py-0.5 rounded-full bg-gold/90 text-primary-foreground font-bold">
                       Officiel
                     </span>
                   </div>
                 </motion.div>
               ))}
             </div>
-            <p className="text-[10px] text-center text-muted-foreground">
+            <p className="text-2xs text-center text-muted-foreground">
               Vos vibes officielles apparaissent en priorité dans le flux de tous les utilisateurs
             </p>
           </div>
@@ -230,7 +230,7 @@ export default function DemoPartnerPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-display font-black text-gold">{o.claims}</p>
-                    <p className="text-[9px] text-muted-foreground">utilisations</p>
+                    <p className="text-2xs text-muted-foreground">utilisations</p>
                   </div>
                 </div>
               </motion.div>
@@ -266,7 +266,7 @@ export default function DemoPartnerPage() {
           >
             Voir les tarifs →
           </button>
-          <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-center gap-4 text-2xs text-muted-foreground">
             <span className="flex items-center gap-1"><Check className="w-3 h-3 text-gold" /> 15 crédits offerts</span>
             <span className="flex items-center gap-1"><Check className="w-3 h-3 text-gold" /> Setup en 2 min</span>
           </div>

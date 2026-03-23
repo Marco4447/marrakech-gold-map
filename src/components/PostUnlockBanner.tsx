@@ -61,7 +61,7 @@ export default function PostUnlockBanner({ placeId, placeName, onPostClick }: Po
         </div>
         <div className="min-w-0">
           <p className="text-xs font-bold text-gold">🎉 Offres VIP débloquées !</p>
-          <p className="text-[10px] text-muted-foreground">Tu as posté ici — les offres exclusives sont accessibles.</p>
+          <p className="text-2xs text-muted-foreground">Tu as posté ici — les offres exclusives sont accessibles.</p>
         </div>
       </motion.div>
     );
@@ -84,7 +84,7 @@ export default function PostUnlockBanner({ placeId, placeName, onPostClick }: Po
           <Sparkles className="w-3 h-3 text-gold" />
           Poste une Vibe, débloque {offersCount} offre{offersCount > 1 ? "s" : ""} VIP
         </p>
-        <p className="text-[10px] text-muted-foreground mt-0.5">
+        <p className="text-2xs text-muted-foreground mt-0.5">
           Partage un moment depuis {placeName} et accède aux avantages exclusifs
         </p>
       </div>

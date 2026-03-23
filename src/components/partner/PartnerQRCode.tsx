@@ -103,7 +103,7 @@ export default function PartnerQRCode({ userId, placeId }: Props) {
       {/* QR Preview */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
         className="bg-card/80 border border-gold/20 rounded-2xl p-6 flex flex-col items-center">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 font-semibold mb-3">QR Code permanent</p>
+        <p className="text-2xs uppercase tracking-[0.2em] text-gold/60 font-semibold mb-3">QR Code permanent</p>
         <h3 className="font-display text-lg font-bold text-foreground mb-4">{placeName}</h3>
         <div id="partner-qr-svg" className="bg-white p-4 rounded-2xl">
           <QRCodeSVG
@@ -120,7 +120,7 @@ export default function PartnerQRCode({ userId, placeId }: Props) {
             }}
           />
         </div>
-        <p className="text-[10px] text-muted-foreground mt-3">{qrUrl}</p>
+        <p className="text-2xs text-muted-foreground mt-3">{qrUrl}</p>
       </motion.div>
 
       {/* Format selector */}
@@ -139,7 +139,7 @@ export default function PartnerQRCode({ userId, placeId }: Props) {
                   : "bg-surface border border-border text-muted-foreground"
               }`}>
               <p className="text-xs font-bold">{f.label}</p>
-              <p className="text-[10px] opacity-60">{f.desc}</p>
+              <p className="text-2xs opacity-60">{f.desc}</p>
             </button>
           ))}
         </div>

@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -34,7 +36,7 @@ export default function PlaceVibesSection({ placeName }: Props) {
       .order("created_at", { ascending: false })
       .limit(6)
       .then(({ data, error }) => {
-        if (error) { console.error("PlaceVibesSection fetch error:", error); return; }
+        if (error) { reportError(error, { context: "PlaceVibesSection fetch" }); toast.error("Erreur chargement vibes"); return; }
         if (data) setVibes(data);
       });
   }, [placeName]);
@@ -48,7 +50,7 @@ export default function PlaceVibesSection({ placeName }: Props) {
         <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
           Vibes récentes
         </h4>
-        <span className="text-[10px] text-muted-foreground">({vibes.length})</span>
+        <span className="text-2xs text-muted-foreground">({vibes.length})</span>
       </div>
 
       <div className="grid grid-cols-3 gap-1.5">
@@ -81,17 +83,17 @@ export default function PlaceVibesSection({ placeName }: Props) {
 
             {/* Official badge */}
             {vibe.is_official && (
-              <span className="absolute top-1 left-1 text-[8px] bg-gold/90 text-primary-foreground px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+              <span className="absolute top-1 left-1 text-2xs bg-gold/90 text-primary-foreground px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
                 Officiel
               </span>
             )}
 
             {/* Engagement overlay */}
             <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-1.5">
-              <p className="text-[9px] text-white/90 font-medium truncate">
+              <p className="text-2xs text-white/90 font-medium truncate">
                 {vibe.caption || vibe.mood || ""}
               </p>
-              <div className="flex items-center gap-1.5 text-[8px] text-white/70">
+              <div className="flex items-center gap-1.5 text-2xs text-white/70">
                 <span>❤️ {vibe.likes}</span>
                 {vibe.super_vibes > 0 && <span>⚡ {vibe.super_vibes}</span>}
                 <span className="ml-auto">{timeAgo(vibe.created_at)}</span>
@@ -127,7 +129,7 @@ export default function PlaceVibesSection({ placeName }: Props) {
                 <img src={vibe.image_url} alt="" className="w-full h-full object-cover" />
               )}
               {vibe.is_official && (
-                <span className="absolute top-2 left-2 text-[10px] bg-gold text-primary-foreground px-2 py-0.5 rounded-full font-bold">
+                <span className="absolute top-2 left-2 text-2xs bg-gold text-primary-foreground px-2 py-0.5 rounded-full font-bold">
                   ✨ Officiel
                 </span>
               )}
@@ -135,7 +137,7 @@ export default function PlaceVibesSection({ placeName }: Props) {
             {vibe.caption && (
               <div className="px-3 py-2">
                 <p className="text-xs text-foreground">{vibe.caption}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
+                <p className="text-2xs text-muted-foreground mt-0.5">
                   {vibe.username || "Anonyme"} · {timeAgo(vibe.created_at)}
                 </p>
               </div>

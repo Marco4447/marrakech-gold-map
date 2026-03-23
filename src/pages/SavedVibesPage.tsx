@@ -68,7 +68,7 @@ export default function SavedVibesPage() {
             <Bookmark className="w-7 h-7 text-muted-foreground" />
           </div>
           <h2 className="text-base font-semibold text-foreground mb-1.5">Rien ici pour l'instant</h2>
-          <p className="text-[13px] text-muted-foreground">Sauvegarde des vibes depuis le feed en appuyant sur l'icône bookmark.</p>
+          <p className="text-sm text-muted-foreground">Sauvegarde des vibes depuis le feed en appuyant sur l'icône bookmark.</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-0.5 p-0.5">
@@ -88,7 +88,7 @@ export default function SavedVibesPage() {
               </div>
               {vibe.location && (
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
-                  <p className="text-[10px] text-white/90 truncate">{vibe.location}</p>
+                  <p className="text-2xs text-white/90 truncate">{vibe.location}</p>
                 </div>
               )}
             </Link>

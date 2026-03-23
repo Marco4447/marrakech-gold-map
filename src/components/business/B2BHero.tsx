@@ -16,7 +16,7 @@ export default function B2BHero({ onCtaClick }: { onCtaClick: () => void }) {
       >
         {/* Badge */}
         <div className="flex justify-center">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gold/10 border border-gold/25 text-gold text-[11px] font-semibold uppercase tracking-widest">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gold/10 border border-gold/25 text-gold text-xs font-semibold uppercase tracking-widest">
             <Sparkles className="w-3 h-3" />
             Plateforme #1 · Marrakech Nightlife
           </span>
@@ -45,14 +45,14 @@ export default function B2BHero({ onCtaClick }: { onCtaClick: () => void }) {
             Activer mes crédits gratuits
             <ArrowRight className="w-4 h-4" />
           </motion.button>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Activation en 30 secondes · Sans engagement
           </p>
         </div>
 
         {/* Social proof logos */}
         <div className="pt-4">
-          <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest mb-3">
+          <p className="text-2xs text-muted-foreground text-center uppercase tracking-widest mb-3">
             Ils nous font confiance
           </p>
           <div className="flex items-center justify-center gap-6">
@@ -65,7 +65,7 @@ export default function B2BHero({ onCtaClick }: { onCtaClick: () => void }) {
               <div key={p.name} className="flex items-center gap-1.5 opacity-50 hover:opacity-80 transition-opacity">
                 <img src={p.img} alt={p.name} className="w-7 h-7 rounded-full object-cover bg-card border border-border"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <span className="text-[10px] text-muted-foreground font-medium hidden sm:inline">{p.name}</span>
+                <span className="text-2xs text-muted-foreground font-medium hidden sm:inline">{p.name}</span>
               </div>
             ))}
           </div>

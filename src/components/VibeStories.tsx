@@ -113,7 +113,7 @@ export default function VibeStories({ onVibeClick }: { onVibeClick?: (vibeId: st
                 )}
               </div>
             </div>
-            <span className="text-[10px] font-normal text-foreground/70 truncate w-[62px] text-center">
+            <span className="text-2xs font-normal text-foreground/70 truncate w-[62px] text-center">
               {getName(story)}
             </span>
           </button>
@@ -127,7 +127,7 @@ export default function VibeStories({ onVibeClick }: { onVibeClick?: (vibeId: st
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black flex flex-col"
+            className="fixed inset-0 z-fullscreen bg-black flex flex-col"
             onClick={(e) => {
               const rect = (e.target as HTMLElement).getBoundingClientRect();
               const x = e.clientX - rect.left;
@@ -165,7 +165,7 @@ export default function VibeStories({ onVibeClick }: { onVibeClick?: (vibeId: st
                 )}
                 <div>
                   <p className="text-sm font-semibold text-white">{getName(activeStory)}</p>
-                  <p className="text-[10px] text-white/60">{timeAgo(activeStory.created_at)}</p>
+                  <p className="text-2xs text-white/60">{timeAgo(activeStory.created_at)}</p>
                 </div>
               </div>
               <button onClick={(e) => { e.stopPropagation(); setActiveIndex(null); }} className="p-2">

@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Zap, Camera, Video, Upload, Clock, Loader2, Image as ImageIcon, X, Check, Sparkles, Gift, Save, LayoutDashboard, Megaphone, BarChart3, Receipt, Pencil, QrCode, BookOpen } from "lucide-react";
@@ -100,12 +101,12 @@ function VibeHistory({ vibes }: { vibes: HistoryVibe[] }) {
             <img src={v.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
           )}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/90 to-transparent p-2">
-            <p className="text-[10px] text-foreground font-medium truncate">{v.location || v.caption || "—"}</p>
-            <p className="text-[9px] text-muted-foreground">
+            <p className="text-2xs text-foreground font-medium truncate">{v.location || v.caption || "—"}</p>
+            <p className="text-2xs text-muted-foreground">
               {new Date(v.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
             </p>
           </div>
-          <div className="absolute top-1.5 left-1.5 bg-gold px-1.5 py-0.5 rounded text-[8px] font-bold text-primary-foreground">
+          <div className="absolute top-1.5 left-1.5 bg-gold px-1.5 py-0.5 rounded text-2xs font-bold text-primary-foreground">
             ⭐ OFFICIEL
           </div>
         </div>
@@ -211,7 +212,7 @@ export default function PartnerDashboard() {
           });
         }
       } catch (err) {
-        console.error("Partner dashboard load error:", err);
+       
       } finally {
         setLoading(false);
       }
@@ -247,7 +248,7 @@ export default function PartnerDashboard() {
       setVibes((refreshVibes as HistoryVibe[]) || []);
       resetForm(); setShowSuccess(true);
     } catch (err: any) {
-      console.error(err); toast.error(err?.message || "Erreur lors de la publication");
+      reportError(err, { context: "Partner vibe publish" }); toast.error(err?.message || "Erreur lors de la publication");
     } finally { setPosting(false); }
   };
 
@@ -310,7 +311,7 @@ export default function PartnerDashboard() {
           </button>
           <div>
             <h1 className="font-display text-lg font-bold text-foreground">Partner Studio</h1>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {planType ? `Plan ${planType.charAt(0).toUpperCase() + planType.slice(1)}` : "Crédits uniquement"}
               {" · "}{credits} crédits
             </p>
@@ -387,7 +388,7 @@ export default function PartnerDashboard() {
               <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gold/10 blur-2xl" />
               <div className="relative flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">Vibe Credits</p>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Vibe Credits</p>
                   <div className="flex items-baseline gap-1.5 mt-1">
                     <span className="text-4xl font-display font-black text-gold tabular-nums">{credits}</span>
                     <Zap className="w-5 h-5 text-gold" />
@@ -461,7 +462,7 @@ export default function PartnerDashboard() {
                       placeholder="✍️ Hook promo (ex: Tables VIP dispo !)" maxLength={60}
                       className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold/50"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground tabular-nums">{caption.length}/60</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xs text-muted-foreground tabular-nums">{caption.length}/60</span>
                   </div>
                   <input type="text" value={location} onChange={(e) => setLocation(e.target.value)}
                     placeholder="📍 Lieu (ex: Le Comptoir Darna)"
@@ -603,7 +604,7 @@ function VipRedemptionsTable({ placeId }: { placeId: string | null }) {
           </span>
           <span className="text-xs">Membre WeshKech</span>
           <span className="text-right">
-            <span className="inline-flex items-center bg-emerald-500/15 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded">Utilisée</span>
+            <span className="inline-flex items-center bg-emerald-500/15 text-emerald-400 text-2xs font-bold px-2 py-0.5 rounded">Utilisée</span>
           </span>
         </div>
       ))}

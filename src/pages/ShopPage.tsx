@@ -117,7 +117,7 @@ export default function ShopPage() {
         window.location.href = data.url;
       }
     } catch (err) {
-      console.error("Checkout error:", err);
+     
       toast.error("Erreur lors de la création du paiement");
     } finally {
       setLoadingPack(null);
@@ -139,7 +139,7 @@ export default function ShopPage() {
             <h1 className="font-display text-xl font-bold text-foreground">
               Boostez votre visibilité
             </h1>
-            <p className="text-muted-foreground text-[11px] mt-0.5">
+            <p className="text-muted-foreground text-xs mt-0.5">
               Attirez plus de clients ce soir ⚡
             </p>
           </div>
@@ -186,7 +186,7 @@ export default function ShopPage() {
 
         {/* What 1 credit gives you */}
         <div>
-          <p className="text-[11px] uppercase tracking-widest text-gold font-semibold mb-3">
+          <p className="text-xs uppercase tracking-widest text-gold font-semibold mb-3">
             Ce que vous obtenez par publication
           </p>
           <div className="grid grid-cols-1 gap-2">
@@ -231,7 +231,7 @@ export default function ShopPage() {
 
         {/* Packs */}
         <div>
-          <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-3">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">
             Choisissez votre formule
           </p>
           <div className="space-y-3">
@@ -254,7 +254,7 @@ export default function ShopPage() {
                   }`}
                 >
                   {pack.badge && (
-                    <div className={`absolute -top-2.5 right-4 text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider ${
+                    <div className={`absolute -top-2.5 right-4 text-2xs font-bold px-3 py-0.5 rounded-full uppercase tracking-wider ${
                       pack.popular
                         ? "bg-gold text-primary-foreground"
                         : "bg-accent/80 text-accent-foreground"
@@ -280,11 +280,11 @@ export default function ShopPage() {
                           )}
                         </div>
                       </div>
-                      <p className="text-[11px] text-gold font-medium mt-0.5">{pack.subtitle}</p>
-                      <p className="text-[11px] text-muted-foreground mt-1">
+                      <p className="text-xs text-gold font-medium mt-0.5">{pack.subtitle}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
                         {pack.credits} publication{pack.credits > 1 ? "s" : ""} · {pack.unitPrice}/pub
                       </p>
-                      <p className="text-[10px] text-muted-foreground/70 mt-1.5 italic">
+                      <p className="text-2xs text-muted-foreground/70 mt-1.5 italic">
                         {pack.benefit}
                       </p>
                     </div>
@@ -292,7 +292,7 @@ export default function ShopPage() {
 
                   {pack.popular && (
                     <div className="mt-3 pt-3 border-t border-gold/10 flex items-center justify-center gap-1.5 text-gold">
-                      <span className="text-[11px] font-semibold">Acheter maintenant</span>
+                      <span className="text-xs font-semibold">Acheter maintenant</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   )}
@@ -316,14 +316,14 @@ export default function ShopPage() {
               </div>
             ))}
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             <strong className="text-foreground">+15 établissements</strong> utilisent les Vibes pour attirer des clients
           </p>
         </motion.div>
 
         {/* FAQ */}
         <div className="space-y-3">
-          <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
             Questions fréquentes
           </p>
           {[
@@ -333,7 +333,7 @@ export default function ShopPage() {
           ].map((faq, i) => (
             <div key={i} className="rounded-xl border border-border/50 bg-card/30 p-3.5">
               <p className="text-xs font-semibold text-foreground">{faq.q}</p>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{faq.a}</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{faq.a}</p>
             </div>
           ))}
         </div>

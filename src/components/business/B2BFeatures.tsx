@@ -58,7 +58,7 @@ export default function B2BFeatures({ onCtaClick }: { onCtaClick: () => void }) 
                 <h3 className="text-sm font-bold text-foreground">{f.title}</h3>
               </div>
               <p className="text-xs text-foreground/80 leading-relaxed">{f.benefit}</p>
-              <p className="text-[11px] text-gold font-medium">→ {f.result}</p>
+              <p className="text-xs text-gold font-medium">→ {f.result}</p>
             </motion.div>
           ))}
         </div>

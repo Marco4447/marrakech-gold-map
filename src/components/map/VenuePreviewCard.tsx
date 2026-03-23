@@ -53,7 +53,7 @@ export default function VenuePreviewCard({
   };
 
   return (
-    <div className="absolute bottom-20 left-0 right-0 z-[1001] px-3">
+    <div className="absolute bottom-20 left-0 right-0 z-sheet-backdrop px-3">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentPlace.id}
@@ -104,17 +104,17 @@ export default function VenuePreviewCard({
                       {currentPlace.name}
                     </h3>
                     {(currentPlace as any).is_founder && (
-                      <span className="text-[8px] font-bold text-gold bg-gold/10 px-1.5 py-0.5 rounded-full shrink-0">🛡️</span>
+                      <span className="text-2xs font-bold text-gold bg-gold/10 px-1.5 py-0.5 rounded-full shrink-0">🛡️</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     {currentPlace.category && (
-                      <span className="text-[10px] text-gold font-medium uppercase tracking-wider">
+                      <span className="text-2xs text-gold font-medium uppercase tracking-wider">
                         {currentPlace.category}
                       </span>
                     )}
                     {currentPlace.rating && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-gold">
+                      <span className="flex items-center gap-0.5 text-2xs text-gold">
                         <Star className="w-2.5 h-2.5 fill-gold" />
                         {currentPlace.rating}
                       </span>
@@ -125,7 +125,7 @@ export default function VenuePreviewCard({
                 <div className="flex items-center justify-between mt-1">
                   <div className="flex items-center gap-2">
                     {distance && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-0.5 text-2xs text-muted-foreground">
                         <MapPin className="w-2.5 h-2.5" />
                         {distance}
                       </span>
@@ -136,7 +136,7 @@ export default function VenuePreviewCard({
                       href={googleMapsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 bg-gold hover:bg-gold-light text-primary-foreground text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
+                      className="flex items-center gap-1 bg-gold hover:bg-gold-light text-primary-foreground text-2xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Navigation className="w-3 h-3" />
@@ -144,7 +144,7 @@ export default function VenuePreviewCard({
                     </a>
                     <button
                       onClick={() => onOpenSheet(currentPlace)}
-                      className="flex items-center gap-0.5 bg-secondary hover:bg-secondary/80 text-foreground text-[10px] font-medium px-2 py-1.5 rounded-lg transition-colors"
+                      className="flex items-center gap-0.5 bg-secondary hover:bg-secondary/80 text-foreground text-2xs font-medium px-2 py-1.5 rounded-lg transition-colors"
                     >
                       Détails
                       <ChevronRight className="w-3 h-3" />

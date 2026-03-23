@@ -118,7 +118,7 @@ export default function AdminAcquisition() {
         <div className="flex items-center gap-2">
           {(["7d", "14d", "30d"] as Period[]).map(p => (
             <button key={p} onClick={() => setPeriod(p)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${period === p ? "bg-gold/15 text-gold" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${period === p ? "bg-gold/15 text-gold" : "text-muted-foreground hover:text-foreground"}`}>
               {p}
             </button>
           ))}
@@ -153,17 +153,17 @@ export default function AdminAcquisition() {
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
                   <p className="text-lg font-bold text-foreground">{tiktokViews}</p>
-                  <p className="text-[10px] text-muted-foreground">Visites</p>
+                  <p className="text-2xs text-muted-foreground">Visites</p>
                 </div>
                 <div>
                   <p className="text-lg font-bold text-foreground">{signups.filter(e => e.source === "tiktok" || e.is_tiktok).length}</p>
-                  <p className="text-[10px] text-muted-foreground">Inscriptions</p>
+                  <p className="text-2xs text-muted-foreground">Inscriptions</p>
                 </div>
                 <div>
                   <p className="text-lg font-bold text-foreground">
                     {tiktokViews > 0 ? ((signups.filter(e => e.source === "tiktok" || e.is_tiktok).length / tiktokViews) * 100).toFixed(1) : 0}%
                   </p>
-                  <p className="text-[10px] text-muted-foreground">Conversion</p>
+                  <p className="text-2xs text-muted-foreground">Conversion</p>
                 </div>
               </div>
             </motion.div>
@@ -270,10 +270,10 @@ function KPI({ icon: Icon, label, value, sub }: { icon: any; label: string; valu
       className="bg-card border border-border rounded-xl p-4">
       <div className="flex items-center gap-2 mb-1">
         <Icon className="w-3.5 h-3.5 text-gold" />
-        <span className="text-[10px] text-muted-foreground">{label}</span>
+        <span className="text-2xs text-muted-foreground">{label}</span>
       </div>
       <p className="text-xl font-bold text-foreground">{value}</p>
-      {sub && <p className="text-[9px] text-muted-foreground mt-0.5">{sub}</p>}
+      {sub && <p className="text-2xs text-muted-foreground mt-0.5">{sub}</p>}
     </motion.div>
   );
 }

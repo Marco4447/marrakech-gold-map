@@ -63,12 +63,12 @@ export default function AppSidebar({ active, onChange, onCreatePress, onNotifica
                   strokeWidth={isActive ? 2.5 : 1.5}
                 />
                 {isNotif && unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-2xs font-bold text-destructive-foreground">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
                 {isMsg && unreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-destructive text-2xs font-bold text-destructive-foreground">
                     {unreadMessages > 9 ? "9+" : unreadMessages}
                   </span>
                 )}

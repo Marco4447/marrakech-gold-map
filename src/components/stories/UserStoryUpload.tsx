@@ -53,7 +53,7 @@ export default function UserStoryUpload({ open, onClose, userId, onSuccess }: Pr
       onSuccess?.();
       onClose();
     } catch (err) {
-      console.error("Story upload error:", err);
+     
       toast.error("Erreur lors de la publication");
     } finally {
       setUploading(false);
@@ -108,7 +108,7 @@ export default function UserStoryUpload({ open, onClose, userId, onSuccess }: Pr
             placeholder="Ajouter une légende… (80 car. max)"
             className="w-full bg-card border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold/40"
           />
-          <p className="text-[10px] text-muted-foreground text-right">{caption.length}/80</p>
+          <p className="text-2xs text-muted-foreground text-right">{caption.length}/80</p>
 
           {/* Submit */}
           <button

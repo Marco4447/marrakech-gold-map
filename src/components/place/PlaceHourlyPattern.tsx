@@ -51,11 +51,11 @@ export default function PlaceHourlyPattern({ placeName }: Props) {
           <Clock className="w-4 h-4 text-gold" />
           <h3 className="font-display text-sm font-semibold text-foreground">Quand ça vibe</h3>
         </div>
-        <span className="text-[10px] text-muted-foreground">30 derniers jours</span>
+        <span className="text-2xs text-muted-foreground">30 derniers jours</span>
       </div>
 
       {/* Peak indicator */}
-      <div className="flex items-center gap-1.5 text-[11px]">
+      <div className="flex items-center gap-1.5 text-xs">
         <span className="text-gold font-semibold">🔥 Peak:</span>
         <span className="text-foreground font-medium">{peakHour}h00</span>
       </div>

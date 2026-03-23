@@ -66,7 +66,7 @@ export default function InstantVibeButton({ userId, credits, onPublished }: Prop
       >
         <Zap className="w-5 h-5" />
         Créer une vibe pour ce soir
-        <span className="bg-primary-foreground/20 px-2 py-0.5 rounded-full text-[10px]">{credits} crédits</span>
+        <span className="bg-primary-foreground/20 px-2 py-0.5 rounded-full text-2xs">{credits} crédits</span>
       </motion.button>
 
       <AnimatePresence>

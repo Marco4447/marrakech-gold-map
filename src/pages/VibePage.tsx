@@ -235,15 +235,15 @@ export default function VibePage() {
           </div>
         )}
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-foreground truncate leading-tight">{getDisplayName()}</p>
+          <p className="text-sm font-semibold text-foreground truncate leading-tight">{getDisplayName()}</p>
           {vibe.location && (
-            <p className="text-[11px] text-muted-foreground truncate leading-tight flex items-center gap-0.5">
+            <p className="text-xs text-muted-foreground truncate leading-tight flex items-center gap-0.5">
               <MapPin className="w-3 h-3" />
               {vibe.location}
             </p>
           )}
         </div>
-        <span className="ml-auto text-[11px] text-muted-foreground flex items-center gap-0.5">
+        <span className="ml-auto text-xs text-muted-foreground flex items-center gap-0.5">
           <Clock className="w-3 h-3" />
           {timeAgo(vibe.created_at)}
         </span>
@@ -266,7 +266,7 @@ export default function VibePage() {
         )}
         <DoubleTapHeart show={doubleTapShow} />
         {isExpired && (
-          <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-md rounded-full px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
+          <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-md rounded-full px-2.5 py-1 text-2xs font-bold text-muted-foreground">
             Expiré
           </div>
         )}
@@ -294,7 +294,7 @@ export default function VibePage() {
           {vibe.latitude && vibe.longitude && (
             <button
               onClick={handleSeeOnMap}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-[11px] font-bold text-foreground active:scale-95 transition-transform"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-xs font-bold text-foreground active:scale-95 transition-transform"
             >
               <Navigation className="w-3.5 h-3.5 text-gold" />
               Voir sur la carte
@@ -313,21 +313,21 @@ export default function VibePage() {
 
       {/* Likes & caption */}
       <div className="px-3 pb-2">
-        <p className="text-[13px] font-bold text-foreground">{likeCount} J'aime{likeCount !== 1 ? "s" : ""}</p>
+        <p className="text-sm font-bold text-foreground">{likeCount} J'aime{likeCount !== 1 ? "s" : ""}</p>
         {vibe.caption && (
-          <p className="text-[13px] text-foreground mt-1">
+          <p className="text-sm text-foreground mt-1">
             <Link to={getAuthorLink()} className="font-semibold mr-1">{getDisplayName()}</Link>
             {vibe.caption}
           </p>
         )}
         {vibe.insider_tip && (
           <div className="mt-2 bg-gold/10 border border-gold/20 rounded-xl px-3 py-2">
-            <p className="text-[11px] font-bold text-gold mb-0.5">💡 Insider Tip</p>
+            <p className="text-xs font-bold text-gold mb-0.5">💡 Insider Tip</p>
             <p className="text-[12px] text-foreground">{vibe.insider_tip}</p>
           </div>
         )}
         {vibe.mood && (
-          <p className="text-[11px] text-muted-foreground mt-1">Mood: {vibe.mood}</p>
+          <p className="text-xs text-muted-foreground mt-1">Mood: {vibe.mood}</p>
         )}
       </div>
 
@@ -340,14 +340,14 @@ export default function VibePage() {
                 <MapPin className="w-4 h-4 text-gold" />
               </div>
               <div className="min-w-0">
-                <p className="text-[13px] font-semibold text-foreground truncate">{vibe.location}</p>
-                <p className="text-[11px] text-muted-foreground">Marrakech</p>
+                <p className="text-sm font-semibold text-foreground truncate">{vibe.location}</p>
+                <p className="text-xs text-muted-foreground">Marrakech</p>
               </div>
             </div>
             {vibe.latitude && vibe.longitude && (
               <button
                 onClick={handleSeeOnMap}
-                className="text-[11px] font-bold text-gold active:scale-95 transition-transform"
+                className="text-xs font-bold text-gold active:scale-95 transition-transform"
               >
                 Ouvrir ↗
               </button>
@@ -360,7 +360,7 @@ export default function VibePage() {
       {commentCount > 0 && !showComments && (
         <button
           onClick={() => setShowComments(true)}
-          className="px-3 pb-2 text-[13px] text-muted-foreground"
+          className="px-3 pb-2 text-sm text-muted-foreground"
         >
           Voir les {commentCount} commentaire{commentCount !== 1 ? "s" : ""}
         </button>
@@ -374,7 +374,7 @@ export default function VibePage() {
       {/* More from this author */}
       {moreVibes.length > 0 && (
         <div className="mt-4 border-t border-border pt-4">
-          <p className="px-3 text-[13px] font-bold text-muted-foreground mb-3">
+          <p className="px-3 text-sm font-bold text-muted-foreground mb-3">
             Plus de {getDisplayName()}
           </p>
           <div className="grid grid-cols-3 gap-[1px]">

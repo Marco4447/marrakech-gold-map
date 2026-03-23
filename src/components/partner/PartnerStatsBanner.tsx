@@ -50,7 +50,7 @@ export default function PartnerStatsBanner({ placeId }: Props) {
       className="rounded-2xl border border-gold/20 bg-gradient-to-br from-gold/5 via-card/80 to-card/80 backdrop-blur-xl p-5 space-y-3"
     >
       <div className="flex items-center justify-between">
-        <p className="text-[11px] uppercase tracking-widest text-gold font-semibold">
+        <p className="text-xs uppercase tracking-widest text-gold font-semibold">
           Cette semaine sur Weshkech
         </p>
         <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
@@ -70,7 +70,7 @@ export default function PartnerStatsBanner({ placeId }: Props) {
               <p className="text-lg font-display font-black text-foreground tabular-nums">
                 {isLoading ? "—" : (stats?.[key as keyof typeof stats] ?? 0).toLocaleString("fr-FR")}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide truncate">{label}</p>
+              <p className="text-2xs text-muted-foreground uppercase tracking-wide truncate">{label}</p>
             </div>
           </motion.div>
         ))}

@@ -87,7 +87,7 @@ export default function PlaceHero({ mediaUrl, placeName, category, neighborhood,
             className="inline-flex items-center gap-1.5 bg-gold/90 px-3 py-1 rounded-full mb-3"
           >
             <span className="text-xs">⭐</span>
-            <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-widest">Partenaire vérifié</span>
+            <span className="text-2xs font-bold text-primary-foreground uppercase tracking-widest">Partenaire vérifié</span>
           </motion.div>
         )}
         <motion.h1

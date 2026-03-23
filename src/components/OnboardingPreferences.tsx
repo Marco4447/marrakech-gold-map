@@ -161,7 +161,7 @@ export default function OnboardingPreferences({ open, userId, onComplete }: Onbo
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">Notifications</p>
-            <p className="text-[11px] text-muted-foreground">Sois alerté des événements et offres près de toi</p>
+            <p className="text-xs text-muted-foreground">Sois alerté des événements et offres près de toi</p>
           </div>
         </button>
         <button onClick={requestLocation} disabled={locationLoading} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border hover:border-gold/30 transition-colors text-left disabled:opacity-60">
@@ -170,7 +170,7 @@ export default function OnboardingPreferences({ open, userId, onComplete }: Onbo
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">{locationLoading ? "Activation..." : "Localisation"}</p>
-            <p className="text-[11px] text-muted-foreground">Trouve les spots autour de toi sur la carte</p>
+            <p className="text-xs text-muted-foreground">Trouve les spots autour de toi sur la carte</p>
           </div>
         </button>
       </div>
@@ -183,7 +183,7 @@ export default function OnboardingPreferences({ open, userId, onComplete }: Onbo
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[4000] flex items-center justify-center p-6">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-onboarding flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
       <motion.div initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ duration: 0.4 }}
         className="relative w-full max-w-sm rounded-3xl overflow-hidden border border-gold/20 shadow-[0_8px_40px_-8px_hsl(43_76%_52%/0.25)]"

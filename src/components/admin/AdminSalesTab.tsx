@@ -17,7 +17,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "text-gold" }: { icon
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-lg font-bold text-foreground mt-0.5">{value}</p>
-        {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
+        {sub && <p className="text-2xs text-muted-foreground mt-0.5">{sub}</p>}
       </div>
     </div>
   );
@@ -53,7 +53,7 @@ export default function AdminSalesTab({ stats }: { stats: AdminStats }) {
           <button
             key={f}
             onClick={() => setSalesFilter(f)}
-            className={`text-[11px] font-medium px-2.5 py-1.5 rounded-lg transition-all ${
+            className={`text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all ${
               salesFilter === f
                 ? "bg-gold/15 text-gold border border-gold/20"
                 : "text-muted-foreground hover:text-foreground bg-surface border border-border"
@@ -83,7 +83,7 @@ export default function AdminSalesTab({ stats }: { stats: AdminStats }) {
                   <div className="flex items-center gap-1.5">
                     <p className="text-xs font-medium text-foreground truncate">{p.email}</p>
                     {p.app && (
-                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
+                      <span className={`text-2xs font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
                         p.app === "Weshkech" ? "bg-gold/15 text-gold" 
                         : "bg-muted text-muted-foreground"
                       }`}>
@@ -91,7 +91,7 @@ export default function AdminSalesTab({ stats }: { stats: AdminStats }) {
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">{p.description} · {timeAgo(p.created)}</p>
+                  <p className="text-2xs text-muted-foreground">{p.description} · {timeAgo(p.created)}</p>
                 </div>
                 <span className="text-sm font-bold text-gold whitespace-nowrap ml-2">{p.amount.toFixed(2)}€</span>
               </div>

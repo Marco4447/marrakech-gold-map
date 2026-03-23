@@ -127,7 +127,7 @@ export default function PosterPage() {
                 )}
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{p.name}</p>
-                  <p className="text-[10px] text-white/40 capitalize">
+                  <p className="text-2xs text-white/40 capitalize">
                     {[p.category, p.neighborhood].filter(Boolean).join(" · ")}
                   </p>
                 </div>
@@ -157,7 +157,7 @@ export default function PosterPage() {
         {/* Top */}
         <div className="relative z-10 text-center space-y-2">
           <p
-            className="text-[10px] font-bold tracking-[0.3em] uppercase"
+            className="text-2xs font-bold tracking-[0.3em] uppercase"
             style={{ color: "#BF953F" }}
           >
             Weshkech
@@ -166,7 +166,7 @@ export default function PosterPage() {
           {/* Place name or generic */}
           {selected ? (
             <>
-              <p className="text-[11px] text-white/50 font-medium uppercase tracking-wider">
+              <p className="text-xs text-white/50 font-medium uppercase tracking-wider">
                 You are at
               </p>
               <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">
@@ -182,7 +182,7 @@ export default function PosterPage() {
                 </span>
               </h1>
               {selected.neighborhood && (
-                <p className="text-[10px] text-white/35 font-medium">
+                <p className="text-2xs text-white/35 font-medium">
                   {selected.neighborhood} · Marrakech
                 </p>
               )}
@@ -236,7 +236,7 @@ export default function PosterPage() {
             </div>
           </div>
           <p
-            className="text-[10px] font-medium tracking-wider"
+            className="text-2xs font-medium tracking-wider"
             style={{ color: "#BF953F" }}
           >
             weshkech.com/go
@@ -256,7 +256,7 @@ export default function PosterPage() {
               >
                 <Flame className="w-4 h-4 text-orange-400" />
               </div>
-              <span className="text-[8px] text-white/50 font-medium">
+              <span className="text-2xs text-white/50 font-medium">
                 See the crowd
               </span>
             </div>
@@ -269,7 +269,7 @@ export default function PosterPage() {
               >
                 <MapPin className="w-4 h-4" style={{ color: "#BF953F" }} />
               </div>
-              <span className="text-[8px] text-white/50 font-medium">
+              <span className="text-2xs text-white/50 font-medium">
                 Live spots
               </span>
             </div>
@@ -282,20 +282,20 @@ export default function PosterPage() {
               >
                 <Camera className="w-4 h-4 text-purple-400" />
               </div>
-              <span className="text-[8px] text-white/50 font-medium">
+              <span className="text-2xs text-white/50 font-medium">
                 Post a vibe
               </span>
             </div>
           </div>
 
-          <p className="text-[11px] text-white/60 leading-relaxed">
+          <p className="text-xs text-white/60 leading-relaxed">
             {selected
               ? `Unlock insider perks at ${placeName}`
               : "Discover what's happening right now in Marrakech."}
           </p>
 
           <div
-            className="inline-block px-4 py-1.5 rounded-full text-[11px] font-bold"
+            className="inline-block px-4 py-1.5 rounded-full text-xs font-bold"
             style={{
               background: "linear-gradient(135deg, #fb923c15, #fb923c08)",
               border: "1px solid #fb923c30",

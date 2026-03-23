@@ -57,7 +57,7 @@ export default function VibeExpiryBar({ createdAt, isOfficial }: { createdAt: st
   return (
     <div className="px-3 pb-2">
       {labels[phase] && (
-        <p className={`text-[9px] font-bold mb-1 ${phase === "dead" ? "text-destructive animate-pulse" : "text-orange-400"}`}>
+        <p className={`text-2xs font-bold mb-1 ${phase === "dead" ? "text-destructive animate-pulse" : "text-orange-400"}`}>
           {labels[phase]}
         </p>
       )}

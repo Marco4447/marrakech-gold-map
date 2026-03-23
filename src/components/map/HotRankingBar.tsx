@@ -15,10 +15,10 @@ export default function HotRankingBar({ topPlaces, onPlaceClick }: HotRankingBar
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 20, opacity: 0 }}
-      className="absolute bottom-16 left-3 right-3 z-[50]"
+      className="absolute bottom-16 left-3 right-3 z-controls"
     >
       <div className="bg-card/95 backdrop-blur-xl border border-gold/20 rounded-2xl px-3 py-2.5 shadow-xl flex items-center gap-1 overflow-x-auto no-scrollbar">
-        <span className="text-[10px] font-bold text-gold shrink-0 mr-1">TOP</span>
+        <span className="text-2xs font-bold text-gold shrink-0 mr-1">TOP</span>
         {topPlaces.slice(0, 3).map((place, i) => (
           <button
             key={place.name}
@@ -26,7 +26,7 @@ export default function HotRankingBar({ topPlaces, onPlaceClick }: HotRankingBar
             className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gold/10 hover:bg-gold/20 transition-colors shrink-0 active:scale-95"
           >
             <span className="text-xs">{MEDALS[i]}</span>
-            <span className="text-[10px] font-semibold text-foreground truncate max-w-[80px]">{place.name}</span>
+            <span className="text-2xs font-semibold text-foreground truncate max-w-[80px]">{place.name}</span>
           </button>
         ))}
       </div>

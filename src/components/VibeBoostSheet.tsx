@@ -117,7 +117,7 @@ export default function VibeBoostSheet({ vibeId, open, onOpenChange }: VibeBoost
               ))}
             </div>
 
-            <p className="text-[10px] text-muted-foreground text-center mt-4">
+            <p className="text-2xs text-muted-foreground text-center mt-4">
               Paiement sécurisé via Stripe · Effet immédiat
             </p>
           </motion.div>

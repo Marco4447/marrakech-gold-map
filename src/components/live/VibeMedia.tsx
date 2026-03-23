@@ -72,7 +72,7 @@ export default function VibeMedia({ vibe, className }: { vibe: Vibe; className?:
       </button>
       <div className="absolute top-3 left-12 flex items-center gap-1 bg-background/60 backdrop-blur-md px-2 py-1 rounded-lg">
         <Video className="w-3 h-3 text-destructive" />
-        <span className="text-[10px] text-foreground font-medium">Vidéo</span>
+        <span className="text-2xs text-foreground font-medium">Vidéo</span>
       </div>
     </div>
   );

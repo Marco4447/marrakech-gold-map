@@ -53,7 +53,7 @@ export default function VipPass() {
       toast.success("Bienvenue dans le club Insider ! 🥂");
       try { navigator.vibrate?.([15, 30, 15]); } catch {}
     } catch (err) {
-      console.error(err);
+     
       toast.error("Erreur lors de l'activation");
     } finally {
       setActivating(false);
@@ -78,7 +78,7 @@ export default function VipPass() {
           </button>
           <div>
             <h1 className="font-display text-lg font-bold text-foreground">Insider Pass</h1>
-            <p className="text-[11px] text-muted-foreground">100% gratuit · Avantages exclusifs</p>
+            <p className="text-xs text-muted-foreground">100% gratuit · Avantages exclusifs</p>
           </div>
           <div className="ml-auto"><LanguageToggle /></div>
         </div>
@@ -112,7 +112,7 @@ export default function VipPass() {
               <p className="text-sm text-foreground font-semibold">
                 {user?.user_metadata?.full_name || user?.email?.split("@")[0]}
               </p>
-              <p className="text-[10px] text-muted-foreground mt-3">
+              <p className="text-2xs text-muted-foreground mt-3">
                 Présente ce QR code à l'entrée des établissements partenaires
               </p>
             </div>
@@ -171,7 +171,7 @@ export default function VipPass() {
             <div className="relative z-10">
               <div className="inline-flex items-center gap-1.5 bg-gold/15 px-3 py-1 rounded-full mb-3">
                 <Crown className="w-3.5 h-3.5 text-gold" />
-                <span className="text-[10px] font-bold text-gold uppercase tracking-wider">Insider Pass</span>
+                <span className="text-2xs font-bold text-gold uppercase tracking-wider">Insider Pass</span>
               </div>
 
               <div className="flex items-baseline justify-center gap-1 mt-2">
@@ -195,7 +195,7 @@ export default function VipPass() {
               </button>
 
               {!user && (
-                <p className="text-[10px] text-muted-foreground mt-2">
+                <p className="text-2xs text-muted-foreground mt-2">
                   Connecte-toi pour activer ton pass
                 </p>
               )}

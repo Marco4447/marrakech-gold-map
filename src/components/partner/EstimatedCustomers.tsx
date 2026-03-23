@@ -20,7 +20,7 @@ export default function EstimatedCustomers({ checkins, redemptions }: Props) {
       </div>
       <div>
         <p className="text-2xl font-display font-black text-gold tabular-nums">{estimated}</p>
-        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">
+        <p className="text-2xs uppercase tracking-widest text-muted-foreground font-medium">
           Clients estimés cette semaine
         </p>
       </div>

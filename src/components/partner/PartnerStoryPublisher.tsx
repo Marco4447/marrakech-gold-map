@@ -94,7 +94,7 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-foreground">Republier depuis Insta</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Story Insta → WeshKech en 1 tap. Touchez une audience locale qui ne vous suit pas encore.
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function PartnerStoryPublisher({ userId, placeId }: PartnerStoryP
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
           <Camera className="w-4 h-4 text-gold" /> Publier une Story (24h)
         </h3>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Partagez l'ambiance de votre lieu en story — visible par tous les utilisateurs pendant 24h.
         </p>
 

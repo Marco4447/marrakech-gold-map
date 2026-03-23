@@ -84,6 +84,7 @@ function renderCaption(text: string | null) {
 
 function PartnerOffersRow() {
   const [partners, setPartners] = useState<Array<{ id: string; name: string; category: string | null; image_url: string | null; description: string | null }>>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase
@@ -91,16 +92,24 @@ function PartnerOffersRow() {
       .select("id, name, category, image_url, description")
       .eq("is_partner", true)
       .limit(10)
-      .then(({ data }) => { if (data && data.length > 0) setPartners(data); });
+      .then(({ data, error }) => { setLoading(false); if (error) { toast.error("Erreur chargement offres"); return; } if (data && data.length > 0) setPartners(data); });
   }, []);
 
+  if (loading) return (
+    <div className="px-4 py-3">
+      <div className="h-4 w-32 bg-muted/30 rounded animate-pulse mb-3" />
+      <div className="flex gap-3">
+        {[0,1,2].map(i => <div key={i} className="w-48 h-28 bg-muted/20 rounded-xl animate-pulse shrink-0" />)}
+      </div>
+    </div>
+  );
   if (partners.length === 0) return null;
 
   return (
     <div className="border-b border-[rgba(200,130,30,0.3)] pb-3">
-      <div className="px-4 pt-3 pb-2">
-        <p className="text-sm font-bold uppercase tracking-widest text-[#C8821E]">Offres partenaires</p>
-        <p className="text-xs text-[rgba(245,237,216,0.5)]">Avantages exclusifs membres</p>
+      <div className="px-4 py-3">
+        <p className="text-sm font-bold uppercase tracking-widest text-[var(--ochre)]">Offres partenaires</p>
+        <p className="text-xs text-[var(--text-muted)]">Avantages exclusifs membres</p>
       </div>
       <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-2">
         {partners.map((p) => (
@@ -110,12 +119,12 @@ function PartnerOffersRow() {
               sessionStorage.setItem("wk_flyto", JSON.stringify({ lat: 0, lng: 0, placeId: p.id }));
               window.dispatchEvent(new CustomEvent("wk:goto-map"));
             }}
-            className="w-48 flex-shrink-0 bg-[#221408] border border-[rgba(196,74,42,0.3)] rounded-xl p-3 text-left active:scale-[0.97] transition-transform"
+            className="w-48 flex-shrink-0 bg-[var(--bg-card)] border border-[rgba(196,74,42,0.3)] rounded-xl p-3 text-left active:scale-[0.97] transition-transform"
           >
-            <span className="inline-block bg-[#C44A2A] text-[9px] text-white font-bold rounded px-2 py-0.5 mb-2 uppercase tracking-wide">★ Partenaire</span>
-            <p className="text-sm font-bold text-[#F5EDD8] truncate">{p.name}</p>
-            {p.category && <p className="text-[10px] text-[#C8821E] uppercase tracking-wide mt-0.5">{p.category}</p>}
-            {p.description && <p className="text-[10px] text-[rgba(245,237,216,0.6)] mt-1 line-clamp-1">{p.description}</p>}
+            <span className="inline-block bg-[var(--terracotta)] text-2xs text-white font-bold rounded px-2 py-0.5 mb-2 uppercase tracking-wide">★ Partenaire</span>
+            <p className="text-sm font-bold text-[var(--text-primary)] truncate">{p.name}</p>
+            {p.category && <p className="text-2xs text-[var(--ochre)] uppercase tracking-wide mt-0.5">{p.category}</p>}
+            {p.description && <p className="text-2xs text-[var(--text-secondary)] mt-1 line-clamp-1">{p.description}</p>}
           </button>
         ))}
       </div>
@@ -127,7 +136,7 @@ function CaptionText({ name, text }: { name: string; text: string }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = text.length > 100;
   return (
-    <p className="text-[13px] text-foreground leading-[18px]">
+    <p className="text-sm text-foreground leading-[18px]">
       <span className="font-semibold mr-1">{name}</span>
       {isLong && !expanded ? (
         <>
@@ -151,12 +160,12 @@ function PostMenu({ isOwner, onDelete, userName }: { isOwner: boolean; onDelete:
       <AnimatePresence>
         {open && (
           <>
-            <div className="fixed inset-0 z-[200]" onClick={() => setOpen(false)} />
+            <div className="fixed inset-0 z-dropdown" onClick={() => setOpen(false)} />
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: -4 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -4 }}
-              className="absolute right-0 top-full mt-1 z-[201] bg-card border border-border rounded-xl shadow-xl overflow-hidden min-w-[180px]"
+              className="absolute right-0 top-full mt-1 z-dropdown bg-card border border-border rounded-xl shadow-xl overflow-hidden min-w-[180px]"
             >
               {isOwner ? (
                 <button onClick={() => { setOpen(false); onDelete(); }} className="w-full px-4 py-3 text-left text-sm text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2">
@@ -411,7 +420,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
         lastVisitRef.current = Date.now();
       }
     } catch (err) {
-      console.error("Feed fetch error:", err);
+     
       setFetchError("Impossible de charger le feed.");
     }
     setLoading(false);
@@ -649,7 +658,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
               feedScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
               setShowNewPill(false);
             }}
-            className="fixed top-14 left-1/2 -translate-x-1/2 z-[400] flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl shadow-black/30 whitespace-nowrap"
+            className="fixed top-14 left-1/2 -translate-x-1/2 z-toast flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl shadow-black/30 whitespace-nowrap"
             aria-label={`${newVibesCount} nouvelles vibes, cliquer pour remonter`}
           >
             ↑ {newVibesCount} nouvelle{newVibesCount > 1 ? "s" : ""} vibe{newVibesCount > 1 ? "s" : ""}
@@ -714,8 +723,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-3">
             <AlertCircle className="w-6 h-6 text-muted-foreground" />
           </div>
-          <p className="text-[13px] text-muted-foreground mb-3">{fetchError}</p>
-          <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-[13px] font-semibold text-foreground underline">Réessayer</button>
+          <p className="text-sm text-muted-foreground mb-3">{fetchError}</p>
+          <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-sm font-semibold text-foreground underline">Réessayer</button>
         </div>
       ) : loading ? (
         <div>
@@ -729,7 +738,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             <Camera className="w-7 h-7 text-muted-foreground" />
           </div>
           <h2 className="text-base font-semibold text-foreground mb-1.5">Aucune vibe live</h2>
-          <p className="text-[13px] text-muted-foreground mb-4">Sois le premier à partager ton vibe !</p>
+          <p className="text-sm text-muted-foreground mb-4">Sois le premier à partager ton vibe !</p>
           <button
             onClick={() => {
               if (!userId) {
@@ -750,7 +759,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             <UserPlus className="w-7 h-7 text-muted-foreground" />
           </div>
           <h2 className="text-base font-semibold text-foreground mb-1.5">Aucun contenu</h2>
-          <p className="text-[13px] text-muted-foreground mb-4">Suis des utilisateurs depuis le feed "Pour toi" pour voir leurs vibes ici.</p>
+          <p className="text-sm text-muted-foreground mb-4">Suis des utilisateurs depuis le feed "Pour toi" pour voir leurs vibes ici.</p>
           <button onClick={() => setActiveTab("foryou")} className="px-4 py-2 rounded-xl bg-foreground text-background text-sm font-semibold active:scale-95 transition-transform">
             Explorer le feed
           </button>
@@ -762,7 +771,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             <div className="pt-3 pb-2 px-4">
               <div className="flex items-center gap-2 mb-2.5">
                 <span className="text-sm">🔥</span>
-                <h2 className="text-[13px] font-semibold text-foreground">Top Vibes</h2>
+                <h2 className="text-sm font-semibold text-foreground">Top Vibes</h2>
                 <div className="flex-1 h-px bg-border" />
               </div>
               <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
@@ -777,20 +786,20 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   >
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
-                    <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ${i === 0 ? "bg-foreground text-background" : "bg-background/70 backdrop-blur-md text-foreground"}`}>
+                    <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold ${i === 0 ? "bg-foreground text-background" : "bg-background/70 backdrop-blur-md text-foreground"}`}>
                       {rankMedals[i]} #{i + 1}
                     </div>
                     <div className="absolute top-2 right-2 bg-background/70 backdrop-blur-md px-1.5 py-0.5 rounded-md">
-                      <span className="text-[10px] font-bold text-foreground flex items-center gap-0.5"><Zap className="w-2.5 h-2.5" />{getScore(vibe)}</span>
+                      <span className="text-2xs font-bold text-foreground flex items-center gap-0.5"><Zap className="w-2.5 h-2.5" />{getScore(vibe)}</span>
                     </div>
                     <div className="absolute bottom-0 inset-x-0 p-2.5">
                       <div className="flex items-center gap-1.5">
                         {getAvatarUrl(vibe) && <img src={getAvatarUrl(vibe)!} alt="" className="w-4 h-4 rounded-full border border-border object-cover" />}
-                        <p className="text-[11px] font-semibold text-foreground truncate">{getDisplayName(vibe)}</p>
+                        <p className="text-xs font-semibold text-foreground truncate">{getDisplayName(vibe)}</p>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] text-foreground/70 flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{vibe.likes}</span>
-                        <span className="text-[10px] text-foreground/70 flex items-center gap-0.5"><MessageCircle className="w-2.5 h-2.5" />{commentCounts[vibe.id] || 0}</span>
+                        <span className="text-2xs text-foreground/70 flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{vibe.likes}</span>
+                        <span className="text-2xs text-foreground/70 flex items-center gap-0.5"><MessageCircle className="w-2.5 h-2.5" />{commentCounts[vibe.id] || 0}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -835,11 +844,11 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="text-[13px] font-semibold text-foreground truncate leading-tight hover:underline">
+                        <p className="text-sm font-semibold text-foreground truncate leading-tight hover:underline">
                           {getDisplayName(vibe)}
                         </p>
                         {vibe.location && (
-                          <p className="text-[11px] text-muted-foreground truncate leading-tight">{vibe.location}</p>
+                          <p className="text-xs text-muted-foreground truncate leading-tight">{vibe.location}</p>
                         )}
                       </div>
                     </Link>
@@ -871,7 +880,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   </div>
 
                   {/* Action bar — Instagram style */}
-                  <div className="flex items-center justify-between px-3 pt-3 pb-1">
+                  <div className="flex items-center justify-between px-3 py-2.5">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <VibeReactions show={reactionsVibeId === vibe.id} onReact={(emoji) => handleReaction(vibe.id, emoji)} onClose={() => setReactionsVibeId(null)} />
@@ -915,8 +924,8 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   </div>
 
                   {/* Likes + Caption — Instagram style */}
-                  <div className="px-3 pb-3.5 space-y-1">
-                    <p className="text-[13px] text-foreground">
+                  <div className="px-3 pb-3 space-y-1">
+                    <p className="text-sm text-foreground">
                       {vibe.likes > 0 ? (
                         <>
                           <span className="font-semibold">{vibe.likes} J'aime{vibe.likes !== 1 ? "s" : ""}</span>
@@ -928,18 +937,18 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       <div className="mx-0 mt-1 px-2.5 py-2 rounded-xl bg-gold/[0.08] border border-gold/[0.15] flex gap-2 items-start">
                         <span className="text-sm shrink-0">💡</span>
                         <div>
-                          <p className="text-[9px] font-bold text-gold uppercase tracking-wider mb-0.5">Conseil d'insider</p>
-                          <p className="text-[11px] text-foreground/80 leading-relaxed">{vibe.insider_tip}</p>
+                          <p className="text-2xs font-bold text-gold uppercase tracking-wider mb-0.5">Conseil d'insider</p>
+                          <p className="text-xs text-foreground/80 leading-relaxed">{vibe.insider_tip}</p>
                         </div>
                       </div>
                     )}
                     {(commentCounts[vibe.id] || 0) > 0 && (
-                      <button onClick={() => setCommentVibeId(vibe.id)} className="text-[13px] text-muted-foreground active:opacity-70 transition-opacity">
+                      <button onClick={() => setCommentVibeId(vibe.id)} className="text-sm text-muted-foreground active:opacity-70 transition-opacity">
                         Voir les {commentCounts[vibe.id]} commentaire{(commentCounts[vibe.id] || 0) !== 1 ? "s" : ""}
                       </button>
                     )}
                     <div className="flex items-center gap-2 mt-1">
-                      <p className="text-[11px] text-muted-foreground flex-1">{timeAgo(vibe.created_at)}</p>
+                      <p className="text-xs text-muted-foreground flex-1">{timeAgo(vibe.created_at)}</p>
                       <ShareToStory imageUrl={vibe.image_url} placeName={vibe.location} caption={vibe.caption} vibeId={vibe.id} />
                     </div>
                   </div>
@@ -981,7 +990,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
       {/* Share DM Picker */}
       <AnimatePresence>
         {showDmPicker && shareVibeId && (
-          <div className="fixed inset-0 z-[300] flex flex-col justify-end" onClick={() => setShowDmPicker(false)}>
+          <div className="fixed inset-0 z-dropdown flex flex-col justify-end" onClick={() => setShowDmPicker(false)}>
             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
             <motion.div
               initial={{ y: "100%" }}

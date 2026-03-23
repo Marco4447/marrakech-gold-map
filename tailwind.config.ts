@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontSize: {
+        "2xs": ["0.625rem", { lineHeight: "0.875rem" }],
+      },
       fontFamily: {
         display: ["Playfair Display", "serif"],
         body: ["Inter", "sans-serif"],
@@ -74,6 +77,22 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      zIndex: {
+        controls: "var(--z-controls)",
+        dropdown: "var(--z-dropdown)",
+        toast: "var(--z-toast)",
+        "map-overlay": "var(--z-map-overlay)",
+        "sheet-backdrop": "var(--z-sheet-backdrop)",
+        sheet: "var(--z-sheet)",
+        float: "var(--z-float)",
+        nav: "var(--z-nav)",
+        flashpost: "var(--z-flashpost)",
+        modal: "var(--z-modal)",
+        onboarding: "var(--z-onboarding)",
+        explainer: "var(--z-explainer)",
+        fullscreen: "var(--z-fullscreen)",
+        debug: "var(--z-debug)",
       },
       borderRadius: {
         lg: "var(--radius)",

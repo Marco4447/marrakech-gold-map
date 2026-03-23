@@ -58,7 +58,7 @@ export default function AdminPostVibe({ allPlaces }: Props) {
       setSelectedSpotId("");
       toast.success(selectedPlace ? `Vibe postée au nom de ${selectedPlace.name} !` : "Vibe publiée !");
     } catch (err) {
-      console.error("Upload error:", err);
+     
       toast.error("Erreur lors de la publication");
     } finally {
       setUploading(false);
@@ -89,7 +89,7 @@ export default function AdminPostVibe({ allPlaces }: Props) {
       </select>
 
       {selectedSpotId && (
-        <p className="text-[10px] text-gold/80 -mt-2">
+        <p className="text-2xs text-gold/80 -mt-2">
           ⚡ La vibe sera postée au nom de « {allPlaces.find((p) => p.id === selectedSpotId)?.name} »
         </p>
       )}

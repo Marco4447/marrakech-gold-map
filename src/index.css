@@ -19,6 +19,22 @@
     --ochre-light: #EFD080;
     --terracotta: #C44A2A;
 
+    /* z-index scale */
+    --z-controls: 100;
+    --z-dropdown: 300;
+    --z-toast: 500;
+    --z-map-overlay: 1500;
+    --z-sheet-backdrop: 1999;
+    --z-sheet: 2000;
+    --z-float: 2500;
+    --z-nav: 3000;
+    --z-flashpost: 4000;
+    --z-modal: 5000;
+    --z-onboarding: 6000;
+    --z-explainer: 7000;
+    --z-fullscreen: 9000;
+    --z-debug: 99999;
+
     --background: 0 0% 5%;
     --foreground: 40 20% 92%;
 
@@ -86,6 +102,19 @@
   h1, h2, h3 {
     font-family: var(--font-display);
   }
+}
+
+/* Focus rings — accessible keyboard navigation */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="tab"]:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--ochre);
+  outline-offset: 2px;
+  border-radius: inherit;
 }
 
 /* Leaflet overrides — ultra dark */

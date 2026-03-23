@@ -111,7 +111,7 @@ const B2BFinalCTA = forwardRef<HTMLDivElement>((_, ref) => {
             >
               {/* Business name */}
               <div className="space-y-1.5">
-                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-1">
+                <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-1">
                   <Building2 className="w-3 h-3" /> Nom de l'établissement
                 </label>
                 <input
@@ -126,7 +126,7 @@ const B2BFinalCTA = forwardRef<HTMLDivElement>((_, ref) => {
 
               {/* WhatsApp */}
               <div className="space-y-1.5">
-                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-1">
+                <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-1">
                   <MessageCircle className="w-3 h-3" /> WhatsApp
                 </label>
                 <input
@@ -157,7 +157,7 @@ const B2BFinalCTA = forwardRef<HTMLDivElement>((_, ref) => {
                 )}
               </button>
 
-              <p className="text-[10px] text-center text-muted-foreground">
+              <p className="text-2xs text-center text-muted-foreground">
                 Sans engagement · Activation sous 24h · Support WhatsApp
               </p>
             </motion.div>

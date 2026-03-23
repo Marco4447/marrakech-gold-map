@@ -114,7 +114,7 @@ export default function FloatingVipOffer() {
           if (displayOffer.place_slug) navigate(`/spot/${displayOffer.place_slug}`);
           setDismissed(true);
         }}
-        className={`fixed bottom-16 left-1/2 -translate-x-1/2 z-[1998] flex items-center gap-2.5 px-5 py-3 rounded-2xl border shadow-2xl backdrop-blur-xl transition-all active:scale-95 ${
+        className={`fixed bottom-16 left-1/2 -translate-x-1/2 z-float flex items-center gap-2.5 px-5 py-3 rounded-2xl border shadow-2xl backdrop-blur-xl transition-all active:scale-95 ${
           isUrgent
             ? "bg-accent-warm/20 border-accent-warm/40 shadow-accent-warm/20"
             : "bg-card/95 border-gold/30 shadow-gold/10"
@@ -131,16 +131,16 @@ export default function FloatingVipOffer() {
         </div>
 
         <div className="text-left min-w-0">
-          <p className="text-[11px] font-bold text-foreground truncate max-w-[160px]">
+          <p className="text-xs font-bold text-foreground truncate max-w-[160px]">
             {displayOffer.title}
           </p>
-          <p className="text-[9px] text-muted-foreground truncate">
+          <p className="text-2xs text-muted-foreground truncate">
             {displayOffer.place_name}
           </p>
         </div>
 
         {displayOffer.end_time && timeLeft && (
-          <div className={`flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg text-[10px] font-bold ${
+          <div className={`flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg text-2xs font-bold ${
             isUrgent ? "bg-accent-warm/20 text-accent-warm" : "bg-gold/10 text-gold"
           }`}>
             <Clock className="w-3 h-3" />

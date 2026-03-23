@@ -193,7 +193,7 @@ export default function GoPage() {
             <div key={label} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border">
               <Icon className="w-3.5 h-3.5 text-primary" />
               <span className="text-sm font-bold text-foreground tabular-nums">{value}</span>
-              <span className="text-[10px] text-muted-foreground">{label}</span>
+              <span className="text-2xs text-muted-foreground">{label}</span>
             </div>
           ))}
         </div>
@@ -204,8 +204,8 @@ export default function GoPage() {
             <motion.div key={testimonialIdx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
               className="flex items-center gap-1.5">
               <span className="text-sm">{TESTIMONIALS[testimonialIdx].flag}</span>
-              <span className="text-[11px] text-muted-foreground italic">"{TESTIMONIALS[testimonialIdx].text[lang]}"</span>
-              <span className="text-[10px] text-muted-foreground/60">— {TESTIMONIALS[testimonialIdx].name}</span>
+              <span className="text-xs text-muted-foreground italic">"{TESTIMONIALS[testimonialIdx].text[lang]}"</span>
+              <span className="text-2xs text-muted-foreground/60">— {TESTIMONIALS[testimonialIdx].name}</span>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -243,7 +243,7 @@ export default function GoPage() {
 
       {/* Legal footer */}
       <footer className="px-5 pb-8 text-center">
-        <p className="text-[9px] text-muted-foreground/50">
+        <p className="text-2xs text-muted-foreground/50">
           © {new Date().getFullYear()} WeshKech · {t("madeIn")} · {" "}
           <Link to="/terms" className="underline">{t("terms")}</Link>{" · "}
           <Link to="/privacy" className="underline">{t("privacy")}</Link>

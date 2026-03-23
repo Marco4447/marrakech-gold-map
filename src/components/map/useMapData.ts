@@ -47,7 +47,7 @@ export function useMapData(refreshSignal: number) {
         const rows = await response.json();
         setPlaces(Array.isArray(rows) ? (rows as Place[]) : []);
       } catch (error) {
-        console.error("Failed to fetch places:", error);
+       
         setPlaces([]);
         setPlacesError("Impossible de charger les spots.");
       } finally {

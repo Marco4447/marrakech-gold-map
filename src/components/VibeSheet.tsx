@@ -54,7 +54,7 @@ function VipPerkBox({ location }: { location: string | null }) {
           <Gift className="w-4 h-4 text-gold" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase tracking-wider font-bold text-gold">VIP Perk</p>
+          <p className="text-2xs uppercase tracking-wider font-bold text-gold">VIP Perk</p>
           <p className="text-xs text-foreground font-medium mt-0.5">{perk}</p>
           {/* VIP upsell CTA hidden — B2C is free */}
         </div>
@@ -129,7 +129,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
         <>
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-background/60 backdrop-blur-sm z-[1001]"
+            className="absolute inset-0 bg-background/60 backdrop-blur-sm z-sheet-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -138,7 +138,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
 
           {/* Sheet */}
           <motion.div
-            className="absolute bottom-0 left-0 right-0 z-[1002] px-3 pb-20 max-h-[85vh] flex flex-col"
+            className="absolute bottom-0 left-0 right-0 z-sheet px-3 pb-20 max-h-[85vh] flex flex-col"
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
@@ -182,6 +182,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                 {/* Close button */}
                 <button
                   onClick={() => onOpenChange(false)}
+                  aria-label="Fermer"
                   className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
                 >
                   <X className="w-4 h-4" />
@@ -212,7 +213,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                           isRecent ? "bg-red-400" : "bg-amber-400"
                         }`} />
                       </span>
-                      <span className="text-[11px] font-bold text-white/90 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-white/90 uppercase tracking-wider">
                         {isRecent ? "Live" : "Fading"}
                       </span>
                       <span className="text-xs font-mono font-bold text-white tabular-nums">
@@ -225,7 +226,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                 {/* Official badge */}
                 {vibe.is_official && (
                   <div className="absolute bottom-3 left-3 bg-gold/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg shadow-gold/30">
-                    <span className="text-[10px] font-bold text-primary-foreground uppercase tracking-wider">
+                    <span className="text-2xs font-bold text-primary-foreground uppercase tracking-wider">
                       ⭐ Officiel
                     </span>
                   </div>
@@ -233,7 +234,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
               </div>
 
               {/* Info + CTAs */}
-              <div className="px-4 pt-3 pb-4 space-y-3">
+              <div className="px-3 pt-3 pb-4 space-y-3">
                 {/* Location */}
                 {vibe.location && (
                   <div className="flex items-center gap-2">
@@ -251,6 +252,7 @@ export default function VibeSheet({ vibe, open, onOpenChange }: VibeSheetProps) 
                 <div className="flex gap-2">
                   {/* Share */}
                   <button
+                    aria-label="Partager"
                     onClick={async () => {
                       const url = getShareUrl("vibe", vibe.id);
                       const text = `${vibe.location || "Marrakech"} sur Weshkech 🔥`;

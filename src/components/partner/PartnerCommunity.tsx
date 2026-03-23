@@ -152,7 +152,7 @@ export default function PartnerCommunity({ placeId }: Props) {
             <div className="text-center py-6 bg-card/60 border border-border rounded-xl">
               <Star className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
               <p className="text-xs text-muted-foreground">Pas encore d'habitués</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+              <p className="text-2xs text-muted-foreground/60 mt-0.5">
                 Un client devient Habitué après {HABITUE_THRESHOLD} visites
               </p>
             </div>
@@ -170,11 +170,11 @@ export default function PartnerCommunity({ placeId }: Props) {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {h.full_name || "Utilisateur"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-2xs text-muted-foreground">
                     {h.checkin_count} visites
                   </p>
                 </div>
-                <span className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                <span className="text-2xs bg-gold/15 text-gold px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
                   <Star className="w-3 h-3 fill-gold" /> Habitué
                 </span>
               </motion.div>
@@ -187,7 +187,7 @@ export default function PartnerCommunity({ placeId }: Props) {
             <div className="text-center py-6 bg-card/60 border border-border rounded-xl">
               <Bell className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
               <p className="text-xs text-muted-foreground">Pas encore de followers</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+              <p className="text-2xs text-muted-foreground/60 mt-0.5">
                 Les clients suivent ton lieu via le QR code
               </p>
             </div>
@@ -205,7 +205,7 @@ export default function PartnerCommunity({ placeId }: Props) {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {f.full_name || "Utilisateur"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-2xs text-muted-foreground">
                     Suit depuis {new Date(f.followed_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                   </p>
                 </div>

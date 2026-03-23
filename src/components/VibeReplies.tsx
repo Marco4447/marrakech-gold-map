@@ -122,7 +122,7 @@ export default function VibeReplies({ vibeId, open, onOpenChange }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h3 className="font-display text-sm font-bold text-foreground">Vibe Replies 📸</h3>
-          <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+          <button aria-label="Fermer" onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
             <X className="w-4 h-4 text-foreground" />
           </button>
         </div>
@@ -156,20 +156,20 @@ export default function VibeReplies({ vibeId, open, onOpenChange }: Props) {
                   <Link to={`/u/${reply.user_id}`}>
                     <Avatar className="w-6 h-6 border border-border">
                       <AvatarImage src={reply.profile?.avatar_url || undefined} />
-                      <AvatarFallback className="text-[8px] bg-gold/10 text-gold">
+                      <AvatarFallback className="text-2xs bg-gold/10 text-gold">
                         {(reply.profile?.full_name || "?")[0]}
                       </AvatarFallback>
                     </Avatar>
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[11px] font-semibold text-foreground">
+                    <span className="text-xs font-semibold text-foreground">
                       {reply.profile?.full_name || "Anonyme"}
                     </span>
                     {reply.caption && (
-                      <span className="text-[11px] text-muted-foreground ml-1.5">{reply.caption}</span>
+                      <span className="text-xs text-muted-foreground ml-1.5">{reply.caption}</span>
                     )}
                   </div>
-                  <span className="text-[9px] text-muted-foreground shrink-0">{timeAgo(reply.created_at)}</span>
+                  <span className="text-2xs text-muted-foreground shrink-0">{timeAgo(reply.created_at)}</span>
                 </div>
               </motion.div>
             ))

@@ -21,6 +21,7 @@ export default function LiveHeader({ userId, vibeCount, activeTab, setActiveTab,
           <h1 className="text-base font-semibold text-foreground tracking-tight font-body">Weshkech</h1>
           <div className="flex items-center gap-3">
             <button
+              aria-label="Voir les vibes"
               onClick={onShowTikTokFeed}
               className="flex items-center gap-1 active:scale-95 transition-all"
             >
@@ -34,7 +35,7 @@ export default function LiveHeader({ userId, vibeCount, activeTab, setActiveTab,
         <div className="flex">
           <button
             onClick={() => setActiveTab("tendances")}
-            className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${
+            className={`flex-1 py-2.5 text-sm font-semibold text-center border-b-2 transition-colors ${
               activeTab === "tendances"
                 ? "border-foreground text-foreground"
                 : "border-transparent text-muted-foreground"
@@ -44,7 +45,7 @@ export default function LiveHeader({ userId, vibeCount, activeTab, setActiveTab,
           </button>
           <button
             onClick={() => setActiveTab("recents")}
-            className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${
+            className={`flex-1 py-2.5 text-sm font-semibold text-center border-b-2 transition-colors ${
               activeTab === "recents"
                 ? "border-foreground text-foreground"
                 : "border-transparent text-muted-foreground"

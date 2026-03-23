@@ -33,7 +33,7 @@ export default function FomoCountdown({ endTime, className = "" }: Props) {
   return (
     <div className={`flex items-center gap-1.5 ${urgent ? "text-destructive" : "text-gold"} ${className}`}>
       <Clock className={`w-3 h-3 ${urgent ? "animate-pulse" : ""}`} />
-      <span className={`text-[11px] font-bold tabular-nums ${urgent ? "animate-pulse" : ""}`}>
+      <span className={`text-xs font-bold tabular-nums ${urgent ? "animate-pulse" : ""}`}>
         {remaining === "Expiré" ? "⏰ Expiré" : `⏳ Expire dans ${remaining}`}
       </span>
     </div>

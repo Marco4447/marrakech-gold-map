@@ -68,7 +68,7 @@ export function useProximityDetection(userId: string | undefined) {
           setNearbyPlace(null);
         }
       } catch (err) {
-        console.error("Proximity check error:", err);
+       
       }
     };
 

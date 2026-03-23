@@ -70,7 +70,7 @@ export default function BusinessFeatures() {
                 <div className="space-y-1 min-w-0">
                   <h3 className="text-sm font-bold text-foreground">{f.title}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
-                  <span className="inline-block text-[10px] font-semibold text-gold bg-gold/10 px-2 py-0.5 rounded-full mt-1">
+                  <span className="inline-block text-2xs font-semibold text-gold bg-gold/10 px-2 py-0.5 rounded-full mt-1">
                     {f.highlight}
                   </span>
                 </div>
@@ -91,7 +91,7 @@ export default function BusinessFeatures() {
               className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-surface border border-border"
             >
               <b.icon className="w-3.5 h-3.5 text-gold shrink-0" />
-              <span className="text-[11px] text-foreground font-medium leading-tight">{b.text}</span>
+              <span className="text-xs text-foreground font-medium leading-tight">{b.text}</span>
             </motion.div>
           ))}
         </div>

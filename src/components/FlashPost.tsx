@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BoostUpsell from "@/components/BoostUpsell";
@@ -71,7 +72,7 @@ function SuccessAnimation({ show }: { show: boolean }) {
   if (!show) return null;
   return (
     <motion.div
-      className="fixed inset-0 z-[2600] flex items-center justify-center pointer-events-none"
+      className="fixed inset-0 z-flashpost flex items-center justify-center pointer-events-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -427,7 +428,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
         }
       }, 50);
     } catch (err) {
-      console.error("Camera access denied:", err);
+     
       toast.error("Accès caméra refusé", { description: "Autorise l'accès à la caméra pour filmer." });
       setIsLongPress(false);
     }
@@ -521,13 +522,12 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       const uploadFile = processed.file;
       const finalMediaType = processed.mediaType;
       if (processed.wasProcessed) {
-        console.log("Image processed: resized & compressed to IG specs");
       }
 
       setUploadProgress(15);
 
       const globalTimeout = setTimeout(() => {
-        console.error("Upload global timeout reached");
+       
         toast.error("Envoi trop long", { description: "Réessaie avec une meilleure connexion." });
         setUploading(false);
         setUploadProgress(0);
@@ -545,7 +545,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
           token = sessionResult.data.session.access_token;
         }
       } catch {
-        console.warn("Session fetch failed, using anon key");
+        reportError("Session fetch failed, using anon key", { context: "FlashPost upload" });
       }
 
       const ext = uploadFile.name.split(".").pop() || (finalMediaType === "video" ? "mp4" : "jpg");
@@ -652,7 +652,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       }, 1200);
     } catch (err) {
       clearTimeout(globalTimeout);
-      console.error("Upload error:", err);
+     
       toast.error("Envoi du vibe échoué", {
         description: "Le réseau a interrompu l'envoi. Réessaie avec 4G/Wi‑Fi stable.",
       });
@@ -697,14 +697,14 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 bg-background/70 backdrop-blur-md z-[2500]"
+            className="fixed inset-0 bg-background/70 backdrop-blur-md z-flashpost"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
           />
           <motion.div
-            className="fixed inset-x-0 bottom-0 z-[2501] max-h-[92vh] overflow-y-auto"
+            className="fixed inset-x-0 bottom-0 z-flashpost max-h-[92vh] overflow-y-auto"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -824,7 +824,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                       className="hidden"
                       onChange={handleFileChange}
                     />
-                    <p className="text-[10px] text-muted-foreground text-center mt-3">
+                    <p className="text-2xs text-muted-foreground text-center mt-3">
                       Disparaît après 6 heures
                     </p>
                   </>
@@ -856,9 +856,9 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                       {/* Media type badge */}
                       <div className="absolute top-2 left-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
                         {mediaType === "video" ? (
-                          <><Video className="w-3 h-3 text-destructive" /><span className="text-[10px] text-foreground font-medium">Vidéo</span></>
+                          <><Video className="w-3 h-3 text-destructive" /><span className="text-2xs text-foreground font-medium">Vidéo</span></>
                         ) : (
-                          <><Camera className="w-3 h-3 text-gold" /><span className="text-[10px] text-foreground font-medium">Photo</span></>
+                          <><Camera className="w-3 h-3 text-gold" /><span className="text-2xs text-foreground font-medium">Photo</span></>
                         )}
                       </div>
 
@@ -866,13 +866,13 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                       {geoLocation && (
                         <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
                           <MapPin className="w-3 h-3 text-gold" />
-                          <span className="text-[10px] text-foreground">📍 Localisé</span>
+                          <span className="text-2xs text-foreground">📍 Localisé</span>
                         </div>
                       )}
                       {geoLoading && (
                         <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/70 backdrop-blur-md px-2 py-1 rounded-lg">
                           <Loader2 className="w-3 h-3 text-gold animate-spin" />
-                          <span className="text-[10px] text-foreground">Localisation...</span>
+                          <span className="text-2xs text-foreground">Localisation...</span>
                         </div>
                       )}
                     </div>
@@ -893,7 +893,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                           }`}
                         >
                           <span className="text-2xl">{mood.emoji}</span>
-                          <span className={`text-[10px] font-semibold ${selectedMood === mood.key ? "text-gold" : "text-muted-foreground"}`}>
+                          <span className={`text-2xs font-semibold ${selectedMood === mood.key ? "text-gold" : "text-muted-foreground"}`}>
                             {mood.label}
                           </span>
                         </button>
@@ -924,7 +924,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                               <p className={`text-sm font-semibold ${isOfficial ? "text-gold" : "text-foreground"}`}>
                                 Vibe Officielle ⭐
                               </p>
-                              <p className="text-[10px] text-muted-foreground">
+                              <p className="text-2xs text-muted-foreground">
                                 Épinglée en haut · Visible partout · 1 crédit
                               </p>
                             </div>
@@ -985,7 +985,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                       <label className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1.5 mb-1">
                         💡 Conseil d'insider
                       </label>
-                      <p className="text-[10px] text-gold mb-1.5">Les vibes avec un conseil insider reçoivent +40% d'engagement</p>
+                      <p className="text-2xs text-gold mb-1.5">Les vibes avec un conseil insider reçoivent +40% d'engagement</p>
                       <div className="relative">
                         <input
                           value={insiderTip}
@@ -993,7 +993,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                           placeholder="Ton conseil secret pour ce spot... (horaire idéal, table préférée, ce qu'il faut commander 🤫)"
                           className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all pr-12"
                         />
-                        <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] ${insiderTip.length > 100 ? "text-destructive" : "text-muted-foreground"}`}>
+                        <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-2xs ${insiderTip.length > 100 ? "text-destructive" : "text-muted-foreground"}`}>
                           {insiderTip.length}/120
                         </span>
                       </div>
@@ -1020,7 +1020,7 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                         placeholder="Ex: Jemaa el-Fna"
                         className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all"
                       />
-                      <p className="mt-1.5 text-[10px] text-muted-foreground">
+                      <p className="mt-1.5 text-2xs text-muted-foreground">
                         GPS recommandé pour apparaître sur la map. Sans GPS, ton vibe reste visible en Live Vibes.
                       </p>
                     </div>
@@ -1055,16 +1055,16 @@ export default function FlashPost({ open, onClose, onPosted, initialPlace }: Fla
                       )}
                     </button>
                     {missingMood && (
-                      <p className="text-[11px] text-destructive text-center mt-2">
+                      <p className="text-xs text-destructive text-center mt-2">
                         Choisis un mood avant l'envoi.
                       </p>
                     )}
                     {missingGeo && (
-                      <p className="text-[11px] text-destructive text-center mt-2">
+                      <p className="text-xs text-destructive text-center mt-2">
                         Ajoute un lieu (ou active le GPS) pour publier.
                       </p>
                     )}
-                    <p className="text-[10px] text-muted-foreground text-center mt-3">
+                    <p className="text-2xs text-muted-foreground text-center mt-3">
                       Visible pendant 6 heures uniquement
                     </p>
                   </>

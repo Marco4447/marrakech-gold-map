@@ -39,7 +39,7 @@ export default function GoSections({ lang, t, onCtaClick }: GoSectionsProps) {
               </div>
               <h2 className="text-lg font-bold text-foreground">{t(titleKey)}</h2>
             </div>
-            <p className="text-[13px] text-muted-foreground leading-relaxed mb-3">{t(descKey)}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-3">{t(descKey)}</p>
             <button onClick={onCtaClick}
               className="text-[12px] font-semibold text-primary underline underline-offset-2 active:opacity-70">
               {lang === "fr" ? "Explorer →" : "Explore →"}

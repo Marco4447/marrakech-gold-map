@@ -96,7 +96,7 @@ export default function PartnerPitchPage() {
           </button>
           <div>
             <h1 className="font-display text-lg font-bold text-gold">WeshKech</h1>
-            <p className="text-[10px] text-muted-foreground">Programme Fondateurs</p>
+            <p className="text-2xs text-muted-foreground">Programme Fondateurs</p>
           </div>
         </div>
       </div>
@@ -121,19 +121,19 @@ export default function PartnerPitchPage() {
             className="text-center bg-card/80 border border-border rounded-2xl py-4 px-2">
             <Users className="w-5 h-5 text-gold mx-auto mb-1" />
             <p className="text-2xl font-black text-gold">{kpi1.value.toLocaleString()}+</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5">Utilisateurs beta</p>
+            <p className="text-2xs text-muted-foreground mt-0.5">Utilisateurs beta</p>
           </motion.div>
           <motion.div ref={kpi2.ref} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="text-center bg-card/80 border border-border rounded-2xl py-4 px-2">
             <TrendingUp className="w-5 h-5 text-gold mx-auto mb-1" />
             <p className="text-2xl font-black text-gold">{kpi2.value}%</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5">18-35 ans</p>
+            <p className="text-2xs text-muted-foreground mt-0.5">18-35 ans</p>
           </motion.div>
           <motion.div ref={kpi3.ref} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
             className="text-center bg-card/80 border border-border rounded-2xl py-4 px-2">
             <Eye className="w-5 h-5 text-gold mx-auto mb-1" />
             <p className="text-2xl font-black text-gold">{kpi3.value.toLocaleString()}</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5">Vues / semaine</p>
+            <p className="text-2xs text-muted-foreground mt-0.5">Vues / semaine</p>
           </motion.div>
         </div>
 
@@ -204,7 +204,7 @@ export default function PartnerPitchPage() {
               style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
               {submitting ? <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> : <><Send className="w-4 h-4" /> Candidater maintenant</>}
             </button>
-            <p className="text-[10px] text-center text-muted-foreground">Sans engagement \u00B7 Activation sous 24h</p>
+            <p className="text-2xs text-center text-muted-foreground">Sans engagement \u00B7 Activation sous 24h</p>
           </div>
         )}
 

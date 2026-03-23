@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 /**
  * Database-driven boosted places system.
  * Replaces the old hardcoded BOOSTED_PLACES array.
@@ -33,10 +34,10 @@ async function refreshCache() {
         if ((error as { code?: string }).code === "PGRST205") {
           cacheDisabled = true;
           cache = [];
-          console.warn("[boostedPlaces] Table missing; feature temporarily disabled.");
+          reportError("boostedPlaces table missing; feature temporarily disabled.");
           return;
         }
-        console.error("[boostedPlaces] Query failed:", error);
+       
         return;
       }
 
@@ -46,7 +47,7 @@ async function refreshCache() {
         priority: d.priority,
       }));
     } catch (err) {
-      console.error("[boostedPlaces] Cache refresh failed:", err);
+     
     } finally {
       cacheTime = Date.now();
       refreshInFlight = null;

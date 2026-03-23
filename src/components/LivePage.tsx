@@ -110,7 +110,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
         setVibes(vibesWithProfiles);
       }
     } catch (err) {
-      console.error("Feed fetch error:", err);
+     
       setFetchError("Impossible de charger le feed. Vérifie ta connexion.");
     }
     setLoading(false);
@@ -244,7 +244,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
       setVibes((prev) => prev.filter((v) => v.id !== vibeId));
       toast.success("Vibe supprimé");
     } catch (err) {
-      console.error("Delete error:", err);
+     
       toast.error("Impossible de supprimer");
     } finally {
       setDeletingId(null);
@@ -337,8 +337,8 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                       {typeof Icon === 'function' && Icon.length === 0 ? <Icon /> : <Icon className="w-4 h-4 text-foreground" />}
                     </div>
                     <div>
-                      <p className="text-[13px] font-semibold text-foreground">{label}</p>
-                      <p className="text-[11px] text-muted-foreground">{desc}</p>
+                      <p className="text-sm font-semibold text-foreground">{label}</p>
+                      <p className="text-xs text-muted-foreground">{desc}</p>
                     </div>
                   </div>
                 ))}
@@ -348,7 +348,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
                   localStorage.setItem("weshkech_vibez_tutorial_seen", "1");
                   setShowTutorial(false);
                 }}
-                className="mt-5 w-full py-2.5 rounded-lg text-[13px] font-semibold bg-foreground text-background"
+                className="mt-5 w-full py-2.5 rounded-lg text-sm font-semibold bg-foreground text-background"
               >
                 C'est compris !
               </button>
@@ -362,8 +362,8 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
           <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-3">
             <AlertCircle className="w-6 h-6 text-muted-foreground" />
           </div>
-          <p className="text-[13px] text-muted-foreground mb-3">{fetchError}</p>
-          <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-[13px] font-semibold text-foreground underline">Réessayer</button>
+          <p className="text-sm text-muted-foreground mb-3">{fetchError}</p>
+          <button onClick={() => { setLoading(true); fetchVibes(); }} className="text-sm font-semibold text-foreground underline">Réessayer</button>
         </div>
       ) : loading ? (
         <div className="space-y-0 divide-y divide-border">
@@ -383,7 +383,7 @@ export default function LivePage({ refreshSignal = 0, onGoToMap }: { refreshSign
             <Camera className="w-7 h-7 text-muted-foreground" />
           </div>
           <h2 className="text-base font-semibold text-foreground mb-1.5">Aucun vibe live</h2>
-          <p className="text-[13px] text-muted-foreground">Sois le premier à partager ton vibe !</p>
+          <p className="text-sm text-muted-foreground">Sois le premier à partager ton vibe !</p>
         </div>
       ) : (
         <>

@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useRef } from "react";
 
 const extractModuleEntry = (html: string): string | null => {
@@ -75,7 +76,7 @@ export function useAutoRefreshOnNewVersion() {
 
         if (latestEntry && currentEntry && latestEntry !== currentEntry) {
           if (!canReload()) {
-            console.warn("[AutoRefresh] Reload loop detected, skipping.");
+            reportError("[AutoRefresh] Reload loop detected, skipping.");
             return;
           }
           reloadingRef.current = true;

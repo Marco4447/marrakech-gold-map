@@ -130,7 +130,7 @@ export function useConversations() {
         setLoading(false);
       }
     } catch (err) {
-      console.error("fetchConversations error:", err);
+     
       toast.error("Impossible de charger les conversations");
       if (isMounted.current) setLoading(false);
     }
@@ -289,7 +289,7 @@ export function useConversations() {
 
         return null;
       } catch (err) {
-        console.error("startConversation error:", err);
+       
         toast.error("Impossible de démarrer la conversation");
         return null;
       }
@@ -318,7 +318,7 @@ export function useConversations() {
         );
         setTotalUnread((prev) => Math.max(0, prev - unreadBefore));
       } catch (err) {
-        console.error("markConversationRead error:", err);
+       
         toast.error("Impossible de marquer la conversation comme lue");
       }
     },

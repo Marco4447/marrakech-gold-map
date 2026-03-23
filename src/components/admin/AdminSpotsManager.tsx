@@ -95,7 +95,7 @@ export default function AdminSpotsManager() {
     const { error } = await supabase.from("places").delete().in("id", ids);
     if (error) {
       toast.error("Erreur lors de la suppression");
-      console.error(error);
+     
     } else {
       toast.success(`${ids.length} lieu(x) supprimé(s)`);
       setPlaces(prev => prev.filter(p => !selected.has(p.id)));
@@ -121,7 +121,7 @@ export default function AdminSpotsManager() {
     });
     if (error) {
       toast.error("Erreur lors de la création");
-      console.error(error);
+     
     } else {
       toast.success("Lieu créé avec succès !");
       setSpotName(""); setSpotCategory(""); setSpotLat(""); setSpotLng("");
@@ -133,16 +133,16 @@ export default function AdminSpotsManager() {
   };
 
   const tierBadge = (tier: string | null) => {
-    if (tier === "featured") return <span className="text-[9px] font-bold text-gold bg-gold/15 px-1.5 py-0.5 rounded">FEATURED</span>;
-    if (tier === "premium") return <span className="text-[9px] font-bold text-gold/70 bg-gold/10 px-1.5 py-0.5 rounded">PREMIUM</span>;
-    if (tier === "basic") return <span className="text-[9px] font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">BASIC</span>;
+    if (tier === "featured") return <span className="text-2xs font-bold text-gold bg-gold/15 px-1.5 py-0.5 rounded">FEATURED</span>;
+    if (tier === "premium") return <span className="text-2xs font-bold text-gold/70 bg-gold/10 px-1.5 py-0.5 rounded">PREMIUM</span>;
+    if (tier === "basic") return <span className="text-2xs font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">BASIC</span>;
     return null;
   };
 
   const SortHeader = ({ label, field }: { label: string; field: "name" | "category" | "neighborhood" }) => (
     <button
       onClick={() => { if (sortBy === field) setSortAsc(!sortAsc); else { setSortBy(field); setSortAsc(true); } }}
-      className="flex items-center gap-0.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+      className="flex items-center gap-0.5 text-2xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
     >
       {label}
       {sortBy === field && (sortAsc ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
@@ -298,17 +298,17 @@ export default function AdminSpotsManager() {
                     <div className="flex items-center gap-1 mt-0.5">
                       {place.is_partner && <Crown className="w-3 h-3 text-gold" />}
                       {tierBadge(place.listing_tier)}
-                      {place.has_active_offer && <span className="text-[9px] text-gold">🎁</span>}
+                      {place.has_active_offer && <span className="text-2xs text-gold">🎁</span>}
                     </div>
                   </div>
-                  <span className="text-[11px] text-muted-foreground truncate self-center">{place.category || "—"}</span>
-                  <span className="text-[11px] text-muted-foreground truncate self-center">{place.neighborhood || "—"}</span>
+                  <span className="text-xs text-muted-foreground truncate self-center">{place.category || "—"}</span>
+                  <span className="text-xs text-muted-foreground truncate self-center">{place.neighborhood || "—"}</span>
                 </div>
 
                 {place.rating && (
                   <div className="flex items-center gap-0.5 shrink-0">
                     <Star className="w-3 h-3 text-gold fill-gold" />
-                    <span className="text-[10px] text-muted-foreground">{place.rating}</span>
+                    <span className="text-2xs text-muted-foreground">{place.rating}</span>
                   </div>
                 )}
 
@@ -339,7 +339,7 @@ export default function AdminSpotsManager() {
 
       {/* Summary */}
       {!loading && (
-        <div className="text-[10px] text-muted-foreground text-center pt-2">
+        <div className="text-2xs text-muted-foreground text-center pt-2">
           {filtered.length} / {places.length} lieu(x) affiché(s)
           {search || filterCat ? " (filtré)" : ""}
         </div>

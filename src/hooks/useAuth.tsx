@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useState, useCallback, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ttqTrack } from "@/lib/ttq";
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
 
       if (upsertError) {
-        console.error("Failed to upsert profile:", upsertError, error);
+       
       }
 
       setProfile(fallbackProfile);
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await fetchProfile(user, 1);
     } catch (e) {
-      console.error("Failed to refresh profile:", e);
+     
     }
   }, [user, fetchProfile]);
 
@@ -99,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const bootTimeout = window.setTimeout(() => {
       if (!mounted || initialSessionHandled) return;
       initialSessionHandled = true;
-      console.warn("[auth] bootstrap timeout, continuing in guest mode");
+      reportError("[auth] bootstrap timeout, continuing in guest mode");
       setLoading(false);
     }, 8000);
 
@@ -137,13 +138,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
               }
             } catch (e) {
-              console.warn("Referral processing failed:", e);
+              reportError(e, { context: "Referral processing" });
             }
           }
 
           if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
             fetchProfile(currentUser).catch((e) => {
-              console.error("Failed to fetch profile:", e);
+             
             });
           }
         } else {
@@ -163,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(currentUser).catch(console.error);
       }
     }).catch((err) => {
-      console.error("getSession failed:", err);
+     
       if (mounted && !initialSessionHandled) {
         initialSessionHandled = true;
         clearTimeout(bootTimeout);
@@ -195,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await signOutWithTimeout("local");
       }
     } catch (e) {
-      console.error("Sign out error:", e);
+     
       await signOutWithTimeout("local").catch(() => undefined);
     } finally {
       localStorage.removeItem("wk_landed");

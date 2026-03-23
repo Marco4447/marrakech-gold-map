@@ -58,7 +58,7 @@ export default function PartnerBilling({ userId, currentPlan }: Props) {
               <Crown className="w-5 h-5 text-gold" />
               <div>
                 <p className="text-sm font-semibold text-foreground">Plan {currentPlan}</p>
-                <p className="text-[11px] text-muted-foreground">Abonnement actif</p>
+                <p className="text-xs text-muted-foreground">Abonnement actif</p>
               </div>
             </div>
             <button
@@ -95,7 +95,7 @@ export default function PartnerBilling({ userId, currentPlan }: Props) {
                   <p className="text-gold font-display font-black text-xl">{plan.price}</p>
                 </div>
                 {isCurrent && (
-                  <span className="px-3 py-1 rounded-full bg-gold/15 text-gold text-[10px] font-bold">
+                  <span className="px-3 py-1 rounded-full bg-gold/15 text-gold text-2xs font-bold">
                     ACTIF
                   </span>
                 )}

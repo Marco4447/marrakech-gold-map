@@ -32,7 +32,7 @@ export default function GoHero({ heroImage, isEvening, liveStats, lang, t, isInA
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
         </span>
-        <span className="text-[11px] font-semibold text-foreground">
+        <span className="text-xs font-semibold text-foreground">
           {liveStats?.activeNow || "…"} {lang === "fr" ? "connectés" : "online"}
         </span>
       </motion.div>
@@ -48,7 +48,7 @@ export default function GoHero({ heroImage, isEvening, liveStats, lang, t, isInA
             : <>The <span className="text-primary">Best Spots</span> in Marrakech</>
           }
         </h1>
-        <p className="text-[13px] text-muted-foreground leading-relaxed mb-6 text-center max-w-xs mx-auto">
+        <p className="text-sm text-muted-foreground leading-relaxed mb-6 text-center max-w-xs mx-auto">
           {lang === "fr"
             ? "Rooftops, restaurants, bars, pépites cachées. Gratuit, pas de mot de passe."
             : "Rooftops, restaurants, bars, hidden gems. Free, no password needed."
@@ -67,7 +67,7 @@ export default function GoHero({ heroImage, isEvening, liveStats, lang, t, isInA
           />
         </div>
 
-        <p className="text-[10px] text-muted-foreground text-center mt-3">
+        <p className="text-2xs text-muted-foreground text-center mt-3">
           ⚡ {lang === "fr" ? "10 secondes · Gratuit · Pas d'app" : "10 seconds · Free · No app"}
         </p>
       </motion.div>

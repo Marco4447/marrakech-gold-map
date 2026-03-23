@@ -11,7 +11,7 @@ export default function B2BSolution({ onCtaClick }: { onCtaClick: () => void }) 
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold/10 border border-gold/25 text-gold text-[10px] font-semibold uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold/10 border border-gold/25 text-gold text-2xs font-semibold uppercase tracking-wider">
               ✨ La solution
             </span>
           </motion.div>
@@ -41,8 +41,8 @@ export default function B2BSolution({ onCtaClick }: { onCtaClick: () => void }) 
               <div className="w-10 h-10 mx-auto rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
                 <item.icon className="w-5 h-5 text-gold" />
               </div>
-              <p className="text-[11px] font-bold text-foreground">{item.label}</p>
-              <p className="text-[9px] text-muted-foreground leading-tight">{item.desc}</p>
+              <p className="text-xs font-bold text-foreground">{item.label}</p>
+              <p className="text-2xs text-muted-foreground leading-tight">{item.desc}</p>
             </motion.div>
           ))}
         </div>

@@ -44,7 +44,7 @@ export default function BusinessHowItWorks() {
                 <div className="w-11 h-11 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
                   <Icon className="w-5 h-5 text-gold" />
                 </div>
-                <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center text-primary-foreground"
+                <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full text-2xs font-bold flex items-center justify-center text-primary-foreground"
                   style={{ background: "linear-gradient(135deg, hsl(43 76% 52%), hsl(43 70% 62%))" }}>
                   {num}
                 </span>

@@ -36,7 +36,7 @@ export default function Top3Podium({ top3Vibes, commentCounts, onOpenComments }:
     <div className="pt-3 pb-2 px-4">
       <div className="flex items-center gap-2 mb-2.5">
         <span className="text-sm">🔥</span>
-        <h2 className="text-[13px] font-semibold text-foreground">Top 3</h2>
+        <h2 className="text-sm font-semibold text-foreground">Top 3</h2>
         <div className="flex-1 h-px bg-border" />
       </div>
       <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
@@ -55,7 +55,7 @@ export default function Top3Podium({ top3Vibes, commentCounts, onOpenComments }:
             <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
 
             {/* Rank */}
-            <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ${
+            <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold ${
               i === 0 ? "bg-foreground text-background" : "bg-background/70 backdrop-blur-md text-foreground"
             }`}>
               {rankMedals[i]} #{i + 1}
@@ -63,7 +63,7 @@ export default function Top3Podium({ top3Vibes, commentCounts, onOpenComments }:
 
             {/* Score */}
             <div className="absolute top-2 right-2 bg-background/70 backdrop-blur-md px-1.5 py-0.5 rounded-md">
-              <span className="text-[10px] font-bold text-foreground flex items-center gap-0.5">
+              <span className="text-2xs font-bold text-foreground flex items-center gap-0.5">
                 <Zap className="w-2.5 h-2.5" />{getScore(vibe)}
               </span>
             </div>
@@ -74,11 +74,11 @@ export default function Top3Podium({ top3Vibes, commentCounts, onOpenComments }:
                 {getAvatarUrl(vibe) ? (
                   <img src={getAvatarUrl(vibe)!} alt="" className="w-4 h-4 rounded-full border border-border object-cover" />
                 ) : null}
-                <p className="text-[11px] font-semibold text-foreground truncate">{getDisplayName(vibe)}</p>
+                <p className="text-xs font-semibold text-foreground truncate">{getDisplayName(vibe)}</p>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] text-foreground/70 flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{vibe.likes}</span>
-                <span className="text-[10px] text-foreground/70 flex items-center gap-0.5"><MessageCircle className="w-2.5 h-2.5" />{commentCounts[vibe.id] || 0}</span>
+                <span className="text-2xs text-foreground/70 flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{vibe.likes}</span>
+                <span className="text-2xs text-foreground/70 flex items-center gap-0.5"><MessageCircle className="w-2.5 h-2.5" />{commentCounts[vibe.id] || 0}</span>
               </div>
             </div>
           </motion.div>

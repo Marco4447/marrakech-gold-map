@@ -113,14 +113,14 @@ export default function AdminInstagramScraper() {
               {lastResult.imported} vibes importées
             </p>
             {lastResult.results?.map((r: any, i: number) => (
-              <p key={i} className="text-[10px] text-muted-foreground mt-1">
+              <p key={i} className="text-2xs text-muted-foreground mt-1">
                 {r.place}: @{r.handle} → {r.imported} importées
                 {r.errors?.length > 0 && ` (${r.errors.length} erreurs)`}
               </p>
             ))}
             <button
               onClick={() => setLastResult(null)}
-              className="mt-2 text-[10px] text-muted-foreground underline"
+              className="mt-2 text-2xs text-muted-foreground underline"
             >
               Fermer
             </button>
@@ -131,7 +131,7 @@ export default function AdminInstagramScraper() {
       {/* Warning */}
       <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-3 flex gap-2">
         <AlertCircle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-2xs text-muted-foreground">
           <strong className="text-foreground">⚠️ Limites :</strong> Instagram bloque parfois les requêtes serveur. 
           Le scraping fonctionne sur les profils <strong>publics</strong> uniquement et peut échouer si le rate limit est atteint. 
           Résultats variables selon les protections anti-bot d'Instagram.

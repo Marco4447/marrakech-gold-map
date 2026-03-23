@@ -167,16 +167,16 @@ export default function AdminVenueEditor({ placeId, onClose }: Props) {
         <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5 text-gold" /> Fiche établissement
         </h4>
-        <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
+        <button aria-label="Fermer l'éditeur" onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
       </div>
 
       {/* Photo */}
       <div className="space-y-2">
-        <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Photo cover (1200×675)</label>
+        <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold">Photo cover (1200×675)</label>
         {form.image_url ? (
           <div className="relative aspect-video rounded-xl overflow-hidden bg-muted max-h-32">
             <img src={form.image_url} alt="" className="w-full h-full object-cover" />
-            <button onClick={() => setForm(f => ({ ...f, image_url: "" }))}
+            <button aria-label="Supprimer la photo" onClick={() => setForm(f => ({ ...f, image_url: "" }))}
               className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-background/70 backdrop-blur flex items-center justify-center">
               <X className="w-3 h-3 text-foreground" />
             </button>
@@ -184,7 +184,7 @@ export default function AdminVenueEditor({ placeId, onClose }: Props) {
         ) : (
           <label className="w-full aspect-video max-h-24 rounded-xl border-2 border-dashed border-gold/25 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-gold/50 transition-colors">
             {uploading ? <Loader2 className="w-4 h-4 text-gold animate-spin" /> : <Camera className="w-4 h-4 text-gold/60" />}
-            <span className="text-[10px] text-muted-foreground">{uploading ? "Upload..." : "Ajouter photo"}</span>
+            <span className="text-2xs text-muted-foreground">{uploading ? "Upload..." : "Ajouter photo"}</span>
             <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
           </label>
@@ -195,7 +195,7 @@ export default function AdminVenueEditor({ placeId, onClose }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <FormInput label="Nom *" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} />
         <div>
-          <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Catégorie</label>
+          <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold">Catégorie</label>
           <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground">
             <option value="">—</option>
@@ -208,7 +208,7 @@ export default function AdminVenueEditor({ placeId, onClose }: Props) {
 
       {/* Description */}
       <div className="space-y-1.5">
-        <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Description ({form.description.length}/{DESC_MAX})</label>
+        <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold">Description ({form.description.length}/{DESC_MAX})</label>
         <textarea value={form.description}
           onChange={e => { if (e.target.value.length <= DESC_MAX) setForm(f => ({ ...f, description: e.target.value })); }}
           placeholder="Ambiance, spécialité, expérience..."
@@ -218,7 +218,7 @@ export default function AdminVenueEditor({ placeId, onClose }: Props) {
 
       {/* Price range */}
       <div className="space-y-1.5">
-        <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Gamme de prix</label>
+        <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold">Gamme de prix</label>
         <div className="grid grid-cols-4 gap-1.5">
           {PRICE_OPTIONS.map(opt => (
             <button key={opt.value}
@@ -236,7 +236,7 @@ export default function AdminVenueEditor({ placeId, onClose }: Props) {
 
       {/* Hours */}
       <div className="space-y-1.5">
-        <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Horaires</label>
+        <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold">Horaires</label>
         <button onClick={() => setHoursOpen(!hoursOpen)}
           className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-background border border-border text-xs text-foreground">
           <span className="text-muted-foreground truncate max-w-[85%]">{scheduleToDisplay(schedule)}</span>
@@ -252,16 +252,16 @@ export default function AdminVenueEditor({ placeId, onClose }: Props) {
                       className={`w-8 h-4 rounded-full relative transition-colors shrink-0 ${schedule[d.key].open ? "bg-gold" : "bg-muted"}`}>
                       <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${schedule[d.key].open ? "left-[18px]" : "left-0.5"}`} />
                     </button>
-                    <span className={`text-[10px] font-medium w-8 shrink-0 ${schedule[d.key].open ? "text-foreground" : "text-muted-foreground"}`}>{d.label.slice(0, 3)}</span>
+                    <span className={`text-2xs font-medium w-8 shrink-0 ${schedule[d.key].open ? "text-foreground" : "text-muted-foreground"}`}>{d.label.slice(0, 3)}</span>
                     {schedule[d.key].open ? (
                       <div className="flex items-center gap-1 ml-auto">
                         <input type="time" value={schedule[d.key].from} onChange={e => updateDay(d.key, { from: e.target.value })}
-                          className="w-[64px] px-1 py-0.5 rounded bg-background border border-border text-[10px] text-foreground text-center [&::-webkit-calendar-picker-indicator]:invert" />
-                        <span className="text-muted-foreground text-[9px]">→</span>
+                          className="w-[64px] px-1 py-0.5 rounded bg-background border border-border text-2xs text-foreground text-center [&::-webkit-calendar-picker-indicator]:invert" />
+                        <span className="text-muted-foreground text-2xs">→</span>
                         <input type="time" value={schedule[d.key].to} onChange={e => updateDay(d.key, { to: e.target.value })}
-                          className="w-[64px] px-1 py-0.5 rounded bg-background border border-border text-[10px] text-foreground text-center [&::-webkit-calendar-picker-indicator]:invert" />
+                          className="w-[64px] px-1 py-0.5 rounded bg-background border border-border text-2xs text-foreground text-center [&::-webkit-calendar-picker-indicator]:invert" />
                       </div>
-                    ) : <span className="text-[10px] text-muted-foreground ml-auto">Fermé</span>}
+                    ) : <span className="text-2xs text-muted-foreground ml-auto">Fermé</span>}
                   </div>
                 ))}
               </div>
@@ -298,7 +298,7 @@ function FormInput({ label, value, onChange, placeholder }: {
 }) {
   return (
     <div>
-      <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{label}</label>
+      <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold">{label}</label>
       <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground" />
     </div>

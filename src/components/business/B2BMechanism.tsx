@@ -47,7 +47,7 @@ export default function B2BMechanism() {
                   <Icon className="w-5 h-5 text-gold" />
                 </div>
                 <span
-                  className="absolute -top-2 -left-2 w-6 h-6 rounded-full text-[10px] font-black flex items-center justify-center text-primary-foreground"
+                  className="absolute -top-2 -left-2 w-6 h-6 rounded-full text-2xs font-black flex items-center justify-center text-primary-foreground"
                   style={{ background: "linear-gradient(135deg, hsl(43 76% 52%), hsl(43 70% 62%))" }}
                 >
                   {num}

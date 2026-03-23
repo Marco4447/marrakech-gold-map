@@ -46,7 +46,7 @@ function AnimatedStat({ target, prefix = "", suffix = "", label, icon: Icon, del
       <span className="text-lg font-black text-gold leading-none">
         {target === null ? "…" : `${prefix}${count}${suffix}`}
       </span>
-      <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{label}</span>
+      <span className="text-2xs text-muted-foreground mt-0.5 leading-tight">{label}</span>
     </motion.div>
   );
 }
@@ -178,7 +178,7 @@ export default function PricingPage() {
             <h1 className="font-display text-xl font-bold">
               <span className="text-gold">Weshkech</span>
             </h1>
-            <p className="text-muted-foreground text-[11px] mt-0.5">
+            <p className="text-muted-foreground text-xs mt-0.5">
               Marrakech en temps réel
             </p>
           </div>
@@ -217,7 +217,7 @@ export default function PricingPage() {
               >
                 <span className="text-2xl">{item.emoji}</span>
                 <p className="text-xs font-semibold text-foreground">{item.title}</p>
-                <p className="text-[10px] text-muted-foreground leading-tight">{item.desc}</p>
+                <p className="text-2xs text-muted-foreground leading-tight">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -343,7 +343,7 @@ export default function PricingPage() {
                 >
                   <Clock className="w-4 h-4 text-gold mb-1" />
                   <span className="text-lg font-black text-gold leading-none">6h</span>
-                  <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">Visibilité garantie</span>
+                  <span className="text-2xs text-muted-foreground mt-0.5 leading-tight">Visibilité garantie</span>
                 </motion.div>
               </div>
 
@@ -361,13 +361,13 @@ export default function PricingPage() {
                   <div className="w-9 h-9 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center text-sm">☕</div>
                   <div>
                     <p className="text-xs font-bold text-foreground">Karim B.</p>
-                    <p className="text-[10px] text-muted-foreground">Gérant · Café Nomad, Gueliz</p>
+                    <p className="text-2xs text-muted-foreground">Gérant · Café Nomad, Gueliz</p>
                   </div>
                 </div>
               </motion.div>
 
               <div className="space-y-3">
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                   Comment ça marche
                 </p>
                 <div className="space-y-3">
@@ -412,12 +412,12 @@ export default function PricingPage() {
 
               {/* ── LIVE MOCKUP ── */}
               <div className="space-y-3">
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                   Aperçu dans le flux Live
                 </p>
                 <div className="relative bg-card/90 backdrop-blur-xl border-2 border-gold/30 rounded-2xl overflow-hidden shadow-[0_0_40px_hsl(var(--gold)/0.08)]">
                   {/* Simulated phone status bar */}
-                  <div className="bg-background/60 px-4 py-1.5 flex items-center justify-between text-[9px] text-muted-foreground border-b border-border/50">
+                  <div className="bg-background/60 px-4 py-1.5 flex items-center justify-between text-2xs text-muted-foreground border-b border-border/50">
                     <span>Live Vibes</span>
                     <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En direct</span>
                   </div>
@@ -426,18 +426,18 @@ export default function PricingPage() {
                     {/* Header row */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center text-[10px]">🏪</div>
+                        <div className="w-8 h-8 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center text-2xs">🏪</div>
                         <div>
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-bold text-foreground">Votre établissement</span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold text-primary-foreground" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>⭐ OFFICIEL</span>
+                            <span className="text-2xs px-1.5 py-0.5 rounded-full font-bold text-primary-foreground" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>⭐ OFFICIEL</span>
                           </div>
-                          <span className="text-[10px] text-muted-foreground">📍 Gueliz, Marrakech</span>
+                          <span className="text-2xs text-muted-foreground">📍 Gueliz, Marrakech</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                        <span className="text-[9px] font-bold">5:42:18</span>
+                        <span className="text-2xs font-bold">5:42:18</span>
                       </div>
                     </div>
                     {/* Mock image placeholder */}
@@ -445,17 +445,17 @@ export default function PricingPage() {
                       <div className="absolute inset-0 bg-[url('/placeholder.svg')] bg-cover bg-center opacity-30" />
                       <div className="relative text-center space-y-1">
                         <Camera className="w-8 h-8 text-gold/60 mx-auto" />
-                        <p className="text-[10px] text-muted-foreground">Votre photo / vidéo ici</p>
+                        <p className="text-2xs text-muted-foreground">Votre photo / vidéo ici</p>
                       </div>
                       {/* Pinned badge */}
-                      <div className="absolute top-2 left-2 bg-gold/90 text-primary-foreground text-[8px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <div className="absolute top-2 left-2 bg-gold/90 text-primary-foreground text-2xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                         <MapPin className="w-2.5 h-2.5" /> ÉPINGLÉ EN HAUT
                       </div>
                     </div>
                     {/* Caption */}
                     <p className="text-xs text-foreground/70 italic">"Venez découvrir notre nouvelle carte ! 🍽️"</p>
                     {/* Engagement row */}
-                    <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-4 text-2xs text-muted-foreground">
                       <span className="flex items-center gap-1">❤️ 24</span>
                       <span className="flex items-center gap-1">🔥 8 super vibes</span>
                       <span className="flex items-center gap-1">💬 5</span>
@@ -463,7 +463,7 @@ export default function PricingPage() {
                   </div>
                   {/* Arrow annotation */}
                   <div className="bg-gold/10 border-t border-gold/20 px-4 py-2.5 text-center">
-                    <p className="text-[10px] text-gold font-semibold">
+                    <p className="text-2xs text-gold font-semibold">
                       👆 Voici ce que tous les Insiders verront pendant 6 heures
                     </p>
                   </div>
@@ -496,7 +496,7 @@ export default function PricingPage() {
 
               {/* ── CREDIT PACKS ── */}
               <div className="space-y-3">
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                   Choisissez votre pack
                 </p>
 
@@ -515,7 +515,7 @@ export default function PricingPage() {
                       }`}
                     >
                       {pack.badge && (
-                        <div className="absolute -top-2.5 right-4 bg-gold text-primary-foreground text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider">
+                        <div className="absolute -top-2.5 right-4 bg-gold text-primary-foreground text-2xs font-bold px-3 py-0.5 rounded-full uppercase tracking-wider">
                           {pack.badge}
                         </div>
                       )}
@@ -539,7 +539,7 @@ export default function PricingPage() {
                   );
                 })}
 
-                <p className="text-[10px] text-muted-foreground text-center">
+                <p className="text-2xs text-muted-foreground text-center">
                   Les crédits n'expirent jamais · Paiement sécurisé par Stripe
                 </p>
               </div>
@@ -622,7 +622,7 @@ export default function PricingPage() {
             Des questions ? Contactez-nous sur{" "}
             <a href="https://wa.me/+33607564453" className="text-gold hover:underline">WhatsApp</a>
           </p>
-          <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-center gap-4 text-2xs text-muted-foreground">
             <Link to="/privacy" className="hover:text-foreground transition-colors">Confidentialité</Link>
             <Link to="/terms" className="hover:text-foreground transition-colors">CGU</Link>
           </div>

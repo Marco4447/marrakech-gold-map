@@ -146,7 +146,7 @@ export default function GoAuthForm({ lang, t, isInApp, isTikTok, utmSource, utmC
       {!inApp && step === "email" && (
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-border" />
-          <span className="text-[11px] text-muted-foreground">{lang === "fr" ? "ou par email" : "or with email"}</span>
+          <span className="text-xs text-muted-foreground">{lang === "fr" ? "ou par email" : "or with email"}</span>
           <div className="flex-1 h-px bg-border" />
         </div>
       )}
@@ -180,7 +180,7 @@ export default function GoAuthForm({ lang, t, isInApp, isTikTok, utmSource, utmC
               </>
             )}
           </button>
-          <p className="text-[10px] text-muted-foreground text-center">
+          <p className="text-2xs text-muted-foreground text-center">
             ⚡ {lang === "fr" ? "On t'envoie un code. Pas de mot de passe." : "We'll send you a code. No password needed."}
           </p>
         </>
@@ -188,7 +188,7 @@ export default function GoAuthForm({ lang, t, isInApp, isTikTok, utmSource, utmC
 
       {step === "otp" && (
         <>
-          <p className="text-[13px] text-foreground text-center font-medium">
+          <p className="text-sm text-foreground text-center font-medium">
             📩 {lang === "fr" ? `Code envoyé à ${email}` : `Code sent to ${email}`}
           </p>
           <div className="flex justify-center">
@@ -226,7 +226,7 @@ export default function GoAuthForm({ lang, t, isInApp, isTikTok, utmSource, utmC
 
       {error && <p className="text-[12px] text-destructive text-center">{error}</p>}
 
-      <p className="text-[9px] text-muted-foreground/50 text-center mt-1">
+      <p className="text-2xs text-muted-foreground/50 text-center mt-1">
         {t("legalPrefix")} <Link to="/terms" className="underline">{t("terms")}</Link> {t("and")} <Link to="/privacy" className="underline">{t("privacy")}</Link>
       </p>
     </div>

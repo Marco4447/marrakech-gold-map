@@ -38,7 +38,7 @@ export default function AutoVibeCard({ place, onPost, onDismiss }: AutoVibeCardP
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 120, opacity: 0, scale: 0.9 }}
           transition={{ type: "spring", damping: 22, stiffness: 260 }}
-          className="fixed bottom-20 left-3 right-3 z-[1998] pointer-events-auto"
+          className="fixed bottom-20 left-3 right-3 z-float pointer-events-auto"
         >
           <div className="relative bg-card/95 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl shadow-black/30 overflow-hidden">
             {/* Glow effect */}
@@ -66,13 +66,13 @@ export default function AutoVibeCard({ place, onPost, onDismiss }: AutoVibeCardP
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
                   Tu es à {formatDistance(place.distance)}
                 </p>
                 <p className="text-sm font-bold text-foreground truncate mt-0.5">{place.name}</p>
                 {vibeCount > 0 && (
-                  <p className="text-[10px] text-orange-400 font-semibold mt-0.5 flex items-center gap-1">
+                  <p className="text-2xs text-orange-400 font-semibold mt-0.5 flex items-center gap-1">
                     <Zap className="w-3 h-3" />
                     {vibeCount} vibe{vibeCount > 1 ? "s" : ""} cette heure
                   </p>
@@ -90,7 +90,7 @@ export default function AutoVibeCard({ place, onPost, onDismiss }: AutoVibeCardP
               Poster une Vibe en 1 tap
             </button>
 
-            <p className="text-[9px] text-center text-muted-foreground mt-2">
+            <p className="text-2xs text-center text-muted-foreground mt-2">
               📍 Live from Marrakech • +10 XP
             </p>
           </div>

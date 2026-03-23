@@ -46,7 +46,7 @@ function TabButton({ active, label, icon: Icon, onClick, badge }: { active: bool
       <Icon className="w-3.5 h-3.5" />
       {label}
       {badge && badge > 0 && (
-        <span className="ml-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+        <span className="ml-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-2xs font-bold flex items-center justify-center">
           {badge > 9 ? "9+" : badge}
         </span>
       )}
@@ -81,7 +81,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         setPassStats(Object.entries(counts).map(([place_name, count]) => ({ place_name, count })).sort((a, b) => b.count - a.count));
       }
     } catch (e) {
-      console.error("Failed to fetch admin stats:", e);
+     
     } finally {
       setLoading(false);
     }

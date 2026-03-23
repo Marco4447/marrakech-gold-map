@@ -26,6 +26,6 @@ export async function logAdminAction(params: {
       metadata: params.metadata ?? {},
     });
   } catch (err) {
-    console.error("[audit] Failed to log action:", err);
+   
   }
 }

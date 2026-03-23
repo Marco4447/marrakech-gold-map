@@ -66,8 +66,8 @@ export default function B2BScarcity() {
               className="text-center p-3 rounded-xl bg-surface-elevated border border-border space-y-1.5"
             >
               <b.icon className="w-5 h-5 text-gold mx-auto" />
-              <p className="text-[11px] font-bold text-foreground leading-tight">{b.label}</p>
-              <p className="text-[9px] text-muted-foreground">{b.desc}</p>
+              <p className="text-xs font-bold text-foreground leading-tight">{b.label}</p>
+              <p className="text-2xs text-muted-foreground">{b.desc}</p>
             </motion.div>
           ))}
         </div>

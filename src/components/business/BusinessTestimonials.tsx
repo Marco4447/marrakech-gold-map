@@ -60,7 +60,7 @@ export default function BusinessTestimonials() {
               </p>
 
               {/* Stat badge */}
-              <span className="inline-block text-[10px] font-bold text-gold bg-gold/10 border border-gold/20 px-2.5 py-1 rounded-full">
+              <span className="inline-block text-2xs font-bold text-gold bg-gold/10 border border-gold/20 px-2.5 py-1 rounded-full">
                 📈 {item.stat}
               </span>
 

@@ -84,7 +84,7 @@ export default function GeoNotificationSettings({ userId }: GeoNotificationSetti
       localStorage.setItem(STORAGE_KEY, "true");
       toast.success("Notifications à proximité activées !");
     } catch (err) {
-      console.error("Permission error:", err);
+     
       toast.error("Impossible d'activer les notifications de proximité");
     } finally {
       setLoading(false);
@@ -147,7 +147,7 @@ export default function GeoNotificationSettings({ userId }: GeoNotificationSetti
       {/* Info text */}
       <div className="flex items-start gap-2 bg-white/[0.03] rounded-xl px-3 py-2.5">
         <Bell className="w-3.5 h-3.5 text-white/20 mt-0.5 shrink-0" />
-        <p className="text-white/25 text-[11px] leading-relaxed">
+        <p className="text-white/25 text-xs leading-relaxed">
           Max 3 notifications par jour · Rayon de 200m
         </p>
       </div>
@@ -156,7 +156,7 @@ export default function GeoNotificationSettings({ userId }: GeoNotificationSetti
       {status === "denied" && (
         <div className="flex items-start gap-2 bg-red-500/5 border border-red-500/10 rounded-xl px-3 py-2.5">
           <AlertTriangle className="w-3.5 h-3.5 text-red-400/60 mt-0.5 shrink-0" />
-          <p className="text-red-400/50 text-[11px] leading-relaxed">
+          <p className="text-red-400/50 text-xs leading-relaxed">
             Les notifications sont bloquées. Va dans les paramètres de ton navigateur pour les
             réactiver.
           </p>

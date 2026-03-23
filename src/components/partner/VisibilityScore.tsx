@@ -108,7 +108,7 @@ export default function VisibilityScore({ placeId }: Props) {
           <Target className="w-5 h-5 text-gold" />
           <h3 className="font-display text-sm font-bold text-foreground">Visibility Score</h3>
         </div>
-        <span className={`text-[10px] font-bold uppercase tracking-wider ${getScoreColor()}`}>
+        <span className={`text-2xs font-bold uppercase tracking-wider ${getScoreColor()}`}>
           {getScoreLabel()}
         </span>
       </div>
@@ -164,8 +164,8 @@ export default function VisibilityScore({ placeId }: Props) {
               { label: "QR scans", value: breakdown.qrScans },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">{label}</span>
-                <span className="text-[10px] font-bold text-foreground tabular-nums">{value}</span>
+                <span className="text-2xs text-muted-foreground">{label}</span>
+                <span className="text-2xs font-bold text-foreground tabular-nums">{value}</span>
               </div>
             ))}
           </div>

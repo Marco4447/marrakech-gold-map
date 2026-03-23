@@ -57,7 +57,7 @@ export default function FollowListSheet({ open, onClose, userId, mode }: FollowL
         setUsers(profiles as unknown as FollowUser[]);
       }
     } catch (err) {
-      console.error("fetch follow list error:", err);
+     
     } finally {
       setLoading(false);
     }
@@ -82,7 +82,7 @@ export default function FollowListSheet({ open, onClose, userId, mode }: FollowL
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[9998] bg-background/60 backdrop-blur-sm"
+            className="fixed inset-0 z-fullscreen bg-background/60 backdrop-blur-sm"
           />
 
           {/* Sheet */}
@@ -91,7 +91,7 @@ export default function FollowListSheet({ open, onClose, userId, mode }: FollowL
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-[9999] bg-background rounded-t-2xl border-t border-border/60 max-h-[70dvh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-fullscreen bg-background rounded-t-2xl border-t border-border/60 max-h-[70dvh] flex flex-col"
           >
             {/* Handle + header */}
             <div className="flex flex-col items-center pt-2 pb-1">
@@ -101,6 +101,7 @@ export default function FollowListSheet({ open, onClose, userId, mode }: FollowL
                   {mode === "followers" ? "Followers" : "Suivi(e)s"}
                 </h2>
                 <button
+                  aria-label="Fermer"
                   onClick={onClose}
                   className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-card active:scale-90 transition-all"
                 >

@@ -84,7 +84,7 @@ export default function PartnerAnalytics({ userId, placeId, placeName }: Props) 
           views,
         })));
       } catch (err) {
-        console.error("Analytics load error:", err);
+       
       }
     };
     load();
@@ -134,7 +134,7 @@ export default function PartnerAnalytics({ userId, placeId, placeName }: Props) 
       <div className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] font-semibold">Vues — 7 derniers jours</p>
-          <button onClick={handleExportCsv} className="flex items-center gap-1 text-[10px] text-[var(--ochre)] font-semibold active:opacity-70">
+          <button onClick={handleExportCsv} className="flex items-center gap-1 text-2xs text-[var(--ochre)] font-semibold active:opacity-70">
             <Download className="w-3 h-3" /> CSV
           </button>
         </div>
@@ -239,14 +239,14 @@ export default function PartnerAnalytics({ userId, placeId, placeName }: Props) 
           }, 300);
         }}
         disabled={generating}
-        className="w-full flex items-center justify-center gap-2 bg-[var(--ochre)] text-[#0E0904] font-black uppercase text-sm rounded-xl px-6 py-3 active:scale-[0.97] transition-transform disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 bg-[var(--ochre)] text-[var(--bg-primary)] font-black uppercase text-sm rounded-xl px-6 py-3 active:scale-[0.97] transition-transform disabled:opacity-50"
       >
         <Download className="w-4 h-4" />
         {generating ? "Génération..." : `Rapport PDF — ${new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`}
       </button>
 
       {/* ── INFO ── */}
-      <p className="text-[10px] text-[var(--text-muted)] text-center">
+      <p className="text-2xs text-[var(--text-muted)] text-center">
         Données basées sur les interactions avec votre fiche spot.
       </p>
     </div>

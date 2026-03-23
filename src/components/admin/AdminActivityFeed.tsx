@@ -91,10 +91,10 @@ export default function AdminActivityFeed() {
           <span className="text-xs font-bold text-foreground">Temps réel</span>
         </div>
         <div className="flex gap-2 ml-auto">
-          <span className="text-[10px] px-2 py-1 rounded-full bg-green-500/10 text-green-400 font-bold">
+          <span className="text-2xs px-2 py-1 rounded-full bg-green-500/10 text-green-400 font-bold">
             +{signupsToday} inscriptions
           </span>
-          <span className="text-[10px] px-2 py-1 rounded-full bg-blue-500/10 text-blue-400 font-bold">
+          <span className="text-2xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-400 font-bold">
             +{vibestoday} vibes
           </span>
         </div>
@@ -106,7 +106,7 @@ export default function AdminActivityFeed() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
               filter === f.key
                 ? "bg-gold/15 text-gold border border-gold/20"
                 : "text-muted-foreground hover:text-foreground bg-card border border-border/50"
@@ -150,7 +150,7 @@ export default function AdminActivityFeed() {
                 {e.body && (
                   <p className="text-xs text-muted-foreground mt-0.5 truncate">{e.body}</p>
                 )}
-                <p className="text-[10px] text-muted-foreground/60 mt-1">{timeAgo(e.created_at)}</p>
+                <p className="text-2xs text-muted-foreground/60 mt-1">{timeAgo(e.created_at)}</p>
               </div>
             </motion.div>
           ))}

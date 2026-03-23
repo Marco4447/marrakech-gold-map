@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Lock, ChevronRight, Flame, Eye, Loader2, ArrowLeft, Crown, Sparkles, Users, Mail, User } from "lucide-react";
@@ -67,7 +68,7 @@ export default function DiscoverPage() {
     trackEvent("unlock_cta_clicked", { source: "discover_page", method: "google" });
     try { localStorage.setItem("weshkech_utm", JSON.stringify({ source: utmSource, campaign: utmCampaign, ts: Date.now() })); } catch {}
     const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (error) { console.error("OAuth error:", error); setLoading(false); }
+    if (error) { reportError(error, { context: "OAuth error" }); setLoading(false); }
   };
 
   const handleEmailSignup = async () => {
@@ -114,7 +115,7 @@ export default function DiscoverPage() {
         </button>
         <div className="flex-1">
           <h1 className="font-display text-lg font-bold text-foreground">Weshkech</h1>
-          <p className="text-[10px] text-muted-foreground">{t("discover_liveMap")}</p>
+          <p className="text-2xs text-muted-foreground">{t("discover_liveMap")}</p>
         </div>
         <LanguageToggle />
         <div className="flex items-center gap-1.5 bg-destructive/10 border border-destructive/20 rounded-full px-2.5 py-1 ml-2">
@@ -122,7 +123,7 @@ export default function DiscoverPage() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
           </span>
-          <span className="text-[10px] font-bold text-destructive-foreground">{t("liveBadge")}</span>
+          <span className="text-2xs font-bold text-destructive-foreground">{t("liveBadge")}</span>
         </div>
       </div>
 
@@ -142,14 +143,14 @@ export default function DiscoverPage() {
               ))}
               {blurredPlaces.map((p, i) => (
                 <div key={p.id} className="absolute" style={{ left: `${10 + i * 18}%`, top: `${15 + (i % 3) * 22}%`, filter: 'blur(4px)', opacity: 0.4 }}>
-                  <div className="w-6 h-6 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center"><span className="text-[8px]">📍</span></div>
+                  <div className="w-6 h-6 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center"><span className="text-2xs">📍</span></div>
                 </div>
               ))}
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent flex items-end justify-center pb-3">
               <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur-md border border-gold/20 rounded-full px-3 py-1.5">
                 <Flame className="w-3 h-3 text-gold" />
-                <span className="text-[10px] font-semibold text-foreground">{t("discover_moreTrending")}</span>
+                <span className="text-2xs font-semibold text-foreground">{t("discover_moreTrending")}</span>
               </div>
             </div>
           </div>
@@ -159,7 +160,7 @@ export default function DiscoverPage() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="w-full mb-4">
           <div className="flex items-center gap-1.5 mb-2">
             <MapPin className="w-3.5 h-3.5 text-gold" />
-            <span className="text-[10px] font-bold text-gold uppercase tracking-wider">{t("discover_topSpots")}</span>
+            <span className="text-2xs font-bold text-gold uppercase tracking-wider">{t("discover_topSpots")}</span>
           </div>
           <div className="space-y-2">
             {visiblePlaces.map((p, i) => (
@@ -170,9 +171,9 @@ export default function DiscoverPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">{p.name}</p>
-                  <p className="text-[10px] text-muted-foreground capitalize">{p.category || "spot"}</p>
+                  <p className="text-2xs text-muted-foreground capitalize">{p.category || "spot"}</p>
                 </div>
-                <div className="text-[10px] text-gold font-medium flex items-center gap-0.5"><Eye className="w-2.5 h-2.5" />{(i + 1) * 47}</div>
+                <div className="text-2xs text-gold font-medium flex items-center gap-0.5"><Eye className="w-2.5 h-2.5" />{(i + 1) * 47}</div>
               </div>
             ))}
           </div>
@@ -182,7 +183,7 @@ export default function DiscoverPage() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="w-full mb-4">
           <div className="flex items-center gap-1.5 mb-2">
             <Sparkles className="w-3.5 h-3.5 text-gold" />
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("discover_liveVibes")}</span>
+            <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider">{t("discover_liveVibes")}</span>
           </div>
           <div className="grid grid-cols-2 gap-2 mb-2">
             {visibleVibes.map((v) => (
@@ -190,8 +191,8 @@ export default function DiscoverPage() {
                 <img src={v.image_url} alt="" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2">
-                  <p className="text-[10px] font-semibold text-foreground truncate">{v.location || "Marrakech"}</p>
-                  <p className="text-[8px] text-muted-foreground">{v.username || "Anonymous"} · {v.mood || "🔥"}</p>
+                  <p className="text-2xs font-semibold text-foreground truncate">{v.location || "Marrakech"}</p>
+                  <p className="text-2xs text-muted-foreground">{v.username || "Anonymous"} · {v.mood || "🔥"}</p>
                 </div>
               </div>
             ))}
@@ -207,7 +208,7 @@ export default function DiscoverPage() {
               <div className="bg-card/90 backdrop-blur-xl border border-gold/25 rounded-2xl p-5 text-center max-w-[280px] shadow-[0_0_40px_hsl(43_76%_52%/0.15)]">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center"><Crown className="w-6 h-6 text-gold" /></div>
                 <p className="text-sm font-display font-bold text-foreground mb-1">{t("discover_unlockMap")}</p>
-                <p className="text-[10px] text-muted-foreground mb-3">{t("free")} · {t("discover_joinInsiders")} {usersCount || "500"}+ {t("discover_insidersLabel")}</p>
+                <p className="text-2xs text-muted-foreground mb-3">{t("free")} · {t("discover_joinInsiders")} {usersCount || "500"}+ {t("discover_insidersLabel")}</p>
                 
                 {/* Email signup form (primary for WebView, toggle for others) */}
                 {showEmailForm ? (
@@ -240,8 +241,8 @@ export default function DiscoverPage() {
                         className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors"
                       />
                     </div>
-                    {error && <p className="text-[10px] text-destructive">{error}</p>}
-                    {success && <p className="text-[10px] text-green-400">{success}</p>}
+                    {error && <p className="text-2xs text-destructive">{error}</p>}
+                    {success && <p className="text-2xs text-green-400">{success}</p>}
                     {!success && (
                       <button onClick={handleEmailSignup} disabled={loading}
                         className="cta-shimmer relative overflow-hidden w-full bg-gold hover:bg-gold-light active:scale-[0.97] text-primary-foreground font-bold py-2.5 rounded-xl transition-all shadow-[0_6px_20px_-4px_hsl(43_76%_52%/0.4)] text-xs flex items-center justify-center gap-2 disabled:opacity-70">
@@ -251,20 +252,20 @@ export default function DiscoverPage() {
                       </button>
                     )}
                     {!inApp && (
-                      <button onClick={() => setShowEmailForm(false)} className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+                      <button onClick={() => setShowEmailForm(false)} className="text-2xs text-muted-foreground hover:text-gold transition-colors">
                         {lang === "fr" ? "← Continuer avec Google" : "← Continue with Google"}
                       </button>
                     )}
                     {!inApp && (
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex-1 h-px bg-border" />
-                        <span className="text-[9px] text-muted-foreground">{lang === "fr" ? "ou" : "or"}</span>
+                        <span className="text-2xs text-muted-foreground">{lang === "fr" ? "ou" : "or"}</span>
                         <div className="flex-1 h-px bg-border" />
                       </div>
                     )}
                     {!inApp && (
                       <button onClick={handleGoogleSignup} disabled={loading}
-                        className="w-full bg-background border border-border text-foreground font-medium py-2 rounded-xl text-[10px] flex items-center justify-center gap-1.5 hover:border-gold/40 transition-colors disabled:opacity-70">
+                        className="w-full bg-background border border-border text-foreground font-medium py-2 rounded-xl text-2xs flex items-center justify-center gap-1.5 hover:border-gold/40 transition-colors disabled:opacity-70">
                         <svg className="w-3 h-3" viewBox="0 0 24 24">
                           <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
                           <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -291,7 +292,7 @@ export default function DiscoverPage() {
                         </>
                       )}
                     </button>
-                    <button onClick={() => setShowEmailForm(true)} className="text-[10px] text-muted-foreground hover:text-gold transition-colors">
+                    <button onClick={() => setShowEmailForm(true)} className="text-2xs text-muted-foreground hover:text-gold transition-colors">
                       <Mail className="w-3 h-3 inline mr-1" />
                       {lang === "fr" ? "Ou s'inscrire avec Email" : "Or sign up with Email"}
                     </button>
@@ -307,16 +308,16 @@ export default function DiscoverPage() {
           <div className="flex -space-x-2">
             {["S", "Y", "E", "K", "J"].map((letter, i) => (
               <div key={i} className="w-7 h-7 rounded-full bg-gold/15 border-2 border-background flex items-center justify-center">
-                <span className="text-[9px] font-bold text-gold">{letter}</span>
+                <span className="text-2xs font-bold text-gold">{letter}</span>
               </div>
             ))}
           </div>
-          <span className="text-[10px] text-muted-foreground font-medium">
+          <span className="text-2xs text-muted-foreground font-medium">
             <span className="text-gold font-semibold">{usersCount || "500"}+</span> {t("discover_peopleTonight")}
           </span>
         </motion.div>
 
-        <p className="text-[9px] text-muted-foreground text-center leading-relaxed max-w-[280px] mx-auto mt-4">
+        <p className="text-2xs text-muted-foreground text-center leading-relaxed max-w-[280px] mx-auto mt-4">
           {t("legalPrefix")}{" "}<Link to="/terms" className="text-gold hover:underline">{t("terms")}</Link>{" "}{t("and")}{" "}<Link to="/privacy" className="text-gold hover:underline">{t("privacy")}</Link>.
         </p>
       </div>

@@ -31,18 +31,18 @@ export default function BlockUserButton({ targetUserId, targetName }: BlockUserB
   if (showConfirm && !blocked) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/20">
-        <p className="text-[11px] text-foreground flex-1">
+        <p className="text-xs text-foreground flex-1">
           Bloquer {targetName || "cet utilisateur"} ? Il ne pourra plus voir ton profil ni t'envoyer de messages.
         </p>
         <button
           onClick={handleBlock}
-          className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-[11px] font-bold active:scale-95 transition-transform"
+          className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-bold active:scale-95 transition-transform"
         >
           Bloquer
         </button>
         <button
           onClick={() => setShowConfirm(false)}
-          className="px-3 py-1.5 rounded-lg bg-muted text-foreground text-[11px] font-bold active:scale-95 transition-transform"
+          className="px-3 py-1.5 rounded-lg bg-muted text-foreground text-xs font-bold active:scale-95 transition-transform"
         >
           Annuler
         </button>
@@ -53,7 +53,7 @@ export default function BlockUserButton({ targetUserId, targetName }: BlockUserB
   return (
     <button
       onClick={() => blocked ? handleBlock() : setShowConfirm(true)}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors active:scale-95 ${
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors active:scale-95 ${
         blocked
           ? "bg-muted text-muted-foreground"
           : "bg-destructive/10 text-destructive hover:bg-destructive/20"

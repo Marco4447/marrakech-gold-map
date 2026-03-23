@@ -184,13 +184,13 @@ export default function AdminCRM() {
               <Input label="Instagram" value={form.instagram} onChange={v => setForm(f => ({ ...f, instagram: v }))} placeholder="@handle" />
               <Input label="WhatsApp" value={form.whatsapp} onChange={v => setForm(f => ({ ...f, whatsapp: v }))} placeholder="+212 6XX" />
               <div>
-                <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Statut</label>
+                <label className="text-2xs text-muted-foreground uppercase tracking-wider">Statut</label>
                 <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground">
                   {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Priorité</label>
+                <label className="text-2xs text-muted-foreground uppercase tracking-wider">Priorité</label>
                 <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground">
                   {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
@@ -199,7 +199,7 @@ export default function AdminCRM() {
               <Input label="1er contact" value={form.first_contact_date || ""} onChange={v => setForm(f => ({ ...f, first_contact_date: v || null }))} type="date" />
               {/* Place link */}
               <div className="col-span-2">
-                <label className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <label className="text-2xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                   <MapPin className="w-3 h-3" /> Lier à un établissement
                 </label>
                 <select value={form.place_id || ""} onChange={e => setForm(f => ({ ...f, place_id: e.target.value || null }))}
@@ -210,7 +210,7 @@ export default function AdminCRM() {
               </div>
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Notes</label>
+              <label className="text-2xs text-muted-foreground uppercase tracking-wider">Notes</label>
               <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground resize-none" />
             </div>
             <button onClick={handleSave} className="w-full py-2.5 rounded-xl text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5" style={{ background: "linear-gradient(135deg, hsl(43 76% 52%), hsl(43 70% 62%))" }}>
@@ -241,7 +241,7 @@ export default function AdminCRM() {
             const items = prospects.filter(p => p.status === status.value);
             return (
               <div key={status.value} className="min-w-[200px] flex-shrink-0 space-y-2">
-                <div className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-lg border ${status.color}`}>
+                <div className={`text-2xs font-semibold uppercase tracking-wider px-2 py-1 rounded-lg border ${status.color}`}>
                   {status.label} ({items.length})
                 </div>
                 {items.map(p => (
@@ -280,7 +280,7 @@ export default function AdminCRM() {
                       {p.contact_name && <span className="text-muted-foreground ml-1">({p.contact_name})</span>}
                     </td>
                     <td className="py-2.5">
-                      <select value={p.status} onChange={e => handleStatusChange(p.id, e.target.value)} className={`text-[10px] px-2 py-0.5 rounded-full border bg-transparent ${s.color}`}>
+                      <select value={p.status} onChange={e => handleStatusChange(p.id, e.target.value)} className={`text-2xs px-2 py-0.5 rounded-full border bg-transparent ${s.color}`}>
                         {STATUSES.map(st => <option key={st.value} value={st.value}>{st.label}</option>)}
                       </select>
                     </td>
@@ -296,10 +296,10 @@ export default function AdminCRM() {
                     <td className="py-2.5">
                       {p.place_id ? (
                         <button onClick={() => setEditingVenuePlaceId(p.place_id!)}
-                          className="text-gold hover:text-gold-light flex items-center gap-1 text-[10px] font-medium">
+                          className="text-gold hover:text-gold-light flex items-center gap-1 text-2xs font-medium">
                           <FileEdit className="w-3 h-3" /> Éditer
                         </button>
-                      ) : <span className="text-muted-foreground text-[10px]">Non lié</span>}
+                      ) : <span className="text-muted-foreground text-2xs">Non lié</span>}
                     </td>
                     <td className="py-2.5 text-muted-foreground max-w-[150px] truncate">{p.notes || "—"}</td>
                     <td className="py-2.5">
@@ -336,32 +336,32 @@ function KanbanCard({ prospect: p, onEdit, onDelete, onStatusChange, onEditVenue
           <button onClick={() => onDelete(p.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="w-3 h-3" /></button>
         </div>
       </div>
-      {p.contact_name && <p className="text-[10px] text-muted-foreground">{p.contact_name}</p>}
-      {p.category && <p className="text-[10px] text-muted-foreground">{p.category} • {p.neighborhood}</p>}
+      {p.contact_name && <p className="text-2xs text-muted-foreground">{p.contact_name}</p>}
+      {p.category && <p className="text-2xs text-muted-foreground">{p.category} • {p.neighborhood}</p>}
       <div className="flex items-center gap-2 flex-wrap">
         {p.follow_up_date && (
-          <span className={`text-[10px] flex items-center gap-0.5 ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
+          <span className={`text-2xs flex items-center gap-0.5 ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
             <Calendar className="w-2.5 h-2.5" /> {p.follow_up_date}
           </span>
         )}
         {p.whatsapp && (
-          <a href={`https://wa.me/${p.whatsapp.replace(/\s/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-green-400 hover:text-green-300 flex items-center gap-0.5">
+          <a href={`https://wa.me/${p.whatsapp.replace(/\s/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-2xs text-green-400 hover:text-green-300 flex items-center gap-0.5">
             <Phone className="w-2.5 h-2.5" />
           </a>
         )}
         {p.instagram && (
-          <a href={p.instagram.startsWith("http") ? p.instagram : `https://instagram.com/${p.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-pink-400 hover:text-pink-300 flex items-center gap-0.5">
+          <a href={p.instagram.startsWith("http") ? p.instagram : `https://instagram.com/${p.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-2xs text-pink-400 hover:text-pink-300 flex items-center gap-0.5">
             <ExternalLink className="w-2.5 h-2.5" /> IG
           </a>
         )}
         {p.place_id && (
           <button onClick={() => onEditVenue(p.place_id!)}
-            className="text-[10px] text-gold hover:text-gold-light flex items-center gap-0.5 font-medium">
+            className="text-2xs text-gold hover:text-gold-light flex items-center gap-0.5 font-medium">
             <FileEdit className="w-2.5 h-2.5" /> Fiche
           </button>
         )}
       </div>
-      {p.notes && <p className="text-[10px] text-muted-foreground line-clamp-2">{p.notes}</p>}
+      {p.notes && <p className="text-2xs text-muted-foreground line-clamp-2">{p.notes}</p>}
     </div>
   );
 }
@@ -371,7 +371,7 @@ function Input({ label, value, onChange, placeholder, type = "text" }: {
 }) {
   return (
     <div>
-      <label className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</label>
+      <label className="text-2xs text-muted-foreground uppercase tracking-wider">{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground" />
     </div>
@@ -522,7 +522,7 @@ function TemplatesPanel({ onClose, onCopy, copiedTemplate }: {
       </div>
 
       {/* Footer tips */}
-      <div className="p-3 bg-muted/30 border-t border-border text-[10px] text-muted-foreground">
+      <div className="p-3 bg-muted/30 border-t border-border text-2xs text-muted-foreground">
         💡 Astuce: Copie le template, remplace les variables {'{'}entre accolades{'}'} par les infos du prospect, puis envoie.
       </div>
     </motion.div>
@@ -537,7 +537,7 @@ function TemplateCard({ content, label, onCopy, isCopied }: {
 }) {
   return (
     <div className="flex items-start gap-2 p-3 bg-surface border border-border rounded-lg group">
-      <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded text-muted-foreground">{label}</span>
+      <span className="text-2xs px-1.5 py-0.5 bg-muted rounded text-muted-foreground">{label}</span>
       <p className="flex-1 text-xs text-foreground">{content}</p>
       <button
         onClick={onCopy}
@@ -575,7 +575,7 @@ function TemplateBlock({ title, template, onCopy, isCopied, variables }: {
       {variables && (
         <div className="mt-2 flex flex-wrap gap-1">
           {variables.map((v) => (
-            <span key={v} className="text-[10px] px-1.5 py-0.5 bg-gold/10 text-gold rounded">{v}</span>
+            <span key={v} className="text-2xs px-1.5 py-0.5 bg-gold/10 text-gold rounded">{v}</span>
           ))}
         </div>
       )}

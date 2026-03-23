@@ -71,7 +71,7 @@ export default function MarrakechTonightWidget() {
           <span className="text-sm">🌙</span>
           <p className="text-xs font-bold text-foreground">Ce soir à Marrakech</p>
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>🔥 {stats.spots} spot{stats.spots !== 1 ? "s" : ""} actif{stats.spots !== 1 ? "s" : ""}</span>
           <span>·</span>
           <span>📸 {stats.vibes} vibe{stats.vibes !== 1 ? "s" : ""}</span>
@@ -97,7 +97,7 @@ export default function MarrakechTonightWidget() {
                 <div key={spot.name} className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-lg px-3 py-2">
                   <span className="text-xs">{i === 0 ? "🔥" : i === 1 ? "⚡" : "✨"}</span>
                   <p className="text-xs font-semibold text-foreground flex-1 truncate">{spot.name}</p>
-                  <span className="text-[10px] text-muted-foreground">{spot.vibeCount} vibes</span>
+                  <span className="text-2xs text-muted-foreground">{spot.vibeCount} vibes</span>
                 </div>
               ))}
             </div>

@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/errorReporting";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -89,7 +90,7 @@ export default function VipOfferManager({ placeId }: Props) {
       limit_per_user: parseInt(form.limit_per_user) || 1,
       created_by: user.id,
     });
-    if (error) { toast.error("Erreur"); console.error(error); }
+    if (error) { toast.error("Erreur"); reportError(error, { context: "VipOfferManager" }); }
     else {
       toast.success("Offre VIP créée !");
       setForm({ title: "", description: "", perk_type: "drink", start_time: "", end_time: "", max_redemptions: "", limit_per_user: "1" });
@@ -142,7 +143,7 @@ export default function VipOfferManager({ placeId }: Props) {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-foreground">{offer.title}</p>
               <p className="text-xs text-muted-foreground">{offer.description}</p>
-              <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+              <div className="flex items-center gap-3 mt-2 text-2xs text-muted-foreground">
                 {offer.end_time && (
                   <span className="flex items-center gap-0.5">
                     <Clock className="w-3 h-3" />
@@ -195,13 +196,13 @@ export default function VipOfferManager({ placeId }: Props) {
             {/* Time range */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-muted-foreground mb-0.5 block">Début</label>
+                <label className="text-2xs text-muted-foreground mb-0.5 block">Début</label>
                 <input type="datetime-local" value={form.start_time}
                   onChange={(e) => setForm({ ...form, start_time: e.target.value })}
                   className="w-full text-xs bg-surface border border-border rounded-lg px-2 py-1.5 text-foreground" />
               </div>
               <div>
-                <label className="text-[10px] text-muted-foreground mb-0.5 block">Fin</label>
+                <label className="text-2xs text-muted-foreground mb-0.5 block">Fin</label>
                 <input type="datetime-local" value={form.end_time}
                   onChange={(e) => setForm({ ...form, end_time: e.target.value })}
                   className="w-full text-xs bg-surface border border-border rounded-lg px-2 py-1.5 text-foreground" />
@@ -211,14 +212,14 @@ export default function VipOfferManager({ placeId }: Props) {
             {/* Limits */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-muted-foreground mb-0.5 block">Max validations (total)</label>
+                <label className="text-2xs text-muted-foreground mb-0.5 block">Max validations (total)</label>
                 <input type="number" value={form.max_redemptions}
                   onChange={(e) => setForm({ ...form, max_redemptions: e.target.value })}
                   placeholder="Illimité"
                   className="w-full text-xs bg-surface border border-border rounded-lg px-2 py-1.5 text-foreground placeholder:text-muted-foreground" />
               </div>
               <div>
-                <label className="text-[10px] text-muted-foreground mb-0.5 block">Limite par personne</label>
+                <label className="text-2xs text-muted-foreground mb-0.5 block">Limite par personne</label>
                 <input type="number" value={form.limit_per_user}
                   onChange={(e) => setForm({ ...form, limit_per_user: e.target.value })}
                   className="w-full text-xs bg-surface border border-border rounded-lg px-2 py-1.5 text-foreground" />

@@ -136,7 +136,7 @@ export default function PartnerPromotions({ userId, placeId, canTrending }: Prop
                   >
                     {val.label}
                     <br />
-                    <span className="text-[10px]">{val.price}</span>
+                    <span className="text-2xs">{val.price}</span>
                   </button>
                 ))}
               </div>
@@ -163,7 +163,7 @@ export default function PartnerPromotions({ userId, placeId, canTrending }: Prop
 
       {/* Events list */}
       <div className="space-y-2">
-        <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">Événements sponsorisés</p>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Événements sponsorisés</p>
         {loading ? (
           <Loader2 className="w-5 h-5 text-gold animate-spin mx-auto" />
         ) : events.length === 0 ? (
@@ -175,12 +175,12 @@ export default function PartnerPromotions({ userId, placeId, canTrending }: Prop
                 <Flame className="w-4 h-4 text-gold" />
                 <div>
                   <p className="text-sm font-medium text-foreground">{ev.title}</p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-2xs text-muted-foreground">
                     {new Date(ev.event_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
                   </p>
                 </div>
               </div>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+              <span className={`px-2 py-0.5 rounded-full text-2xs font-bold ${
                 ev.status === "active" ? "bg-green-500/15 text-green-400" : "bg-muted text-muted-foreground"
               }`}>
                 {ev.status === "active" ? "ACTIF" : ev.status.toUpperCase()}

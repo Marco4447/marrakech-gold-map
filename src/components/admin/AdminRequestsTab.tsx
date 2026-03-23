@@ -75,7 +75,7 @@ export default function AdminRequestsTab({ partnerRequests, setPartnerRequests, 
       logAdminAction({ action: newStatus === "approved" ? "approve_partner" : "reject_partner", targetTable: "partner_requests", targetId: req.id, oldValue: { status: req.status }, newValue: { status: newStatus }, metadata: { business_name: req.business_name, place_id: requestPlaceIds[req.id] || null } });
       setPartnerRequests((prev) => prev.map((r) => (r.id === req.id ? { ...r, status: newStatus } : r)));
     } catch (err) {
-      console.error("Status update error:", err);
+     
       toast.error("Erreur lors de la mise à jour");
     } finally {
       setUpdatingId(null);
@@ -96,7 +96,7 @@ export default function AdminRequestsTab({ partnerRequests, setPartnerRequests, 
                   <p className="text-sm font-semibold text-foreground">{req.business_name}</p>
                   <p className="text-xs text-muted-foreground">{req.category} · {timeAgo(req.created_at)}</p>
                 </div>
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                <span className={`text-2xs font-medium px-2 py-0.5 rounded-full ${
                   req.status === "pending" ? "bg-gold/10 text-gold"
                   : req.status === "approved" ? "bg-green-500/10 text-green-400"
                   : "bg-destructive/10 text-destructive"
@@ -184,7 +184,7 @@ export default function AdminRequestsTab({ partnerRequests, setPartnerRequests, 
                   <input
                     readOnly
                     value={inviteLinks[req.id]}
-                    className="flex-1 text-[11px] bg-transparent text-foreground truncate outline-none"
+                    className="flex-1 text-xs bg-transparent text-foreground truncate outline-none"
                   />
                   <button
                     onClick={() => {

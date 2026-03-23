@@ -22,7 +22,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "text-gold" }: { icon
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-lg font-bold text-foreground mt-0.5">{value}</p>
-        {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
+        {sub && <p className="text-2xs text-muted-foreground mt-0.5">{sub}</p>}
       </div>
     </div>
   );
@@ -103,7 +103,7 @@ export default function AdminOverview({ stats, passStats }: { stats: AdminStats;
                 <button
                   key={p}
                   onClick={() => setRevenuePeriod(p)}
-                  className={`text-[10px] font-medium px-2 py-1 rounded-md transition-all ${
+                  className={`text-2xs font-medium px-2 py-1 rounded-md transition-all ${
                     revenuePeriod === p
                       ? "bg-gold/15 text-gold border border-gold/20"
                       : "text-muted-foreground bg-surface border border-border hover:text-foreground"
@@ -146,14 +146,14 @@ export default function AdminOverview({ stats, passStats }: { stats: AdminStats;
             { event: "CompletePayment", trigger: "Page payment-success", location: "PaymentSuccess.tsx" },
           ].map((ev) => (
             <div key={ev.event} className="flex items-start gap-3">
-              <span className="text-[10px] font-mono font-bold text-gold bg-gold/10 px-2 py-0.5 rounded shrink-0">{ev.event}</span>
+              <span className="text-2xs font-mono font-bold text-gold bg-gold/10 px-2 py-0.5 rounded shrink-0">{ev.event}</span>
               <div className="min-w-0">
                 <p className="text-xs text-foreground">{ev.trigger}</p>
-                <p className="text-[10px] text-muted-foreground">{ev.location}</p>
+                <p className="text-2xs text-muted-foreground">{ev.location}</p>
               </div>
             </div>
           ))}
-          <p className="text-[10px] text-muted-foreground pt-1 border-t border-border">
+          <p className="text-2xs text-muted-foreground pt-1 border-t border-border">
             Pixel ID : D6K52QJC77U9T6VFJO7G · Vérifier sur TikTok Events Manager
           </p>
         </div>
