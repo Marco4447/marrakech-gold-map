@@ -58,7 +58,7 @@ function useViewerCount(placeId: string | undefined) {
 }
 
 // ── Separator ──
-const Sep = () => <div className="h-px bg-[var(--border-default)] my-3" />;
+const Sep = () => <div className="h-px bg-[var(--border-default)] my-5" />;
 
 export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: PlaceSheetProps) {
   const [dealOpen, setDealOpen] = useState(false);
@@ -157,7 +157,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
             <div className={`bg-[var(--bg-card)] rounded-2xl overflow-hidden border shadow-2xl shadow-black/50 flex flex-col max-h-full ${isPartner ? "border-[rgba(200,130,30,0.35)]" : "border-[var(--border-default)]"}`}>
               {/* Drag handle */}
               <div className="flex items-center justify-center pt-3 pb-1 flex-shrink-0">
-                <div className="w-10 h-[3px] rounded-full bg-[var(--ochre)]/30" />
+                <div className="w-12 h-1 rounded-full bg-[var(--ochre)]/40" />
               </div>
 
               {/* ═══════════ SCROLLABLE CONTENT ═══════════ */}
@@ -196,9 +196,6 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
 
                   {/* ── ZONE 2: IDENTITÉ ── */}
                   <div>
-                    {place.category && (
-                      <p className="text-xs text-[var(--ochre)] font-semibold uppercase tracking-[0.15em] mb-1">{place.category}</p>
-                    )}
                     <div className="flex items-center flex-wrap gap-y-1">
                       <Link to={`/venue/${place.id}`} onClick={() => onOpenChange(false)}
                         className="font-display text-2xl font-black tracking-tight text-[var(--text-primary)] hover:text-[var(--ochre)] transition-colors">
@@ -235,7 +232,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                   {/* ── ZONE 3: OFFRE VIP ── */}
                   {isPartner && (
                     <>
-                      <div className="bg-[rgba(196,74,42,0.12)] border border-[rgba(196,74,42,0.25)] rounded-xl p-4 space-y-3">
+                      <div className="relative bg-gradient-to-br from-[var(--ochre)]/[0.08] to-[var(--terracotta)]/[0.06] border border-[var(--ochre)]/25 rounded-2xl p-4 space-y-3 shadow-[0_0_30px_rgba(212,146,30,0.08)]">
                         {/* Offer details */}
                         {vipOffers.length > 0 ? (
                           vipOffers.map((vip) => {
@@ -264,7 +261,8 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                               setShowQrModal(true);
                               try { navigator.vibrate?.(10); } catch {}
                             }}
-                            className="w-full py-2.5 rounded-xl bg-[var(--terracotta)] text-[var(--text-primary)] text-sm font-black uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
+                            className="w-full py-3 rounded-xl text-[var(--bg-primary)] text-sm font-black uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.97] transition-transform shadow-lg shadow-[var(--ochre)]/20"
+                            style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}
                           >
                             <Gift className="w-4 h-4" /> Récupérer l'offre
                           </button>
@@ -324,25 +322,25 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                     <div className="grid grid-cols-2 gap-2">
                       {placeDetails?.opening_hours && (
                         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-2.5">
-                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Horaires</p>
+                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5 flex items-center gap-1"><Clock className="w-2.5 h-2.5" /> Horaires</p>
                           <p className="text-xs font-semibold text-[var(--text-primary)]">{placeDetails.opening_hours.split(",")[0]}</p>
                         </div>
                       )}
                       {placeDetails?.price_range && (
                         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-2.5">
-                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Prix moyen</p>
+                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5 flex items-center gap-1"><DollarSign className="w-2.5 h-2.5" /> Prix moyen</p>
                           <p className="text-xs font-semibold text-[var(--text-primary)]">{placeDetails.price_range}</p>
                         </div>
                       )}
                       {(placeDetails as any)?.phone && (
                         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-2.5">
-                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Téléphone</p>
+                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5 flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> Téléphone</p>
                           <a href={`tel:${(placeDetails as any).phone}`} className="text-xs font-semibold text-[var(--ochre)]">{(placeDetails as any).phone}</a>
                         </div>
                       )}
                       {placeDetails?.music_style && (
                         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-2.5">
-                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5">Ambiance</p>
+                          <p className="text-2xs uppercase tracking-wide text-[var(--text-muted)] mb-0.5 flex items-center gap-1"><Music className="w-2.5 h-2.5" /> Ambiance</p>
                           <p className="text-xs font-semibold text-[var(--text-primary)]">{placeDetails.music_style}</p>
                         </div>
                       )}
@@ -432,7 +430,7 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
               </div>
 
               {/* ═══════════ STICKY BOTTOM BAR ═══════════ */}
-              <div className="flex-shrink-0 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] px-4 py-3 flex items-center gap-2">
+              <div className="flex-shrink-0 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]/95 backdrop-blur-xl px-4 py-3 flex items-center gap-2">
                 {/* Save */}
                 <button onClick={handleSave} aria-label={saved ? "Retirer des favoris" : "Ajouter aux favoris"}
                   className={`w-11 h-11 flex items-center justify-center rounded-xl border transition-all active:scale-90 ${saved ? "bg-[var(--ochre)]/15 border-[var(--ochre)]/40" : "bg-[rgba(245,237,216,0.05)] border-[var(--border-subtle)]"}`}>

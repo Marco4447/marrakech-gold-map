@@ -123,7 +123,9 @@ export default function BusinessPage() {
 
       <div className="pt-14 max-w-lg mx-auto">
         {/* ════════════ HERO ════════════ */}
-        <section className="px-5 pt-8 pb-10 text-center space-y-6">
+        <section className="px-5 pt-8 pb-10 text-center space-y-6 relative">
+          {/* Decorative glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[300px] rounded-full bg-gold/[0.06] blur-[100px] pointer-events-none" />
           <FadeIn>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgba(196,74,42,0.2)] border border-[var(--terracotta)] text-xs font-bold text-[var(--text-primary)] mb-2">
               <Zap className="w-3 h-3 text-[var(--terracotta)]" /> Offre Fondateur — Gratuit 6 mois
@@ -236,13 +238,13 @@ export default function BusinessPage() {
           <FadeIn delay={0.1}>
             <div className="bg-card border border-gold/20 rounded-2xl p-4 space-y-3">
               {[
-                { emoji: "📊", label: "Analytics", desc: "Vues, likes, check-ins en temps réel" },
-                { emoji: "🎁", label: "Offres VIP", desc: "Créez des deals exclusifs pour les Insiders" },
-                { emoji: "📖", label: "Stories", desc: "Publiez des stories visibles 24h sur toute l'app" },
-                { emoji: "📸", label: "Vibes Officielles", desc: "Postez avec le badge ⭐ — priorité dans le feed" },
+                { icon: BarChart3, label: "Analytics", desc: "Vues, likes, check-ins en temps réel" },
+                { icon: Gift, label: "Offres VIP", desc: "Créez des deals exclusifs pour les Insiders" },
+                { icon: Eye, label: "Stories", desc: "Publiez des stories visibles 24h sur toute l'app" },
+                { icon: Camera, label: "Vibes Officielles", desc: "Postez avec le badge ⭐ — priorité dans le feed" },
               ].map((f, i) => (
                 <div key={i} className="flex items-center gap-3 py-2 border-b border-border/30 last:border-0">
-                  <span className="text-lg">{f.emoji}</span>
+                  <f.icon className="w-5 h-5 text-gold shrink-0" />
                   <div className="flex-1">
                     <p className="text-xs font-semibold text-foreground">{f.label}</p>
                     <p className="text-2xs text-muted-foreground">{f.desc}</p>
@@ -284,8 +286,8 @@ export default function BusinessPage() {
                 </div>
                 <div className="mt-4 flex items-center gap-3">
                   <div className="px-3 py-1.5 rounded-full bg-gold/15 border border-gold/30">
-                    <span className="text-sm font-black text-gold">{foundersLeft}</span>
-                    <span className="text-xs text-gold/70 ml-1">places restantes</span>
+                    <span className={`text-lg font-black text-gold ${foundersLeft <= 5 ? "animate-pulse" : ""}`}>{foundersLeft}</span>
+                    <span className="text-2xs text-gold/70 ml-1">places restantes</span>
                   </div>
                   <div className="flex-1 h-2 bg-muted/30 rounded-full overflow-hidden">
                     <motion.div className="h-full bg-gold rounded-full" initial={{ width: 0 }} animate={{ width: `${((20 - foundersLeft) / 20) * 100}%` }} transition={{ duration: 1, delay: 0.5 }} />
@@ -310,6 +312,9 @@ export default function BusinessPage() {
             <FadeIn key={i} delay={i * 0.1}>
               <div className="bg-card/80 border border-border rounded-2xl p-4 space-y-3">
                 <p className="text-sm text-foreground/80 italic leading-relaxed">"{t.quote}"</p>
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, si) => <Star key={si} className="w-3.5 h-3.5 fill-gold text-gold" />)}
+                </div>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center text-sm">{t.emoji}</div>
                   <div>
@@ -385,7 +390,10 @@ export default function BusinessPage() {
           ) : (
             <FadeIn delay={0.1}>
               <div className="bg-surface border border-gold/20 rounded-2xl p-5 space-y-3 shadow-lg shadow-gold/5">
-                <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Nom de l'établissement *" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30" />
+                <div>
+                  <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold mb-1 block">Établissement *</label>
+                  <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Kabana Rooftop" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30" />
+                </div>
                 <select value={form.type} onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30">
                   <option value="">Type d'établissement</option>
                   {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -395,7 +403,10 @@ export default function BusinessPage() {
                   {QUARTIERS.map(q => <option key={q} value={q}>{q}</option>)}
                 </select>
                 <input value={form.contact} onChange={(e) => setForm(f => ({ ...f, contact: e.target.value }))} placeholder="Votre nom" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30" />
-                <input value={form.whatsapp} onChange={(e) => setForm(f => ({ ...f, whatsapp: e.target.value }))} placeholder="WhatsApp *  (+212 6XX XX XX XX)" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30" />
+                <div>
+                  <label className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold mb-1 block">WhatsApp *</label>
+                  <input value={form.whatsapp} onChange={(e) => setForm(f => ({ ...f, whatsapp: e.target.value }))} placeholder="+212 6XX XX XX XX" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30" />
+                </div>
                 <input value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email (optionnel)" type="email" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/30" />
                 <button onClick={handleSubmit} disabled={submitting} className="w-full py-3.5 rounded-xl font-bold text-sm text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform" style={{ background: "linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)" }}>
                   {submitting ? <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> : <><Send className="w-4 h-4" /> Rejoindre WeshKech</>}
@@ -424,7 +435,7 @@ export default function BusinessPage() {
       </div>
 
       {/* ── STICKY BOTTOM BAR (unified) ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-primary)] border-t border-[rgba(212,146,30,0.2)] px-4 py-3 flex items-center gap-2">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-primary)]/95 backdrop-blur-xl border-t border-[rgba(212,146,30,0.2)] px-4 py-3 flex items-center gap-2">
         <button onClick={scrollToForm} className="flex-1 h-12 rounded-xl font-black uppercase text-sm bg-[var(--ochre)] text-[var(--bg-primary)] flex items-center justify-center gap-2 active:scale-[0.97] transition-transform shadow-lg shadow-[var(--ochre)]/20">
           Devenir Partenaire Fondateur
         </button>

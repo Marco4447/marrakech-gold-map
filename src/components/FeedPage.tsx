@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark, Sparkles, Copy } from "lucide-react";
+import { Camera, MapPin, Clock, Heart, MessageCircle, Zap, Trash2, Video, Volume2, VolumeX, Crown, Share2, Play, Loader2, AlertCircle, Flame, UserPlus, UserCheck, Film, Rocket, Bookmark, Sparkles, Copy, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -119,12 +119,22 @@ function PartnerOffersRow() {
               sessionStorage.setItem("wk_flyto", JSON.stringify({ lat: 0, lng: 0, placeId: p.id }));
               window.dispatchEvent(new CustomEvent("wk:goto-map"));
             }}
-            className="w-48 flex-shrink-0 bg-[var(--bg-card)] border border-[rgba(196,74,42,0.3)] rounded-xl p-3 text-left active:scale-[0.97] transition-transform"
+            className="w-44 flex-shrink-0 rounded-xl overflow-hidden text-left active:scale-[0.97] transition-transform border border-[var(--ochre)]/20 relative bg-[var(--bg-card)]"
           >
-            <span className="inline-block bg-[var(--terracotta)] text-2xs text-white font-bold rounded px-2 py-0.5 mb-2 uppercase tracking-wide">★ Partenaire</span>
-            <p className="text-sm font-bold text-[var(--text-primary)] truncate">{p.name}</p>
-            {p.category && <p className="text-2xs text-[var(--ochre)] uppercase tracking-wide mt-0.5">{p.category}</p>}
-            {p.description && <p className="text-2xs text-[var(--text-secondary)] mt-1 line-clamp-1">{p.description}</p>}
+            {p.image_url ? (
+              <img src={p.image_url} alt={p.name} className="w-full h-24 object-cover" />
+            ) : (
+              <div className="w-full h-24 bg-[var(--bg-surface)] flex items-center justify-center">
+                <Gift className="w-6 h-6 text-[var(--ochre)]/30" />
+              </div>
+            )}
+            <div className="absolute top-2 left-2">
+              <span className="bg-[var(--terracotta)] text-2xs text-white font-bold rounded px-2 py-0.5 uppercase tracking-wide">★ Partenaire</span>
+            </div>
+            <div className="p-2.5">
+              <p className="text-sm font-bold text-[var(--text-primary)] truncate">{p.name}</p>
+              {p.category && <p className="text-2xs text-[var(--ochre)] uppercase tracking-wide mt-0.5">{p.category}</p>}
+            </div>
           </button>
         ))}
       </div>
@@ -259,7 +269,7 @@ function VibeSkeleton() {
           <div className="h-2 w-16 bg-[var(--bg-card)] animate-pulse rounded-full" />
         </div>
       </div>
-      <div className="aspect-[4/5] bg-[var(--bg-card)] animate-pulse" />
+      <div className="aspect-[4/5] bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-surface)] to-[var(--bg-card)] animate-shimmer bg-[length:200%_100%]" />
       <div className="flex gap-5 px-4 py-3">
         <div className="h-4 w-10 bg-[var(--bg-card)] animate-pulse rounded-full" />
         <div className="h-4 w-10 bg-[var(--bg-card)] animate-pulse rounded-full" />
@@ -677,9 +687,12 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
             className="flex items-center gap-1 active:opacity-70 transition-opacity"
             aria-label={`Onglet ${activeTab === "foryou" ? "Pour toi" : activeTab === "following" ? "Suivis" : "Récents"}, appuyer pour changer`}
           >
-            <h1 className="text-[26px] font-bold text-foreground tracking-tight font-display">
-              {activeTab === "foryou" ? "Pour toi" : activeTab === "following" ? "Suivis" : "Récents"}
-            </h1>
+            <div>
+              <p className="text-2xs font-bold text-gold uppercase tracking-[0.2em]">WeshKech</p>
+              <h1 className="text-xl font-bold text-foreground tracking-tight font-display leading-tight">
+                {activeTab === "foryou" ? "Pour toi" : activeTab === "following" ? "Suivis" : "Récents"}
+              </h1>
+            </div>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-foreground mt-1">
               <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -782,7 +795,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.08 }}
                     onClick={() => setCommentVibeId(vibe.id)}
-                    className={`relative flex-shrink-0 w-[42vw] aspect-[3/4] rounded-xl overflow-hidden cursor-pointer active:scale-[0.97] transition-transform ${i === 0 ? "ring-2 ring-foreground/20" : "ring-1 ring-border"}`}
+                    className={`relative flex-shrink-0 w-[42vw] aspect-[3/4] rounded-xl overflow-hidden cursor-pointer active:scale-[0.97] transition-transform ${i === 0 ? "ring-2 ring-gold shadow-lg shadow-gold/20" : "ring-1 ring-border"}`}
                   >
                     <VibeMedia vibe={vibe} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
@@ -809,7 +822,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
           )}
 
           {/* Main Feed */}
-          <div className="divide-y divide-border/30">
+          <div className="space-y-2">
             {visibleFeed.map((vibe, i) => {
               const liked = likedIds.has(vibe.id);
               const isAnimating = animatingId === vibe.id;
@@ -935,7 +948,7 @@ export default function FeedPage({ refreshSignal = 0, onGoToMap }: { refreshSign
                     {vibe.caption && <CaptionText name={getDisplayName(vibe)} text={vibe.caption} />}
                     {vibe.insider_tip && (
                       <div className="mx-0 mt-1 px-2.5 py-2 rounded-xl bg-gold/[0.08] border border-gold/[0.15] flex gap-2 items-start">
-                        <span className="text-sm shrink-0">💡</span>
+                        <Sparkles className="w-3.5 h-3.5 text-gold shrink-0 mt-0.5" />
                         <div>
                           <p className="text-2xs font-bold text-gold uppercase tracking-wider mb-0.5">Conseil d'insider</p>
                           <p className="text-xs text-foreground/80 leading-relaxed">{vibe.insider_tip}</p>
