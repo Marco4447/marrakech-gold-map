@@ -233,6 +233,36 @@ export type Database = {
         }
         Relationships: []
       }
+      email_queue: {
+        Row: {
+          created_at: string
+          email: string
+          email_type: string
+          id: string
+          send_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_type: string
+          id?: string
+          send_at: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_type?: string
+          id?: string
+          send_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ephemeral_reviews: {
         Row: {
           created_at: string | null
