@@ -46,6 +46,7 @@ const EventsPage = lazy(() => import("./pages/EventsPage"));
 const PartnerPitchPage = lazy(() => import("./pages/PartnerPitchPage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const CategoryNeighborhoodPage = lazy(() => import("./pages/CategoryNeighborhoodPage"));
+const SeoLongTailPage = lazy(() => import("./pages/SeoLongTailPage"));
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ const AppShell = () => {
                 <Route path="/partner-pitch" element={<Navigate to="/business" replace />} />
                 <Route path="/marrakech/:category" element={<CategoryPage />} />
                 <Route path="/marrakech/:category/:neighborhood" element={<CategoryNeighborhoodPage />} />
+                <Route path="/meilleur-:slug" element={<SeoLongTailPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

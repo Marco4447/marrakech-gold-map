@@ -73,4 +73,38 @@
   <url><loc>https://weshkech.com/marrakech/hammams/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://weshkech.com/marrakech/hotels/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://weshkech.com/marrakech/shopping/medina</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+
+  <!-- Long-tail SEO pages: meilleur-[cat]-[hood]-marrakech -->
+  <url><loc>https://weshkech.com/meilleur-cafe-medina-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-cafe-gueliz-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-cafe-mellah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-cafe-hivernage-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-cafe-palmeraie-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-cafe-kasbah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-restaurant-medina-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-restaurant-gueliz-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-restaurant-mellah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-restaurant-hivernage-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-restaurant-palmeraie-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-restaurant-kasbah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-hammam-medina-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-hammam-gueliz-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-hammam-mellah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-hammam-hivernage-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-hammam-kasbah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-rooftop-medina-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-rooftop-gueliz-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-rooftop-mellah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-rooftop-hivernage-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-rooftop-kasbah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-bar-medina-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-bar-gueliz-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-bar-hivernage-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-riad-medina-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-riad-gueliz-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-riad-palmeraie-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-souk-medina-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-souk-mellah-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-galerie-art-medina-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://weshkech.com/meilleur-galerie-art-gueliz-marrakech</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
 </urlset>

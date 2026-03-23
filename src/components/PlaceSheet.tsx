@@ -402,6 +402,16 @@ export default function PlaceSheet({ place, open, onOpenChange, onRecenter }: Pl
                     </div>
                   )}
 
+                  {/* SEO internal link */}
+                  {place.category && place.neighborhood && (
+                    <Link
+                      to={`/meilleur-${place.category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${place.neighborhood.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")}-marrakech`}
+                      className="text-sm text-[var(--ochre)] underline active:opacity-70 mb-3 inline-block"
+                    >
+                      Plus de {place.category.toLowerCase()}s à {place.neighborhood} →
+                    </Link>
+                  )}
+
                   {/* Manager CTA */}
                   {!isPartner && (
                     <Link to="/business" className="flex items-center gap-3 rounded-xl px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[var(--ochre)]/50 transition-all mb-4">
