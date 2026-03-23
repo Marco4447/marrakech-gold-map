@@ -1,4 +1,5 @@
 import { reportError } from "@/lib/errorReporting";
+import { toast } from "sonner";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Check, QrCode, Loader2, MessageCircle, Send } from "lucide-react";
